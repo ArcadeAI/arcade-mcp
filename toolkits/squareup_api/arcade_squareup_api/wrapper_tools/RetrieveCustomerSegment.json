@@ -1,7 +1,7 @@
 {
   "name": "RetrieveCustomerSegment",
   "fully_qualified_name": "SquareupApi.RetrieveCustomerSegment@0.1.0",
-  "description": "Retrieve a specific customer segment using its ID.\n\nUse this tool to fetch detailed information about a specific customer segment identified by its segment ID from the Squareup platform.",
+  "description": "Retrieve details of a specific customer segment.\n\nUse this tool to obtain information about a customer segment identified by a `segment_id`.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_segment_id",
         "required": true,
-        "description": "The unique Square-issued ID of the customer segment to retrieve.",
+        "description": "The Square-issued ID of the customer segment to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

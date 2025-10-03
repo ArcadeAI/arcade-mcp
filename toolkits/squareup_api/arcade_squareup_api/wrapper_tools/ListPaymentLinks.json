@@ -1,7 +1,7 @@
 {
   "name": "ListPaymentLinks",
   "fully_qualified_name": "SquareupApi.ListPaymentLinks@0.1.0",
-  "description": "Retrieve all available payment links.\n\nUse this tool to list all the payment links created in the system.",
+  "description": "Retrieve all available payment links from Squareup.\n\nUse this tool to list all payment links generated in your Squareup account. It helps in managing and reviewing payment links efficiently.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a previous call to fetch the next set of results. If not provided, returns the first page.",
+        "description": "A string cursor for paginating results. Use it to fetch the next set of results from a previous query. Leave blank to get the first page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "results_per_page_limit",
         "required": false,
-        "description": "Sets the maximum number of payment links to return per page. Values exceeding 1000 or non-positive numbers are ignored. Defaults to 100.",
+        "description": "Sets the maximum number of payment links to return per page. Defaults to 100, ignored if negative or exceeds 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,

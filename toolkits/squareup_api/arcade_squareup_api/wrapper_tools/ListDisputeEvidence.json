@@ -1,7 +1,7 @@
 {
   "name": "ListDisputeEvidence",
   "fully_qualified_name": "SquareupApi.ListDisputeEvidence@0.1.0",
-  "description": "Retrieve evidence linked to a specific dispute.\n\nUse this tool to obtain a list of evidence related to a specific dispute by providing the dispute ID.",
+  "description": "Retrieve evidence related to a specific dispute.\n\nUse this tool to obtain a list of all evidence associated with a particular dispute by specifying the dispute ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "dispute_id",
         "required": true,
-        "description": "The ID of the dispute to retrieve associated evidence.",
+        "description": "The unique identifier of the dispute for which evidence is being requested.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string used to retrieve the next set of results for the original query. Utilized for pagination.",
+        "description": "A pagination cursor to retrieve the next set of results for the original query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

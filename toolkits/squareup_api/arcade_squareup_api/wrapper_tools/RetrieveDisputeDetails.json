@@ -1,7 +1,7 @@
 {
   "name": "RetrieveDisputeDetails",
   "fully_qualified_name": "SquareupApi.RetrieveDisputeDetails@0.1.0",
-  "description": "Retrieve detailed information about a specific dispute.\n\nUse this tool to obtain comprehensive details about a specific dispute by providing the dispute ID.",
+  "description": "Retrieve details about a specific dispute.\n\nUse this tool to get detailed information about a particular dispute, including the reasons and status of the dispute.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "dispute_id",
         "required": true,
-        "description": "The unique identifier for the dispute to retrieve details about. Required to fetch dispute information.",
+        "description": "The unique ID of the dispute to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

@@ -1,7 +1,7 @@
 {
   "name": "DismissTerminalAction",
   "fully_qualified_name": "SquareupApi.DismissTerminalAction@0.1.0",
-  "description": "Dismiss a Terminal action request if permitted.\n\nUse this tool to dismiss a Terminal action request. This is applicable when the status and type of the request allow for dismissal. Refer to Square's documentation on linking and dismissing actions for further details.",
+  "description": "Dismiss a Square Terminal action request.\n\nUse this tool to dismiss a Terminal action request if it is permitted by the status and type of the request.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "terminal_action_id",
         "required": true,
-        "description": "Unique identifier for the TerminalAction to be dismissed. Ensure the ID is valid and corresponds to a dismissible request.",
+        "description": "Unique ID for the TerminalAction associated with the action to be dismissed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

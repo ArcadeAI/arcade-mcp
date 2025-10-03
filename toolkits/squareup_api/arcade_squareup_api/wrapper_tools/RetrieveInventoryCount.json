@@ -1,7 +1,7 @@
 {
   "name": "RetrieveInventoryCount",
   "fully_qualified_name": "SquareupApi.RetrieveInventoryCount@0.1.0",
-  "description": "Retrieve current stock count for specific catalog items.\n\nThis tool retrieves the current calculated stock count for a specified CatalogObject at selected locations. Useful for checking inventory levels. Responses are paginated and unsorted.",
+  "description": "Get the current stock count for an item.\n\nFetches the current calculated stock level for a specific CatalogObject at specified Locations. Useful for checking inventory availability. Results are paginated and unsorted.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "catalog_object_id",
         "required": true,
-        "description": "The unique identifier for the catalog item whose stock count you want to retrieve.",
+        "description": "ID of the CatalogObject to retrieve the inventory count for. Required for specifying which item to query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "location_ids",
         "required": false,
-        "description": "Comma-separated list of Location IDs to retrieve inventory counts. Leave empty to query all locations.",
+        "description": "Comma-separated list of Location IDs to query. Use empty to query all locations.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string used for pagination to retrieve the next set of results for the original query.",
+        "description": "A pagination cursor to retrieve the next set of results for an ongoing query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

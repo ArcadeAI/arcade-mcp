@@ -1,7 +1,7 @@
 {
   "name": "DeleteLoyaltyReward",
   "fully_qualified_name": "SquareupApi.DeleteLoyaltyReward@0.1.0",
-  "description": "Deletes a loyalty reward and adjusts points accordingly.\n\nThis tool deletes a specified loyalty reward, returning the loyalty points back to the associated account. If an order ID was involved, it updates the order by removing the reward and related discounts. Note: Rewards in the 'REDEEMED' state cannot be deleted.",
+  "description": "Delete a loyalty reward and restore loyalty points.\n\nUse this tool to delete a loyalty reward, which restores loyalty points to the account. It also updates the associated order by removing the reward and related discounts if an order ID was specified. The reward cannot be deleted if it has been redeemed.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "loyalty_reward_id",
+        "name": "reward_id",
         "required": true,
-        "description": "The unique ID of the loyalty reward to delete. This ID ensures the correct reward is identified and deleted.",
+        "description": "The ID of the loyalty reward to delete. This is required to identify which reward to remove and restore points for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "reward_id",
-        "tool_parameter_name": "loyalty_reward_id",
+        "tool_parameter_name": "reward_id",
         "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to delete.",
         "value_schema": {
           "val_type": "string",

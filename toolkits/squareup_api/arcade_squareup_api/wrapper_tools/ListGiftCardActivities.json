@@ -1,7 +1,7 @@
 {
   "name": "ListGiftCardActivities",
   "fully_qualified_name": "SquareupApi.ListGiftCardActivities@0.1.0",
-  "description": "Retrieve a list of gift card activities with optional filters.\n\nUse this tool to list gift card activities in a seller's account. You can apply filters such as specifying a particular gift card, region, or time window to refine the search.",
+  "description": "Retrieve and filter gift card activities for a seller.\n\nLists gift card activities from the seller's account. Optionally filter the activities by gift card, region, or within a specific time window.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "specific_gift_card_id",
+        "name": "gift_card_id",
         "required": false,
-        "description": "The ID of the gift card to filter activities for. If unspecified, returns all activities.",
+        "description": "Specify a gift card ID to return activities related to that gift card. Leave empty to return all gift card activities for the seller.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "gift_card_id"
       },
       {
-        "name": "gift_card_activity_type",
+        "name": "activity_type",
         "required": false,
-        "description": "Specifies the type of gift card activity to return. If not provided, returns all activity types.",
+        "description": "Filter gift card activities by specifying a particular activity type. If not provided, returns all activity types.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "location_id",
         "required": false,
-        "description": "Specify a location ID to filter gift card activities by a particular location. If not provided, activities for all locations will be returned.",
+        "description": "Specify the location ID to filter gift card activities for a particular location. Leave empty to return activities for all locations.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "location_id"
       },
       {
-        "name": "report_starttime_rfc3339",
+        "name": "reporting_start_time",
         "required": false,
-        "description": "The inclusive start time of the reporting period in RFC 3339 format. Defaults to one year ago.",
+        "description": "The starting timestamp for the reporting period, in RFC 3339 format. Includes this date and time. Defaults to one year prior from now if not specified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "begin_time"
       },
       {
-        "name": "reporting_period_end_time",
+        "name": "end_time",
         "required": false,
-        "description": "The inclusive timestamp for the end of the reporting period in RFC 3339 format. Defaults to the current time if not specified.",
+        "description": "The inclusive end timestamp for the reporting period in RFC 3339 format. Defaults to current time.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "end_time"
       },
       {
-        "name": "results_limit_per_page",
+        "name": "result_limit",
         "required": false,
-        "description": "Specify the number of results per page, up to a maximum of 100. Default is 50.",
+        "description": "Specify the maximum number of results per page. Default is 50, maximum allowed is 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The pagination cursor from a previous call to retrieve the next set of results. If not provided, the first page of results is returned.",
+        "description": "A pagination cursor from a previous call to get the next set of results. If not provided, the first page is returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "sort_order_by_creation_date",
+        "name": "activities_sort_order",
         "required": false,
-        "description": "Order gift card activities by their creation date. Use 'ASC' for oldest to newest, or 'DESC' for newest to oldest (default).",
+        "description": "Defines the order of gift card activities based on creation date. Use 'ASC' for oldest to newest, or 'DESC' for newest to oldest (default).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -179,7 +179,7 @@
     "parameters": [
       {
         "name": "gift_card_id",
-        "tool_parameter_name": "specific_gift_card_id",
+        "tool_parameter_name": "gift_card_id",
         "description": "If a gift card ID is provided, the endpoint returns activities related \nto the specified gift card. Otherwise, the endpoint returns all gift card activities for \nthe seller.",
         "value_schema": {
           "val_type": "string",
@@ -196,7 +196,7 @@
       },
       {
         "name": "type",
-        "tool_parameter_name": "gift_card_activity_type",
+        "tool_parameter_name": "activity_type",
         "description": "If a [type](entity:GiftCardActivityType) is provided, the endpoint returns gift card activities of the specified type. \nOtherwise, the endpoint returns all types of gift card activities.",
         "value_schema": {
           "val_type": "string",
@@ -230,7 +230,7 @@
       },
       {
         "name": "begin_time",
-        "tool_parameter_name": "report_starttime_rfc3339",
+        "tool_parameter_name": "reporting_start_time",
         "description": "The timestamp for the beginning of the reporting period, in RFC 3339 format.\nThis start time is inclusive. The default value is the current time minus one year.",
         "value_schema": {
           "val_type": "string",
@@ -247,7 +247,7 @@
       },
       {
         "name": "end_time",
-        "tool_parameter_name": "reporting_period_end_time",
+        "tool_parameter_name": "end_time",
         "description": "The timestamp for the end of the reporting period, in RFC 3339 format.\nThis end time is inclusive. The default value is the current time.",
         "value_schema": {
           "val_type": "string",
@@ -264,7 +264,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "results_limit_per_page",
+        "tool_parameter_name": "result_limit",
         "description": "If a limit is provided, the endpoint returns the specified number \nof results (or fewer) per page. The maximum value is 100. The default value is 50.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -298,7 +298,7 @@
       },
       {
         "name": "sort_order",
-        "tool_parameter_name": "sort_order_by_creation_date",
+        "tool_parameter_name": "activities_sort_order",
         "description": "The order in which the endpoint returns the activities, based on `created_at`.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default).",
         "value_schema": {
           "val_type": "string",

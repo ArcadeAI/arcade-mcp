@@ -1,7 +1,7 @@
 {
   "name": "ListWebhookEventTypes",
   "fully_qualified_name": "SquareupApi.ListWebhookEventTypes@0.1.0",
-  "description": "Lists all webhook event types available for subscription.\n\nThis tool retrieves a list of all webhook event types that can be subscribed to, allowing users to understand which events they can monitor via webhooks.",
+  "description": "Retrieves all available webhook event types for subscription.\n\nUse this tool to get a comprehensive list of webhook event types that can be subscribed to via the Square API.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "api_version",
         "required": false,
-        "description": "Specify the API version to list event types for. Overrides the application's default version.",
+        "description": "Specify the API version to list event types. Overrides the default version if set.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

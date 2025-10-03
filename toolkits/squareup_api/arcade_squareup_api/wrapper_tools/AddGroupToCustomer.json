@@ -1,7 +1,7 @@
 {
   "name": "AddGroupToCustomer",
   "fully_qualified_name": "SquareupApi.AddGroupToCustomer@0.1.0",
-  "description": "Adds a group membership to a specified customer.\n\nUse this tool to assign a group to a customer by providing the customer's ID and the group's ID. It should be called when you need to manage customer group memberships within the system.",
+  "description": "Add a customer to a specific group.\n\nUse this tool to assign a specified customer to a particular group by providing the customer's ID and the group's ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_id",
         "required": true,
-        "description": "The unique identifier for the customer to add to a group. Ensure this is a valid customer ID in the system.",
+        "description": "The unique identifier for the customer to be added to a group. It must match an existing customer ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "customer_group_id",
         "required": true,
-        "description": "The unique identifier for the customer group to which the customer will be added. This ID specifies the target group.",
+        "description": "The ID of the customer group to which the customer will be added. This should be a valid group ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

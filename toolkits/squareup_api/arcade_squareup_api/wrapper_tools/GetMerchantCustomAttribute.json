@@ -1,7 +1,7 @@
 {
   "name": "GetMerchantCustomAttribute",
   "fully_qualified_name": "SquareupApi.GetMerchantCustomAttribute@0.1.0",
-  "description": "Retrieve a custom attribute associated with a merchant.\n\nUse this tool to fetch a custom attribute linked to a merchant. You can specify if you want to include the attribute definition in the response. Note: To access attributes owned by another application, the visibility must allow it.",
+  "description": "Retrieve a custom attribute for a specific merchant.\n\nThis tool retrieves a custom attribute associated with a merchant. Use it to access merchant-specific data, with the option to include the custom attribute definition. Visibility settings dictate access permissions.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "merchant_id",
         "required": true,
-        "description": "The identifier for the target merchant whose custom attribute is to be retrieved. This should match the merchant's ID in the Square system.",
+        "description": "The unique identifier for the target merchant whose custom attribute is to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The unique key of the custom attribute to retrieve, matching the attribute definition in Square. Use the qualified key if not the definition owner.",
+        "description": "The key of the custom attribute to retrieve. Must match the `key` of a custom attribute definition in the Square seller account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "custom_attribute_version",
         "required": false,
-        "description": "The specific version of the custom attribute for consistent reads. Ensure it is up-to-date to avoid errors.",
+        "description": "Specifies the version of the custom attribute for consistent reads. If higher than current, returns an error.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "version"
       },
       {
-        "name": "include_attribute_definition",
+        "name": "include_definition",
         "required": false,
-        "description": "Set to true to include the custom attribute definition in the response, providing details like name, description, and data type. Default is false.",
+        "description": "Set to true to include the custom attribute definition, providing additional details such as name, description, and data type.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "with_definition",
-        "tool_parameter_name": "include_attribute_definition",
+        "tool_parameter_name": "include_definition",
         "description": "Indicates whether to return the [custom attribute definition](entity:CustomAttributeDefinition) in the `definition` field of\nthe custom attribute. Set this parameter to `true` to get the name and description of the custom\nattribute, information about the data type, or other definition details. The default value is `false`.",
         "value_schema": {
           "val_type": "boolean",

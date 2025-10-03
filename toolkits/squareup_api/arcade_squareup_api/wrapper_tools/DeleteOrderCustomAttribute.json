@@ -1,7 +1,7 @@
 {
   "name": "DeleteOrderCustomAttribute",
   "fully_qualified_name": "SquareupApi.DeleteOrderCustomAttribute@0.1.0",
-  "description": "Deletes a custom attribute from an order.\n\nUse this tool to delete a custom attribute associated with an order's profile. Ensure the attribute's visibility is set to allow deletion, specifically `VISIBILITY_READ_WRITE_VALUES`.",
+  "description": "Delete a custom attribute from an order.\n\nUse this tool to delete a specific custom attribute associated with an order. This is necessary when a custom attribute has the 'VISIBILITY_READ_WRITE_VALUES' setting or is defined by the seller.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "order_id",
         "required": true,
-        "description": "The unique identifier of the target order for which the custom attribute is to be deleted.",
+        "description": "The unique identifier for the target order from which the custom attribute will be deleted. This ID is crucial for locating the correct order.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute you want to delete. It must match an existing custom attribute definition key.",
+        "description": "Specifies the key of the custom attribute to be deleted. It must match an existing custom attribute definition's key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

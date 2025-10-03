@@ -1,7 +1,7 @@
 {
   "name": "ListLocationBookingProfiles",
   "fully_qualified_name": "SquareupApi.ListLocationBookingProfiles@0.1.0",
-  "description": "Retrieve booking profiles for seller locations.\n\nUse this tool to obtain a list of booking profiles associated with a seller's locations. This is useful for understanding the available booking configurations or schedules for different seller locations.",
+  "description": "Lists location booking profiles of a seller.\n\nUse this tool to retrieve a list of all the booking profiles associated with a seller's locations from Squareup.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "maximum_results_per_page",
         "required": false,
-        "description": "The maximum number of booking profiles to return in a single response. Use this to limit the size of the result set.",
+        "description": "The maximum number of booking profiles to retrieve in one page of the response.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Use this cursor to retrieve the next page of results. Leave it unset for the first page.",
+        "description": "Use this to provide the pagination cursor from the previous response to get the next set of results. Leave unset for the first page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

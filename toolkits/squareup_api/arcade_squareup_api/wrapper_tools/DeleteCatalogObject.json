@@ -1,7 +1,7 @@
 {
   "name": "DeleteCatalogObject",
   "fully_qualified_name": "SquareupApi.DeleteCatalogObject@0.1.0",
-  "description": "Delete a catalog object and its children by ID.\n\nUse this tool to delete a specific catalog object by its ID. The deletion is cascading, meaning all child objects will be deleted as well. It's processed one at a time per seller account to maintain consistency.",
+  "description": "Deletes a catalog object and its children by ID.\n\nThis tool deletes a catalog object by its ID, including all its child objects, ensuring that only one delete request is processed at a time per seller account. It should be called when you want to permanently remove a catalog item and its variations.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "catalog_object_id_to_delete",
+        "name": "catalog_object_id",
         "required": true,
-        "description": "The ID of the catalog object to be deleted. Deletion is cascading, affecting dependent objects like item variations.",
+        "description": "The ID of the catalog object, including its child objects, to be deleted. This is a cascading deletion.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "object_id",
-        "tool_parameter_name": "catalog_object_id_to_delete",
+        "tool_parameter_name": "catalog_object_id",
         "description": "The ID of the catalog object to be deleted. When an object is deleted, other\nobjects in the graph that depend on that object will be deleted as well (for example, deleting a\ncatalog item will delete its catalog item variations).",
         "value_schema": {
           "val_type": "string",

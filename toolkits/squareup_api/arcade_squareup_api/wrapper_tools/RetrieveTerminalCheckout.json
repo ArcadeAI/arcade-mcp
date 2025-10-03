@@ -1,7 +1,7 @@
 {
   "name": "RetrieveTerminalCheckout",
   "fully_qualified_name": "SquareupApi.RetrieveTerminalCheckout@0.1.0",
-  "description": "Retrieve details of a Terminal checkout by checkout ID.\n\nUse this tool to obtain information about a specific Terminal checkout request using its `checkout_id`. This information is accessible for up to 30 days after the request was made.",
+  "description": "Retrieve a Terminal checkout request by ID.\n\nThis tool retrieves the details of a Terminal checkout request using a unique `checkout_id`. It should be called to access checkout information up to 30 days after the request was created.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "terminal_checkout_id",
         "required": true,
-        "description": "The unique ID for the desired Terminal checkout to retrieve details.",
+        "description": "The unique ID used to retrieve details of a Terminal checkout request. Valid for 30 days.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

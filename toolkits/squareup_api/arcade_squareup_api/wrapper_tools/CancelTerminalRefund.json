@@ -1,7 +1,7 @@
 {
   "name": "CancelTerminalRefund",
   "fully_qualified_name": "SquareupApi.CancelTerminalRefund@0.1.0",
-  "description": "Cancel a terminal refund request if possible.\n\nUse this tool to cancel an Interac Terminal refund request by providing the refund request ID, given the request status allows it.",
+  "description": "Cancel a terminal refund request if allowed.\n\nThis tool cancels a terminal refund request using the refund request ID, if the current status permits cancellation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "terminal_refund_unique_id",
+        "name": "terminal_refund_id",
         "required": true,
-        "description": "The ID of the terminal refund to be canceled. This must be a valid and unique identifier.",
+        "description": "The unique ID for the desired TerminalRefund to cancel.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "terminal_refund_id",
-        "tool_parameter_name": "terminal_refund_unique_id",
+        "tool_parameter_name": "terminal_refund_id",
         "description": "The unique ID for the desired `TerminalRefund`.",
         "value_schema": {
           "val_type": "string",

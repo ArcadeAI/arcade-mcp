@@ -1,7 +1,7 @@
 {
   "name": "RetrieveDeviceInfo",
   "fully_qualified_name": "SquareupApi.RetrieveDeviceInfo@0.1.0",
-  "description": "Retrieve information for a specific device by ID.\n\nUse this tool to get detailed information about a device using its `device_id`. This could include device status, configuration, or other relevant details.",
+  "description": "Retrieve device information using a device ID.\n\nUse this tool to obtain details about a specific device by providing its device ID. It retrieves information related to the device, which can be useful for managing or reviewing devices in a system.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "device_id_for_retrieval",
+        "name": "device_unique_id",
         "required": true,
-        "description": "The unique ID of the device to retrieve details for. This ID is essential for identifying the specific device.",
+        "description": "The unique identifier for the device you want to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "device_id",
-        "tool_parameter_name": "device_id_for_retrieval",
+        "tool_parameter_name": "device_unique_id",
         "description": "The unique ID for the desired `Device`.",
         "value_schema": {
           "val_type": "string",

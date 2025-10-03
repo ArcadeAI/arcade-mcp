@@ -1,7 +1,7 @@
 {
   "name": "RetrieveLocationDetails",
   "fully_qualified_name": "SquareupApi.RetrieveLocationDetails@0.1.0",
-  "description": "Retrieve details of a specific location using location ID.\n\nUse this tool to get detailed information about a single location by providing its ID. Specify \"main\" as the location ID to get details of the main location.",
+  "description": "Retrieve detailed information about a specific location.\n\nCall this tool to obtain information about a particular location by providing the location ID. Use \"main\" as the ID to get details about the main location.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "location_identifier",
+        "name": "location_id",
         "required": true,
-        "description": "The ID of the location to retrieve. Use 'main' to get details of the main location.",
+        "description": "The ID of the location to retrieve. Use \"main\" for the main location.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "location_id",
-        "tool_parameter_name": "location_identifier",
+        "tool_parameter_name": "location_id",
         "description": "The ID of the location to retrieve. Specify the string\n\"main\" to return the main location.",
         "value_schema": {
           "val_type": "string",

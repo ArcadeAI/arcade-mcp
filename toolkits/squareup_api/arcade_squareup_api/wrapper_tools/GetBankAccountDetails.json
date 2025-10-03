@@ -1,7 +1,7 @@
 {
   "name": "GetBankAccountDetails",
   "fully_qualified_name": "SquareupApi.GetBankAccountDetails@0.1.0",
-  "description": "Retrieve details of a linked bank account from Square.\n\nThis tool fetches and returns information about a specific bank account linked to a Square account, identified by the bank_account_id.",
+  "description": "Retrieve details of a Square account's bank account.\n\nFetches detailed information about a specific bank account linked to a Square account using the bank account ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "bank_account_id",
+        "name": "bank_account_identifier",
         "required": true,
-        "description": "Square-issued ID of the desired BankAccount to retrieve details for.",
+        "description": "Square-issued ID of the specific bank account to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "bank_account_id",
-        "tool_parameter_name": "bank_account_id",
+        "tool_parameter_name": "bank_account_identifier",
         "description": "Square-issued ID of the desired `BankAccount`.",
         "value_schema": {
           "val_type": "string",

@@ -1,7 +1,7 @@
 {
   "name": "DeleteCustomerProfile",
   "fully_qualified_name": "SquareupApi.DeleteCustomerProfile@0.1.0",
-  "description": "Deletes a customer profile from a business.\n\nUse this tool to remove a customer profile in Squareup. Ensure you have the profile ID, especially if it was created by merging existing profiles.",
+  "description": "Deletes a customer profile from a business.\n\nUse this tool to delete a customer profile, especially if created by merging existing profiles. The unique customer ID is required for deletion.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "customer_id",
+        "name": "customer_identifier",
         "required": true,
-        "description": "The unique identifier of the customer profile to delete. Ensure this is accurate, especially if the profile was created by merging existing profiles.",
+        "description": "The unique identifier of the customer to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "customer_profile_version",
         "required": false,
-        "description": "The current version of the customer profile for optimistic concurrency control.",
+        "description": "The current version of the customer profile. Used for optimistic concurrency control.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -106,7 +106,7 @@
       },
       {
         "name": "customer_id",
-        "tool_parameter_name": "customer_id",
+        "tool_parameter_name": "customer_identifier",
         "description": "The ID of the customer to delete.",
         "value_schema": {
           "val_type": "string",

@@ -1,7 +1,7 @@
 {
   "name": "CancelLoyaltyPromotion",
   "fully_qualified_name": "SquareupApi.CancelLoyaltyPromotion@0.1.0",
-  "description": "Cancel a scheduled or active loyalty promotion program early.\n\nThis tool cancels a loyalty promotion, setting its status to 'CANCELED'. Use it to end an 'ACTIVE' or 'SCHEDULED' promotion earlier than the scheduled end date or when no end date is specified. It is also useful for canceling a promotion before creating a new one, as updates to promotions are not supported.",
+  "description": "Cancel an active or scheduled loyalty promotion early.\n\nUse this tool to set a loyalty promotion to the 'CANCELED' state. It is useful for canceling active promotions earlier than planned or canceling scheduled promotions before they begin. This is also applicable if you need to cancel one prior to creating a new promotion.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "loyalty_promotion_id",
         "required": true,
-        "description": "The ID of the loyalty promotion to cancel. Applicable for promotions with 'ACTIVE' or 'SCHEDULED' status.",
+        "description": "The unique identifier of the loyalty promotion to be canceled. Applicable for promotions with an 'ACTIVE' or 'SCHEDULED' status.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "loyalty_program_id",
         "required": true,
-        "description": "The ID of the base loyalty program to be canceled. This is required to identify the program associated with the promotion.",
+        "description": "The unique ID of the base loyalty program to be canceled.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

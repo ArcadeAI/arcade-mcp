@@ -1,7 +1,7 @@
 {
   "name": "GetSquareMerchantSettings",
   "fully_qualified_name": "SquareupApi.GetSquareMerchantSettings@0.1.0",
-  "description": "Retrieve settings for a Square checkout page.\n\nUse this tool to get the merchant-level settings for a Square-hosted checkout page, providing essential details about the checkout setup.",
+  "description": "Retrieve merchant settings for Square checkout pages.\n\nUse this tool to get the merchant-level settings configured for a Square-hosted checkout page. Useful for accessing checkout configurations and preferences.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,

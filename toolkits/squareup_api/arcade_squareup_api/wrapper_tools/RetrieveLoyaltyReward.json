@@ -1,7 +1,7 @@
 {
   "name": "RetrieveLoyaltyReward",
   "fully_qualified_name": "SquareupApi.RetrieveLoyaltyReward@0.1.0",
-  "description": "Retrieve details of a specific loyalty reward.\n\nCall this tool to get information about a specific loyalty reward using its ID.",
+  "description": "Retrieve details of a loyalty reward.\n\nThis tool is used to fetch information about a specific loyalty reward by providing the reward ID. It should be called when details about a particular reward are needed.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "loyalty_reward_id",
         "required": true,
-        "description": "The unique identifier for the loyalty reward to retrieve.",
+        "description": "The unique ID of the loyalty reward to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

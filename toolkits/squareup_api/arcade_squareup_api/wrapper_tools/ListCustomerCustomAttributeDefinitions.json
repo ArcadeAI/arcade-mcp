@@ -1,7 +1,7 @@
 {
   "name": "ListCustomerCustomAttributeDefinitions",
   "fully_qualified_name": "SquareupApi.ListCustomerCustomAttributeDefinitions@0.1.0",
-  "description": "Retrieve customer custom attribute definitions for a Square seller account.\n\nUse this tool to list custom attribute definitions associated with a Square seller account. The response includes all visible custom attribute definitions, including those created by other applications, with either `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES` settings.",
+  "description": "Retrieve customer custom attribute definitions for a Square seller.\n\nUse this tool to list all customer-related custom attribute definitions for a Square seller account. It returns all visible custom attribute definitions to the requesting application, including those set by other applications.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "max_results_per_page",
+        "name": "maximum_results_per_page",
         "required": false,
-        "description": "Advisory maximum number of results to return per page. Allowed range is 1 to 100. Default is 20.",
+        "description": "The maximum number of results to return in a paged response. Accepts values from 1 to 100, with a default of 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor from the previous response to retrieve the next page of results.",
+        "description": "Cursor for retrieving the next page of results. Obtain this from a previous response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "max_results_per_page",
+        "tool_parameter_name": "maximum_results_per_page",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",

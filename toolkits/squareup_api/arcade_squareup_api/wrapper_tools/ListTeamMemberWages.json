@@ -1,7 +1,7 @@
 {
   "name": "ListTeamMemberWages",
   "fully_qualified_name": "SquareupApi.ListTeamMemberWages@0.1.0",
-  "description": "Get a list of team member wages for a business.\n\nThis tool returns a paginated list of wage details for team members in a business. It should be called when you need to retrieve information about salaries or wages of employees.",
+  "description": "Retrieve paginated team member wages for a business.\n\nUse this tool to obtain a paginated list of wages for team members within a business. Ideal for managing payroll and financial records.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "filter_by_team_member_id",
         "required": false,
-        "description": "Filter returned wages to only those associated with the specified team member ID.",
+        "description": "Filter wages by specifying the team member's ID. Only wages for this team member will be returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "team_member_id"
       },
       {
-        "name": "max_results_per_page",
+        "name": "results_per_page",
         "required": false,
-        "description": "Specify the maximum number of team member wage results to return per page (1-200, default is 200).",
+        "description": "Specifies the maximum number of team member wages to return per page, ranging from 1 to 200. Default is 200.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "next_page_pointer",
+        "name": "next_page_cursor",
         "required": false,
-        "description": "A string that indicates the pointer to the next page of team member wage results to fetch. Use this to navigate through paginated results.",
+        "description": "A token used to fetch the next page of team member wage results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -121,7 +121,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_results_per_page",
+        "tool_parameter_name": "results_per_page",
         "description": "The maximum number of `TeamMemberWage` results to return per page. The number can range between\n1 and 200. The default is 200.",
         "value_schema": {
           "val_type": "integer",
@@ -138,7 +138,7 @@
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "next_page_pointer",
+        "tool_parameter_name": "next_page_cursor",
         "description": "A pointer to the next page of `EmployeeWage` results to fetch.",
         "value_schema": {
           "val_type": "string",

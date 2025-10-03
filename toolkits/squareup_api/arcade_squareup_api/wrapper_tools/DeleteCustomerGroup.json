@@ -1,7 +1,7 @@
 {
   "name": "DeleteCustomerGroup",
   "fully_qualified_name": "SquareupApi.DeleteCustomerGroup@0.1.0",
-  "description": "Deletes a customer group by its ID.\n\nUse this tool to delete a customer group from your database by specifying the group's unique ID.",
+  "description": "Deletes a specified customer group by ID.\n\n",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_group_id",
         "required": true,
-        "description": "The unique identifier of the customer group to be deleted. This ID is required to specify which group to remove.",
+        "description": "The ID of the customer group to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

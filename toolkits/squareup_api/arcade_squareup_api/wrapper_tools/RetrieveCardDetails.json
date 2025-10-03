@@ -1,7 +1,7 @@
 {
   "name": "RetrieveCardDetails",
   "fully_qualified_name": "SquareupApi.RetrieveCardDetails@0.1.0",
-  "description": "Retrieve details for a specific card.\n\nUse this tool to get information about a particular card using its card ID. Ideal for checking card details or verifying card information.",
+  "description": "Retrieve details for a specific card using its ID.\n\nThis tool retrieves information about a specific card identified by its ID, allowing users to access details such as metadata and status.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "card_id",
+        "name": "card_identifier",
         "required": true,
-        "description": "Unique identifier for the card to retrieve. Required to get specific card details.",
+        "description": "Unique ID for the card to retrieve its details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "card_id",
-        "tool_parameter_name": "card_id",
+        "tool_parameter_name": "card_identifier",
         "description": "Unique ID for the desired Card.",
         "value_schema": {
           "val_type": "string",

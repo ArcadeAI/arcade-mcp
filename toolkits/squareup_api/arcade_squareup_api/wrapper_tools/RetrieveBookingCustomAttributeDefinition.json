@@ -1,7 +1,7 @@
 {
   "name": "RetrieveBookingCustomAttributeDefinition",
   "fully_qualified_name": "SquareupApi.RetrieveBookingCustomAttributeDefinition@0.1.0",
-  "description": "Retrieve a bookings custom attribute definition.\n\nGet details of a booking's custom attribute definition, requiring specific OAuth scopes for buyer or seller-level permissions.",
+  "description": "Retrieve a booking's custom attribute definition.\n\nUse this tool to obtain the definition of a custom attribute for bookings. Appropriate OAuth scope permissions are required, either buyer-level (`APPOINTMENTS_READ`) or seller-level (`APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ`).",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute definition to retrieve. Use the qualified key if the application is not the definition owner.",
+        "description": "The key of the custom attribute definition to retrieve. If not the definition owner, use the qualified key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "key"
       },
       {
-        "name": "custom_attribute_definition_version",
+        "name": "custom_attribute_version",
         "required": false,
-        "description": "Specifies the desired version of the booking's custom attribute definition for consistent reads. If higher than current, it triggers a `BAD_REQUEST` error.",
+        "description": "The version of the custom attribute definition for consistent reads. If the version is too high, a `BAD_REQUEST` error occurs.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "version",
-        "tool_parameter_name": "custom_attribute_definition_version",
+        "tool_parameter_name": "custom_attribute_version",
         "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error.",
         "value_schema": {
           "val_type": "integer",

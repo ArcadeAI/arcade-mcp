@@ -1,4 +1,4 @@
-"""API Wrapper Tools for squareup
+"""API Wrapper Tools for Squareup
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
@@ -19,12 +19,12 @@ def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def get_squareup_token_status(
+async def retrieve_token_status(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveTokenStatus'."]:
-    """Retrieve the status of a Square OAuth or personal access token.
+    """Retrieve the status of an OAuth or personal access token.
 
-    Use this tool to check the status of a Square OAuth access token or a personal access token. It helps in determining whether the token is valid or expired. Ensure that the token is added to the Authorization header as 'Bearer ACCESS_TOKEN'."""  # noqa: E501
+    This tool checks the status of a Square OAuth access token or a personal access token. It should be called to verify if a token is active or expired. Ensure the token is included in the Authorization header as 'Bearer ACCESS_TOKEN'."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/oauth2/token/status",
@@ -46,25 +46,27 @@ async def get_squareup_token_status(
 async def list_bank_accounts(
     context: ToolContext,
     pagination_cursor: Annotated[
-        str | None, "Pagination cursor for retrieving the next set of bank account results."
+        str | None,
+        "The pagination cursor from a previous call to fetch the next set of bank account results.",
     ] = None,
-    bank_accounts_limit: Annotated[
-        int | None, "Maximum number of bank accounts to return. Max value is 1000."
+    max_bank_accounts_limit: Annotated[
+        int | None,
+        "Specify the maximum number of bank accounts to return. The largest supported limit is 1000.",  # noqa: E501
     ] = None,
-    location_id: Annotated[
-        str | None, "Optional filter to retrieve bank accounts for a specific location ID."
+    location_id_filter: Annotated[
+        str | None, "Optional filter to retrieve bank accounts for a specified location ID only."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListBankAccounts'."]:
-    """Retrieve a list of bank accounts linked to a Square account.
+    """Fetch a list of bank accounts linked to a Square account.
 
-    Use this tool to fetch all bank accounts associated with a Square account. It returns information about each bank account."""  # noqa: E501
+    Call this tool to retrieve all bank accounts associated with a Square account. Useful for checking account details or managing linked bank accounts."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bank-accounts",
             params=remove_none_values({
                 "cursor": pagination_cursor,
-                "limit": bank_accounts_limit,
-                "location_id": location_id,
+                "limit": max_bank_accounts_limit,
+                "location_id": location_id_filter,
             }),
             method="GET",
             headers=remove_none_values({
@@ -81,20 +83,20 @@ async def list_bank_accounts(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["BANK_ACCOUNTS_READ"]))
-async def get_bank_account_details_by_v1_id(
+async def get_bank_account_details_by_id(
     context: ToolContext,
-    bank_account_v1_id: Annotated[
+    v1_bank_account_id: Annotated[
         str,
-        "The Connect V1 ID of the desired BankAccount for retrieving details. Refer to the Squareup documentation for more details.",  # noqa: E501
+        "Connect V1 ID of the desired BankAccount. A unique string identifier to retrieve specific bank account details.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetBankAccountByV1Id'."]:
     """Retrieve bank account details using V1 ID.
 
-    Call this tool to get detailed information about a bank account by providing its V1 ID. Useful for accessing account information in applications that previously used V1 identifiers."""  # noqa: E501
+    Use this tool to get detailed information about a bank account by providing the V1 bank account ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bank-accounts/by-v1-id/{v1_bank_account_id}".format(  # noqa: UP032
-                v1_bank_account_id=bank_account_v1_id
+                v1_bank_account_id=v1_bank_account_id
             ),
             method="GET",
             headers=remove_none_values({
@@ -113,17 +115,17 @@ async def get_bank_account_details_by_v1_id(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["BANK_ACCOUNTS_READ"]))
 async def get_bank_account_details(
     context: ToolContext,
-    bank_account_id: Annotated[
-        str, "Square-issued ID of the desired BankAccount to retrieve details for."
+    bank_account_identifier: Annotated[
+        str, "Square-issued ID of the specific bank account to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetBankAccount'."]:
-    """Retrieve details of a linked bank account from Square.
+    """Retrieve details of a Square account's bank account.
 
-    This tool fetches and returns information about a specific bank account linked to a Square account, identified by the bank_account_id."""  # noqa: E501
+    Fetches detailed information about a specific bank account linked to a Square account using the bank account ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bank-accounts/{bank_account_id}".format(  # noqa: UP032
-                bank_account_id=bank_account_id
+                bank_account_id=bank_account_identifier
             ),
             method="GET",
             headers=remove_none_values({
@@ -140,48 +142,48 @@ async def get_bank_account_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
-async def retrieve_appointments(
+async def get_booking_list(
     context: ToolContext,
-    maximum_results_per_page: Annotated[
+    results_per_page_limit: Annotated[
         int | None,
-        "The maximum number of results per page to return in a paged response. Provide an integer value.",  # noqa: E501
+        "The maximum number of results to display per page in the response. Accepts an integer value.",  # noqa: E501
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "The cursor for retrieving the next page of results. Leave empty to get the first page.",
+        "The pagination cursor from the previous response for fetching the next page of results. Leave unset for the first page.",  # noqa: E501
     ] = None,
-    customer_id: Annotated[
+    specific_customer_id: Annotated[
         str | None,
-        "Specify the customer ID to retrieve bookings for that customer. Leave blank to retrieve bookings for all customers.",  # noqa: E501
+        "The specific customer for whom to retrieve bookings. If not set, retrieves bookings for all customers.",  # noqa: E501
     ] = None,
-    team_member_identifier: Annotated[
+    team_member_id: Annotated[
         str | None,
-        "The ID of the team member for whom to retrieve bookings. If not specified, retrieves bookings for all members.",  # noqa: E501
+        "Specify the team member ID to retrieve bookings for. If not set, retrieves bookings for all team members.",  # noqa: E501
     ] = None,
     specific_location_id: Annotated[
         str | None,
-        "The ID of the location for which to retrieve bookings. Leave unset to retrieve bookings from all locations.",  # noqa: E501
+        "Specify the location ID to retrieve bookings for that location only. If not set, bookings for all locations are retrieved.",  # noqa: E501
     ] = None,
     earliest_start_time: Annotated[
         str | None,
-        "The earliest start time for bookings in RFC 3339 format. Defaults to current time if not set.",  # noqa: E501
+        "The RFC 3339 timestamp for the earliest booking start time. Defaults to current time if not set.",  # noqa: E501
     ] = None,
     latest_start_time: Annotated[
         str | None,
-        "The latest start time in RFC 3339 format. Defaults to 31 days after start_at_min if not set.",  # noqa: E501
+        "The RFC 3339 timestamp for the latest acceptable start time of bookings. Defaults to 31 days after `start_at_min` if not set.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListBookings'."]:
-    """Fetch a collection of bookings from Squareup.
+    """Retrieve a collection of bookings.
 
-    Use this tool to retrieve a list of appointments. Ensure proper OAuth permissions are set for buyer-level or seller-level access."""  # noqa: E501
+    Use this tool to get a collection of bookings from the Squareup service. Relevant permissions (OAuth scope) are needed: `APPOINTMENTS_READ` for buyer-level and `APPOINTMENTS_ALL_READ` along with `APPOINTMENTS_READ` for seller-level permissions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings",
             params=remove_none_values({
-                "limit": maximum_results_per_page,
+                "limit": results_per_page_limit,
                 "cursor": pagination_cursor,
-                "customer_id": customer_id,
-                "team_member_id": team_member_identifier,
+                "customer_id": specific_customer_id,
+                "team_member_id": team_member_id,
                 "location_id": specific_location_id,
                 "start_at_min": earliest_start_time,
                 "start_at_max": latest_start_time,
@@ -201,12 +203,12 @@ async def retrieve_appointments(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
-async def retrieve_business_booking_profile(
+async def get_business_booking_profile(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveBusinessBookingProfile'."]:
-    """Retrieve a seller's booking profile.
+    """Retrieve seller's booking profile details.
 
-    Use this tool to get the booking profile of a seller. It retrieves important details about the business's reservation capabilities and settings."""  # noqa: E501
+    Use this tool to get detailed information about a seller's booking profile. Call this tool when you need to provide or display booking-related information for a seller."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/business-booking-profile",
@@ -225,22 +227,21 @@ async def retrieve_business_booking_profile(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
-async def list_booking_custom_attribute_definitions(
+async def get_booking_custom_attributes(
     context: ToolContext,
     maximum_results_per_page: Annotated[
         int | None,
-        "The advisory maximum number of results in a single response. Accepts values from 1 to 100, defaulting to 20.",  # noqa: E501
+        "Advisory maximum results per page. Minimum is 1, maximum is 100, default is 20.",
     ] = None,
     pagination_cursor: Annotated[
-        str | None,
-        "Cursor from the previous response to access the next page of booking custom attribute results.",  # noqa: E501
+        str | None, "Cursor for retrieving the next page of results from a previous response."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'ListBookingCustomAttributeDefinitions'."
 ]:
-    """Retrieve all booking custom attribute definitions.
+    """Retrieve all custom attribute definitions for bookings.
 
-    This tool fetches all custom attribute definitions related to bookings. Use it to access or manage custom attributes in Square's booking system, with appropriate OAuth permissions."""  # noqa: E501
+    Use this tool to get all custom attribute definitions associated with bookings. It requires appropriate OAuth scopes for buyer or seller level permissions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions",
@@ -265,19 +266,19 @@ async def list_booking_custom_attribute_definitions(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_WRITE"]))
 async def delete_booking_custom_attribute_definition(
     context: ToolContext,
-    custom_attribute_key: Annotated[
-        str, "The unique key of the custom attribute definition to be deleted for a booking."
+    custom_attribute_definition_key: Annotated[
+        str, "The unique key of the custom attribute definition to be deleted."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'DeleteBookingCustomAttributeDefinition'."
 ]:
-    """Delete a booking's custom attribute definition.
+    """Deletes a bookings custom attribute definition.
 
-    Use this tool to delete a specific custom attribute definition related to bookings. Ensure appropriate permissions are set: 'APPOINTMENTS_WRITE' for buyer-level or 'APPOINTMENTS_ALL_WRITE' and 'APPOINTMENTS_WRITE' for seller-level. Note, seller-level permissions require an Appointments Plus or Premium subscription."""  # noqa: E501
+    Use to delete a custom attribute definition for bookings. Requires specific OAuth scopes depending on permission level: `APPOINTMENTS_WRITE` for buyer-level or both `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level. Seller-level calls require an Appointments Plus or Premium subscription."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
+                key=custom_attribute_definition_key
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -298,24 +299,24 @@ async def retrieve_booking_custom_attribute_definition(
     context: ToolContext,
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute definition to retrieve. Use the qualified key if the application is not the definition owner.",  # noqa: E501
+        "The key of the custom attribute definition to retrieve. If not the definition owner, use the qualified key.",  # noqa: E501
     ],
-    custom_attribute_definition_version: Annotated[
+    custom_attribute_version: Annotated[
         int | None,
-        "Specifies the desired version of the booking's custom attribute definition for consistent reads. If higher than current, it triggers a `BAD_REQUEST` error.",  # noqa: E501
+        "The version of the custom attribute definition for consistent reads. If the version is too high, a `BAD_REQUEST` error occurs.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'RetrieveBookingCustomAttributeDefinition'."
 ]:
-    """Retrieve a bookings custom attribute definition.
+    """Retrieve a booking's custom attribute definition.
 
-    Get details of a booking's custom attribute definition, requiring specific OAuth scopes for buyer or seller-level permissions."""  # noqa: E501
+    Use this tool to obtain the definition of a custom attribute for bookings. Appropriate OAuth scope permissions are required, either buyer-level (`APPOINTMENTS_READ`) or seller-level (`APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ`)."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
                 key=custom_attribute_key
             ),
-            params=remove_none_values({"version": custom_attribute_definition_version}),
+            params=remove_none_values({"version": custom_attribute_version}),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -335,16 +336,16 @@ async def list_location_booking_profiles(
     context: ToolContext,
     maximum_results_per_page: Annotated[
         int | None,
-        "The maximum number of booking profiles to return in a single response. Use this to limit the size of the result set.",  # noqa: E501
+        "The maximum number of booking profiles to retrieve in one page of the response.",
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "Use this cursor to retrieve the next page of results. Leave it unset for the first page.",
+        "Use this to provide the pagination cursor from the previous response to get the next set of results. Leave unset for the first page.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListLocationBookingProfiles'."]:
-    """Retrieve booking profiles for seller locations.
+    """Lists location booking profiles of a seller.
 
-    Use this tool to obtain a list of booking profiles associated with a seller's locations. This is useful for understanding the available booking configurations or schedules for different seller locations."""  # noqa: E501
+    Use this tool to retrieve a list of all the booking profiles associated with a seller's locations from Squareup."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/location-booking-profiles",
@@ -367,16 +368,15 @@ async def list_location_booking_profiles(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
-async def get_seller_location_booking_profile(
+async def retrieve_location_booking_profile(
     context: ToolContext,
     location_id: Annotated[
-        str,
-        "The unique identifier of the seller's location for which the booking profile is being retrieved.",  # noqa: E501
+        str, "The unique ID of the location whose booking profile is to be retrieved."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLocationBookingProfile'."]:
     """Retrieve a seller's location booking profile.
 
-    Use this tool to obtain information about a seller's location booking profile, which includes details specific to the seller's location."""  # noqa: E501
+    Use this tool to obtain the booking profile details for a specific seller's location by providing the location ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/location-booking-profiles/{location_id}".format(  # noqa: UP032
@@ -397,33 +397,33 @@ async def get_seller_location_booking_profile(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
-async def list_booking_profiles(
+async def list_team_member_booking_profiles(
     context: ToolContext,
-    maximum_results_limit: Annotated[
+    max_results_per_page: Annotated[
         int | None,
-        "The maximum number of results to return per page. Useful for controlling the number of records returned in a single API call.",  # noqa: E501
+        "The maximum number of results to return in a paged response. Useful for controlling pagination size.",  # noqa: E501
     ] = None,
     pagination_cursor: Annotated[
-        str | None, "The cursor for retrieving the next page of results; omit for the first page."
+        str | None,
+        "The pagination cursor for returning the next page of results. Leave empty to get the first page.",  # noqa: E501
     ] = None,
     filter_by_location_id: Annotated[
-        str | None,
-        "Filter results to include only team members at the specified location. Provide the location ID as a string.",  # noqa: E501
+        str | None, "Specify the location ID to filter team members enabled at that location."
     ] = None,
     include_only_bookable_team_members: Annotated[
         bool | None,
-        "Set to true to return only bookable team members, or false to include all team members.",
+        "Set to true to include only bookable team members in the result; false to include all members.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListTeamMemberBookingProfiles'."]:
-    """Retrieve booking profiles for team members.
+    """Lists booking profiles for team members.
 
-    Use this tool to obtain a list of booking profiles for team members, which helps in managing scheduling and appointments."""  # noqa: E501
+    Call this tool to retrieve booking profiles for all team members, useful for managing schedules and appointments."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles",
             params=remove_none_values({
                 "bookable_only": include_only_bookable_team_members,
-                "limit": maximum_results_limit,
+                "limit": max_results_per_page,
                 "cursor": pagination_cursor,
                 "location_id": filter_by_location_id,
             }),
@@ -442,17 +442,18 @@ async def list_booking_profiles(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
-async def get_team_member_booking_profile(
+async def retrieve_team_member_booking_profile(
     context: ToolContext,
     team_member_id: Annotated[
-        str, "The unique identifier for the team member whose booking profile is to be retrieved."
+        str,
+        "The unique ID of the team member whose booking profile you want to retrieve. Must be a valid string identifier.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'RetrieveTeamMemberBookingProfile'."
 ]:
-    """Retrieve a team member's booking profile for bookings.
+    """Retrieve a team member's booking profile details.
 
-    Use this tool to get detailed information about a team member's booking profile, which includes their scheduling and booking preferences."""  # noqa: E501
+    Use this tool to access the booking profile of a specific team member by their ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles/{team_member_id}".format(  # noqa: UP032
@@ -473,17 +474,17 @@ async def get_team_member_booking_profile(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
-async def retrieve_booking_details(
+async def retrieve_booking(
     context: ToolContext,
-    booking_identifier: Annotated[str, "The unique ID of the booking to retrieve details for."],
+    booking_id: Annotated[str, "The unique identifier for the booking to retrieve details."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveBooking'."]:
-    """Retrieve a booking's details using its ID.
+    """Retrieve details of a specific booking.
 
-    Use this tool to get details about a specific booking. This is essential for managing appointments and requires appropriate OAuth permissions."""  # noqa: E501
+    Use this tool to get information about a particular booking using its ID. Appropriate OAuth scopes are required depending on whether buyer or seller permissions are needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/{booking_id}".format(  # noqa: UP032
-                booking_id=booking_identifier
+                booking_id=booking_id
             ),
             method="GET",
             headers=remove_none_values({
@@ -502,30 +503,30 @@ async def retrieve_booking_details(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
 async def list_booking_custom_attributes(
     context: ToolContext,
-    target_booking_id: Annotated[
+    booking_identifier: Annotated[
         str,
-        "The unique identifier for the target booking for which custom attributes are being retrieved.",  # noqa: E501
+        "The unique identifier for the target booking whose custom attributes you want to list.",
     ],
     maximum_results_per_page: Annotated[
         int | None,
-        "Advisory limit on the number of results to return in one page. Minimum is 1, maximum is 100, default is 20.",  # noqa: E501
+        "The maximum number of results to return per page, between 1 and 100. Default is 20.",
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "The cursor for fetching the next page of results in a paged response. Use this from the last call to continue retrieving data.",  # noqa: E501
+        "Cursor for retrieving the next page of results from a previous call to the endpoint.",
     ] = None,
     include_custom_attribute_definitions: Annotated[
         bool | None,
-        "Set to true to include the custom attribute definitions such as name, description, and data type in each custom attribute. Defaults to false.",  # noqa: E501
+        "Set to true to include custom attribute definition details, such as name and data type, in the response. Default is false.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListBookingCustomAttributes'."]:
-    """Retrieve custom attributes for a specific booking.
+    """Lists custom attributes for a specific booking.
 
-    This tool retrieves custom attributes associated with a specific booking. Use it when you need details beyond standard booking information. Buyer-level or seller-level permissions may be required depending on access scope."""  # noqa: E501
+    Use this tool to retrieve the custom attributes associated with a specific booking. Ensure the appropriate OAuth permissions (`APPOINTMENTS_READ` for buyer-level or `APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ` for seller-level) are set before calling this endpoint."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes".format(  # noqa: UP032
-                booking_id=target_booking_id
+                booking_id=booking_identifier
             ),
             params=remove_none_values({
                 "limit": maximum_results_per_page,
@@ -549,21 +550,21 @@ async def list_booking_custom_attributes(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_WRITE"]))
 async def delete_booking_custom_attribute(
     context: ToolContext,
-    target_booking_id: Annotated[
+    booking_id: Annotated[
         str, "The ID of the target booking from which the custom attribute will be deleted."
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to delete. It must match the key of a custom attribute definition in the Square seller account, with a qualified key if not the definition owner.",  # noqa: E501
+        "The key of the custom attribute to delete. It must match the key of a custom attribute definition in the Square seller account. Use the qualified key if not the definition owner.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteBookingCustomAttribute'."]:
-    """Delete a custom attribute from a booking.
+    """Deletes a custom attribute from a booking.
 
-    Use this tool to delete a specific custom attribute from a booking. Ensure appropriate permissions (`APPOINTMENTS_WRITE` for buyer-level or `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level) are set. Requires seller subscription to Appointments Plus or Premium for seller-level operations."""  # noqa: E501
+    Use this tool to remove a custom attribute from a specific booking. Appropriate OAuth permissions are required: 'APPOINTMENTS_WRITE' for buyer-level and 'APPOINTMENTS_ALL_WRITE' with 'APPOINTMENTS_WRITE' for seller-level. Seller must be subscribed to Appointments Plus or Premium."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
-                booking_id=target_booking_id, key=custom_attribute_key
+                booking_id=booking_id, key=custom_attribute_key
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -580,32 +581,31 @@ async def delete_booking_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
-async def retrieve_booking_custom_attribute(
+async def get_booking_custom_attribute(
     context: ToolContext,
-    booking_identifier: Annotated[
-        str,
-        "The unique identifier of the booking for which custom attributes are being retrieved. This ID is essential for accessing the booking's custom attribute data.",  # noqa: E501
+    target_booking_id: Annotated[
+        str, "The ID of the target booking to retrieve its custom attribute."
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key for the custom attribute to retrieve. Must match a definition key in the seller account. Use a qualified key if not the definition owner.",  # noqa: E501
+        "The key of the custom attribute to retrieve, matching the custom attribute definition in the Square seller account. Use the qualified key if not the definition owner.",  # noqa: E501
     ],
     custom_attribute_version: Annotated[
         int | None,
-        "The current version of the custom attribute for consistent reads. Ensure it matches or is lower than what exists to avoid errors.",  # noqa: E501
+        "The current version of the custom attribute for consistent reads. An integer value required to ensure up-to-date data.",  # noqa: E501
     ] = None,
     include_custom_attribute_definition: Annotated[
         bool | None,
-        "Set to true to include the custom attribute definition details, such as name, description, and data type, in the response. Defaults to false.",  # noqa: E501
+        "Set to true to include the custom attribute's definition, such as name and data type, in the response. Defaults to false.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveBookingCustomAttribute'."]:
-    """Retrieve custom attributes for a specific booking.
+    """Retrieve a custom attribute for a specific booking.
 
-    This tool is used to get custom attribute details for a specified booking. It requires specific OAuth permissions depending on whether buyer-level or seller-level access is needed. Ideal for retrieving personalized booking information based on unique attributes."""  # noqa: E501
+    Use this tool to get a custom attribute associated with a given booking, using either buyer- or seller-level permissions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
-                booking_id=booking_identifier, key=custom_attribute_key
+                booking_id=target_booking_id, key=custom_attribute_key
             ),
             params=remove_none_values({
                 "with_definition": include_custom_attribute_definition,
@@ -626,18 +626,42 @@ async def retrieve_booking_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def retrieve_card_details(
+async def retrieve_card_list(
     context: ToolContext,
-    card_id: Annotated[
-        str, "Unique identifier for the card to retrieve. Required to get specific card details."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCard'."]:
-    """Retrieve details for a specific card.
+    pagination_cursor: Annotated[
+        str | None,
+        "A string value representing a pagination cursor to retrieve the next set of results. Use this to continue from the last retrieved set.",  # noqa: E501
+    ] = None,
+    filter_by_customer_id: Annotated[
+        str | None,
+        "Limit results to cards associated with the specified customer. By default, all merchant-owned cards are returned.",  # noqa: E501
+    ] = None,
+    filter_by_reference_id: Annotated[
+        str | None,
+        "Filter results to include only cards associated with the specified reference ID.",
+    ] = None,
+    card_sort_order: Annotated[
+        str | None,
+        "Defines the sort order for the card creation date. Use 'ASC' for ascending or 'DESC' for descending. Defaults to 'ASC'.",  # noqa: E501
+    ] = None,
+    include_disabled_cards: Annotated[
+        bool | None,
+        "Set to true to include disabled cards in the results. By default, only enabled cards are returned.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCards'."]:
+    """Retrieve a list of cards owned by the account.
 
-    Use this tool to get information about a particular card using its card ID. Ideal for checking card details or verifying card information."""  # noqa: E501
+    The tool retrieves up to 25 cards associated with the account making the request. It should be used when there is a need to access card information for the account."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/cards/{card_id}".format(card_id=card_id),  # noqa: UP032
+            url="https://connect.squareup.com/v2/cards",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "customer_id": filter_by_customer_id,
+                "include_disabled": include_disabled_cards,
+                "reference_id": filter_by_reference_id,
+                "sort_order": card_sort_order,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -653,17 +677,42 @@ async def retrieve_card_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def disable_credit_card(
+async def retrieve_card_details(
     context: ToolContext,
-    credit_card_id: Annotated[str, "Unique identifier for the credit card to be disabled."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'DisableCard'."]:
-    """Disable a credit card to prevent updates or charges.
+    card_identifier: Annotated[str, "Unique ID for the card to retrieve its details."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCard'."]:
+    """Retrieve details for a specific card using its ID.
 
-    Use this tool to disable a specific card, stopping any further transactions or changes. Re-disabling an already inactive card is allowed and has no adverse effects."""  # noqa: E501
+    This tool retrieves information about a specific card identified by its ID, allowing users to access details such as metadata and status."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/cards/{card_id}".format(card_id=card_identifier),  # noqa: UP032
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup"))
+async def disable_payment_card(
+    context: ToolContext,
+    payment_card_id: Annotated[str, "Unique ID for the card to be disabled."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'DisableCard'."]:
+    """Disable a payment card to prevent charges.
+
+    Use this tool to disable a payment card, stopping any further updates or charges. Disabling an already disabled card is permitted but will not have any additional effect."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/cards/{card_id}/disable".format(  # noqa: UP032
-                card_id=credit_card_id
+                card_id=payment_card_id
             ),
             method="POST",
             headers=remove_none_values({
@@ -680,19 +729,72 @@ async def disable_credit_card(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CASH_DRAWER_READ"]))
-async def retrieve_cash_drawer_shift(
+async def list_cash_drawer_shifts(
     context: ToolContext,
     location_identifier: Annotated[
-        str, "The unique identifier of the location to retrieve cash drawer shifts from."
+        str, "The unique identifier for the location to query for cash drawer shifts."
+    ],
+    sort_order_for_listing: Annotated[
+        str | None,
+        "Specifies the order for listing cash drawer shifts by their opened_at field. Use 'ASC' for ascending or 'DESC' for descending. Defaults to 'ASC'.",  # noqa: E501
+    ] = None,
+    query_start_time: Annotated[
+        str | None, "The inclusive start time for the query on opened_at, in ISO 8601 format."
+    ] = None,
+    exclusive_end_date: Annotated[
+        str | None,
+        "The exclusive end time of the query on opened_at, specified in ISO 8601 format, to define the endpoint for the cash drawer shift search.",  # noqa: E501
+    ] = None,
+    result_limit: Annotated[
+        int | None,
+        "Specifies the number of cash drawer shift events per results page. Defaults to 200, with a maximum of 1000.",  # noqa: E501
+    ] = None,
+    next_page_cursor: Annotated[
+        str | None, "Opaque cursor for fetching the next page of results, used for pagination."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCashDrawerShifts'."]:
+    """Retrieve cash drawer shift details for a location and date range.
+
+    This tool provides details for all the cash drawer shifts for a specified location within a given date range. It should be called when cash drawer shift information is needed, such as start and end times, cash amounts, or other shift details for financial tracking and auditing purposes."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/cash-drawers/shifts",
+            params=remove_none_values({
+                "location_id": location_identifier,
+                "sort_order": sort_order_for_listing,
+                "begin_time": query_start_time,
+                "end_time": exclusive_end_date,
+                "limit": result_limit,
+                "cursor": next_page_cursor,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CASH_DRAWER_READ"]))
+async def get_cash_drawer_shift_details(
+    context: ToolContext,
+    location_identifier: Annotated[
+        str,
+        "The unique identifier for the location to retrieve cash drawer shifts from. Ensure this matches the location set up in Squareup.",  # noqa: E501
     ],
     cash_drawer_shift_id: Annotated[
-        str,
-        "The ID of the cash drawer shift to retrieve details for. This ID uniquely identifies the shift.",  # noqa: E501
+        str, "The unique identifier for the cash drawer shift to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCashDrawerShift'."]:
-    """Retrieve summary details for a cash drawer shift.
+    """Get summary details for a specific cash drawer shift.
 
-    This tool provides summary details for a specific cash drawer shift using the shift ID. It's useful for obtaining an overview of a particular shift's data."""  # noqa: E501
+    Use this tool to retrieve detailed information about a specific cash drawer shift, including relevant data about its transactions and status."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}".format(  # noqa: UP032
@@ -717,31 +819,30 @@ async def retrieve_cash_drawer_shift(
 async def list_cash_drawer_shift_events(
     context: ToolContext,
     location_identifier: Annotated[
-        str, "The unique identifier for the location to retrieve cash drawer shift events from."
-    ],
-    shift_id: Annotated[
         str,
-        "The unique identifier of the specific cash drawer shift for which events are retrieved. This is required to specify which shift's events should be listed.",  # noqa: E501
+        "The ID of the location to list cash drawer shifts for. This should be a valid location ID registered within the system.",  # noqa: E501
     ],
-    results_per_page: Annotated[
-        int | None, "Specify the number of events to retrieve per page (200 default, 1000 max)."
+    cash_drawer_shift_id: Annotated[
+        str, "The unique ID of the cash drawer shift for which events are to be retrieved."
+    ],
+    page_size_limit: Annotated[
+        int | None, "Number of events to return per page, default is 200, maximum is 1000."
     ] = None,
     pagination_cursor: Annotated[
-        str | None,
-        "An opaque string used to fetch the next page of results in a paginated response.",
+        str | None, "Opaque string to fetch the next page of results for cash drawer shift events."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCashDrawerShiftEvents'."]:
     """Retrieve events for a specific cash drawer shift.
 
-    This tool provides a list of events related to a particular cash drawer shift, which can help in tracking transactions and activities during that shift."""  # noqa: E501
+    This tool retrieves a paginated list of events for a specific cash drawer shift. It is useful for tracking activities and occurrences related to a particular shift."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}/events".format(  # noqa: UP032
-                shift_id=shift_id
+                shift_id=cash_drawer_shift_id
             ),
             params=remove_none_values({
                 "location_id": location_identifier,
-                "limit": results_per_page,
+                "limit": page_size_limit,
                 "cursor": pagination_cursor,
             }),
             method="GET",
@@ -759,12 +860,12 @@ async def list_cash_drawer_shift_events(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_READ"]))
-async def get_square_catalog_info(
+async def retrieve_catalog_info(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CatalogInfo'."]:
-    """Retrieve Square Catalog API information and limits.
+    """Retrieve Square Catalog API details and batch size limits.
 
-    Call this tool to get details about the Square Catalog API, including batch size limits for operations like `BatchUpsertCatalogObjects`."""  # noqa: E501
+    Use this tool to get information about the Square Catalog API, including batch size limits for catalog operations."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/catalog/info",
@@ -787,27 +888,27 @@ async def list_catalog_items(
     context: ToolContext,
     pagination_cursor: Annotated[
         str | None,
-        "The pagination cursor for retrieving the next set of results. Leave empty for the initial request.",  # noqa: E501
+        "The pagination cursor from the previous response. Leave empty for the initial request. Defaults to a page size of 100 results.",  # noqa: E501
     ] = None,
     catalog_object_types: Annotated[
         str | None,
-        "A case-insensitive, comma-separated list of object types to retrieve. Valid values include ITEM, CATEGORY, TAX, DISCOUNT, etc. Defaults to all top-level types if unspecified.",  # noqa: E501
+        "A comma-separated list of catalog object types to retrieve. Defaults to returning top-level types if unspecified.",  # noqa: E501
     ] = None,
-    catalog_version_to_retrieve: Annotated[
+    catalog_version: Annotated[
         int | None,
-        "The specific catalog version to be retrieved. Use an integer for historical versions. If not set, the current version is used.",  # noqa: E501
+        "Specify the version of the catalog objects to retrieve. Use to access historical versions. Default retrieves the current version.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCatalog'."]:
-    """Retrieve a list of catalog objects by specified types.
+    """Retrieve a list of catalog objects by type.
 
-    Use this tool to get a list of catalog items such as items, variations, modifiers, and more. It does not include deleted items. For deleted items, use the SearchCatalogObjects tool with 'include_deleted_objects' set to true."""  # noqa: E501
+    This tool retrieves a list of all catalog objects of specified types, such as ITEM, ITEM_VARIATION, MODIFIER, etc., excluding deleted items. It's useful for accessing and managing various components of a catalog in the Square ecosystem."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/catalog/list",
             params=remove_none_values({
                 "cursor": pagination_cursor,
                 "types": catalog_object_types,
-                "catalog_version": catalog_version_to_retrieve,
+                "catalog_version": catalog_version,
             }),
             method="GET",
             headers=remove_none_values({
@@ -826,18 +927,18 @@ async def list_catalog_items(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_WRITE"]))
 async def delete_catalog_object(
     context: ToolContext,
-    catalog_object_id_to_delete: Annotated[
+    catalog_object_id: Annotated[
         str,
-        "The ID of the catalog object to be deleted. Deletion is cascading, affecting dependent objects like item variations.",  # noqa: E501
+        "The ID of the catalog object, including its child objects, to be deleted. This is a cascading deletion.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteCatalogObject'."]:
-    """Delete a catalog object and its children by ID.
+    """Deletes a catalog object and its children by ID.
 
-    Use this tool to delete a specific catalog object by its ID. The deletion is cascading, meaning all child objects will be deleted as well. It's processed one at a time per seller account to maintain consistency."""  # noqa: E501
+    This tool deletes a catalog object by its ID, including all its child objects, ensuring that only one delete request is processed at a time per seller account. It should be called when you want to permanently remove a catalog item and its variations."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
-                object_id=catalog_object_id_to_delete
+                object_id=catalog_object_id
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -854,28 +955,27 @@ async def delete_catalog_object(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_READ"]))
-async def retrieve_catalog_object(
+async def retrieve_catalog_item(
     context: ToolContext,
     catalog_object_id: Annotated[
-        str,
-        "The unique identifier of the catalog object to retrieve, such as a CatalogItem or CatalogItemVariation.",  # noqa: E501
+        str, "The ID of the catalog object to retrieve. Use a unique string to specify the object."
     ],
     catalog_version: Annotated[
         int | None,
-        "Specify the catalog version as an integer to retrieve objects from a specific point in history. If not provided, the current version is used.",  # noqa: E501
+        "Specify the version number of the catalog to retrieve objects from a specific historical catalog version. If omitted, retrieves the current version.",  # noqa: E501
     ] = None,
     include_related_objects: Annotated[
         bool | None,
-        "Include related objects in the response when true. Useful for immediate display. Defaults to false.",  # noqa: E501
+        "Include additional objects related to the requested items in the response if set to `true`. This helps in displaying complete information for immediate use.",  # noqa: E501
     ] = None,
     include_category_path_to_root: Annotated[
         bool | None,
-        "Set to true to include the `path_to_root` list for each category. This path starts with the parent category and ends with the root. Omitted for top-level categories.",  # noqa: E501
+        "Set to 'true' to include the `path_to_root` list for each returned category instance. This path starts with the immediate parent category and ends with the root category. If the category is top-level, the `path_to_root` list is empty and not returned.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCatalogObject'."]:
-    """Retrieve detailed information about a catalog item.
+    """Fetch detailed catalog item information by ID.
 
-    Fetches a single catalog item as a catalog object using the provided ID, including item variations, modifier lists, and tax IDs."""  # noqa: E501
+    Use this tool to obtain complete details about a specific catalog item, including its variations, modifier lists, and applicable taxes, by providing the item ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
@@ -901,25 +1001,80 @@ async def retrieve_catalog_object(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
+async def list_square_customers(
+    context: ToolContext,
+    pagination_cursor: Annotated[
+        str | None,
+        "A pagination cursor to retrieve the next set of customer profiles. Use a cursor from a previous query call to fetch subsequent results.",  # noqa: E501
+    ] = None,
+    maximum_results_per_page: Annotated[
+        int | None,
+        "Specify the maximum number of customer profiles to return in a single page. Must be between 1 and 100, inclusive.",  # noqa: E501
+    ] = None,
+    customer_sorting_field: Annotated[
+        str | None,
+        "Specify how customer profiles should be sorted. Options are `DEFAULT` or `CREATED_AT`. Default is `DEFAULT`.",  # noqa: E501
+    ] = None,
+    customer_sort_order: Annotated[
+        str | None,
+        "Specifies whether to sort customers in ascending ('ASC') or descending ('DESC') order. Default is 'ASC'.",  # noqa: E501
+    ] = None,
+    include_total_customer_count: Annotated[
+        bool | None,
+        "Set to true to include the total count of customers in the response. The default is false.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCustomers'."]:
+    """Retrieve customer profiles from a Square account.
+
+    Use this tool to obtain a list of customer profiles linked to a Square account. This is helpful for managing and analyzing customer data. Customer profiles may take some time to update, especially during network issues."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/customers",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "limit": maximum_results_per_page,
+                "sort_field": customer_sorting_field,
+                "sort_order": customer_sort_order,
+                "count": include_total_customer_count,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
 async def list_customer_custom_attribute_definitions(
     context: ToolContext,
-    max_results_per_page: Annotated[
+    maximum_results_per_page: Annotated[
         int | None,
-        "Advisory maximum number of results to return per page. Allowed range is 1 to 100. Default is 20.",  # noqa: E501
+        "The maximum number of results to return in a paged response. Accepts values from 1 to 100, with a default of 20.",  # noqa: E501
     ] = None,
     pagination_cursor: Annotated[
-        str | None, "The cursor from the previous response to retrieve the next page of results."
+        str | None,
+        "Cursor for retrieving the next page of results. Obtain this from a previous response.",
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'ListCustomerCustomAttributeDefinitions'."
 ]:
-    """Retrieve customer custom attribute definitions for a Square seller account.
+    """Retrieve customer custom attribute definitions for a Square seller.
 
-    Use this tool to list custom attribute definitions associated with a Square seller account. The response includes all visible custom attribute definitions, including those created by other applications, with either `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES` settings."""  # noqa: E501
+    Use this tool to list all customer-related custom attribute definitions for a Square seller account. It returns all visible custom attribute definitions to the requesting application, including those set by other applications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/custom-attribute-definitions",
-            params=remove_none_values({"limit": max_results_per_page, "cursor": pagination_cursor}),
+            params=remove_none_values({
+                "limit": maximum_results_per_page,
+                "cursor": pagination_cursor,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -935,17 +1090,18 @@ async def list_customer_custom_attribute_definitions(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
-async def delete_customer_custom_attribute(
+async def delete_customer_custom_attribute_definition(
     context: ToolContext,
     custom_attribute_key: Annotated[
-        str, "The key of the custom attribute definition to delete from the Square seller account."
+        str,
+        "The unique key of the custom attribute definition you wish to delete from the seller account.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'DeleteCustomerCustomAttributeDefinition'."
 ]:
-    """Deletes a customer custom attribute definition in Square.
+    """Delete a customer custom attribute definition for a seller account.
 
-    Use this tool to delete a specific customer-related custom attribute definition from a Square seller account. This action also removes the custom attribute from all customer profiles in the seller's directory. Only the owner of the definition can perform this deletion."""  # noqa: E501
+    This tool deletes a customer-related custom attribute definition from a Square seller's account. It will also remove the related custom attribute from all customer profiles in the seller's Customer Directory. Only the definition owner can perform this action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
@@ -966,26 +1122,26 @@ async def delete_customer_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
-async def retrieve_customer_attribute_definition(
+async def get_customer_custom_attribute_definition(
     context: ToolContext,
-    attribute_key: Annotated[
+    custom_attribute_key: Annotated[
         str,
         "The key of the custom attribute definition to retrieve. Use the qualified key if not the definition owner.",  # noqa: E501
     ],
     custom_attribute_version: Annotated[
         int | None,
-        "The version number of the custom attribute definition for consistent reads. Ensure it is not higher than the current version to avoid errors.",  # noqa: E501
+        "Current version of the attribute definition for consistent reads. Returns specified or higher version data. Error if version is too high.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'RetrieveCustomerCustomAttributeDefinition'."
 ]:
-    """Retrieve customer custom attribute definition from Square.
+    """Retrieve a customer's custom attribute definition from Square.
 
-    Fetches a custom attribute definition related to a customer from a Square seller account. It is used for accessing definitions that are either visibility 'read-only' or 'read-write-values'."""  # noqa: E501
+    Fetches a customer-related custom attribute definition from a Square seller account. This should be called to get definitions where visibility is either 'READ_ONLY' or 'READ_WRITE_VALUES', including seller-defined custom fields."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=attribute_key
+                key=custom_attribute_key
             ),
             params=remove_none_values({"version": custom_attribute_version}),
             method="GET",
@@ -1006,20 +1162,24 @@ async def retrieve_customer_attribute_definition(
 async def list_customer_groups(
     context: ToolContext,
     pagination_cursor: Annotated[
-        str | None, "A cursor returned by a previous call to retrieve the next set of results."
+        str | None,
+        "A pagination cursor to retrieve the next set of customer groups. Used to continue from the last retrieved page.",  # noqa: E501
     ] = None,
-    max_results_per_page: Annotated[
+    maximum_results_per_page: Annotated[
         int | None,
-        "The maximum number of customer groups to return in a single page. Acceptable values range from 1 to 50.",  # noqa: E501
+        "The maximum number of results to return per page, between 1 and 50. Defaults to 50.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCustomerGroups'."]:
     """Retrieve the list of customer groups for a business.
 
-    Use this tool to get the complete list of customer groups associated with a business. It is useful for identifying and managing different customer segments."""  # noqa: E501
+    Use this tool to access all customer groups associated with a business. Useful for managing or displaying customer segmentation and categories."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/groups",
-            params=remove_none_values({"cursor": pagination_cursor, "limit": max_results_per_page}),
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "limit": maximum_results_per_page,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -1037,14 +1197,9 @@ async def list_customer_groups(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
 async def delete_customer_group(
     context: ToolContext,
-    customer_group_id: Annotated[
-        str,
-        "The unique identifier of the customer group to be deleted. This ID is required to specify which group to remove.",  # noqa: E501
-    ],
+    customer_group_id: Annotated[str, "The ID of the customer group to delete."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteCustomerGroup'."]:
-    """Deletes a customer group by its ID.
-
-    Use this tool to delete a customer group from your database by specifying the group's unique ID."""  # noqa: E501
+    """Deletes a specified customer group by ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
@@ -1068,13 +1223,12 @@ async def delete_customer_group(
 async def retrieve_customer_group(
     context: ToolContext,
     customer_group_id: Annotated[
-        str,
-        "The unique identifier for the customer group to retrieve details for. This ID is used to specify which group you want to manage or analyze.",  # noqa: E501
+        str, "The ID of the customer group you want to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCustomerGroup'."]:
-    """Retrieve details of a specific customer group from Square.
+    """Retrieve details of a specific customer group using its ID.
 
-    Use this tool to obtain information about a specific customer group by providing the group's ID. This is helpful for managing customer segments and analyzing customer data."""  # noqa: E501
+    This tool retrieves information about a specific customer group identified by a given group ID. It is useful for accessing details about customer segmentation for targeting or analysis purposes."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
@@ -1098,17 +1252,16 @@ async def retrieve_customer_group(
 async def list_customer_segments(
     context: ToolContext,
     pagination_cursor: Annotated[
-        str | None,
-        "A cursor from a previous `ListCustomerSegments` call for retrieving the next set of results.",  # noqa: E501
+        str | None, "A pagination cursor for retrieving the next set of customer segment results."
     ] = None,
     max_results_per_page: Annotated[
         int | None,
-        "The maximum number of customer segments to return in a single page, between 1 and 50. Default is 50.",  # noqa: E501
+        "Maximum number of results to return per page. Must be between 1 and 50. Default is 50. If outside this range, an error is returned.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCustomerSegments'."]:
     """Retrieve the list of customer segments for a business.
 
-    Use this tool to get the list of customer segments associated with a business account. This is useful for managing and analyzing customer groups."""  # noqa: E501
+    Call this tool to obtain the customer segments associated with a business. This can be useful for understanding customer classifications and targeting specific groups in marketing or service strategies."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/segments",
@@ -1131,12 +1284,12 @@ async def list_customer_segments(
 async def retrieve_customer_segment(
     context: ToolContext,
     customer_segment_id: Annotated[
-        str, "The unique Square-issued ID of the customer segment to retrieve."
+        str, "The Square-issued ID of the customer segment to retrieve."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCustomerSegment'."]:
-    """Retrieve a specific customer segment using its ID.
+    """Retrieve details of a specific customer segment.
 
-    Use this tool to fetch detailed information about a specific customer segment identified by its segment ID from the Squareup platform."""  # noqa: E501
+    Use this tool to obtain information about a customer segment identified by a `segment_id`."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/segments/{segment_id}".format(  # noqa: UP032
@@ -1159,22 +1312,19 @@ async def retrieve_customer_segment(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
 async def delete_customer_profile(
     context: ToolContext,
-    customer_id: Annotated[
-        str,
-        "The unique identifier of the customer profile to delete. Ensure this is accurate, especially if the profile was created by merging existing profiles.",  # noqa: E501
-    ],
+    customer_identifier: Annotated[str, "The unique identifier of the customer to be deleted."],
     customer_profile_version: Annotated[
         int | None,
-        "The current version of the customer profile for optimistic concurrency control.",
+        "The current version of the customer profile. Used for optimistic concurrency control.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteCustomer'."]:
     """Deletes a customer profile from a business.
 
-    Use this tool to remove a customer profile in Squareup. Ensure you have the profile ID, especially if it was created by merging existing profiles."""  # noqa: E501
+    Use this tool to delete a customer profile, especially if created by merging existing profiles. The unique customer ID is required for deletion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
-                customer_id=customer_id
+                customer_id=customer_identifier
             ),
             params=remove_none_values({"version": customer_profile_version}),
             method="DELETE",
@@ -1195,12 +1345,13 @@ async def delete_customer_profile(
 async def get_customer_details(
     context: ToolContext,
     customer_id: Annotated[
-        str, "The unique identifier of the customer whose details are to be retrieved."
+        str,
+        "The unique ID of the customer to retrieve details for. Used to access specific customer information.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCustomer'."]:
     """Retrieve details for a specific customer.
 
-    This tool retrieves detailed information about a single customer using their customer ID. It should be called when you need to access specific customer details from the Squareup platform."""  # noqa: E501
+    Use this tool to get detailed information about a specific customer by their ID. Ideal for when you need to access customer profiles or verify customer details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
@@ -1224,32 +1375,31 @@ async def get_customer_details(
 async def list_customer_custom_attributes(
     context: ToolContext,
     customer_profile_id: Annotated[
-        str,
-        "The unique identifier of the target customer profile to retrieve custom attributes for.",
+        str, "The ID of the customer profile for which to list custom attributes."
     ],
-    maximum_results_per_page: Annotated[
+    result_limit: Annotated[
         int | None,
-        "Advisory limit for number of results in a response. Accepts values from 1 to 100, with a default of 20.",  # noqa: E501
+        "Maximum number of results for a single response. Accepts values 1-100, with a default of 20.",  # noqa: E501
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "The cursor for paginated responses. Use it to retrieve the next page of results from a previous request.",  # noqa: E501
+        "The pagination cursor from the previous response to continue retrieving results.",
     ] = None,
     include_custom_attribute_definitions: Annotated[
         bool | None,
-        "Set to true to include custom attribute definitions in the response, such as name, description, and data type details. Defaults to false.",  # noqa: E501
+        "Indicate whether to include custom attribute definitions such as name, description, and data type details in the response. Default is false.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListCustomerCustomAttributes'."]:
-    """Retrieve custom attributes for a specific customer profile.
+    """Retrieve custom attributes for a customer profile.
 
-    This tool retrieves custom attributes associated with a customer profile. Use it to access all visible custom attributes, including those with read-only or read-write visibility. Can optionally retrieve attribute definitions as well."""  # noqa: E501
+    This tool lists the custom attributes associated with a specified customer profile. It can also retrieve custom attribute definitions if specified. It returns all attributes visible to the requesting application, including those with read-only or read-write visibility owned by other applications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes".format(  # noqa: UP032
                 customer_id=customer_profile_id
             ),
             params=remove_none_values({
-                "limit": maximum_results_per_page,
+                "limit": result_limit,
                 "cursor": pagination_cursor,
                 "with_definitions": include_custom_attribute_definitions,
             }),
@@ -1268,23 +1418,23 @@ async def list_customer_custom_attributes(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
-async def remove_customer_custom_attribute(
+async def delete_customer_custom_attribute(
     context: ToolContext,
-    target_customer_id: Annotated[
-        str, "The ID of the customer profile from which the custom attribute will be deleted."
+    customer_profile_id: Annotated[
+        str, "The ID of the target customer profile for which the custom attribute will be deleted."
     ],
-    custom_attribute_key_to_delete: Annotated[
+    custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to delete, matching the `key` in the Square seller account. Use a qualified key if not the definition owner.",  # noqa: E501
+        "The key identifying the custom attribute to delete, matching the definition in the Square account. Use the qualified key if the application isn't the definition owner.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteCustomerCustomAttribute'."]:
     """Delete a custom attribute from a customer profile.
 
-    Removes a custom attribute associated with a customer profile. Use this to delete attributes, especially those with `VISIBILITY_READ_WRITE_VALUES` permissions."""  # noqa: E501
+    Deletes a custom attribute from a customer profile, ensuring the visibility setting is `VISIBILITY_READ_WRITE_VALUES` for attributes owned by other applications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
-                customer_id=target_customer_id, key=custom_attribute_key_to_delete
+                customer_id=customer_profile_id, key=custom_attribute_key
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -1304,25 +1454,24 @@ async def remove_customer_custom_attribute(
 async def retrieve_customer_custom_attribute(
     context: ToolContext,
     customer_profile_id: Annotated[
-        str,
-        "The unique identifier of the target customer profile whose custom attribute is to be retrieved.",  # noqa: E501
+        str, "The ID of the target customer profile you want to retrieve a custom attribute for."
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to retrieve. It must match an existing custom attribute definition key in the Square seller account. Use a qualified key if not the definition owner.",  # noqa: E501
+        "The unique key of the custom attribute to retrieve, matching the definition in the Square seller account. Use the qualified key if the app is not the definition owner.",  # noqa: E501
     ],
-    attribute_version: Annotated[
+    custom_attribute_version: Annotated[
         int | None,
-        "Specify the version of the custom attribute for consistent data retrieval. Input a version number or omit for the latest version. If a higher version is entered than existing, a `BAD_REQUEST` error occurs.",  # noqa: E501
+        "The current version of the custom attribute for consistent reads. If higher than available, returns an error.",  # noqa: E501
     ] = None,
     include_custom_attribute_definition: Annotated[
         bool | None,
-        "Set to true to include the custom attribute definition in the response, providing additional details like name, description, and data type.",  # noqa: E501
+        "Set to true to include the custom attribute definition in the response, including details like name, description, and data type.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveCustomerCustomAttribute'."]:
     """Retrieve a custom attribute for a customer profile.
 
-    This tool retrieves a custom attribute from a customer profile. Use it when you need to access customer-specific custom attributes. Optional retrieval of the attribute definition is supported. Visibility settings may affect access."""  # noqa: E501
+    Use this tool to get a custom attribute associated with a customer. Optionally, retrieve the attribute definition and ensure proper visibility settings for attributes owned by other applications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
@@ -1330,7 +1479,7 @@ async def retrieve_customer_custom_attribute(
             ),
             params=remove_none_values({
                 "with_definition": include_custom_attribute_definition,
-                "version": attribute_version,
+                "version": custom_attribute_version,
             }),
             method="GET",
             headers=remove_none_values({
@@ -1347,19 +1496,19 @@ async def retrieve_customer_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
-async def remove_customer_group(
+async def remove_group_from_customer(
     context: ToolContext,
     customer_id: Annotated[
-        str, "The unique identifier of the customer to be removed from the group."
+        str,
+        "The unique ID of the customer to remove from the specified group. Provide as a string.",
     ],
     customer_group_id: Annotated[
-        str,
-        "The unique identifier for the customer group from which the customer should be removed.",
+        str, "The ID of the customer group from which the customer will be removed."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RemoveGroupFromCustomer'."]:
-    """Removes a customer from a specified group.
+    """Removes a group membership from a customer.
 
-    Use this tool to remove a specified group membership from a customer by providing the customer's ID and the group's ID."""  # noqa: E501
+    Use this tool to remove a customer's membership in a specific group by providing the customer's ID and the group's ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
@@ -1384,16 +1533,16 @@ async def add_group_to_customer(
     context: ToolContext,
     customer_id: Annotated[
         str,
-        "The unique identifier for the customer to add to a group. Ensure this is a valid customer ID in the system.",  # noqa: E501
+        "The unique identifier for the customer to be added to a group. It must match an existing customer ID.",  # noqa: E501
     ],
     customer_group_id: Annotated[
         str,
-        "The unique identifier for the customer group to which the customer will be added. This ID specifies the target group.",  # noqa: E501
+        "The ID of the customer group to which the customer will be added. This should be a valid group ID.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AddGroupToCustomer'."]:
-    """Adds a group membership to a specified customer.
+    """Add a customer to a specific group.
 
-    Use this tool to assign a group to a customer by providing the customer's ID and the group's ID. It should be called when you need to manage customer group memberships within the system."""  # noqa: E501
+    Use this tool to assign a specified customer to a particular group by providing the customer's ID and the group's ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
@@ -1413,16 +1562,105 @@ async def add_group_to_customer(
             return {"response_text": response.text}
 
 
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICES_READ"]))
+async def list_merchant_devices(
+    context: ToolContext,
+    pagination_cursor: Annotated[
+        str | None, "A pagination cursor from a previous call to retrieve the next set of results."
+    ] = None,
+    result_sort_order: Annotated[
+        str | None,
+        "Specifies whether to list results from oldest to newest ('ASC') or newest to oldest ('DESC'). Default is 'DESC'.",  # noqa: E501
+    ] = None,
+    results_per_page: Annotated[
+        int | None, "The number of device results to return in a single API call."
+    ] = None,
+    filter_by_location_id: Annotated[
+        str | None, "Return devices only at the specified location."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListDevices'."]:
+    """Retrieve a list of merchant's connected devices.
+
+    Call this tool to obtain a list of devices associated with a merchant, specifically Terminal API devices, using the Squareup service."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/devices",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "sort_order": result_sort_order,
+                "limit": results_per_page,
+                "location_id": filter_by_location_id,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICE_CREDENTIAL_MANAGEMENT"]))
-async def get_device_code(
+async def list_device_codes(
+    context: ToolContext,
+    pagination_cursor: Annotated[
+        str | None,
+        "A pagination cursor from a previous call, used to retrieve the next set of results.",
+    ] = None,
+    filter_by_location_id: Annotated[
+        str | None,
+        "Specify a location to return only its DeviceCodes. Leave empty to return codes from all locations.",  # noqa: E501
+    ] = None,
+    filter_by_product_type: Annotated[
+        str | None,
+        "Specify a product type to target specific DeviceCodes. Use 'TERMINAL_API' or leave empty for all types.",  # noqa: E501
+    ] = None,
+    device_code_status: Annotated[
+        str | None,
+        "Specifies the status of DeviceCodes to return. Options: UNKNOWN, UNPAIRED, PAIRED, EXPIRED. Returns PAIRED and UNPAIRED if empty.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListDeviceCodes'."]:
+    """Retrieve all device codes for the merchant.
+
+    This tool retrieves all device codes associated with a merchant account on Square. It should be called when there's a need to list or manage the devices linked to a merchant."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/devices/codes",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "location_id": filter_by_location_id,
+                "product_type": filter_by_product_type,
+                "status": device_code_status,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICE_CREDENTIAL_MANAGEMENT"]))
+async def retrieve_device_code(
     context: ToolContext,
     device_code_id: Annotated[
-        str, "The unique identifier for the device code to retrieve its details."
+        str, "The unique identifier for the device code to retrieve details from Squareup."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetDeviceCode'."]:
-    """Retrieve device code details using the associated ID.
+    """Retrieve device code details by ID.
 
-    Use this tool to fetch details of a specific device code by providing its unique identifier."""
+    Use this tool to get details of a device code using the associated ID from Squareup."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/devices/codes/{id}".format(id=device_code_id),  # noqa: UP032
@@ -1443,19 +1681,58 @@ async def get_device_code(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICES_READ"]))
 async def retrieve_device_info(
     context: ToolContext,
-    device_id_for_retrieval: Annotated[
-        str,
-        "The unique ID of the device to retrieve details for. This ID is essential for identifying the specific device.",  # noqa: E501
+    device_unique_id: Annotated[
+        str, "The unique identifier for the device you want to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetDevice'."]:
-    """Retrieve information for a specific device by ID.
+    """Retrieve device information using a device ID.
 
-    Use this tool to get detailed information about a device using its `device_id`. This could include device status, configuration, or other relevant details."""  # noqa: E501
+    Use this tool to obtain details about a specific device by providing its device ID. It retrieves information related to the device, which can be useful for managing or reviewing devices in a system."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/devices/{device_id}".format(  # noqa: UP032
-                device_id=device_id_for_retrieval
+                device_id=device_unique_id
             ),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
+async def get_account_disputes(
+    context: ToolContext,
+    pagination_cursor: Annotated[
+        str | None, "A cursor for retrieving the next set of dispute results from a previous query."
+    ] = None,
+    dispute_states_filter: Annotated[
+        str | None,
+        "Filter disputes by their states. Options include 'INQUIRY_EVIDENCE_REQUIRED', 'INQUIRY_PROCESSING', 'INQUIRY_CLOSED', 'EVIDENCE_REQUIRED', 'PROCESSING', 'WON', 'LOST', 'ACCEPTED'.",  # noqa: E501
+    ] = None,
+    location_identifier: Annotated[
+        str | None,
+        "The ID of the location to return a list of disputes for. If not provided, returns disputes for all locations.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListDisputes'."]:
+    """Fetches disputes associated with an account.
+
+    Use this tool to retrieve all disputes linked to a specific account. This can help in tracking and managing any disputes that have arisen."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/disputes",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "states": dispute_states_filter,
+                "location_id": location_identifier,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -1473,14 +1750,11 @@ async def retrieve_device_info(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
 async def retrieve_dispute_details(
     context: ToolContext,
-    dispute_id: Annotated[
-        str,
-        "The unique identifier for the dispute to retrieve details about. Required to fetch dispute information.",  # noqa: E501
-    ],
+    dispute_id: Annotated[str, "The unique ID of the dispute to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveDispute'."]:
-    """Retrieve detailed information about a specific dispute.
+    """Retrieve details about a specific dispute.
 
-    Use this tool to obtain comprehensive details about a specific dispute by providing the dispute ID."""  # noqa: E501
+    Use this tool to get detailed information about a particular dispute, including the reasons and status of the dispute."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}".format(  # noqa: UP032
@@ -1501,16 +1775,16 @@ async def retrieve_dispute_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_WRITE"]))
-async def accept_dispute_loss(
+async def accept_dispute(
     context: ToolContext,
     dispute_id: Annotated[
         str,
-        "The unique identifier for the dispute that needs to be accepted. This ID is required to process the acceptance.",  # noqa: E501
+        "The unique identifier for the dispute that needs to be accepted. This must match the ID given by Square for the specific dispute.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'AcceptDispute'."]:
-    """Accepts the loss on a dispute and updates the dispute state to ACCEPTED.
+    """Accepts the loss on a dispute, updating the state to ACCEPTED.
 
-    This tool should be called when a user needs to accept the financial loss on a dispute through Square. It processes the disputed amount back to the cardholder and updates the seller's account accordingly."""  # noqa: E501
+    This tool accepts the loss on a dispute by updating its state to ACCEPTED. Square processes the disputed amount, returning it to the cardholder and debiting the seller's Square account or associated bank account if funds are insufficient."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}/accept".format(  # noqa: UP032
@@ -1533,15 +1807,17 @@ async def accept_dispute_loss(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
 async def list_dispute_evidence(
     context: ToolContext,
-    dispute_id: Annotated[str, "The ID of the dispute to retrieve associated evidence."],
+    dispute_id: Annotated[
+        str, "The unique identifier of the dispute for which evidence is being requested."
+    ],
     pagination_cursor: Annotated[
         str | None,
-        "A string used to retrieve the next set of results for the original query. Utilized for pagination.",  # noqa: E501
+        "A pagination cursor to retrieve the next set of results for the original query.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListDisputeEvidence'."]:
-    """Retrieve evidence linked to a specific dispute.
+    """Retrieve evidence related to a specific dispute.
 
-    Use this tool to obtain a list of evidence related to a specific dispute by providing the dispute ID."""  # noqa: E501
+    Use this tool to obtain a list of all evidence associated with a particular dispute by specifying the dispute ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence".format(  # noqa: UP032
@@ -1565,21 +1841,20 @@ async def list_dispute_evidence(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_WRITE"]))
 async def remove_dispute_evidence(
     context: ToolContext,
-    dispute_identifier: Annotated[
-        str, "The unique identifier for the dispute from which evidence should be removed."
+    dispute_id: Annotated[
+        str, "The unique identifier of the dispute from which evidence should be removed."
     ],
     evidence_id_to_remove: Annotated[
-        str,
-        "The unique ID of the evidence to remove from the dispute. Ensure it is accurate to successfully remove the evidence.",  # noqa: E501
+        str, "The ID of the evidence you want to remove from the dispute."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteDisputeEvidence'."]:
-    """Remove specified evidence from a dispute.
+    """Removes specified evidence from a dispute.
 
-    Use this tool to remove evidence linked to a specific dispute. The evidence removed will not be sent to the bank by Square. Call this when evidence needs to be withdrawn or updated in a dispute case."""  # noqa: E501
+    Use this tool to remove evidence from a dispute. This can be called when it's necessary to retract evidence previously submitted for a dispute. The bank will not be informed of the removed evidence."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
-                dispute_id=dispute_identifier, evidence_id=evidence_id_to_remove
+                dispute_id=dispute_id, evidence_id=evidence_id_to_remove
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -1598,20 +1873,19 @@ async def remove_dispute_evidence(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
 async def get_dispute_evidence_metadata(
     context: ToolContext,
-    dispute_identifier: Annotated[
-        str, "The unique identifier for the dispute to retrieve evidence metadata."
-    ],
+    dispute_id: Annotated[str, "The unique ID of the dispute to retrieve its evidence metadata."],
     evidence_id: Annotated[
-        str, "The unique identifier for the evidence you want to retrieve metadata for."
+        str,
+        "The ID of the evidence you wish to retrieve metadata for. Ensure correct ID is provided to access the specific evidence details.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveDisputeEvidence'."]:
-    """Retrieve metadata for specific dispute evidence.
+    """Retrieve metadata for specified dispute evidence.
 
-    This tool retrieves the metadata for a specific piece of evidence related to a dispute using the dispute and evidence identifiers."""  # noqa: E501
+    Call this tool to obtain metadata of dispute evidence using a given dispute ID and evidence ID. Ensure to maintain a copy of any evidence uploaded as it cannot be downloaded later."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
-                dispute_id=dispute_identifier, evidence_id=evidence_id
+                dispute_id=dispute_id, evidence_id=evidence_id
             ),
             method="GET",
             headers=remove_none_values({
@@ -1631,12 +1905,13 @@ async def get_dispute_evidence_metadata(
 async def submit_dispute_evidence(
     context: ToolContext,
     dispute_id: Annotated[
-        str, "The unique identifier of the dispute for which evidence is being submitted."
+        str,
+        "The unique identifier for the dispute to which you are submitting evidence. You need this ID to ensure the evidence is attached to the correct dispute case.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'SubmitEvidence'."]:
-    """Submit evidence for disputes to the cardholder's bank.
+    """Submit evidence to a cardholder's bank for a dispute.
 
-    Use this tool to submit evidence related to a dispute to the cardholder's bank. This includes evidence uploaded through other endpoints and automatically provided evidence. Note that evidence cannot be removed once submitted."""  # noqa: E501
+    This tool is used to submit evidence related to a dispute to the cardholder's bank. It includes evidence uploaded through specific Square endpoints and any automatically provided evidence. Evidence cannot be removed once submitted."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/disputes/{dispute_id}/submit-evidence".format(  # noqa: UP032
@@ -1657,12 +1932,12 @@ async def submit_dispute_evidence(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def disable_events(
+async def disable_events_search(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DisableEvents'."]:
-    """Disable events to make them unsearchable.
+    """Disable events to prevent them from being searchable.
 
-    Use this tool to disable specific events, making them unsearchable. This is useful when you want to prevent events from being found during a specific time period. Disabled events remain unsearchable even if re-enabled later."""  # noqa: E501
+    Use this tool to disable events, preventing them from being searchable, even if re-enabled later. Helpful for managing event visibility."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/events/disable",
@@ -1681,12 +1956,12 @@ async def disable_events(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def enable_searchable_events(
+async def enable_events_for_search(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'EnableEvents'."]:
-    """Enable events to be searchable within the platform.
+    """Enable events to make them searchable.
 
-    This tool activates event searchability, ensuring that only events occurring while enabled are searchable. It should be called when there's a need to make recent or ongoing events searchable in the system."""  # noqa: E501
+    This tool activates events so that they become searchable. Only events occurring while enabled will be searchable. Use this tool when you need to ensure events are indexed for search."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/events/enable",
@@ -1707,18 +1982,18 @@ async def enable_searchable_events(
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
 async def list_event_types(
     context: ToolContext,
-    api_version_for_event_types: Annotated[
+    api_version: Annotated[
         str | None,
-        "Specify the API version to list event types, overriding the application's default.",
+        "Specify the API version to list event types. This overrides the default application version.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListEventTypes'."]:
-    """Retrieve a list of event types for subscriptions or queries.
+    """Retrieve all event types available for webhooks and querying.
 
-    Use this tool to obtain a list of all event types that can be subscribed to as webhooks or queried via the Events API."""  # noqa: E501
+    Use this tool to list all the event types you can subscribe to as webhooks or query via the Events API. It helps in understanding which events are trackable and can be used for notifications or further analysis."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/events/types",
-            params=remove_none_values({"api_version": api_version_for_event_types}),
+            params=remove_none_values({"api_version": api_version}),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -1738,36 +2013,34 @@ async def list_gift_cards(
     context: ToolContext,
     gift_card_type: Annotated[
         str | None,
-        "Specify the type of gift cards to retrieve. If not provided, all types are returned.",
+        "Specifies the type of gift cards to retrieve. If not provided, all types are returned.",
     ] = None,
-    gift_card_status: Annotated[
-        str | None,
-        "Specify the status of gift cards to filter results by their current state. If not provided, returns gift cards of all statuses.",  # noqa: E501
+    gift_card_state: Annotated[
+        str | None, "Specifies the state of gift cards to return. Leave empty to get all states."
     ] = None,
     results_per_page_limit: Annotated[
-        int | None,
-        "Set the maximum number of results to return per page, up to 200. Defaults to 30 if not specified.",  # noqa: E501
+        int | None, "The number of gift card results per page. Maximum is 200, default is 30."
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "A pagination cursor from a previous call. Use this to retrieve the next set of results. If omitted, returns the first page.",  # noqa: E501
+        "A string used to retrieve the next set of results for pagination from a previous call.",
     ] = None,
-    filter_by_customer_id: Annotated[
-        str | None, "Customer ID to filter and return only gift cards linked to this customer."
+    customer_id: Annotated[
+        str | None, "A unique identifier for a customer to retrieve gift cards linked to them."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListGiftCards'."]:
-    """Retrieve a list of all gift cards with optional filters.
+    """Retrieve a list of all gift cards, with optional filters.
 
-    This tool calls the endpoint to list all gift cards, allowing you to apply optional filters to retrieve specific subsets. Gift cards are sorted by their creation date in ascending order."""  # noqa: E501
+    Call this tool to obtain a sorted list of gift cards. You can apply filters to narrow down the results. Useful for managing and reviewing available gift cards."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/gift-cards",
             params=remove_none_values({
                 "type": gift_card_type,
-                "state": gift_card_status,
+                "state": gift_card_state,
                 "limit": results_per_page_limit,
                 "cursor": pagination_cursor,
-                "customer_id": filter_by_customer_id,
+                "customer_id": customer_id,
             }),
             method="GET",
             headers=remove_none_values({
@@ -1786,53 +2059,54 @@ async def list_gift_cards(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["GIFTCARDS_READ"]))
 async def list_gift_card_activities(
     context: ToolContext,
-    specific_gift_card_id: Annotated[
+    gift_card_id: Annotated[
         str | None,
-        "The ID of the gift card to filter activities for. If unspecified, returns all activities.",
+        "Specify a gift card ID to return activities related to that gift card. Leave empty to return all gift card activities for the seller.",  # noqa: E501
     ] = None,
-    gift_card_activity_type: Annotated[
+    activity_type: Annotated[
         str | None,
-        "Specifies the type of gift card activity to return. If not provided, returns all activity types.",  # noqa: E501
+        "Filter gift card activities by specifying a particular activity type. If not provided, returns all activity types.",  # noqa: E501
     ] = None,
     location_id: Annotated[
         str | None,
-        "Specify a location ID to filter gift card activities by a particular location. If not provided, activities for all locations will be returned.",  # noqa: E501
+        "Specify the location ID to filter gift card activities for a particular location. Leave empty to return activities for all locations.",  # noqa: E501
     ] = None,
-    report_starttime_rfc3339: Annotated[
+    reporting_start_time: Annotated[
         str | None,
-        "The inclusive start time of the reporting period in RFC 3339 format. Defaults to one year ago.",  # noqa: E501
+        "The starting timestamp for the reporting period, in RFC 3339 format. Includes this date and time. Defaults to one year prior from now if not specified.",  # noqa: E501
     ] = None,
-    reporting_period_end_time: Annotated[
+    end_time: Annotated[
         str | None,
-        "The inclusive timestamp for the end of the reporting period in RFC 3339 format. Defaults to the current time if not specified.",  # noqa: E501
+        "The inclusive end timestamp for the reporting period in RFC 3339 format. Defaults to current time.",  # noqa: E501
     ] = None,
-    results_limit_per_page: Annotated[
-        int | None, "Specify the number of results per page, up to a maximum of 100. Default is 50."
+    result_limit: Annotated[
+        int | None,
+        "Specify the maximum number of results per page. Default is 50, maximum allowed is 100.",
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "The pagination cursor from a previous call to retrieve the next set of results. If not provided, the first page of results is returned.",  # noqa: E501
+        "A pagination cursor from a previous call to get the next set of results. If not provided, the first page is returned.",  # noqa: E501
     ] = None,
-    sort_order_by_creation_date: Annotated[
+    activities_sort_order: Annotated[
         str | None,
-        "Order gift card activities by their creation date. Use 'ASC' for oldest to newest, or 'DESC' for newest to oldest (default).",  # noqa: E501
+        "Defines the order of gift card activities based on creation date. Use 'ASC' for oldest to newest, or 'DESC' for newest to oldest (default).",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListGiftCardActivities'."]:
-    """Retrieve a list of gift card activities with optional filters.
+    """Retrieve and filter gift card activities for a seller.
 
-    Use this tool to list gift card activities in a seller's account. You can apply filters such as specifying a particular gift card, region, or time window to refine the search."""  # noqa: E501
+    Lists gift card activities from the seller's account. Optionally filter the activities by gift card, region, or within a specific time window."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/gift-cards/activities",
             params=remove_none_values({
-                "gift_card_id": specific_gift_card_id,
-                "type": gift_card_activity_type,
+                "gift_card_id": gift_card_id,
+                "type": activity_type,
                 "location_id": location_id,
-                "begin_time": report_starttime_rfc3339,
-                "end_time": reporting_period_end_time,
-                "limit": results_limit_per_page,
+                "begin_time": reporting_start_time,
+                "end_time": end_time,
+                "limit": result_limit,
                 "cursor": pagination_cursor,
-                "sort_order": sort_order_by_creation_date,
+                "sort_order": activities_sort_order,
             }),
             method="GET",
             headers=remove_none_values({
@@ -1849,13 +2123,13 @@ async def list_gift_card_activities(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["GIFTCARDS_READ"]))
-async def retrieve_gift_card(
+async def get_gift_card_details(
     context: ToolContext,
-    gift_card_id: Annotated[str, "The unique identifier of the gift card to retrieve details for."],
+    gift_card_id: Annotated[str, "The ID of the gift card to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveGiftCard'."]:
     """Retrieve details of a gift card using its ID.
 
-    Call this tool to obtain information about a specific gift card by providing its ID. It fetches details such as balance, card status, and any other relevant information related to the gift card."""  # noqa: E501
+    Use this tool to access information about a specific gift card by providing its ID. It is useful for checking gift card balance, status, and other related details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/gift-cards/{id}".format(id=gift_card_id),  # noqa: UP032
@@ -1874,16 +2148,15 @@ async def retrieve_gift_card(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
-async def retrieve_inventory_adjustment(
+async def get_inventory_adjustment(
     context: ToolContext,
     inventory_adjustment_id: Annotated[
-        str,
-        "ID of the inventory adjustment to retrieve details for. This should be a valid string ID.",
+        str, "The unique ID of the inventory adjustment to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveInventoryAdjustment'."]:
-    """Retrieve inventory adjustment details using an ID.
+    """Retrieve detailed information on an inventory adjustment.
 
-    Call this tool to get detailed information about a specific inventory adjustment by providing the adjustment ID."""  # noqa: E501
+    This tool retrieves the details of a specific InventoryAdjustment using the provided adjustment ID. It should be called when you need to obtain information about changes in inventory quantities."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/inventory/adjustments/{adjustment_id}".format(  # noqa: UP032
@@ -1904,15 +2177,13 @@ async def retrieve_inventory_adjustment(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
-async def get_inventory_physical_count(
+async def retrieve_inventory_physical_count(
     context: ToolContext,
-    inventory_physical_count_id: Annotated[
-        str, "The ID of the inventory physical count to be retrieved."
-    ],
+    inventory_physical_count_id: Annotated[str, "ID of the InventoryPhysicalCount to retrieve."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveInventoryPhysicalCount'."]:
-    """Retrieve inventory physical count using a specific ID.
+    """Retrieve the inventory physical count by its ID.
 
-    Fetches the inventory physical count details by providing the `physical_count_id`. Use this when you need information about a specific inventory count."""  # noqa: E501
+    Call this tool to obtain information about a specific inventory physical count using the provided `physical_count_id`. It returns the associated InventoryPhysicalCount object."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/inventory/physical-counts/{physical_count_id}".format(  # noqa: UP032
@@ -1933,16 +2204,15 @@ async def get_inventory_physical_count(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
-async def get_inventory_transfer_details(
+async def get_inventory_transfer(
     context: ToolContext,
     inventory_transfer_id: Annotated[
-        str,
-        "The ID of the InventoryTransfer to retrieve details for. This ID uniquely identifies the transfer.",  # noqa: E501
+        str, "The unique ID of the InventoryTransfer to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveInventoryTransfer'."]:
-    """Fetch details of an InventoryTransfer by its ID.
+    """Retrieve details of an Inventory Transfer using its ID.
 
-    Call this tool to retrieve detailed information about a specific InventoryTransfer using its transfer ID."""  # noqa: E501
+    Use this tool to obtain information about a specific Inventory Transfer by providing its transfer ID. This can be useful for tracking inventory movements within a system."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/inventory/transfers/{transfer_id}".format(  # noqa: UP032
@@ -1966,20 +2236,20 @@ async def get_inventory_transfer_details(
 async def retrieve_inventory_count(
     context: ToolContext,
     catalog_object_id: Annotated[
-        str, "The unique identifier for the catalog item whose stock count you want to retrieve."
+        str,
+        "ID of the CatalogObject to retrieve the inventory count for. Required for specifying which item to query.",  # noqa: E501
     ],
     location_ids: Annotated[
         str | None,
-        "Comma-separated list of Location IDs to retrieve inventory counts. Leave empty to query all locations.",  # noqa: E501
+        "Comma-separated list of Location IDs to query. Use empty to query all locations.",
     ] = None,
     pagination_cursor: Annotated[
-        str | None,
-        "A string used for pagination to retrieve the next set of results for the original query.",
+        str | None, "A pagination cursor to retrieve the next set of results for an ongoing query."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveInventoryCount'."]:
-    """Retrieve current stock count for specific catalog items.
+    """Get the current stock count for an item.
 
-    This tool retrieves the current calculated stock count for a specified CatalogObject at selected locations. Useful for checking inventory levels. Responses are paginated and unsorted."""  # noqa: E501
+    Fetches the current calculated stock level for a specific CatalogObject at specified Locations. Useful for checking inventory availability. Results are paginated and unsorted."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/inventory/{catalog_object_id}".format(  # noqa: UP032
@@ -2003,27 +2273,24 @@ async def retrieve_inventory_count(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_READ"]))
 async def list_invoices(
     context: ToolContext,
-    location_identifier: Annotated[
-        str,
-        "The unique ID of the location to list invoices for. Specify the location to retrieve its invoices.",  # noqa: E501
-    ],
+    location_id: Annotated[str, "The ID of the location for which to list invoices."],
     pagination_cursor: Annotated[
         str | None,
-        "A pagination cursor from a prior call for retrieving the next set of results. Use this to navigate pages of invoices.",  # noqa: E501
+        "A string value used to fetch the next set of paginated results for invoices. This is returned from a previous call to the list invoices endpoint.",  # noqa: E501
     ] = None,
     maximum_invoices_to_return: Annotated[
         int | None,
-        "The maximum number of invoices to return, up to 200. If not specified, defaults to 100.",
+        "The maximum number of invoices to return, up to 200. Defaults to 100 if not specified.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListInvoices'."]:
-    """Fetch a list of invoices for a specific location.
+    """Retrieve a list of invoices for a specified location.
 
-    Use this tool to retrieve a paginated list of invoices for a specific location. It returns invoice details and supports pagination with the use of a cursor for accessing subsequent pages."""  # noqa: E501
+    Use this tool to get a list of invoices from a specific location. The response is paginated, and if the list is truncated, a cursor is provided to fetch the next set of invoices."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/invoices",
             params=remove_none_values({
-                "location_id": location_identifier,
+                "location_id": location_id,
                 "cursor": pagination_cursor,
                 "limit": maximum_invoices_to_return,
             }),
@@ -2041,24 +2308,24 @@ async def list_invoices(
             return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_WRITE", "ORDERS_WRITE"]))
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE", "INVOICES_WRITE"]))
 async def delete_draft_invoice(
     context: ToolContext,
-    invoice_identifier: Annotated[str, "The unique identifier of the draft invoice to be deleted."],
-    invoice_version: Annotated[
+    invoice_id_to_delete: Annotated[str, "The ID of the draft invoice to be deleted."],
+    invoice_version_to_delete: Annotated[
         int | None,
-        "The version number of the draft invoice to delete. Retrieve it via GetInvoice or ListInvoices if unknown.",  # noqa: E501
+        "The version number of the draft invoice to delete. Retrieve this using GetInvoice or ListInvoices if unknown.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteInvoice'."]:
-    """Delete a specified draft invoice.
+    """Deletes a specified draft invoice.
 
-    This tool deletes a specified draft invoice, changing the associated order status to CANCELED. It cannot be used for published invoices, including those scheduled for processing."""  # noqa: E501
+    Use this tool to delete a draft invoice. Once deleted, the associated order status changes to CANCELED. This tool cannot delete published invoices."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(  # noqa: UP032
-                invoice_id=invoice_identifier
+                invoice_id=invoice_id_to_delete
             ),
-            params=remove_none_values({"version": invoice_version}),
+            params=remove_none_values({"version": invoice_version_to_delete}),
             method="DELETE",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2076,13 +2343,11 @@ async def delete_draft_invoice(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_READ"]))
 async def retrieve_invoice_by_id(
     context: ToolContext,
-    invoice_id: Annotated[
-        str, "The unique identifier of the invoice you want to retrieve from Squareup."
-    ],
+    invoice_id: Annotated[str, "The unique ID of the invoice to retrieve information for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetInvoice'."]:
-    """Retrieve detailed information about a specific invoice by ID.
+    """Retrieve details of an invoice using its ID.
 
-    Use this tool to fetch detailed information of an invoice using its unique ID. It is helpful for obtaining specific invoice details directly from the Squareup platform."""  # noqa: E501
+    Use this tool to obtain detailed information about a specific invoice by providing its unique ID. It is useful for accessing invoice data such as amounts, status, and recipient information."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(  # noqa: UP032
@@ -2107,16 +2372,16 @@ async def remove_invoice_attachment(
     context: ToolContext,
     invoice_id: Annotated[
         str,
-        "The unique identifier of the invoice from which the attachment will be removed. It must be in 'DRAFT', 'SCHEDULED', 'UNPAID', or 'PARTIALLY_PAID' state.",  # noqa: E501
+        "The unique identifier of the invoice to remove the attachment from. Applicable for invoices in specific states (DRAFT, SCHEDULED, UNPAID, PARTIALLY_PAID).",  # noqa: E501
     ],
     attachment_id: Annotated[
         str,
-        "The unique identifier of the attachment to be deleted from the invoice. This is required to locate and remove the specific file.",  # noqa: E501
+        "The unique identifier of the attachment to delete from the invoice. It should be a string corresponding to the attachment's ID.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteInvoiceAttachment'."]:
     """Remove an attachment from an invoice and delete the file.
 
-    This tool removes an attachment from an invoice and permanently deletes the file. It can be used only when the invoice is in 'DRAFT', 'SCHEDULED', 'UNPAID', or 'PARTIALLY_PAID' state."""  # noqa: E501
+    Use this tool to permanently delete an attachment from an invoice. It is applicable only for invoices in the DRAFT, SCHEDULED, UNPAID, or PARTIALLY_PAID state."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/invoices/{invoice_id}/attachments/{attachment_id}".format(  # noqa: UP032
@@ -2137,31 +2402,29 @@ async def remove_invoice_attachment(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
-async def list_break_types(
+async def list_business_break_types(
     context: ToolContext,
     filter_by_location_id: Annotated[
-        str | None,
-        "Filter results to include only BreakType instances associated with a specific location.",
+        str | None, "Filter results to only include BreakTypes associated with a specific location."
     ] = None,
     max_results_per_page: Annotated[
         int | None,
-        "The maximum number of BreakType results to return per page. Accepts an integer from 1 to 200.",  # noqa: E501
+        "The maximum number of BreakType results to return per page, between 1 and 200. Default is 200.",  # noqa: E501
     ] = None,
-    next_page_pointer: Annotated[
-        str | None,
-        "A string pointer indicating the next page of BreakType results to fetch. Use this to paginate through results.",  # noqa: E501
+    pagination_cursor: Annotated[
+        str | None, "A pointer to the next page of BreakType results for retrieval."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListBreakTypes'."]:
-    """Retrieve a list of break types for a business.
+    """Retrieve a list of BreakType instances for a business.
 
-    This tool retrieves a paginated list of `BreakType` instances for a business, allowing you to view defined break types for employees."""  # noqa: E501
+    This tool provides a paginated list of BreakType instances associated with a business. Use it to fetch information about different break types configured in a business's system."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/break-types",
             params=remove_none_values({
                 "location_id": filter_by_location_id,
                 "limit": max_results_per_page,
-                "cursor": next_page_pointer,
+                "cursor": pagination_cursor,
             }),
             method="GET",
             headers=remove_none_values({
@@ -2180,11 +2443,13 @@ async def list_break_types(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_WRITE"]))
 async def delete_break_type(
     context: ToolContext,
-    break_type_uuid: Annotated[str, "The unique identifier (UUID) of the BreakType to be deleted."],
+    break_type_uuid: Annotated[
+        str, "The UUID of the BreakType to delete. Ensure it is a valid UUID format."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteBreakType'."]:
-    """Remove a specific break type from the system.
+    """Deletes an existing break type.
 
-    This tool is used to delete an existing break type, even if it is referenced in a shift. It is useful for managing break type records within a labor management system."""  # noqa: E501
+    Use this tool to delete a specific break type, even if it is referenced by a shift."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_uuid),  # noqa: UP032
@@ -2203,19 +2468,18 @@ async def delete_break_type(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
-async def get_break_type_info(
+async def retrieve_break_type(
     context: ToolContext,
-    break_type_uuid: Annotated[
-        str,
-        "The UUID of the BreakType to retrieve information for. This must be a valid, existing BreakType ID.",  # noqa: E501
+    break_type_id: Annotated[
+        str, "The unique identifier (UUID) for the BreakType to be retrieved."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetBreakType'."]:
-    """Retrieve detailed information about a specific BreakType.
+    """Retrieve details of a specific break type by ID.
 
-    Use this tool to get information about a particular BreakType by providing the BreakType ID. It returns the details associated with that BreakType."""  # noqa: E501
+    Use this tool to obtain information about a specific break type using its unique identifier."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_uuid),  # noqa: UP032
+            url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_id),  # noqa: UP032
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2231,15 +2495,15 @@ async def get_break_type_info(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_READ"]))
-async def retrieve_scheduled_shift(
+async def get_scheduled_shift(
     context: ToolContext,
     scheduled_shift_id: Annotated[
-        str, "The ID of the scheduled shift to retrieve, required for fetching shift details."
+        str, "The unique ID of the scheduled shift to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveScheduledShift'."]:
-    """Retrieve a scheduled shift using its ID.
+    """Retrieve details of a scheduled shift by ID.
 
-    Use this tool to obtain details of a specific scheduled shift by providing its ID."""
+    The tool retrieves information about a scheduled shift using its unique ID. Call this tool when you need detailed information about a specific shift."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/scheduled-shifts/{id}".format(  # noqa: UP032
@@ -2264,27 +2528,26 @@ async def list_team_member_wages(
     context: ToolContext,
     filter_by_team_member_id: Annotated[
         str | None,
-        "Filter returned wages to only those associated with the specified team member ID.",
+        "Filter wages by specifying the team member's ID. Only wages for this team member will be returned.",  # noqa: E501
     ] = None,
-    max_results_per_page: Annotated[
+    results_per_page: Annotated[
         int | None,
-        "Specify the maximum number of team member wage results to return per page (1-200, default is 200).",  # noqa: E501
+        "Specifies the maximum number of team member wages to return per page, ranging from 1 to 200. Default is 200.",  # noqa: E501
     ] = None,
-    next_page_pointer: Annotated[
-        str | None,
-        "A string that indicates the pointer to the next page of team member wage results to fetch. Use this to navigate through paginated results.",  # noqa: E501
+    next_page_cursor: Annotated[
+        str | None, "A token used to fetch the next page of team member wage results."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListTeamMemberWages'."]:
-    """Get a list of team member wages for a business.
+    """Retrieve paginated team member wages for a business.
 
-    This tool returns a paginated list of wage details for team members in a business. It should be called when you need to retrieve information about salaries or wages of employees."""  # noqa: E501
+    Use this tool to obtain a paginated list of wages for team members within a business. Ideal for managing payroll and financial records."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/team-member-wages",
             params=remove_none_values({
                 "team_member_id": filter_by_team_member_id,
-                "limit": max_results_per_page,
-                "cursor": next_page_pointer,
+                "limit": results_per_page,
+                "cursor": next_page_cursor,
             }),
             method="GET",
             headers=remove_none_values({
@@ -2304,12 +2567,12 @@ async def list_team_member_wages(
 async def get_team_member_wage(
     context: ToolContext,
     team_member_wage_id: Annotated[
-        str, "The UUID of the Team Member Wage to retrieve details for."
+        str, "The unique UUID for retrieving the specified team member's wage."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTeamMemberWage'."]:
-    """Retrieve wage details for a specific team member.
+    """Retrieve wage details for a specified team member.
 
-    Use this tool to get information about a team member's wage specified by their ID."""
+    Use this tool to obtain wage information for a specific team member by providing their unique ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/team-member-wages/{id}".format(  # noqa: UP032
@@ -2332,14 +2595,14 @@ async def get_team_member_wage(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_WRITE"]))
 async def delete_timecard(
     context: ToolContext,
-    timecard_uuid: Annotated[str, "The unique identifier (UUID) of the timecard to be deleted."],
+    timecard_id: Annotated[str, "The UUID for the timecard to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteTimecard'."]:
-    """Delete a specific timecard.
+    """Deletes a specified timecard.
 
-    Use this tool to delete a specific timecard by providing the timecard ID."""
+    Use this tool to delete a timecard by its ID when managing labor records."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_uuid),  # noqa: UP032
+            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_id),  # noqa: UP032
             method="DELETE",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2355,19 +2618,16 @@ async def delete_timecard(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_READ"]))
-async def get_timecard_by_id(
+async def retrieve_timecard(
     context: ToolContext,
-    timecard_id: Annotated[
-        str,
-        "The UUID for the timecard being retrieved. This unique identifier specifies which timecard to return.",  # noqa: E501
-    ],
+    timecard_uuid: Annotated[str, "The unique identifier (UUID) for the Timecard to be retrieved."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveTimecard'."]:
-    """Retrieve details of a specific employee timecard by ID.
+    """Retrieve a specific timecard using its ID.
 
-    Use this tool to obtain the details of a single timecard for an employee by providing the timecard ID. This is useful for viewing individual work records."""  # noqa: E501
+    Use this tool to fetch detailed information about a single timecard by providing its unique identifier."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_id),  # noqa: UP032
+            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_uuid),  # noqa: UP032
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2383,22 +2643,23 @@ async def get_timecard_by_id(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
-async def get_workweek_configs(
+async def list_workweek_configurations(
     context: ToolContext,
-    results_per_page: Annotated[
-        int | None, "Specify the maximum number of WorkweekConfig results to return per page."
+    max_results_per_page: Annotated[
+        int | None, "The maximum number of workweek configurations to return per page."
     ] = None,
-    pagination_pointer: Annotated[
-        str | None, "A pointer to retrieve the next page of workweek configurations."
+    page_cursor: Annotated[
+        str | None,
+        "A string that acts as a pointer to fetch the next page of workweek configuration results.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListWorkweekConfigs'."]:
     """Retrieve workweek configurations for a business.
 
-    Use this tool to obtain a list of workweek configuration instances for a specified business."""
+    This tool returns a list of workweek configuration instances, providing details about the workweek setup for a specified business. It should be used when you need to understand or analyze the workweek parameters configured within a business."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/labor/workweek-configs",
-            params=remove_none_values({"limit": results_per_page, "cursor": pagination_pointer}),
+            params=remove_none_values({"limit": max_results_per_page, "cursor": page_cursor}),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2417,9 +2678,9 @@ async def get_workweek_configs(
 async def list_seller_locations(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListLocations'."]:
-    """Get details about all of the seller's locations.
+    """Retrieve details of all seller locations from Square.
 
-    This tool retrieves information on all locations associated with a seller, including those that are inactive. Locations are listed alphabetically by name."""  # noqa: E501
+    Call this tool to get information about all the seller's locations, including inactive ones, retrieved in alphabetical order by name. Useful for managing or displaying seller location data."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/locations",
@@ -2437,90 +2698,34 @@ async def list_seller_locations(
             return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
-async def delete_location_custom_attribute_definition(
-    context: ToolContext,
-    custom_attribute_definition_key: Annotated[
-        str,
-        "The unique key of the custom attribute definition to be deleted from the Square seller account.",  # noqa: E501
-    ],
-) -> Annotated[
-    dict[str, Any], "Response from the API endpoint 'DeleteLocationCustomAttributeDefinition'."
-]:
-    """Delete a location's custom attribute definition in Square.
-
-    Use this tool to delete a location-specific custom attribute definition from a Square seller account. This action removes the definition and its corresponding attributes from all locations. Only the definition owner is authorized to perform this deletion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_definition_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
-
-
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
-async def retrieve_location_custom_attribute(
+async def list_location_custom_attribute_definitions(
     context: ToolContext,
-    custom_attribute_key: Annotated[
-        str,
-        "The key of the custom attribute definition to retrieve. Use the qualified key if not the definition owner.",  # noqa: E501
-    ],
-    current_custom_attribute_version: Annotated[
+    filter_by_visibility: Annotated[
+        str | None, "Filter the results by visibility values: ALL, READ, or READ_WRITE."
+    ] = None,
+    maximum_results_per_page: Annotated[
         int | None,
-        "The version number of the custom attribute definition for consistent reads, ensuring the most up-to-date data is retrieved.",  # noqa: E501
+        "Maximum number of results to return per page. Minimum is 1, maximum is 100, default is 20. Advisory only, may vary.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "The cursor for retrieving the next page of results from a previous call. Use this for pagination handling.",  # noqa: E501
     ] = None,
 ) -> Annotated[
-    dict[str, Any], "Response from the API endpoint 'RetrieveLocationCustomAttributeDefinition'."
+    dict[str, Any], "Response from the API endpoint 'ListLocationCustomAttributeDefinitions'."
 ]:
-    """Retrieve a location-related custom attribute definition.
+    """Retrieve location custom attribute definitions for a Square account.
 
-    Use this tool to get a location-related custom attribute definition from a Square seller account. The attribute must have a visibility of 'READ_ONLY' or 'READ_WRITE_VALUES' if created by another application."""  # noqa: E501
+    This tool retrieves all location-related custom attribute definitions for a Square seller account. It includes those visible to the requesting application, even if created by other applications. Use this to access custom attribute definitions with various visibility settings."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            params=remove_none_values({"version": current_custom_attribute_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
+            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions",
+            params=remove_none_values({
+                "visibility_filter": filter_by_visibility,
+                "limit": maximum_results_per_page,
+                "cursor": pagination_cursor,
             }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
-async def retrieve_location_details(
-    context: ToolContext,
-    location_identifier: Annotated[
-        str, "The ID of the location to retrieve. Use 'main' to get details of the main location."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLocation'."]:
-    """Retrieve details of a specific location using location ID.
-
-    Use this tool to get detailed information about a single location by providing its ID. Specify \"main\" as the location ID to get details of the main location."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/{location_id}".format(  # noqa: UP032
-                location_id=location_identifier
-            ),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2538,21 +2743,170 @@ async def retrieve_location_details(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
 async def delete_location_custom_attribute(
     context: ToolContext,
-    target_location_id: Annotated[
-        str, "The ID of the location from which the custom attribute should be deleted."
+    custom_attribute_key: Annotated[
+        str,
+        "The unique key identifying the custom attribute definition to be deleted from the seller account.",  # noqa: E501
+    ],
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'DeleteLocationCustomAttributeDefinition'."
+]:
+    """Delete a location-related custom attribute definition.
+
+    Use this tool to delete a specific location-related custom attribute definition from a Square seller account. Only the definition owner can perform this action. Deleting also removes the attribute from all locations."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
+                key=custom_attribute_key
+            ),
+            method="DELETE",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
+async def retrieve_location_custom_attribute_definition(
+    context: ToolContext,
+    custom_attribute_definition_key: Annotated[
+        str,
+        "The key of the custom attribute definition to retrieve, requiring a qualified key if not the owner.",  # noqa: E501
+    ],
+    custom_attribute_definition_version: Annotated[
+        int | None,
+        "The version of the custom attribute definition for consistent reads. Must be equal to or less than the latest version to avoid errors.",  # noqa: E501
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'RetrieveLocationCustomAttributeDefinition'."
+]:
+    """Retrieve location-related custom attribute definitions.
+
+    Retrieves a custom attribute definition for a location from a Square seller account. Applicable when needing details on custom attributes for specific locations. Accessible only if visibility is set accordingly."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
+                key=custom_attribute_definition_key
+            ),
+            params=remove_none_values({"version": custom_attribute_definition_version}),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
+async def retrieve_location_details(
+    context: ToolContext,
+    location_id: Annotated[
+        str, 'The ID of the location to retrieve. Use "main" for the main location.'
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLocation'."]:
+    """Retrieve detailed information about a specific location.
+
+    Call this tool to obtain information about a particular location by providing the location ID. Use \"main\" as the ID to get details about the main location."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/locations/{location_id}".format(  # noqa: UP032
+                location_id=location_id
+            ),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
+async def list_location_custom_attributes(
+    context: ToolContext,
+    location_id: Annotated[
+        str, "The ID of the target location for which to fetch custom attributes."
+    ],
+    visibility_filter: Annotated[
+        str | None,
+        "Filters custom attribute results based on their visibility values (ALL, READ, READ_WRITE).",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "The maximum number of results to fetch per page. Minimum is 1, maximum is 100, default is 20.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "String value of the cursor from previous response, used for paginating results.",
+    ] = None,
+    include_custom_attribute_definitions: Annotated[
+        bool | None,
+        "Set to true to include custom attribute definitions with each custom attribute. Default is false.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListLocationCustomAttributes'."]:
+    """Fetch custom attributes for a specific location.
+
+    Use this tool to list custom attributes associated with a specific location. It can also retrieve custom attribute definitions if needed. It includes attributes visible to the requesting app, even if owned by others."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes".format(  # noqa: UP032
+                location_id=location_id
+            ),
+            params=remove_none_values({
+                "visibility_filter": visibility_filter,
+                "limit": max_results_per_page,
+                "cursor": pagination_cursor,
+                "with_definitions": include_custom_attribute_definitions,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
+async def remove_location_custom_attribute(
+    context: ToolContext,
+    location_id: Annotated[
+        str, "The ID of the target location for which the custom attribute will be deleted."
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to delete, matching the key of a custom attribute definition in the Square seller account. Use the qualified key if necessary.",  # noqa: E501
+        "The key for the custom attribute to delete. Use the qualified key if not the definition owner.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteLocationCustomAttribute'."]:
-    """Delete a custom attribute from a location.
+    """Deletes a custom attribute from a specified location.
 
-    Removes a custom attribute associated with a location. Useful for managing custom data linked to specific locations. Make sure the attribute is deletable by confirming its visibility settings."""  # noqa: E501
+    Use this tool to delete a custom attribute associated with a specified location. Ensure that the attribute's visibility is set to `VISIBILITY_READ_WRITE_VALUES` if it is owned by another application."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
-                location_id=target_location_id, key=custom_attribute_key
+                location_id=location_id, key=custom_attribute_key
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -2571,33 +2925,33 @@ async def delete_location_custom_attribute(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
 async def get_location_custom_attribute(
     context: ToolContext,
-    target_location_id: Annotated[
+    location_id: Annotated[
         str,
-        "The unique identifier for the target location where the custom attribute is associated.",
+        "The ID of the location for which the custom attribute is being retrieved. This is required to identify the specific location in the Square account.",  # noqa: E501
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to retrieve, matching the defined key in the Square seller account. Use the qualified key if not the definition owner.",  # noqa: E501
+        "The key of the custom attribute to retrieve. Must match a custom attribute definition key in the Square seller account. Use the qualified key if not the definition owner.",  # noqa: E501
     ],
     custom_attribute_version: Annotated[
         int | None,
-        "Current version of the custom attribute for consistent reads. Returns specified or higher version. Errors if specified version is too high.",  # noqa: E501
+        "Specify the version of the custom attribute for consistent reads. If a higher version exists, it is returned. If higher than the current version, an error occurs.",  # noqa: E501
     ] = None,
-    include_custom_attribute_definition: Annotated[
+    include_definition: Annotated[
         bool | None,
-        "Set this to true to include the custom attribute definition with details like name, description, and data type. Default is false.",  # noqa: E501
+        "Set to true to include the custom attribute's definition, providing name, description, and data type.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLocationCustomAttribute'."]:
-    """Retrieve a custom attribute associated with a location.
+    """Retrieve a custom attribute for a specified location.
 
-    This tool retrieves a custom attribute linked to a specified location. It can also return the custom attribute definition if requested. Useful for accessing attributes with visibility settings of `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES`."""  # noqa: E501
+    This tool fetches a custom attribute associated with a specific location. Optional retrieval of the custom attribute's definition is available. Visibility settings must permit access if owned by another application."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
-                location_id=target_location_id, key=custom_attribute_key
+                location_id=location_id, key=custom_attribute_key
             ),
             params=remove_none_values({
-                "with_definition": include_custom_attribute_definition,
+                "with_definition": include_definition,
                 "version": custom_attribute_version,
             }),
             method="GET",
@@ -2617,13 +2971,11 @@ async def get_location_custom_attribute(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
 async def retrieve_loyalty_account(
     context: ToolContext,
-    loyalty_account_id: Annotated[
-        str, "The unique identifier for the loyalty account to retrieve details for."
-    ],
+    loyalty_account_id: Annotated[str, "The unique identifier of the loyalty account to retrieve."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLoyaltyAccount'."]:
-    """Retrieve details of a specific loyalty account.
+    """Retrieve information about a loyalty account.
 
-    This tool retrieves the details of a loyalty account using a specified account ID. It should be called when you need information about a customer's loyalty account."""  # noqa: E501
+    Use this tool to get detailed information about a specific loyalty account using the account ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/accounts/{account_id}".format(  # noqa: UP032
@@ -2647,13 +2999,12 @@ async def retrieve_loyalty_account(
 async def retrieve_loyalty_program(
     context: ToolContext,
     loyalty_program_identifier: Annotated[
-        str,
-        "The ID of the loyalty program or the keyword 'main' to retrieve the seller's loyalty program.",  # noqa: E501
+        str, "The ID of the loyalty program or the keyword 'main' to retrieve the program details."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLoyaltyProgram'."]:
     """Retrieve details of a seller's loyalty program.
 
-    This tool retrieves information about the loyalty program in a seller's account using the program ID or the keyword 'main'. It defines how buyers can earn and redeem points. Square sellers can only have one loyalty program, which is managed via the Seller Dashboard."""  # noqa: E501
+    Use this tool to obtain information about a seller's loyalty program by specifying the program ID or using the keyword 'main'. It provides details on how buyers can earn and redeem points."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/programs/{program_id}".format(  # noqa: UP032
@@ -2674,19 +3025,66 @@ async def retrieve_loyalty_program(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
-async def get_loyalty_promotion(
+async def list_loyalty_promotions(
+    context: ToolContext,
+    loyalty_program_id: Annotated[
+        str,
+        "The ID of the base loyalty program. Use the 'RetrieveLoyaltyProgram' API with 'main' to get this ID.",  # noqa: E501
+    ],
+    filter_by_status: Annotated[
+        str | None,
+        "Filter loyalty promotions by status. Options: ACTIVE, ENDED, CANCELED, SCHEDULED.",
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "The cursor for retrieving the next page of loyalty promotions. Obtain this from the previous response to continue pagination.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "Specifies the maximum number of loyalty promotions to return per page. Must be between 1 and 30. Default is 30.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListLoyaltyPromotions'."]:
+    """Fetches loyalty promotions for a specific program.
+
+    Use this tool to retrieve a list of loyalty promotions linked to a specific loyalty program, sorted by their creation date, from newest to oldest."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions".format(  # noqa: UP032
+                program_id=loyalty_program_id
+            ),
+            params=remove_none_values({
+                "status": filter_by_status,
+                "cursor": pagination_cursor,
+                "limit": max_results_per_page,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
+async def retrieve_loyalty_promotion(
     context: ToolContext,
     loyalty_promotion_id: Annotated[
-        str, "The unique identifier of the loyalty promotion to retrieve."
+        str, "The unique identifier for the loyalty promotion to retrieve."
     ],
     loyalty_program_id: Annotated[
         str,
-        "The ID of the base loyalty program. Obtain this by calling RetrieveLoyaltyProgram with the `main` keyword.",  # noqa: E501
+        "The ID of the base loyalty program. Retrieve it by calling RetrieveLoyaltyProgram with the 'main' keyword.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLoyaltyPromotion'."]:
     """Retrieve details of a specific loyalty promotion.
 
-    Use this tool to get information about a particular loyalty promotion associated with a specific program. Ideal for checking promotion details by program and promotion IDs."""  # noqa: E501
+    Use this tool to get information about a specific loyalty promotion identified by program and promotion IDs. Call this tool when you need to access or display details of a particular loyalty promotion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}".format(  # noqa: UP032
@@ -2711,16 +3109,13 @@ async def cancel_loyalty_promotion(
     context: ToolContext,
     loyalty_promotion_id: Annotated[
         str,
-        "The ID of the loyalty promotion to cancel. Applicable for promotions with 'ACTIVE' or 'SCHEDULED' status.",  # noqa: E501
+        "The unique identifier of the loyalty promotion to be canceled. Applicable for promotions with an 'ACTIVE' or 'SCHEDULED' status.",  # noqa: E501
     ],
-    loyalty_program_id: Annotated[
-        str,
-        "The ID of the base loyalty program to be canceled. This is required to identify the program associated with the promotion.",  # noqa: E501
-    ],
+    loyalty_program_id: Annotated[str, "The unique ID of the base loyalty program to be canceled."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelLoyaltyPromotion'."]:
-    """Cancel a scheduled or active loyalty promotion program early.
+    """Cancel an active or scheduled loyalty promotion early.
 
-    This tool cancels a loyalty promotion, setting its status to 'CANCELED'. Use it to end an 'ACTIVE' or 'SCHEDULED' promotion earlier than the scheduled end date or when no end date is specified. It is also useful for canceling a promotion before creating a new one, as updates to promotions are not supported."""  # noqa: E501
+    Use this tool to set a loyalty promotion to the 'CANCELED' state. It is useful for canceling active promotions earlier than planned or canceling scheduled promotions before they begin. This is also applicable if you need to cancel one prior to creating a new promotion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}/cancel".format(  # noqa: UP032
@@ -2743,18 +3138,18 @@ async def cancel_loyalty_promotion(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_WRITE"]))
 async def delete_loyalty_reward(
     context: ToolContext,
-    loyalty_reward_id: Annotated[
+    reward_id: Annotated[
         str,
-        "The unique ID of the loyalty reward to delete. This ID ensures the correct reward is identified and deleted.",  # noqa: E501
+        "The ID of the loyalty reward to delete. This is required to identify which reward to remove and restore points for.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteLoyaltyReward'."]:
-    """Deletes a loyalty reward and adjusts points accordingly.
+    """Delete a loyalty reward and restore loyalty points.
 
-    This tool deletes a specified loyalty reward, returning the loyalty points back to the associated account. If an order ID was involved, it updates the order by removing the reward and related discounts. Note: Rewards in the 'REDEEMED' state cannot be deleted."""  # noqa: E501
+    Use this tool to delete a loyalty reward, which restores loyalty points to the account. It also updates the associated order by removing the reward and related discounts if an order ID was specified. The reward cannot be deleted if it has been redeemed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
-                reward_id=loyalty_reward_id
+                reward_id=reward_id
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -2773,11 +3168,11 @@ async def delete_loyalty_reward(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
 async def retrieve_loyalty_reward(
     context: ToolContext,
-    loyalty_reward_id: Annotated[str, "The unique identifier for the loyalty reward to retrieve."],
+    loyalty_reward_id: Annotated[str, "The unique ID of the loyalty reward to retrieve."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLoyaltyReward'."]:
-    """Retrieve details of a specific loyalty reward.
+    """Retrieve details of a loyalty reward.
 
-    Call this tool to get information about a specific loyalty reward using its ID."""
+    This tool is used to fetch information about a specific loyalty reward by providing the reward ID. It should be called when details about a particular reward are needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
@@ -2800,18 +3195,60 @@ async def retrieve_loyalty_reward(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
 async def get_merchant_details(
     context: ToolContext,
-    pagination_cursor: Annotated[
+    previous_response_cursor: Annotated[
         int | None,
-        "An integer representing the pagination cursor from the previous response to navigate through results.",  # noqa: E501
+        "The cursor generated by the previous response. Use this to fetch the next set of merchant details if needed.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListMerchants'."]:
-    """Retrieve merchant details using a given access token.
+    """Retrieve merchant details using an access token.
 
-    This tool provides details about the merchant associated with a specific access token. It returns a list containing a single Merchant object, reflecting the merchant's details. Use it when you need merchant information linked to your access token."""  # noqa: E501
+    Provides information about the merchant linked to the specified access token. Typically returns a single merchant object. Useful for obtaining merchant details for personal or OAuth token-based access."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants",
-            params=remove_none_values({"cursor": pagination_cursor}),
+            params=remove_none_values({"cursor": previous_response_cursor}),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
+async def list_merchant_custom_attribute_definitions(
+    context: ToolContext,
+    filter_by_visibility: Annotated[
+        str | None,
+        "Specify the visibility to filter custom attribute definitions. Options: 'ALL', 'READ', 'READ_WRITE'.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "Specifies the maximum number of results to return per page. Valid values are between 1 and 100. Defaults to 20.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None, "Cursor to retrieve the next page of results from a previous API call response."
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'ListMerchantCustomAttributeDefinitions'."
+]:
+    """Retrieve custom attribute definitions for a Square seller account.
+
+    Lists all visible merchant-related custom attribute definitions for a Square seller account, including those created by other applications."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions",
+            params=remove_none_values({
+                "visibility_filter": filter_by_visibility,
+                "limit": max_results_per_page,
+                "cursor": pagination_cursor,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2829,19 +3266,19 @@ async def get_merchant_details(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
 async def delete_merchant_custom_attribute(
     context: ToolContext,
-    custom_attribute_key: Annotated[
-        str, "The key of the custom attribute definition to delete from the Square seller account."
+    attribute_key_to_delete: Annotated[
+        str, "The key of the custom attribute definition to delete from the merchant account."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'DeleteMerchantCustomAttributeDefinition'."
 ]:
-    """Delete a custom attribute definition from a Square seller account.
+    """Delete a custom attribute definition from a merchant account.
 
-    Use this tool to delete a merchant-related custom attribute definition in a Square seller account. Only the definition owner can perform this action, and it removes the corresponding custom attribute from the merchant."""  # noqa: E501
+    Use this tool to delete a merchant-related custom attribute definition from a Square seller account. This action also removes the corresponding custom attribute from the merchant. Note that only the definition owner can perform this deletion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
+                key=attribute_key_to_delete
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -2858,7 +3295,7 @@ async def delete_merchant_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
-async def retrieve_merchant_custom_attribute_definition(
+async def retrieve_merchant_custom_attribute(
     context: ToolContext,
     custom_attribute_key: Annotated[
         str,
@@ -2866,14 +3303,14 @@ async def retrieve_merchant_custom_attribute_definition(
     ],
     custom_attribute_version: Annotated[
         int | None,
-        "The current version of the custom attribute definition. Used for consistent reads to ensure up-to-date data. A higher version returns an error.",  # noqa: E501
+        "The version of the custom attribute definition required for consistent reads. It returns the specified or a higher version if available, or an error if higher than the current version.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'RetrieveMerchantCustomAttributeDefinition'."
 ]:
     """Retrieve a merchant's custom attribute definition.
 
-    Call this to get details on a custom attribute definition from a Square seller account. Visibility must be set to either 'READ_ONLY' or 'READ_WRITE_VALUES' if created by another application."""  # noqa: E501
+    This tool retrieves custom attribute definitions related to a merchant from a Square seller account. It is useful when you need to access specific attribute definitions created within an account. The attribute definition must have a visibility setting of 'VISIBILITY_READ_ONLY' or 'VISIBILITY_READ_WRITE_VALUES' if created by another application."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
@@ -2895,21 +3332,72 @@ async def retrieve_merchant_custom_attribute_definition(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
-async def get_merchant_info(
+async def retrieve_merchant_info(
     context: ToolContext,
-    merchant_identifier: Annotated[
+    merchant_id: Annotated[
         str,
-        "The ID of the merchant to retrieve. Use 'me' to retrieve the currently accessible merchant.",  # noqa: E501
+        "The unique ID of the merchant to retrieve. Use 'me' to access the current accessible merchant.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveMerchant'."]:
-    """Retrieve detailed information about a specific merchant.
+    """Retrieve details of a specific merchant using merchant ID.
 
-    Use this tool to obtain the Merchant object for a given merchant ID, providing detailed information about the merchant."""  # noqa: E501
+    Use this tool to obtain the `Merchant` object details by providing the `merchant_id`. It should be called when users need specific information about a merchant via their unique ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants/{merchant_id}".format(  # noqa: UP032
-                merchant_id=merchant_identifier
+                merchant_id=merchant_id
             ),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
+async def list_merchant_custom_attributes(
+    context: ToolContext,
+    merchant_id: Annotated[
+        str,
+        "The ID of the target merchant. Use this to specify which merchant's custom attributes you want to retrieve.",  # noqa: E501
+    ],
+    filter_by_visibility: Annotated[
+        str | None,
+        "Specify how to filter custom attribute definitions by visibility. Options: 'ALL', 'READ', 'READ_WRITE'.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "Maximum number of results per single paged response. Value must be between 1 and 100, with a default of 20.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None, "The cursor from the previous response to retrieve the next page of results."
+    ] = None,
+    include_custom_attribute_definitions: Annotated[
+        bool | None,
+        "Set to `true` to include custom attribute definitions, including their name, description, and data type. Default is `false`.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListMerchantCustomAttributes'."]:
+    """Retrieve custom attributes for a specified merchant.
+
+    Use this tool to get custom attributes associated with a merchant. You can optionally include definitions of these attributes. The tool returns all attributes visible to the requesting application, including those with read-only or read-write visibility."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes".format(  # noqa: UP032
+                merchant_id=merchant_id
+            ),
+            params=remove_none_values({
+                "visibility_filter": filter_by_visibility,
+                "limit": max_results_per_page,
+                "cursor": pagination_cursor,
+                "with_definitions": include_custom_attribute_definitions,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -2928,20 +3416,20 @@ async def get_merchant_info(
 async def remove_merchant_custom_attribute(
     context: ToolContext,
     merchant_identifier: Annotated[
-        str, "The ID of the target merchant for which the custom attribute will be deleted."
+        str, "The unique identifier of the target merchant whose custom attribute will be deleted."
     ],
-    custom_attribute_key_to_delete: Annotated[
+    custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to delete, matching the attribute definition in the Square account. Use the qualified key if not the owner.",  # noqa: E501
+        "The key of the custom attribute to delete. It must match a custom attribute definition in the Square seller account. Use a qualified key if not the definition owner.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteMerchantCustomAttribute'."]:
     """Deletes a custom attribute from a merchant.
 
-    Use this tool to delete a custom attribute associated with a merchant if the attribute's visibility is set to 'VISIBILITY_READ_WRITE_VALUES'."""  # noqa: E501
+    Use this tool to delete a custom attribute associated with a merchant. The attribute can only be deleted if its visibility is set to 'VISIBILITY_READ_WRITE_VALUES' if owned by another application."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
-                merchant_id=merchant_identifier, key=custom_attribute_key_to_delete
+                merchant_id=merchant_identifier, key=custom_attribute_key
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -2962,31 +3450,31 @@ async def get_merchant_custom_attribute(
     context: ToolContext,
     merchant_id: Annotated[
         str,
-        "The identifier for the target merchant whose custom attribute is to be retrieved. This should match the merchant's ID in the Square system.",  # noqa: E501
+        "The unique identifier for the target merchant whose custom attribute is to be retrieved.",
     ],
     custom_attribute_key: Annotated[
         str,
-        "The unique key of the custom attribute to retrieve, matching the attribute definition in Square. Use the qualified key if not the definition owner.",  # noqa: E501
+        "The key of the custom attribute to retrieve. Must match the `key` of a custom attribute definition in the Square seller account.",  # noqa: E501
     ],
     custom_attribute_version: Annotated[
         int | None,
-        "The specific version of the custom attribute for consistent reads. Ensure it is up-to-date to avoid errors.",  # noqa: E501
+        "Specifies the version of the custom attribute for consistent reads. If higher than current, returns an error.",  # noqa: E501
     ] = None,
-    include_attribute_definition: Annotated[
+    include_definition: Annotated[
         bool | None,
-        "Set to true to include the custom attribute definition in the response, providing details like name, description, and data type. Default is false.",  # noqa: E501
+        "Set to true to include the custom attribute definition, providing additional details such as name, description, and data type.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveMerchantCustomAttribute'."]:
-    """Retrieve a custom attribute associated with a merchant.
+    """Retrieve a custom attribute for a specific merchant.
 
-    Use this tool to fetch a custom attribute linked to a merchant. You can specify if you want to include the attribute definition in the response. Note: To access attributes owned by another application, the visibility must allow it."""  # noqa: E501
+    This tool retrieves a custom attribute associated with a merchant. Use it to access merchant-specific data, with the option to include the custom attribute definition. Visibility settings dictate access permissions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
                 merchant_id=merchant_id, key=custom_attribute_key
             ),
             params=remove_none_values({
-                "with_definition": include_attribute_definition,
+                "with_definition": include_definition,
                 "version": custom_attribute_version,
             }),
             method="GET",
@@ -3004,19 +3492,17 @@ async def get_merchant_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
-async def get_square_checkout_settings(
+async def retrieve_checkout_location_settings(
     context: ToolContext,
-    location_identifier: Annotated[
-        str, "The unique identifier for the location to get checkout settings from."
-    ],
+    location_id: Annotated[str, "The unique identifier for the location to retrieve settings for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveLocationSettings'."]:
-    """Retrieve location settings for a Square checkout page.
+    """Retrieve location-level settings for a Square checkout page.
 
-    Use this tool to fetch the settings specific to a Square-hosted online checkout page for a given location. It provides details relevant to managing or displaying the checkout process."""  # noqa: E501
+    Fetches the settings for a specified location's Square-hosted checkout page. Useful for accessing configuration details or customizing checkout experiences based on location."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/online-checkout/location-settings/{location_id}".format(  # noqa: UP032
-                location_id=location_identifier
+                location_id=location_id
             ),
             method="GET",
             headers=remove_none_values({
@@ -3040,9 +3526,9 @@ async def get_square_checkout_settings(
 async def get_square_merchant_settings(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveMerchantSettings'."]:
-    """Retrieve settings for a Square checkout page.
+    """Retrieve merchant settings for Square checkout pages.
 
-    Use this tool to get the merchant-level settings for a Square-hosted checkout page, providing essential details about the checkout setup."""  # noqa: E501
+    Use this tool to get the merchant-level settings configured for a Square-hosted checkout page. Useful for accessing checkout configurations and preferences."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/online-checkout/merchant-settings",
@@ -3065,16 +3551,16 @@ async def list_payment_links(
     context: ToolContext,
     pagination_cursor: Annotated[
         str | None,
-        "A pagination cursor from a previous call to fetch the next set of results. If not provided, returns the first page.",  # noqa: E501
+        "A string cursor for paginating results. Use it to fetch the next set of results from a previous query. Leave blank to get the first page.",  # noqa: E501
     ] = None,
     results_per_page_limit: Annotated[
         int | None,
-        "Sets the maximum number of payment links to return per page. Values exceeding 1000 or non-positive numbers are ignored. Defaults to 100.",  # noqa: E501
+        "Sets the maximum number of payment links to return per page. Defaults to 100, ignored if negative or exceeds 1000.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListPaymentLinks'."]:
-    """Retrieve all available payment links.
+    """Retrieve all available payment links from Squareup.
 
-    Use this tool to list all the payment links created in the system."""
+    Use this tool to list all payment links generated in your Squareup account. It helps in managing and reviewing payment links efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/online-checkout/payment-links",
@@ -3096,16 +3582,17 @@ async def list_payment_links(
             return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ", "ORDERS_WRITE"]))
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE", "ORDERS_READ"]))
 async def delete_payment_link(
     context: ToolContext,
     payment_link_id: Annotated[
-        str, "The unique identifier of the payment link to delete. Required for removal operations."
+        str,
+        "The ID of the payment link you want to delete. Provide the specific link ID to proceed with deletion.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeletePaymentLink'."]:
     """Deletes a specified payment link.
 
-    Use this tool to delete an existing payment link when it is no longer needed or was created in error."""  # noqa: E501
+    Use this tool to delete a payment link by providing the link's ID. Call it when you need to remove a payment link from your system."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
@@ -3126,15 +3613,13 @@ async def delete_payment_link(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
-async def get_payment_link(
+async def retrieve_payment_link(
     context: ToolContext,
-    payment_link_id: Annotated[
-        str, "The unique identifier for the payment link you want to retrieve."
-    ],
+    payment_link_id: Annotated[str, "The unique ID of the payment link to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrievePaymentLink'."]:
-    """Retrieve details of a specific payment link using its ID.
+    """Retrieve details of a specified payment link.
 
-    Use this tool to get information about a particular payment link by providing its ID. This can be useful for tracking or verifying payment details."""  # noqa: E501
+    Use this tool to get details about a specific payment link by providing its unique ID. Ideal for retrieving information about payment transactions handled via Squareup."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
@@ -3154,19 +3639,61 @@ async def get_payment_link(
             return {"response_text": response.text}
 
 
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
+async def list_order_custom_attribute_definitions(
+    context: ToolContext,
+    custom_attribute_visibility_filter: Annotated[
+        str | None, "Specifies which custom attributes to return: all, read-only, or read-write."
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "The cursor from the previous response to get the next page of results. See [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+    ] = None,
+    maximum_results_per_page: Annotated[
+        int | None,
+        "The maximum number of results to return in a single paged response. Minimum is 1, maximum is 100. Default is 20.",  # noqa: E501
+    ] = None,
+) -> Annotated[
+    dict[str, Any], "Response from the API endpoint 'ListOrderCustomAttributeDefinitions'."
+]:
+    """Retrieve order-related custom attribute definitions for a Square seller.
+
+    Use this tool to list all order-related custom attribute definitions for a Square seller account. It includes attributes visible to the requesting application, even those created by other applications, with various visibility settings."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/orders/custom-attribute-definitions",
+            params=remove_none_values({
+                "visibility_filter": custom_attribute_visibility_filter,
+                "cursor": pagination_cursor,
+                "limit": maximum_results_per_page,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE"]))
 async def delete_order_custom_attribute_definition(
     context: ToolContext,
     custom_attribute_key: Annotated[
         str,
-        "The unique key identifying the custom attribute definition to delete from the Square seller account.",  # noqa: E501
+        "The key identifying the custom attribute definition to be deleted from the seller's account.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'DeleteOrderCustomAttributeDefinition'."
 ]:
-    """Delete a custom attribute definition from a Square seller account.
+    """Delete an order-related custom attribute definition.
 
-    Use this tool to delete an order-related custom attribute definition from a Square seller account. Only the definition owner has the permission to perform this action."""  # noqa: E501
+    Deletes a custom attribute definition related to an order from a Square seller account. Only the owner of the definition can perform this action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
@@ -3189,24 +3716,23 @@ async def delete_order_custom_attribute_definition(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
 async def retrieve_order_custom_attribute_definition(
     context: ToolContext,
-    custom_attribute_definition_key: Annotated[
-        str,
-        "The unique key for the custom attribute definition you want to retrieve from a Square seller account.",  # noqa: E501
+    custom_attribute_key: Annotated[
+        str, "The key of the custom attribute definition to retrieve for an order."
     ],
     current_version_of_custom_attribute: Annotated[
         int | None,
-        "Specify the current version of the custom attribute for optimistic concurrency control. This is optional.",  # noqa: E501
+        "Specify the current version of the custom attribute for optimistic concurrency control. Optional.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'RetrieveOrderCustomAttributeDefinition'."
 ]:
-    """Retrieve an order's custom attribute definition from Square
+    """Retrieve custom attribute definition for a Square order.
 
-    Fetches a custom attribute definition related to orders from a Square seller account. Use this to access definitions with `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES`, including seller-defined attributes."""  # noqa: E501
+    Use this tool to fetch a specific custom attribute definition related to an order from a Square seller account. The custom attribute must be set to specific visibility settings to be accessible."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_definition_key
+                key=custom_attribute_key
             ),
             params=remove_none_values({"version": current_version_of_custom_attribute}),
             method="GET",
@@ -3226,17 +3752,65 @@ async def retrieve_order_custom_attribute_definition(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
 async def retrieve_order_by_id(
     context: ToolContext,
-    order_id: Annotated[
-        str,
-        "The unique identifier for the order you want to retrieve. This ID is used to fetch the order details.",  # noqa: E501
-    ],
+    order_id: Annotated[str, "The unique identifier for the order to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveOrder'."]:
-    """Retrieve order details by order ID.
+    """Retrieve order details by Order ID.
 
-    Use this tool to get details of an order using its unique ID, helpful for viewing order status and specifics."""  # noqa: E501
+    Use this tool to retrieve detailed information about a specific order using its Order ID. It is useful for checking order status, contents, and other order-related details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/orders/{order_id}".format(order_id=order_id),  # noqa: UP032
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
+async def list_order_custom_attributes(
+    context: ToolContext,
+    target_order_id: Annotated[
+        str, "The ID of the specific order for which to retrieve custom attributes."
+    ],
+    attribute_visibility_filter: Annotated[
+        str | None,
+        "Select which custom attributes to return: 'ALL' for all, 'READ' for read-only, 'READ_WRITE' for read-write attributes.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "The pagination cursor from the previous response to retrieve the next page of results.",
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "The maximum number of results to return in a single paged response. Accepts an integer between 1 and 100. Default is 20.",  # noqa: E501
+    ] = None,
+    include_custom_attribute_definitions: Annotated[
+        bool | None,
+        "Set to true to include custom attribute definitions with the order attributes. Default is false.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListOrderCustomAttributes'."]:
+    """Retrieve custom attributes linked to a specific order.
+
+    This tool retrieves custom attribute details for a specified order, including all attributes visible to the requesting application across different visibility settings. It supports fetching custom attribute definitions as well."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes".format(  # noqa: UP032
+                order_id=target_order_id
+            ),
+            params=remove_none_values({
+                "visibility_filter": attribute_visibility_filter,
+                "cursor": pagination_cursor,
+                "limit": max_results_per_page,
+                "with_definitions": include_custom_attribute_definitions,
+            }),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -3256,16 +3830,16 @@ async def delete_order_custom_attribute(
     context: ToolContext,
     order_id: Annotated[
         str,
-        "The unique identifier of the target order for which the custom attribute is to be deleted.",  # noqa: E501
+        "The unique identifier for the target order from which the custom attribute will be deleted. This ID is crucial for locating the correct order.",  # noqa: E501
     ],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute you want to delete. It must match an existing custom attribute definition key.",  # noqa: E501
+        "Specifies the key of the custom attribute to be deleted. It must match an existing custom attribute definition's key.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteOrderCustomAttribute'."]:
-    """Deletes a custom attribute from an order.
+    """Delete a custom attribute from an order.
 
-    Use this tool to delete a custom attribute associated with an order's profile. Ensure the attribute's visibility is set to allow deletion, specifically `VISIBILITY_READ_WRITE_VALUES`."""  # noqa: E501
+    Use this tool to delete a specific custom attribute associated with an order. This is necessary when a custom attribute has the 'VISIBILITY_READ_WRITE_VALUES' setting or is defined by the seller."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
@@ -3288,33 +3862,30 @@ async def delete_order_custom_attribute(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
 async def retrieve_order_custom_attribute(
     context: ToolContext,
-    order_id: Annotated[
-        str,
-        "The unique identifier of the target order to retrieve the custom attribute from. This ID must correspond to an existing order in the system.",  # noqa: E501
-    ],
+    order_id: Annotated[str, "The ID of the target order to retrieve the custom attribute for."],
     custom_attribute_key: Annotated[
         str,
-        "The key of the custom attribute to retrieve. It must match an existing custom attribute definition key.",  # noqa: E501
+        "The key for retrieving the custom attribute associated with the order. Must match an existing definition key.",  # noqa: E501
     ],
-    current_attribute_version: Annotated[
+    current_version: Annotated[
         int | None,
-        "Specify the current version of the custom attribute for optimistic concurrency control. This is optional.",  # noqa: E501
+        "Specify the current version of the custom attribute for optimistic concurrency control. This is an optional integer value.",  # noqa: E501
     ] = None,
     include_custom_attribute_definition: Annotated[
         bool | None,
-        "Set to true to include the custom attribute definition with details such as name, description, and data type. Default is false.",  # noqa: E501
+        "Set to true to include the custom attribute definition details in the response, such as name, description, and data type.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveOrderCustomAttribute'."]:
-    """Retrieve a custom attribute for a specific order.
+    """Retrieve a custom attribute associated with an order.
 
-    Use this tool to obtain a custom attribute associated with an order. Supports retrieving the attribute definition if needed. Applicable when the custom attribute visibility is set appropriately."""  # noqa: E501
+    This tool retrieves a custom attribute linked to a specified order. It can also return the custom attribute definition if requested. Use this when you need information about custom fields attached to an order, especially those with specific visibility settings."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
                 order_id=order_id, custom_attribute_key=custom_attribute_key
             ),
             params=remove_none_values({
-                "version": current_attribute_version,
+                "version": current_version,
                 "with_definition": include_custom_attribute_definition,
             }),
             method="GET",
@@ -3332,15 +3903,112 @@ async def retrieve_order_custom_attribute(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
-async def retrieve_payment_details(
+async def fetch_payment_list(
+    context: ToolContext,
+    start_time_for_payment_retrieval: Annotated[
+        str | None,
+        "The start time for retrieving payments, in RFC 3339 format, using the `created_at` field. Default is current time minus one year.",  # noqa: E501
+    ] = None,
+    payment_retrieval_end_time: Annotated[
+        str | None,
+        "The end of the time range to retrieve payments, in RFC 3339 format. Defaults to the current time.",  # noqa: E501
+    ] = None,
+    order_results_by: Annotated[
+        str | None,
+        "Specify the order of payment results: 'ASC' for oldest to newest, 'DESC' for newest to oldest (default).",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "A cursor from a previous call for fetching the next set of payment results. Use it for pagination.",  # noqa: E501
+    ] = None,
+    limit_results_by_location: Annotated[
+        str | None,
+        "Specify the location ID to limit payment results to that location. Defaults to the main seller location if not provided.",  # noqa: E501
+    ] = None,
+    exact_payment_amount: Annotated[
+        int | None,
+        "The exact amount of the payment in the total_money field. Provide as an integer value.",
+    ] = None,
+    payment_card_last_four_digits: Annotated[
+        str | None, "The last four digits of a payment card to filter specific payments."
+    ] = None,
+    payment_card_brand: Annotated[
+        str | None, "The brand of the payment card to filter payments by (e.g., VISA, MasterCard)."
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "Specify the maximum number of payment records to return per page, up to 100. Values over 100 are ignored.",  # noqa: E501
+    ] = None,
+    offline_payment_start_time: Annotated[
+        str | None,
+        "Indicate the start of the time range for retrieving offline payments in RFC 3339 format. Defaults to the current time.",  # noqa: E501
+    ] = None,
+    offline_payment_end_time: Annotated[
+        str | None,
+        "End time in RFC 3339 format to retrieve offline payments, based on `client_created_at`. Defaults to current time.",  # noqa: E501
+    ] = None,
+    updated_at_start_time: Annotated[
+        str | None,
+        "Start time in RFC 3339 format to retrieve payments using the `updated_at` field.",
+    ] = None,
+    end_time_for_update_retrieval: Annotated[
+        str | None, "The end time in RFC 3339 format to filter payments by the `updated_at` field."
+    ] = None,
+    sort_results_by_field: Annotated[
+        str | None,
+        "Specify the field to sort the payment results by. Options are 'CREATED_AT', 'OFFLINE_CREATED_AT', or 'UPDATED_AT'. Default is 'CREATED_AT'.",  # noqa: E501
+    ] = None,
+    include_offline_payments: Annotated[
+        bool | None, "Set to true to include payments taken offline. False excludes them."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListPayments'."]:
+    """Retrieve a list of payments for an account.
+
+    This tool calls the Squareup API to fetch a list of payments associated with the account making the request. It should be called when you need to access recent payment records. Note that results are eventually consistent, and there may be slight delays in updates."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/payments",
+            params=remove_none_values({
+                "begin_time": start_time_for_payment_retrieval,
+                "end_time": payment_retrieval_end_time,
+                "sort_order": order_results_by,
+                "cursor": pagination_cursor,
+                "location_id": limit_results_by_location,
+                "total": exact_payment_amount,
+                "last_4": payment_card_last_four_digits,
+                "card_brand": payment_card_brand,
+                "limit": max_results_per_page,
+                "is_offline_payment": include_offline_payments,
+                "offline_begin_time": offline_payment_start_time,
+                "offline_end_time": offline_payment_end_time,
+                "updated_at_begin_time": updated_at_start_time,
+                "updated_at_end_time": end_time_for_update_retrieval,
+                "sort_field": sort_results_by_field,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
+async def get_payment_details(
     context: ToolContext,
     payment_id: Annotated[
-        str, "A unique identifier for the specific payment you want to retrieve details for."
+        str, "A unique ID for the desired payment to retrieve specific payment details."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetPayment'."]:
-    """Retrieves details for a specific payment.
+    """Retrieve specific payment details by payment ID.
 
-    Use this tool to obtain information about a specific payment by providing the payment ID."""
+    Use this tool to obtain detailed information about a specific payment using its payment ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/payments/{payment_id}".format(  # noqa: UP032
@@ -3361,20 +4029,20 @@ async def retrieve_payment_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
-async def cancel_payment(
+async def cancel_approved_payment(
     context: ToolContext,
-    payment_id: Annotated[
+    payment_identifier: Annotated[
         str,
-        "The ID of the approved payment to cancel. This is required to identify which payment should be voided.",  # noqa: E501
+        "The unique ID of the payment to cancel. This ID must correspond to a payment with an APPROVED status.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelPayment'."]:
     """Cancel an approved payment transaction.
 
-    Use this tool to cancel a payment that is in the APPROVED status. It is useful for voiding payments that no longer need to be processed."""  # noqa: E501
+    Use this tool to void a payment that has an APPROVED status. This can be useful when a transaction needs to be reversed before completion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/payments/{payment_id}/cancel".format(  # noqa: UP032
-                payment_id=payment_id
+                payment_id=payment_identifier
             ),
             method="POST",
             headers=remove_none_values({
@@ -3391,15 +4059,73 @@ async def cancel_payment(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
-async def retrieve_payout_details(
+async def get_payout_list(
     context: ToolContext,
-    payout_id: Annotated[
-        str, "The unique identifier for the payout you want to retrieve details about."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetPayout'."]:
-    """Retrieve details of a specific payout using its ID.
+    location_id: Annotated[
+        str | None,
+        "ID of the location to list payouts. Defaults to the main location if not specified.",
+    ] = None,
+    payout_status_filter: Annotated[
+        str | None, "Filter payouts by status: 'SENT', 'FAILED', or 'PAID'."
+    ] = None,
+    start_time_for_payouts: Annotated[
+        str | None,
+        "RFC 3339 formatted timestamp for the beginning of payout creation. Defaults to one year ago.",  # noqa: E501
+    ] = None,
+    end_time: Annotated[
+        str | None,
+        "The timestamp for the end of the payout creation time, in RFC 3339 format. Defaults to the current time if not provided.",  # noqa: E501
+    ] = None,
+    sort_order: Annotated[
+        str | None,
+        "Determines if the list of payouts is sorted in ascending ('ASC') or descending ('DESC') order.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "A pagination cursor from a previous call, used to retrieve the next set of results.",
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "The maximum number of results to return per page. Must be 100 or fewer; defaults to 100 if a higher value is provided.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListPayouts'."]:
+    """Retrieve a list of all payouts for the default location.
 
-    Use this tool to get detailed information about a specific payout by providing the payout ID. This can be helpful to verify the status and details of transactions."""  # noqa: E501
+    This tool retrieves all payouts for the default location, allowing filtration by location ID, status, time range, and sorting order. It requires the `PAYOUTS_READ` OAuth scope."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/payouts",
+            params=remove_none_values({
+                "location_id": location_id,
+                "status": payout_status_filter,
+                "begin_time": start_time_for_payouts,
+                "end_time": end_time,
+                "sort_order": sort_order,
+                "cursor": pagination_cursor,
+                "limit": max_results_per_page,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup"))
+async def get_payout_details(
+    context: ToolContext,
+    payout_id: Annotated[str, "The unique identifier of the payout to retrieve details for."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetPayout'."]:
+    """Retrieve details of a specific payout by payout ID.
+
+    Use this tool to get detailed information about a specific payout by providing the payout ID. Useful for tracking or reviewing specific payout transactions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/payouts/{payout_id}".format(payout_id=payout_id),  # noqa: UP032
@@ -3417,19 +4143,145 @@ async def retrieve_payout_details(
             return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
-async def retrieve_refund_details(
+@tool(requires_auth=OAuth2(id="arcade-squareup"))
+async def list_payout_entries(
     context: ToolContext,
-    refund_id: Annotated[
-        str, "A unique string representing the ID of the payment refund to retrieve."
+    payout_id: Annotated[
+        str,
+        "The unique ID of the payout to retrieve entries for. Essential for identifying the payout for which entries are needed.",  # noqa: E501
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetPaymentRefund'."]:
-    """Retrieve details of a specific payment refund.
+    payout_entries_sort_order: Annotated[
+        str | None,
+        "Specifies the order in which payout entries are listed. Use 'DESC' for descending or 'ASC' for ascending order.",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None,
+        "Provide this cursor to retrieve the next set of results for the original query. A pagination cursor from a previous call.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "Sets the maximum number of results to retrieve per page, up to 100. Defaults to 100 if the value exceeds this limit.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListPayoutEntries'."]:
+    """Retrieve all payout entries for a specific payout.
 
-    Use this tool to get information about a specific refund using its ID."""
+    Fetches a list of all payout entries associated with a particular payout ID. Ideal for obtaining detailed payout information from Square."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/refunds/{refund_id}".format(refund_id=refund_id),  # noqa: UP032
+            url="https://connect.squareup.com/v2/payouts/{payout_id}/payout-entries".format(  # noqa: UP032
+                payout_id=payout_id
+            ),
+            params=remove_none_values({
+                "sort_order": payout_entries_sort_order,
+                "cursor": pagination_cursor,
+                "limit": max_results_per_page,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
+async def list_payment_refunds(
+    context: ToolContext,
+    start_time_for_refund_retrieval: Annotated[
+        str | None,
+        "Start of the time range for retrieving PaymentRefund in RFC 3339 format, based on the created_at field. Defaults to one year ago.",  # noqa: E501
+    ] = None,
+    refund_end_time: Annotated[
+        str | None,
+        "Specifies the end date and time for the refund retrieval range in RFC 3339 format, defaulting to the current time if not specified.",  # noqa: E501
+    ] = None,
+    results_sort_order: Annotated[
+        str | None,
+        "Set the order for listing results by `PaymentRefund.created_at`. Use 'ASC' for oldest to newest, 'DESC' for newest to oldest (default).",  # noqa: E501
+    ] = None,
+    pagination_cursor: Annotated[
+        str | None, "A pagination cursor from a previous call to retrieve the next set of results."
+    ] = None,
+    limit_results_to_location: Annotated[
+        str | None,
+        "Specify the location ID to filter results for that location. Defaults to all seller-associated locations.",  # noqa: E501
+    ] = None,
+    refund_status_filter: Annotated[
+        str | None,
+        "Filter refunds by specific status. Uses status values defined in PaymentRefund entity. If omitted, all statuses are included.",  # noqa: E501
+    ] = None,
+    payment_source_type: Annotated[
+        str | None,
+        "Specify the source type of payments to filter refunds. Options: CARD, BANK_ACCOUNT, WALLET, CASH, EXTERNAL. If omitted, all source types are included.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None, "Specify the maximum number of refund results per page, up to a maximum of 100."
+    ] = None,
+    updated_at_start_time: Annotated[
+        str | None,
+        "The start of the time range for retrieving refunds, based on the `updated_at` field, in RFC 3339 format. Defaults to `begin_time` if omitted.",  # noqa: E501
+    ] = None,
+    updated_at_end_time: Annotated[
+        str | None,
+        "Indicates the end of the time range to retrieve each `PaymentRefund` for, in RFC 3339 format. Defaults to the current time.",  # noqa: E501
+    ] = None,
+    sort_results_by_field: Annotated[
+        str | None,
+        "Specifies the field to sort refund results by. Options are 'CREATED_AT' or 'UPDATED_AT'.",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListPaymentRefunds'."]:
+    """Retrieve a list of payment refunds for the account.
+
+    Fetches a list of refunds associated with the account making the request. Suitable for monitoring refund transactions, with a maximum of 100 results per page. Results may take several seconds to update due to eventual consistency."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/refunds",
+            params=remove_none_values({
+                "begin_time": start_time_for_refund_retrieval,
+                "end_time": refund_end_time,
+                "sort_order": results_sort_order,
+                "cursor": pagination_cursor,
+                "location_id": limit_results_to_location,
+                "status": refund_status_filter,
+                "source_type": payment_source_type,
+                "limit": max_results_per_page,
+                "updated_at_begin_time": updated_at_start_time,
+                "updated_at_end_time": updated_at_end_time,
+                "sort_field": sort_results_by_field,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
+async def fetch_specific_refund(
+    context: ToolContext,
+    specific_refund_id: Annotated[str, "The unique ID for the specific PaymentRefund to retrieve."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetPaymentRefund'."]:
+    """Retrieve details of a specific refund using its ID.
+
+    Call this tool to fetch information about a particular refund by providing the refund ID. This is useful for checking the status and details of any refund made through the system."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/refunds/{refund_id}".format(  # noqa: UP032
+                refund_id=specific_refund_id
+            ),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -3445,12 +4297,12 @@ async def retrieve_refund_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SITE_READ"]))
-async def list_square_merchant_sites(
+async def list_square_online_sites(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListSites'."]:
-    """Retrieve Square Online sites for a seller.
+    """Retrieve a list of Square Online sites for a seller.
 
-    Fetches a list of Square Online sites that belong to a seller, ordered by creation date. Useful for sellers wanting to view or manage their online presence."""  # noqa: E501
+    Use this tool to obtain a list of Square Online sites associated with a seller, ordered by their creation date. This is part of Square's early access program for online APIs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/sites",
@@ -3469,20 +4321,19 @@ async def list_square_merchant_sites(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SNIPPETS_WRITE"]))
-async def delete_square_online_snippet(
+async def remove_square_online_snippet(
     context: ToolContext,
-    square_site_id: Annotated[
-        str,
-        "The unique ID of the Square Online site containing the snippet to be deleted. Ensure this ID is accurate to avoid unintended deletions.",  # noqa: E501
+    site_id_for_snippet_removal: Annotated[
+        str, "The unique ID of the Square Online site containing the snippet to remove."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteSnippet'."]:
-    """Deletes a snippet from a Square Online site.
+    """Delete a snippet from a Square Online site.
 
-    Use this tool to remove a snippet from a specific Square Online site. It's useful when you want to update or clean up site content by eliminating unnecessary snippets. Ensure you have the correct site ID before proceeding."""  # noqa: E501
+    Use this tool to remove a snippet from a Square Online site. Call it when you have the site ID from which you want to delete the snippet. Ideal for managing online site content efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
-                site_id=square_site_id
+                site_id=site_id_for_snippet_removal
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -3499,19 +4350,20 @@ async def delete_square_online_snippet(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SNIPPETS_READ"]))
-async def retrieve_online_site_snippet(
+async def retrieve_site_snippet(
     context: ToolContext,
-    site_id: Annotated[
-        str,
-        "The unique identifier of the site containing the snippet you want to retrieve. Use the ListSites tool to get site IDs if necessary.",  # noqa: E501
+    site_identifier: Annotated[
+        str, "The unique ID of the Square Online site containing your application's snippet."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveSnippet'."]:
-    """Retrieve your application snippet from a Square Online site.
+    """Retrieve snippets from a Square Online site.
 
-    Use this tool to get the snippet specifically added by your application on a Square Online site. Useful for managing and verifying application-specific snippets. Obtain site IDs with the ListSites tool if needed."""  # noqa: E501
+    Use this tool to retrieve the snippet added by your application from a specified Square Online site. Ideal for accessing custom code snippets associated with your applications on Square sites."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(site_id=site_id),  # noqa: UP032
+            url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
+                site_id=site_identifier
+            ),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -3527,26 +4379,23 @@ async def retrieve_online_site_snippet(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_READ"]))
-async def get_subscription_details(
+async def retrieve_subscription(
     context: ToolContext,
-    subscription_id: Annotated[
-        str,
-        "The ID of the subscription to retrieve. Provide the unique identifier for the subscription you want details about.",  # noqa: E501
-    ],
-    include_subscription_details: Annotated[
+    subscription_id: Annotated[str, "The ID of the subscription to retrieve."],
+    include_related_info: Annotated[
         str | None,
-        "Specify related info to include in the response. Use 'actions' to include scheduled actions.",  # noqa: E501
+        "Specify related info to include in the response, such as 'actions' for scheduled actions.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveSubscription'."]:
     """Retrieve details of a specific subscription.
 
-    Use this tool to get information about a particular subscription by providing its subscription ID."""  # noqa: E501
+    This tool retrieves information about a specific subscription using its ID. It is called when detailed subscription data is needed, such as for review or management purposes."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/subscriptions/{subscription_id}".format(  # noqa: UP032
                 subscription_id=subscription_id
             ),
-            params=remove_none_values({"include": include_subscription_details}),
+            params=remove_none_values({"include": include_related_info}),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -3564,21 +4413,19 @@ async def get_subscription_details(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_WRITE"]))
 async def delete_subscription_action(
     context: ToolContext,
-    subscription_identifier: Annotated[
-        str, "The unique ID of the subscription associated with the action you want to delete."
-    ],
-    targeted_action_id: Annotated[
+    subscription_id: Annotated[
         str,
-        "The unique identifier for the action you want to delete from the subscription. This ID specifies the exact action you intend to remove.",  # noqa: E501
+        "The ID of the subscription for which the action is to be deleted. This ID is required to identify the specific subscription being targeted.",  # noqa: E501
     ],
+    action_id: Annotated[str, "The ID of the specific action to be deleted from a subscription."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteSubscriptionAction'."]:
-    """Delete a scheduled action for a subscription.
+    """Delete a scheduled action from a subscription.
 
-    Call this tool to delete a scheduled action from a subscription identified by the specific subscription and action IDs."""  # noqa: E501
+    This tool deletes a specific scheduled action associated with a subscription identified by its subscription and action IDs. Use it to cancel or remove actions that are no longer needed from a subscription plan."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/actions/{action_id}".format(  # noqa: UP032
-                subscription_id=subscription_identifier, action_id=targeted_action_id
+                subscription_id=subscription_id, action_id=action_id
             ),
             method="DELETE",
             headers=remove_none_values({
@@ -3597,15 +4444,18 @@ async def delete_subscription_action(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_WRITE"]))
 async def cancel_subscription(
     context: ToolContext,
-    subscription_id: Annotated[str, "The unique identifier of the subscription to be canceled."],
+    subscription_identifier: Annotated[
+        str,
+        "The unique identifier of the subscription to be canceled. Required to schedule the cancellation.",  # noqa: E501
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelSubscription'."]:
-    """Schedule the cancellation of an active subscription.
+    """Schedule cancellation of an active subscription.
 
-    This tool schedules a cancellation for an active subscription, changing its status from ACTIVE to CANCELED at the end of the current billing period."""  # noqa: E501
+    Use this tool to schedule a cancellation for an active subscription. The subscription will remain active until the end of the current billing period, after which it will be marked as canceled."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/cancel".format(  # noqa: UP032
-                subscription_id=subscription_id
+                subscription_id=subscription_identifier
             ),
             method="POST",
             headers=remove_none_values({
@@ -3626,25 +4476,25 @@ async def list_subscription_events(
     context: ToolContext,
     subscription_id: Annotated[
         str,
-        "The unique identifier of the subscription for which you want to retrieve events. This ID is required to fetch the events.",  # noqa: E501
+        "The unique ID of the subscription to retrieve events for. Use this to specify which subscription's events to list.",  # noqa: E501
     ],
     pagination_cursor: Annotated[
         str | None,
-        "Specify the cursor to fetch the next set of subscription events if the result exceeds the page limit. Leave unset for the last page.",  # noqa: E501
+        "Specify the cursor to fetch the next set of subscription events if results exceed the limit. Leave unset for the last page.",  # noqa: E501
     ] = None,
-    event_limit: Annotated[
-        int | None, "The maximum number of subscription events to return in a single response."
+    max_events_per_page: Annotated[
+        int | None, "The maximum number of subscription events to return in a single response page."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListSubscriptionEvents'."]:
-    """Retrieve all events for a specific subscription.
+    """Retrieve events for a specific subscription.
 
-    Use this tool to get a list of events related to a specific subscription. This can include actions such as subscriptions being created, updated, or canceled."""  # noqa: E501
+    Call this tool to retrieve all events related to a specific subscription using the Square API. Useful for tracking changes and updates within a subscription lifecycle."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/events".format(  # noqa: UP032
                 subscription_id=subscription_id
             ),
-            params=remove_none_values({"cursor": pagination_cursor, "limit": event_limit}),
+            params=remove_none_values({"cursor": pagination_cursor, "limit": max_events_per_page}),
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -3660,16 +4510,16 @@ async def list_subscription_events(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
-async def list_seller_jobs(
+async def list_jobs_for_seller(
     context: ToolContext,
     pagination_cursor: Annotated[
         str | None,
-        "The cursor for paginating results. Use this to retrieve the next page of job listings.",
+        "The cursor for pagination to retrieve the next page of job results. Obtain this from the previous response.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListJobs'."]:
-    """Retrieve and list jobs in a seller account.
+    """Retrieve a list of jobs in a seller account.
 
-    This tool retrieves and lists jobs from a seller account, sorting the results by job title in ascending order. Use it to access information about available jobs associated with a seller."""  # noqa: E501
+    This tool retrieves a list of jobs associated with a seller account, sorted by title in ascending order. Use this tool when you need to view or manage the job listings for a seller."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/team-members/jobs",
@@ -3692,12 +4542,12 @@ async def list_seller_jobs(
 async def retrieve_job_details(
     context: ToolContext,
     job_identifier: Annotated[
-        str, "The unique identifier of the job to retrieve. Provide this ID to get the job details."
+        str, "The unique ID of the job to retrieve. This is required to fetch the job details."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveJob'."]:
-    """Retrieve details of a specified job.
+    """Retrieve details of a specified job by ID.
 
-    Call this tool to obtain information about a job using its ID. Ideal for accessing job specifics and employment details."""  # noqa: E501
+    Use this tool to get information about a specific job using its ID. It should be called when details about a particular job are needed, such as in management and administrative tasks."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/team-members/jobs/{job_id}".format(  # noqa: UP032
@@ -3718,15 +4568,16 @@ async def retrieve_job_details(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
-async def retrieve_team_member_info(
+async def retrieve_team_member_details(
     context: ToolContext,
     team_member_id: Annotated[
-        str, "The unique identifier for the team member whose details are to be retrieved."
+        str,
+        "The unique identifier of the team member whose details you want to retrieve. This ID is required to access specific team member information.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveTeamMember'."]:
-    """Retrieve detailed information for a specific team member.
+    """Retrieve details of a team member by ID.
 
-    Use this tool to obtain information about a team member using their unique ID. Ideal for getting specific employee details from the Square API."""  # noqa: E501
+    Use this tool to access detailed information about a specific team member using their unique ID. This is useful for managing or reviewing team member profiles."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/team-members/{team_member_id}".format(  # noqa: UP032
@@ -3747,15 +4598,15 @@ async def retrieve_team_member_info(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
-async def retrieve_wage_setting(
+async def retrieve_team_member_wage_setting(
     context: ToolContext,
     team_member_id: Annotated[
         str, "The unique identifier for the team member whose wage setting is to be retrieved."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveWageSetting'."]:
-    """Retrieve wage settings for a specific team member.
+    """Retrieve wage setting details for a specific team member.
 
-    Use this tool to get detailed wage settings for a team member by their ID. It is useful for accessing wage data when managing team members."""  # noqa: E501
+    This tool retrieves the wage setting for a team member based on their ID. Use this when you need to access detailed wage information about a specific member. It is recommended to use RetrieveTeamMember or SearchTeamMembers for related queries."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/team-members/{team_member_id}/wage-setting".format(  # noqa: UP032
@@ -3780,12 +4631,12 @@ async def get_terminal_action(
     context: ToolContext,
     terminal_action_id: Annotated[
         str,
-        "Unique identifier for the Terminal action to retrieve. Must be a valid and existing action ID.",  # noqa: E501
+        "Unique ID of the terminal action to retrieve. Must be provided to access the TerminalAction details.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTerminalAction'."]:
-    """Retrieve a Terminal action by its action ID.
+    """Retrieve details of a terminal action request by ID.
 
-    Use this tool to retrieve details of a specific Terminal action request using its `action_id`. Terminal actions are available for retrieval for 30 days."""  # noqa: E501
+    This tool retrieves a Terminal action request using the specified `action_id`. Terminal action requests can be accessed within 30 days of their request."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/actions/{action_id}".format(  # noqa: UP032
@@ -3808,11 +4659,11 @@ async def get_terminal_action(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
 async def cancel_terminal_action(
     context: ToolContext,
-    terminal_action_id: Annotated[str, "Unique ID for the TerminalAction you wish to cancel."],
+    terminal_action_id: Annotated[str, "Unique ID for the TerminalAction you want to cancel."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelTerminalAction'."]:
-    """Cancel a terminal action request if possible.
+    """Cancel a terminal action request if permitted.
 
-    Use this tool to cancel a terminal action request when its current status allows cancellation. Useful for halting actions that are no longer needed or were initiated in error."""  # noqa: E501
+    Use this tool to cancel a terminal action request when the status allows for cancellation."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/actions/{action_id}/cancel".format(  # noqa: UP032
@@ -3836,13 +4687,12 @@ async def cancel_terminal_action(
 async def dismiss_terminal_action(
     context: ToolContext,
     terminal_action_id: Annotated[
-        str,
-        "Unique identifier for the TerminalAction to be dismissed. Ensure the ID is valid and corresponds to a dismissible request.",  # noqa: E501
+        str, "Unique ID for the TerminalAction associated with the action to be dismissed."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DismissTerminalAction'."]:
-    """Dismiss a Terminal action request if permitted.
+    """Dismiss a Square Terminal action request.
 
-    Use this tool to dismiss a Terminal action request. This is applicable when the status and type of the request allow for dismissal. Refer to Square's documentation on linking and dismissing actions for further details."""  # noqa: E501
+    Use this tool to dismiss a Terminal action request if it is permitted by the status and type of the request."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/actions/{action_id}/dismiss".format(  # noqa: UP032
@@ -3866,12 +4716,13 @@ async def dismiss_terminal_action(
 async def retrieve_terminal_checkout(
     context: ToolContext,
     terminal_checkout_id: Annotated[
-        str, "The unique ID for the desired Terminal checkout to retrieve details."
+        str,
+        "The unique ID used to retrieve details of a Terminal checkout request. Valid for 30 days.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTerminalCheckout'."]:
-    """Retrieve details of a Terminal checkout by checkout ID.
+    """Retrieve a Terminal checkout request by ID.
 
-    Use this tool to obtain information about a specific Terminal checkout request using its `checkout_id`. This information is accessible for up to 30 days after the request was made."""  # noqa: E501
+    This tool retrieves the details of a Terminal checkout request using a unique `checkout_id`. It should be called to access checkout information up to 30 days after the request was created."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}".format(  # noqa: UP032
@@ -3894,13 +4745,11 @@ async def retrieve_terminal_checkout(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
 async def cancel_terminal_checkout(
     context: ToolContext,
-    terminal_checkout_id: Annotated[
-        str, "The unique identifier for the Terminal checkout you wish to cancel."
-    ],
+    terminal_checkout_id: Annotated[str, "The unique ID of the TerminalCheckout to be canceled."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelTerminalCheckout'."]:
     """Cancel a Terminal checkout request if feasible.
 
-    This tool is used to cancel an ongoing Terminal checkout request, provided that the current status allows for cancellation. It should be called when a Terminal checkout needs to be halted due to changes in circumstances or errors in the checkout process."""  # noqa: E501
+    This tool cancels a Terminal checkout request, if its current status allows cancellation. It should be called when a checkout process needs to be aborted."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/cancel".format(  # noqa: UP032
@@ -3925,9 +4774,9 @@ async def dismiss_terminal_checkout(
     context: ToolContext,
     terminal_checkout_id: Annotated[str, "Unique ID for the TerminalCheckout to be dismissed."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DismissTerminalCheckout'."]:
-    """Dismisses a Terminal checkout request if permitted.
+    """Dismiss a Terminal checkout request if permitted.
 
-    Call this tool to dismiss a Terminal checkout request, given that the status and type of the request allow for it. Use this to cancel ongoing checkout processes at the terminal if needed."""  # noqa: E501
+    Call this tool to dismiss a Terminal checkout request when the request status and type allow for dismissal. Useful for managing checkout operations and correcting errors in checkout processes."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/dismiss".format(  # noqa: UP032
@@ -3952,12 +4801,12 @@ async def get_terminal_refund(
     context: ToolContext,
     terminal_refund_id: Annotated[
         str,
-        "The unique identifier for retrieving a specific TerminalRefund. Required to access refund details.",  # noqa: E501
+        "The unique ID of the Interac Terminal refund to retrieve. Must be used within 30 days of creation.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'GetTerminalRefund'."]:
-    """Retrieve a terminal refund by its ID.
+    """Fetch Interac Terminal refund details by ID.
 
-    Retrieve details of an Interac Terminal refund using its ID. Useful for accessing refund information available for up to 30 days."""  # noqa: E501
+    Use this tool to retrieve details of an Interac Terminal refund within 30 days of its creation using the refund ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}".format(  # noqa: UP032
@@ -3980,18 +4829,15 @@ async def get_terminal_refund(
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
 async def cancel_terminal_refund(
     context: ToolContext,
-    terminal_refund_unique_id: Annotated[
-        str,
-        "The ID of the terminal refund to be canceled. This must be a valid and unique identifier.",
-    ],
+    terminal_refund_id: Annotated[str, "The unique ID for the desired TerminalRefund to cancel."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'CancelTerminalRefund'."]:
-    """Cancel a terminal refund request if possible.
+    """Cancel a terminal refund request if allowed.
 
-    Use this tool to cancel an Interac Terminal refund request by providing the refund request ID, given the request status allows it."""  # noqa: E501
+    This tool cancels a terminal refund request using the refund request ID, if the current status permits cancellation."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/cancel".format(  # noqa: UP032
-                terminal_refund_id=terminal_refund_unique_id
+                terminal_refund_id=terminal_refund_id
             ),
             method="POST",
             headers=remove_none_values({
@@ -4010,17 +4856,18 @@ async def cancel_terminal_refund(
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
 async def dismiss_terminal_refund(
     context: ToolContext,
-    terminal_refund_identifier: Annotated[
-        str, "Unique identifier for the TerminalRefund associated with the refund to be dismissed."
+    terminal_refund_unique_id: Annotated[
+        str,
+        "The unique identifier for the `TerminalRefund` that is associated with the refund to be dismissed.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DismissTerminalRefund'."]:
-    """Dismiss a Terminal refund request if eligible.
+    """Dismiss a Terminal refund request if permissible.
 
-    This tool dismisses a Terminal refund request if the current status and type of the request permits such an action."""  # noqa: E501
+    Use this tool to dismiss a Terminal refund request when the request status and type allow for dismissal."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/dismiss".format(  # noqa: UP032
-                terminal_refund_id=terminal_refund_identifier
+                terminal_refund_id=terminal_refund_unique_id
             ),
             method="POST",
             headers=remove_none_values({
@@ -4037,21 +4884,19 @@ async def dismiss_terminal_refund(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["VENDOR_READ"]))
-async def get_vendor_details(
+async def retrieve_vendor_info(
     context: ToolContext,
-    vendor_identifier: Annotated[
+    vendor_id: Annotated[
         str,
-        "The unique ID of the vendor to retrieve details for. This is required to fetch vendor information.",  # noqa: E501
+        "The ID of the vendor whose information you want to retrieve. This should be a unique string identifier.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveVendor'."]:
-    """Fetches detailed information about a vendor by ID.
+    """Retrieve detailed information about a vendor by ID.
 
-    Use this tool to retrieve comprehensive information about a specific vendor using their Vendor ID."""  # noqa: E501
+    This tool is used to fetch detailed information about a specific vendor using their Vendor ID. It is helpful when you need comprehensive vendor details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://connect.squareup.com/v2/vendors/{vendor_id}".format(  # noqa: UP032
-                vendor_id=vendor_identifier
-            ),
+            url="https://connect.squareup.com/v2/vendors/{vendor_id}".format(vendor_id=vendor_id),  # noqa: UP032
             method="GET",
             headers=remove_none_values({
                 "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -4071,12 +4916,12 @@ async def list_webhook_event_types(
     context: ToolContext,
     api_version: Annotated[
         str | None,
-        "Specify the API version to list event types for. Overrides the application's default version.",  # noqa: E501
+        "Specify the API version to list event types. Overrides the default version if set.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListWebhookEventTypes'."]:
-    """Lists all webhook event types available for subscription.
+    """Retrieves all available webhook event types for subscription.
 
-    This tool retrieves a list of all webhook event types that can be subscribed to, allowing users to understand which events they can monitor via webhooks."""  # noqa: E501
+    Use this tool to get a comprehensive list of webhook event types that can be subscribed to via the Square API."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/webhooks/event-types",
@@ -4096,16 +4941,62 @@ async def list_webhook_event_types(
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
+async def list_webhook_subscriptions(
+    context: ToolContext,
+    pagination_cursor: Annotated[
+        str | None,
+        "A cursor for pagination to retrieve the next set of results from a previous query.",
+    ] = None,
+    sort_order: Annotated[
+        str | None,
+        "Sorts the webhook subscriptions by creation date. Options are 'ASC' for ascending or 'DESC' for descending. Defaults to 'ASC'.",  # noqa: E501
+    ] = None,
+    max_results_per_page: Annotated[
+        int | None,
+        "The maximum number of webhook subscription results to return in a single page (max: 100).",
+    ] = None,
+    include_disabled_subscriptions: Annotated[
+        bool | None,
+        "Set to true to include disabled subscriptions in the results. By default, only enabled subscriptions are returned.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'ListWebhookSubscriptions'."]:
+    """Lists all webhook subscriptions for your application.
+
+    Use this tool to retrieve a list of all webhook subscriptions owned by your application. It is useful for managing or reviewing your webhook configurations."""  # noqa: E501
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            url="https://connect.squareup.com/v2/webhooks/subscriptions",
+            params=remove_none_values({
+                "cursor": pagination_cursor,
+                "include_disabled": include_disabled_subscriptions,
+                "sort_order": sort_order,
+                "limit": max_results_per_page,
+            }),
+            method="GET",
+            headers=remove_none_values({
+                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                    authorization=context.get_auth_token_or_empty()
+                )
+            }),
+        )
+        response.raise_for_status()
+        try:
+            return {"response_json": response.json()}
+        except Exception:
+            return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-squareup"))
 async def delete_webhook_subscription(
     context: ToolContext,
     webhook_subscription_id: Annotated[
         str,
-        "The ID of the webhook subscription to be deleted. This ID is required to specify which subscription should be removed.",  # noqa: E501
+        "The unique identifier for the webhook subscription to be deleted. This ID is required to identify the specific subscription.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteWebhookSubscription'."]:
-    """Deletes a webhook subscription.
+    """Deletes a webhook subscription to stop receiving events.
 
-    Use this tool to delete a specific webhook subscription by providing its subscription ID. This is useful for managing and stopping unwanted notifications from the Square platform."""  # noqa: E501
+    Use this tool to delete a specific webhook subscription by its ID, preventing further event notifications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032
@@ -4129,12 +5020,13 @@ async def delete_webhook_subscription(
 async def retrieve_webhook_subscription(
     context: ToolContext,
     webhook_subscription_id: Annotated[
-        str, "The unique identifier of the webhook subscription to retrieve. This ID is required."
+        str,
+        "The unique identifier of the webhook subscription to be retrieved. This is a required parameter.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'RetrieveWebhookSubscription'."]:
-    """Retrieve details of a webhook subscription by ID.
+    """Retrieve details of a specific webhook subscription by ID.
 
-    Use this tool to get the details of a specific webhook subscription by providing its ID."""
+    Use this tool to fetch information about a webhook subscription using its unique identifier. This is useful when you need to verify the configuration or details of a specific webhook subscription."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032

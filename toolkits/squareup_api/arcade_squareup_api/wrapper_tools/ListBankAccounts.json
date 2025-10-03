@@ -1,7 +1,7 @@
 {
   "name": "ListBankAccounts",
   "fully_qualified_name": "SquareupApi.ListBankAccounts@0.1.0",
-  "description": "Retrieve a list of bank accounts linked to a Square account.\n\nUse this tool to fetch all bank accounts associated with a Square account. It returns information about each bank account.",
+  "description": "Fetch a list of bank accounts linked to a Square account.\n\nCall this tool to retrieve all bank accounts associated with a Square account. Useful for checking account details or managing linked bank accounts.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Pagination cursor for retrieving the next set of bank account results.",
+        "description": "The pagination cursor from a previous call to fetch the next set of bank account results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "bank_accounts_limit",
+        "name": "max_bank_accounts_limit",
         "required": false,
-        "description": "Maximum number of bank accounts to return. Max value is 1000.",
+        "description": "Specify the maximum number of bank accounts to return. The largest supported limit is 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "location_id",
+        "name": "location_id_filter",
         "required": false,
-        "description": "Optional filter to retrieve bank accounts for a specific location ID.",
+        "description": "Optional filter to retrieve bank accounts for a specified location ID only.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -121,7 +121,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "bank_accounts_limit",
+        "tool_parameter_name": "max_bank_accounts_limit",
         "description": "Upper limit on the number of bank accounts to return in the response. \nCurrently, 1000 is the largest supported limit. You can specify a limit \nof up to 1000 bank accounts. This is also the default limit.",
         "value_schema": {
           "val_type": "integer",
@@ -138,7 +138,7 @@
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "location_id",
+        "tool_parameter_name": "location_id_filter",
         "description": "Location ID. You can specify this optional filter \nto retrieve only the linked bank accounts belonging to a specific location.",
         "value_schema": {
           "val_type": "string",

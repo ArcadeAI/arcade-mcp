@@ -1,7 +1,7 @@
 {
   "name": "ListCustomerCustomAttributes",
   "fully_qualified_name": "SquareupApi.ListCustomerCustomAttributes@0.1.0",
-  "description": "Retrieve custom attributes for a specific customer profile.\n\nThis tool retrieves custom attributes associated with a customer profile. Use it to access all visible custom attributes, including those with read-only or read-write visibility. Can optionally retrieve attribute definitions as well.",
+  "description": "Retrieve custom attributes for a customer profile.\n\nThis tool lists the custom attributes associated with a specified customer profile. It can also retrieve custom attribute definitions if specified. It returns all attributes visible to the requesting application, including those with read-only or read-write visibility owned by other applications.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_profile_id",
         "required": true,
-        "description": "The unique identifier of the target customer profile to retrieve custom attributes for.",
+        "description": "The ID of the customer profile for which to list custom attributes.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "customer_id"
       },
       {
-        "name": "maximum_results_per_page",
+        "name": "result_limit",
         "required": false,
-        "description": "Advisory limit for number of results in a response. Accepts values from 1 to 100, with a default of 20.",
+        "description": "Maximum number of results for a single response. Accepts values 1-100, with a default of 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor for paginated responses. Use it to retrieve the next page of results from a previous request.",
+        "description": "The pagination cursor from the previous response to continue retrieving results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_custom_attribute_definitions",
         "required": false,
-        "description": "Set to true to include custom attribute definitions in the response, such as name, description, and data type details. Defaults to false.",
+        "description": "Indicate whether to include custom attribute definitions such as name, description, and data type details in the response. Default is false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "maximum_results_per_page",
+        "tool_parameter_name": "result_limit",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",

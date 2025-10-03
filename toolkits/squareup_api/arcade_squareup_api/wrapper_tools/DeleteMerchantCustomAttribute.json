@@ -1,7 +1,7 @@
 {
   "name": "DeleteMerchantCustomAttribute",
   "fully_qualified_name": "SquareupApi.DeleteMerchantCustomAttribute@0.1.0",
-  "description": "Delete a custom attribute definition from a Square seller account.\n\nUse this tool to delete a merchant-related custom attribute definition in a Square seller account. Only the definition owner can perform this action, and it removes the corresponding custom attribute from the merchant.",
+  "description": "Delete a custom attribute definition from a merchant account.\n\nUse this tool to delete a merchant-related custom attribute definition from a Square seller account. This action also removes the corresponding custom attribute from the merchant. Note that only the definition owner can perform this deletion.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "custom_attribute_key",
+        "name": "attribute_key_to_delete",
         "required": true,
-        "description": "The key of the custom attribute definition to delete from the Square seller account.",
+        "description": "The key of the custom attribute definition to delete from the merchant account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "key",
-        "tool_parameter_name": "custom_attribute_key",
+        "tool_parameter_name": "attribute_key_to_delete",
         "description": "The key of the custom attribute definition to delete.",
         "value_schema": {
           "val_type": "string",

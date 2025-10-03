@@ -1,7 +1,7 @@
 {
   "name": "ListGiftCards",
   "fully_qualified_name": "SquareupApi.ListGiftCards@0.1.0",
-  "description": "Retrieve a list of all gift cards with optional filters.\n\nThis tool calls the endpoint to list all gift cards, allowing you to apply optional filters to retrieve specific subsets. Gift cards are sorted by their creation date in ascending order.",
+  "description": "Retrieve a list of all gift cards, with optional filters.\n\nCall this tool to obtain a sorted list of gift cards. You can apply filters to narrow down the results. Useful for managing and reviewing available gift cards.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "gift_card_type",
         "required": false,
-        "description": "Specify the type of gift cards to retrieve. If not provided, all types are returned.",
+        "description": "Specifies the type of gift cards to retrieve. If not provided, all types are returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "type"
       },
       {
-        "name": "gift_card_status",
+        "name": "gift_card_state",
         "required": false,
-        "description": "Specify the status of gift cards to filter results by their current state. If not provided, returns gift cards of all statuses.",
+        "description": "Specifies the state of gift cards to return. Leave empty to get all states.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "results_per_page_limit",
         "required": false,
-        "description": "Set the maximum number of results to return per page, up to 200. Defaults to 30 if not specified.",
+        "description": "The number of gift card results per page. Maximum is 200, default is 30.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a previous call. Use this to retrieve the next set of results. If omitted, returns the first page.",
+        "description": "A string used to retrieve the next set of results for pagination from a previous call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "filter_by_customer_id",
+        "name": "customer_id",
         "required": false,
-        "description": "Customer ID to filter and return only gift cards linked to this customer.",
+        "description": "A unique identifier for a customer to retrieve gift cards linked to them.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -151,7 +151,7 @@
       },
       {
         "name": "state",
-        "tool_parameter_name": "gift_card_status",
+        "tool_parameter_name": "gift_card_state",
         "description": "If a [state](entity:GiftCardStatus) is provided, the endpoint returns the gift cards in the specified state.\nOtherwise, the endpoint returns the gift cards of all states.",
         "value_schema": {
           "val_type": "string",
@@ -202,7 +202,7 @@
       },
       {
         "name": "customer_id",
-        "tool_parameter_name": "filter_by_customer_id",
+        "tool_parameter_name": "customer_id",
         "description": "If a customer ID is provided, the endpoint returns only the gift cards linked to the specified customer.",
         "value_schema": {
           "val_type": "string",

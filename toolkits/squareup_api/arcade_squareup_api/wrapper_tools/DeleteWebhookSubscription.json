@@ -1,7 +1,7 @@
 {
   "name": "DeleteWebhookSubscription",
   "fully_qualified_name": "SquareupApi.DeleteWebhookSubscription@0.1.0",
-  "description": "Deletes a webhook subscription.\n\nUse this tool to delete a specific webhook subscription by providing its subscription ID. This is useful for managing and stopping unwanted notifications from the Square platform.",
+  "description": "Deletes a webhook subscription to stop receiving events.\n\nUse this tool to delete a specific webhook subscription by its ID, preventing further event notifications.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "webhook_subscription_id",
         "required": true,
-        "description": "The ID of the webhook subscription to be deleted. This ID is required to specify which subscription should be removed.",
+        "description": "The unique identifier for the webhook subscription to be deleted. This ID is required to identify the specific subscription.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

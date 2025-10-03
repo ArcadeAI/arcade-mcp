@@ -1,7 +1,7 @@
 {
   "name": "DeleteBreakType",
   "fully_qualified_name": "SquareupApi.DeleteBreakType@0.1.0",
-  "description": "Remove a specific break type from the system.\n\nThis tool is used to delete an existing break type, even if it is referenced in a shift. It is useful for managing break type records within a labor management system.",
+  "description": "Deletes an existing break type.\n\nUse this tool to delete a specific break type, even if it is referenced by a shift.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "break_type_uuid",
         "required": true,
-        "description": "The unique identifier (UUID) of the BreakType to be deleted.",
+        "description": "The UUID of the BreakType to delete. Ensure it is a valid UUID format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

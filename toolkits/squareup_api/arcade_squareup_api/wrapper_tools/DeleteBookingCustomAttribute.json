@@ -1,7 +1,7 @@
 {
   "name": "DeleteBookingCustomAttribute",
   "fully_qualified_name": "SquareupApi.DeleteBookingCustomAttribute@0.1.0",
-  "description": "Delete a custom attribute from a booking.\n\nUse this tool to delete a specific custom attribute from a booking. Ensure appropriate permissions (`APPOINTMENTS_WRITE` for buyer-level or `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level) are set. Requires seller subscription to Appointments Plus or Premium for seller-level operations.",
+  "description": "Deletes a custom attribute from a booking.\n\nUse this tool to remove a custom attribute from a specific booking. Appropriate OAuth permissions are required: 'APPOINTMENTS_WRITE' for buyer-level and 'APPOINTMENTS_ALL_WRITE' with 'APPOINTMENTS_WRITE' for seller-level. Seller must be subscribed to Appointments Plus or Premium.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,7 +10,7 @@
   "input": {
     "parameters": [
       {
-        "name": "target_booking_id",
+        "name": "booking_id",
         "required": true,
         "description": "The ID of the target booking from which the custom attribute will be deleted.",
         "value_schema": {
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute to delete. It must match the key of a custom attribute definition in the Square seller account, with a qualified key if not the definition owner.",
+        "description": "The key of the custom attribute to delete. It must match the key of a custom attribute definition in the Square seller account. Use the qualified key if not the definition owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "booking_id",
-        "tool_parameter_name": "target_booking_id",
+        "tool_parameter_name": "booking_id",
         "description": "The ID of the target [booking](entity:Booking).",
         "value_schema": {
           "val_type": "string",

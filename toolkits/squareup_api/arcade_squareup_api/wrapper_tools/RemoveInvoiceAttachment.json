@@ -1,7 +1,7 @@
 {
   "name": "RemoveInvoiceAttachment",
   "fully_qualified_name": "SquareupApi.RemoveInvoiceAttachment@0.1.0",
-  "description": "Remove an attachment from an invoice and delete the file.\n\nThis tool removes an attachment from an invoice and permanently deletes the file. It can be used only when the invoice is in 'DRAFT', 'SCHEDULED', 'UNPAID', or 'PARTIALLY_PAID' state.",
+  "description": "Remove an attachment from an invoice and delete the file.\n\nUse this tool to permanently delete an attachment from an invoice. It is applicable only for invoices in the DRAFT, SCHEDULED, UNPAID, or PARTIALLY_PAID state.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "invoice_id",
         "required": true,
-        "description": "The unique identifier of the invoice from which the attachment will be removed. It must be in 'DRAFT', 'SCHEDULED', 'UNPAID', or 'PARTIALLY_PAID' state.",
+        "description": "The unique identifier of the invoice to remove the attachment from. Applicable for invoices in specific states (DRAFT, SCHEDULED, UNPAID, PARTIALLY_PAID).",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "attachment_id",
         "required": true,
-        "description": "The unique identifier of the attachment to be deleted from the invoice. This is required to locate and remove the specific file.",
+        "description": "The unique identifier of the attachment to delete from the invoice. It should be a string corresponding to the attachment's ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

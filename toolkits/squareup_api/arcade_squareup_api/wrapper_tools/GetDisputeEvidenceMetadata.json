@@ -1,7 +1,7 @@
 {
   "name": "GetDisputeEvidenceMetadata",
   "fully_qualified_name": "SquareupApi.GetDisputeEvidenceMetadata@0.1.0",
-  "description": "Retrieve metadata for specific dispute evidence.\n\nThis tool retrieves the metadata for a specific piece of evidence related to a dispute using the dispute and evidence identifiers.",
+  "description": "Retrieve metadata for specified dispute evidence.\n\nCall this tool to obtain metadata of dispute evidence using a given dispute ID and evidence ID. Ensure to maintain a copy of any evidence uploaded as it cannot be downloaded later.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "dispute_identifier",
+        "name": "dispute_id",
         "required": true,
-        "description": "The unique identifier for the dispute to retrieve evidence metadata.",
+        "description": "The unique ID of the dispute to retrieve its evidence metadata.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "evidence_id",
         "required": true,
-        "description": "The unique identifier for the evidence you want to retrieve metadata for.",
+        "description": "The ID of the evidence you wish to retrieve metadata for. Ensure correct ID is provided to access the specific evidence details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "dispute_id",
-        "tool_parameter_name": "dispute_identifier",
+        "tool_parameter_name": "dispute_id",
         "description": "The ID of the dispute from which you want to retrieve evidence metadata.",
         "value_schema": {
           "val_type": "string",

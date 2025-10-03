@@ -1,7 +1,7 @@
 {
   "name": "GetCustomerDetails",
   "fully_qualified_name": "SquareupApi.GetCustomerDetails@0.1.0",
-  "description": "Retrieve details for a specific customer.\n\nThis tool retrieves detailed information about a single customer using their customer ID. It should be called when you need to access specific customer details from the Squareup platform.",
+  "description": "Retrieve details for a specific customer.\n\nUse this tool to get detailed information about a specific customer by their ID. Ideal for when you need to access customer profiles or verify customer details.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_id",
         "required": true,
-        "description": "The unique identifier of the customer whose details are to be retrieved.",
+        "description": "The unique ID of the customer to retrieve details for. Used to access specific customer information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

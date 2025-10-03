@@ -1,7 +1,7 @@
 {
   "name": "DeleteOrderCustomAttributeDefinition",
   "fully_qualified_name": "SquareupApi.DeleteOrderCustomAttributeDefinition@0.1.0",
-  "description": "Delete a custom attribute definition from a Square seller account.\n\nUse this tool to delete an order-related custom attribute definition from a Square seller account. Only the definition owner has the permission to perform this action.",
+  "description": "Delete an order-related custom attribute definition.\n\nDeletes a custom attribute definition related to an order from a Square seller account. Only the owner of the definition can perform this action.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The unique key identifying the custom attribute definition to delete from the Square seller account.",
+        "description": "The key identifying the custom attribute definition to be deleted from the seller's account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

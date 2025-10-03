@@ -1,7 +1,7 @@
 {
   "name": "DeleteTimecard",
   "fully_qualified_name": "SquareupApi.DeleteTimecard@0.1.0",
-  "description": "Delete a specific timecard.\n\nUse this tool to delete a specific timecard by providing the timecard ID.",
+  "description": "Deletes a specified timecard.\n\nUse this tool to delete a timecard by its ID when managing labor records.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "timecard_uuid",
+        "name": "timecard_id",
         "required": true,
-        "description": "The unique identifier (UUID) of the timecard to be deleted.",
+        "description": "The UUID for the timecard to be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "timecard_uuid",
+        "tool_parameter_name": "timecard_id",
         "description": "The UUID for the `Timecard` being deleted.",
         "value_schema": {
           "val_type": "string",

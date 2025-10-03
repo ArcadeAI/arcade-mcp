@@ -1,7 +1,7 @@
 {
   "name": "ListCustomerSegments",
   "fully_qualified_name": "SquareupApi.ListCustomerSegments@0.1.0",
-  "description": "Retrieve the list of customer segments for a business.\n\nUse this tool to get the list of customer segments associated with a business account. This is useful for managing and analyzing customer groups.",
+  "description": "Retrieve the list of customer segments for a business.\n\nCall this tool to obtain the customer segments associated with a business. This can be useful for understanding customer classifications and targeting specific groups in marketing or service strategies.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A cursor from a previous `ListCustomerSegments` call for retrieving the next set of results.",
+        "description": "A pagination cursor for retrieving the next set of customer segment results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "max_results_per_page",
         "required": false,
-        "description": "The maximum number of customer segments to return in a single page, between 1 and 50. Default is 50.",
+        "description": "Maximum number of results to return per page. Must be between 1 and 50. Default is 50. If outside this range, an error is returned.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,

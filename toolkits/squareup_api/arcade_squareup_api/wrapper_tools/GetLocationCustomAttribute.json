@@ -1,7 +1,7 @@
 {
   "name": "GetLocationCustomAttribute",
   "fully_qualified_name": "SquareupApi.GetLocationCustomAttribute@0.1.0",
-  "description": "Retrieve a custom attribute associated with a location.\n\nThis tool retrieves a custom attribute linked to a specified location. It can also return the custom attribute definition if requested. Useful for accessing attributes with visibility settings of `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES`.",
+  "description": "Retrieve a custom attribute for a specified location.\n\nThis tool fetches a custom attribute associated with a specific location. Optional retrieval of the custom attribute's definition is available. Visibility settings must permit access if owned by another application.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "target_location_id",
+        "name": "location_id",
         "required": true,
-        "description": "The unique identifier for the target location where the custom attribute is associated.",
+        "description": "The ID of the location for which the custom attribute is being retrieved. This is required to identify the specific location in the Square account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute to retrieve, matching the defined key in the Square seller account. Use the qualified key if not the definition owner.",
+        "description": "The key of the custom attribute to retrieve. Must match a custom attribute definition key in the Square seller account. Use the qualified key if not the definition owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "custom_attribute_version",
         "required": false,
-        "description": "Current version of the custom attribute for consistent reads. Returns specified or higher version. Errors if specified version is too high.",
+        "description": "Specify the version of the custom attribute for consistent reads. If a higher version exists, it is returned. If higher than the current version, an error occurs.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "version"
       },
       {
-        "name": "include_custom_attribute_definition",
+        "name": "include_definition",
         "required": false,
-        "description": "Set this to true to include the custom attribute definition with details like name, description, and data type. Default is false.",
+        "description": "Set to true to include the custom attribute's definition, providing name, description, and data type.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "with_definition",
-        "tool_parameter_name": "include_custom_attribute_definition",
+        "tool_parameter_name": "include_definition",
         "description": "Indicates whether to return the [custom attribute definition](entity:CustomAttributeDefinition) in the `definition` field of\nthe custom attribute. Set this parameter to `true` to get the name and description of the custom\nattribute, information about the data type, or other definition details. The default value is `false`.",
         "value_schema": {
           "val_type": "boolean",
@@ -153,7 +153,7 @@
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "target_location_id",
+        "tool_parameter_name": "location_id",
         "description": "The ID of the target [location](entity:Location).",
         "value_schema": {
           "val_type": "string",

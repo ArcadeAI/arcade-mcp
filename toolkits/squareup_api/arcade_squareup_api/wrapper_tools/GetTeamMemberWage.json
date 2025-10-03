@@ -1,7 +1,7 @@
 {
   "name": "GetTeamMemberWage",
   "fully_qualified_name": "SquareupApi.GetTeamMemberWage@0.1.0",
-  "description": "Retrieve wage details for a specific team member.\n\nUse this tool to get information about a team member's wage specified by their ID.",
+  "description": "Retrieve wage details for a specified team member.\n\nUse this tool to obtain wage information for a specific team member by providing their unique ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "team_member_wage_id",
         "required": true,
-        "description": "The UUID of the Team Member Wage to retrieve details for.",
+        "description": "The unique UUID for retrieving the specified team member's wage.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

@@ -1,7 +1,7 @@
 {
   "name": "RemoveDisputeEvidence",
   "fully_qualified_name": "SquareupApi.RemoveDisputeEvidence@0.1.0",
-  "description": "Remove specified evidence from a dispute.\n\nUse this tool to remove evidence linked to a specific dispute. The evidence removed will not be sent to the bank by Square. Call this when evidence needs to be withdrawn or updated in a dispute case.",
+  "description": "Removes specified evidence from a dispute.\n\nUse this tool to remove evidence from a dispute. This can be called when it's necessary to retract evidence previously submitted for a dispute. The bank will not be informed of the removed evidence.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "dispute_identifier",
+        "name": "dispute_id",
         "required": true,
-        "description": "The unique identifier for the dispute from which evidence should be removed.",
+        "description": "The unique identifier of the dispute from which evidence should be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "evidence_id_to_remove",
         "required": true,
-        "description": "The unique ID of the evidence to remove from the dispute. Ensure it is accurate to successfully remove the evidence.",
+        "description": "The ID of the evidence you want to remove from the dispute.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "dispute_id",
-        "tool_parameter_name": "dispute_identifier",
+        "tool_parameter_name": "dispute_id",
         "description": "The ID of the dispute from which you want to remove evidence.",
         "value_schema": {
           "val_type": "string",

@@ -1,7 +1,7 @@
 {
   "name": "DismissTerminalCheckout",
   "fully_qualified_name": "SquareupApi.DismissTerminalCheckout@0.1.0",
-  "description": "Dismisses a Terminal checkout request if permitted.\n\nCall this tool to dismiss a Terminal checkout request, given that the status and type of the request allow for it. Use this to cancel ongoing checkout processes at the terminal if needed.",
+  "description": "Dismiss a Terminal checkout request if permitted.\n\nCall this tool to dismiss a Terminal checkout request when the request status and type allow for dismissal. Useful for managing checkout operations and correcting errors in checkout processes.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,

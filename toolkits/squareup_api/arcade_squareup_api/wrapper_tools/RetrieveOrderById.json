@@ -1,7 +1,7 @@
 {
   "name": "RetrieveOrderById",
   "fully_qualified_name": "SquareupApi.RetrieveOrderById@0.1.0",
-  "description": "Retrieve order details by order ID.\n\nUse this tool to get details of an order using its unique ID, helpful for viewing order status and specifics.",
+  "description": "Retrieve order details by Order ID.\n\nUse this tool to retrieve detailed information about a specific order using its Order ID. It is useful for checking order status, contents, and other order-related details.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "order_id",
         "required": true,
-        "description": "The unique identifier for the order you want to retrieve. This ID is used to fetch the order details.",
+        "description": "The unique identifier for the order to retrieve details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

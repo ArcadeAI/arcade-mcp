@@ -1,7 +1,7 @@
 {
   "name": "DeleteLocationCustomAttribute",
   "fully_qualified_name": "SquareupApi.DeleteLocationCustomAttribute@0.1.0",
-  "description": "Delete a custom attribute from a location.\n\nRemoves a custom attribute associated with a location. Useful for managing custom data linked to specific locations. Make sure the attribute is deletable by confirming its visibility settings.",
+  "description": "Delete a location-related custom attribute definition.\n\nUse this tool to delete a specific location-related custom attribute definition from a Square seller account. Only the definition owner can perform this action. Deleting also removes the attribute from all locations.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,31 +10,16 @@
   "input": {
     "parameters": [
       {
-        "name": "target_location_id",
-        "required": true,
-        "description": "The ID of the location from which the custom attribute should be deleted.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The ID of the target [location](entity:Location)."
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "location_id"
-      },
-      {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute to delete, matching the key of a custom attribute definition in the Square seller account. Use the qualified key if necessary.",
+        "description": "The unique key identifying the custom attribute definition to be deleted from the seller account.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key."
+          "description": "The key of the custom attribute definition to delete."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "key"
@@ -42,7 +27,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'DeleteLocationCustomAttribute'.",
+    "description": "Response from the API endpoint 'DeleteLocationCustomAttributeDefinition'.",
     "available_modes": [
       "value",
       "error",
@@ -83,38 +68,21 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}",
+    "url": "https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}",
     "http_method": "DELETE",
     "headers": {},
     "parameters": [
       {
-        "name": "location_id",
-        "tool_parameter_name": "target_location_id",
-        "description": "The ID of the target [location](entity:Location).",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The ID of the target [location](entity:Location)."
-        },
-        "accepted_as": "path",
-        "required": true,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
         "name": "key",
         "tool_parameter_name": "custom_attribute_key",
-        "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key.",
+        "description": "The key of the custom attribute definition to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key."
+          "description": "The key of the custom attribute definition to delete."
         },
         "accepted_as": "path",
         "required": true,

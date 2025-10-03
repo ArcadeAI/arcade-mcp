@@ -1,7 +1,7 @@
 {
   "name": "GetTerminalRefund",
   "fully_qualified_name": "SquareupApi.GetTerminalRefund@0.1.0",
-  "description": "Retrieve a terminal refund by its ID.\n\nRetrieve details of an Interac Terminal refund using its ID. Useful for accessing refund information available for up to 30 days.",
+  "description": "Fetch Interac Terminal refund details by ID.\n\nUse this tool to retrieve details of an Interac Terminal refund within 30 days of its creation using the refund ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "terminal_refund_id",
         "required": true,
-        "description": "The unique identifier for retrieving a specific TerminalRefund. Required to access refund details.",
+        "description": "The unique ID of the Interac Terminal refund to retrieve. Must be used within 30 days of creation.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

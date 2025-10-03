@@ -1,7 +1,7 @@
 {
   "name": "RetrieveOrderCustomAttributeDefinition",
   "fully_qualified_name": "SquareupApi.RetrieveOrderCustomAttributeDefinition@0.1.0",
-  "description": "Retrieve an order's custom attribute definition from Square\n\nFetches a custom attribute definition related to orders from a Square seller account. Use this to access definitions with `VISIBILITY_READ_ONLY` or `VISIBILITY_READ_WRITE_VALUES`, including seller-defined attributes.",
+  "description": "Retrieve custom attribute definition for a Square order.\n\nUse this tool to fetch a specific custom attribute definition related to an order from a Square seller account. The custom attribute must be set to specific visibility settings to be accessible.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "custom_attribute_definition_key",
+        "name": "custom_attribute_key",
         "required": true,
-        "description": "The unique key for the custom attribute definition you want to retrieve from a Square seller account.",
+        "description": "The key of the custom attribute definition to retrieve for an order.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "current_version_of_custom_attribute",
         "required": false,
-        "description": "Specify the current version of the custom attribute for optimistic concurrency control. This is optional.",
+        "description": "Specify the current version of the custom attribute for optimistic concurrency control. Optional.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -106,7 +106,7 @@
       },
       {
         "name": "key",
-        "tool_parameter_name": "custom_attribute_definition_key",
+        "tool_parameter_name": "custom_attribute_key",
         "description": "The key of the custom attribute definition to retrieve.",
         "value_schema": {
           "val_type": "string",

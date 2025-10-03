@@ -1,7 +1,7 @@
 {
   "name": "CancelTerminalAction",
   "fully_qualified_name": "SquareupApi.CancelTerminalAction@0.1.0",
-  "description": "Cancel a terminal action request if possible.\n\nUse this tool to cancel a terminal action request when its current status allows cancellation. Useful for halting actions that are no longer needed or were initiated in error.",
+  "description": "Cancel a terminal action request if permitted.\n\nUse this tool to cancel a terminal action request when the status allows for cancellation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "terminal_action_id",
         "required": true,
-        "description": "Unique ID for the TerminalAction you wish to cancel.",
+        "description": "Unique ID for the TerminalAction you want to cancel.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

@@ -1,7 +1,7 @@
 {
   "name": "ListInvoices",
   "fully_qualified_name": "SquareupApi.ListInvoices@0.1.0",
-  "description": "Fetch a list of invoices for a specific location.\n\nUse this tool to retrieve a paginated list of invoices for a specific location. It returns invoice details and supports pagination with the use of a cursor for accessing subsequent pages.",
+  "description": "Retrieve a list of invoices for a specified location.\n\nUse this tool to get a list of invoices from a specific location. The response is paginated, and if the list is truncated, a cursor is provided to fetch the next set of invoices.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "location_identifier",
+        "name": "location_id",
         "required": true,
-        "description": "The unique ID of the location to list invoices for. Specify the location to retrieve its invoices.",
+        "description": "The ID of the location for which to list invoices.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A pagination cursor from a prior call for retrieving the next set of results. Use this to navigate pages of invoices.",
+        "description": "A string value used to fetch the next set of paginated results for invoices. This is returned from a previous call to the list invoices endpoint.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "maximum_invoices_to_return",
         "required": false,
-        "description": "The maximum number of invoices to return, up to 200. If not specified, defaults to 100.",
+        "description": "The maximum number of invoices to return, up to 200. Defaults to 100 if not specified.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -104,7 +104,7 @@
     "parameters": [
       {
         "name": "location_id",
-        "tool_parameter_name": "location_identifier",
+        "tool_parameter_name": "location_id",
         "description": "The ID of the location for which to list invoices.",
         "value_schema": {
           "val_type": "string",

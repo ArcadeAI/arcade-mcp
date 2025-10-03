@@ -1,7 +1,7 @@
 {
   "name": "ListSubscriptionEvents",
   "fully_qualified_name": "SquareupApi.ListSubscriptionEvents@0.1.0",
-  "description": "Retrieve all events for a specific subscription.\n\nUse this tool to get a list of events related to a specific subscription. This can include actions such as subscriptions being created, updated, or canceled.",
+  "description": "Retrieve events for a specific subscription.\n\nCall this tool to retrieve all events related to a specific subscription using the Square API. Useful for tracking changes and updates within a subscription lifecycle.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "subscription_id",
         "required": true,
-        "description": "The unique identifier of the subscription for which you want to retrieve events. This ID is required to fetch the events.",
+        "description": "The unique ID of the subscription to retrieve events for. Use this to specify which subscription's events to list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Specify the cursor to fetch the next set of subscription events if the result exceeds the page limit. Leave unset for the last page.",
+        "description": "Specify the cursor to fetch the next set of subscription events if results exceed the limit. Leave unset for the last page.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "event_limit",
+        "name": "max_events_per_page",
         "required": false,
-        "description": "The maximum number of subscription events to return in a single response.",
+        "description": "The maximum number of subscription events to return in a single response page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -121,7 +121,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "event_limit",
+        "tool_parameter_name": "max_events_per_page",
         "description": "The upper limit on the number of subscription events to return\nin a paged response.",
         "value_schema": {
           "val_type": "integer",

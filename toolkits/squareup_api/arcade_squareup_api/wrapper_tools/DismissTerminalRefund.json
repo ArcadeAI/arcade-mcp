@@ -1,7 +1,7 @@
 {
   "name": "DismissTerminalRefund",
   "fully_qualified_name": "SquareupApi.DismissTerminalRefund@0.1.0",
-  "description": "Dismiss a Terminal refund request if eligible.\n\nThis tool dismisses a Terminal refund request if the current status and type of the request permits such an action.",
+  "description": "Dismiss a Terminal refund request if permissible.\n\nUse this tool to dismiss a Terminal refund request when the request status and type allow for dismissal.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "terminal_refund_identifier",
+        "name": "terminal_refund_unique_id",
         "required": true,
-        "description": "Unique identifier for the TerminalRefund associated with the refund to be dismissed.",
+        "description": "The unique identifier for the `TerminalRefund` that is associated with the refund to be dismissed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,7 +70,7 @@
     "parameters": [
       {
         "name": "terminal_refund_id",
-        "tool_parameter_name": "terminal_refund_identifier",
+        "tool_parameter_name": "terminal_refund_unique_id",
         "description": "Unique ID for the `TerminalRefund` associated with the refund to be dismissed.",
         "value_schema": {
           "val_type": "string",

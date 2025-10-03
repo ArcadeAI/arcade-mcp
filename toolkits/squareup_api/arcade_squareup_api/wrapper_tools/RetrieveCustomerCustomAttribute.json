@@ -1,7 +1,7 @@
 {
   "name": "RetrieveCustomerCustomAttribute",
   "fully_qualified_name": "SquareupApi.RetrieveCustomerCustomAttribute@0.1.0",
-  "description": "Retrieve a custom attribute for a customer profile.\n\nThis tool retrieves a custom attribute from a customer profile. Use it when you need to access customer-specific custom attributes. Optional retrieval of the attribute definition is supported. Visibility settings may affect access.",
+  "description": "Retrieve a custom attribute for a customer profile.\n\nUse this tool to get a custom attribute associated with a customer. Optionally, retrieve the attribute definition and ensure proper visibility settings for attributes owned by other applications.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "customer_profile_id",
         "required": true,
-        "description": "The unique identifier of the target customer profile whose custom attribute is to be retrieved.",
+        "description": "The ID of the target customer profile you want to retrieve a custom attribute for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute to retrieve. It must match an existing custom attribute definition key in the Square seller account. Use a qualified key if not the definition owner.",
+        "description": "The unique key of the custom attribute to retrieve, matching the definition in the Square seller account. Use the qualified key if the app is not the definition owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "key"
       },
       {
-        "name": "attribute_version",
+        "name": "custom_attribute_version",
         "required": false,
-        "description": "Specify the version of the custom attribute for consistent data retrieval. Input a version number or omit for the latest version. If a higher version is entered than existing, a `BAD_REQUEST` error occurs.",
+        "description": "The current version of the custom attribute for consistent reads. If higher than available, returns an error.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_custom_attribute_definition",
         "required": false,
-        "description": "Set to true to include the custom attribute definition in the response, providing additional details like name, description, and data type.",
+        "description": "Set to true to include the custom attribute definition in the response, including details like name, description, and data type.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -136,7 +136,7 @@
       },
       {
         "name": "version",
-        "tool_parameter_name": "attribute_version",
+        "tool_parameter_name": "custom_attribute_version",
         "description": "The current version of the custom attribute, which is used for strongly consistent reads to\nguarantee that you receive the most up-to-date data. When included in the request, Square\nreturns the specified version or a higher version if one exists. If the specified version is\nhigher than the current version, Square returns a `BAD_REQUEST` error.",
         "value_schema": {
           "val_type": "integer",

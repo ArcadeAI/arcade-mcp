@@ -1,7 +1,7 @@
 {
   "name": "ListCashDrawerShiftEvents",
   "fully_qualified_name": "SquareupApi.ListCashDrawerShiftEvents@0.1.0",
-  "description": "Retrieve events for a specific cash drawer shift.\n\nThis tool provides a list of events related to a particular cash drawer shift, which can help in tracking transactions and activities during that shift.",
+  "description": "Retrieve events for a specific cash drawer shift.\n\nThis tool retrieves a paginated list of events for a specific cash drawer shift. It is useful for tracking activities and occurrences related to a particular shift.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "location_identifier",
         "required": true,
-        "description": "The unique identifier for the location to retrieve cash drawer shift events from.",
+        "description": "The ID of the location to list cash drawer shifts for. This should be a valid location ID registered within the system.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "location_id"
       },
       {
-        "name": "shift_id",
+        "name": "cash_drawer_shift_id",
         "required": true,
-        "description": "The unique identifier of the specific cash drawer shift for which events are retrieved. This is required to specify which shift's events should be listed.",
+        "description": "The unique ID of the cash drawer shift for which events are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "shift_id"
       },
       {
-        "name": "results_per_page",
+        "name": "page_size_limit",
         "required": false,
-        "description": "Specify the number of events to retrieve per page (200 default, 1000 max).",
+        "description": "Number of events to return per page, default is 200, maximum is 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "An opaque string used to fetch the next page of results in a paginated response.",
+        "description": "Opaque string to fetch the next page of results for cash drawer shift events.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -136,7 +136,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "results_per_page",
+        "tool_parameter_name": "page_size_limit",
         "description": "Number of resources to be returned in a page of results (200 by\ndefault, 1000 max).",
         "value_schema": {
           "val_type": "integer",
@@ -170,7 +170,7 @@
       },
       {
         "name": "shift_id",
-        "tool_parameter_name": "shift_id",
+        "tool_parameter_name": "cash_drawer_shift_id",
         "description": "The shift ID.",
         "value_schema": {
           "val_type": "string",

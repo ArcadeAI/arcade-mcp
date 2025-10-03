@@ -1,7 +1,7 @@
 {
   "name": "CancelSubscription",
   "fully_qualified_name": "SquareupApi.CancelSubscription@0.1.0",
-  "description": "Schedule the cancellation of an active subscription.\n\nThis tool schedules a cancellation for an active subscription, changing its status from ACTIVE to CANCELED at the end of the current billing period.",
+  "description": "Schedule cancellation of an active subscription.\n\nUse this tool to schedule a cancellation for an active subscription. The subscription will remain active until the end of the current billing period, after which it will be marked as canceled.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "subscription_id",
+        "name": "subscription_identifier",
         "required": true,
-        "description": "The unique identifier of the subscription to be canceled.",
+        "description": "The unique identifier of the subscription to be canceled. Required to schedule the cancellation.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "subscription_id",
-        "tool_parameter_name": "subscription_id",
+        "tool_parameter_name": "subscription_identifier",
         "description": "The ID of the subscription to cancel.",
         "value_schema": {
           "val_type": "string",
