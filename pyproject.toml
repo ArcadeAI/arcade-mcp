@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.0.0rc4"
+version = "1.0.0"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -21,8 +21,8 @@ requires-python = ">=3.10"
 
 dependencies = [
     # CLI dependencies
-    "arcade-mcp-server>=1.0.0rc3,<3.0.0",
-    "arcade-core>=2.5.0rc2,<3.0.0",
+    "arcade-mcp-server>=1.0.0,<2.0.0",
+    "arcade-core>=3.0.0,<4.0.0",
     "typer==0.10.0",
     "rich==13.9.4",
     "Jinja2==3.1.6",
@@ -42,11 +42,11 @@ all = [
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
     # mcp
-    "arcade-mcp-server>=1.0.0rc3,<3.0.0",
+    "arcade-mcp-server>=1.0.0,<2.0.0",
     # serve
-    "arcade-serve>=2.2.0rc2,<3.0.0",
+    "arcade-serve>=3.0.0,<4.0.0",
     # tdk
-    "arcade-tdk>=2.6.0rc2,<3.0.0",
+    "arcade-tdk>=3.0.0,<4.0.0",
 ]
 # Evals also depends on arcade-core and openai, but they are already required deps
 evals = [

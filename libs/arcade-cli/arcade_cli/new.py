@@ -19,15 +19,15 @@ try:
     ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
-    ARCADE_MCP_MIN_VERSION = "1.0.0rc2"  # Default version if unable to fetch
-    ARCADE_MCP_MAX_VERSION = "4.0.0"
+    ARCADE_MCP_MIN_VERSION = "1.0.0"  # Default version if unable to fetch
+    ARCADE_MCP_MAX_VERSION = "2.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.6.0rc2"
-ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.2.0rc2"
-ARCADE_SERVE_MAX_VERSION = "3.0.0"
-ARCADE_MCP_SERVER_MIN_VERSION = "1.0.0rc2"
-ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
+ARCADE_TDK_MIN_VERSION = "3.0.0"
+ARCADE_TDK_MAX_VERSION = "4.0.0"
+ARCADE_SERVE_MIN_VERSION = "3.0.0"
+ARCADE_SERVE_MAX_VERSION = "4.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "1.0.0"
+ARCADE_MCP_SERVER_MAX_VERSION = "2.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
