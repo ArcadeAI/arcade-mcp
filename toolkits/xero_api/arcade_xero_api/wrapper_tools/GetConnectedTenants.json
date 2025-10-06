@@ -47,7 +47,11 @@
       "provider_id": "arcade-xero",
       "provider_type": "oauth2",
       "id": null,
-      "oauth2": null
+      "oauth2": {
+        "scopes": [
+          "accounting.settings.read"
+        ]
+      }
     },
     "secrets": null,
     "metadata": null

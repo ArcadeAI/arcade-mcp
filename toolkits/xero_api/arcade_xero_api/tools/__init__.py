@@ -6530,7 +6530,7 @@ async def retrieve_specific_user(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-xero"))
+@tool(requires_auth=OAuth2(id="arcade-xero", scopes=["accounting.settings.read"]))
 async def get_connected_tenants(
     context: ToolContext,
     filter_auth_event_id: Annotated[
