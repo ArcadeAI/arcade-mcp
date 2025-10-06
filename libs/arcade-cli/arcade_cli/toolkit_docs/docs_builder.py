@@ -19,6 +19,8 @@ from arcade_cli.toolkit_docs.templates import (
     ENUM_MDX,
     ENUM_VALUE,
     GENERIC_PROVIDER_CONFIG,
+    STARTER_TOOL_INFO_CALL,
+    STARTER_TOOLKIT_HEADER_IMPORT,
     TABBED_EXAMPLES_LIST,
     TABLE_OF_CONTENTS,
     TABLE_OF_CONTENTS_ITEM,
@@ -36,6 +38,8 @@ from arcade_cli.toolkit_docs.templates import (
 from arcade_cli.toolkit_docs.utils import (
     clean_fully_qualified_name,
     find_enum_by_options,
+    find_pyproject_toml,
+    get_pyproject_description,
     get_toolkit_auth_type,
     is_well_known_provider,
     pascal_to_snake_case,
@@ -44,14 +48,29 @@ from arcade_cli.toolkit_docs.utils import (
 console = Console()
 
 
-def build_toolkit_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
-    return os.path.join(
+def build_toolkit_mdx_dir_path(
+    docs_section: str,
+    docs_root_dir: str,
+    toolkit_name: str,
+    ensure_exists: bool = True,
+) -> str:
+    dir_path = os.path.join(
         docs_root_dir,
-        "pages",
-        "toolkits",
+        "app",
+        "en",
+        "mcp-servers",
         docs_section,
-        f"{toolkit_name.lower()}.mdx",
+        f"{toolkit_name.lower().replace('_', '-')}",
     )
+
+    if ensure_exists:
+        os.makedirs(dir_path, exist_ok=True)
+    return dir_path
+
+
+def build_toolkit_mdx_file_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
+    toolkit_dir_path = build_toolkit_mdx_dir_path(docs_section, docs_root_dir, toolkit_name)
+    return os.path.join(toolkit_dir_path, "page.mdx")
 
 
 def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: str) -> str:
@@ -60,13 +79,15 @@ def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: 
         "public",
         "examples",
         "integrations",
-        "toolkits",
+        "mcp-servers",
         toolkit_name.lower(),
         example_filename,
     )
 
 
 def build_toolkit_mdx(
+    toolkit_package_name: str,
+    toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -74,14 +95,32 @@ def build_toolkit_mdx(
     openai_model: str,
     toolkit_header_template: str = TOOLKIT_HEADER,
     toolkit_page_template: str = TOOLKIT_PAGE,
+    is_wrapper_toolkit: bool = False,
 ) -> tuple[str, str]:
     sample_tool = tools[0]
     toolkit_name = sample_tool.toolkit.name
     toolkit_version = sample_tool.toolkit.version
-    auth_type = get_toolkit_auth_type(sample_tool.requirements.authorization)
+    auth_type = get_toolkit_auth_type(sample_tool.requirements)
+
+    if is_wrapper_toolkit:
+        starter_tool_info_import = STARTER_TOOLKIT_HEADER_IMPORT
+        starter_tool_info_warning = STARTER_TOOL_INFO_CALL.format(toolkit_name=toolkit_name)
+    else:
+        starter_tool_info_import = ""
+        starter_tool_info_warning = ""
+
+    try:
+        pyproject_path = find_pyproject_toml(toolkit_dir)
+        tool_info_description = get_pyproject_description(pyproject_path)
+
+    except ValueError:
+        tool_info_description = f"Enable Agents to interact with the {toolkit_name} MCP Server"
 
     header = toolkit_header_template.format(
         toolkit_title=toolkit_name,
+        tool_info_description=tool_info_description,
+        starter_tool_info_import=starter_tool_info_import,
+        starter_tool_info_warning=starter_tool_info_warning,
         description=generate_toolkit_description(
             toolkit_name,
             [(tool.name, tool.description) for tool in tools],
@@ -94,7 +133,9 @@ def build_toolkit_mdx(
     table_of_contents = build_table_of_contents(tools)
     footer = build_footer(toolkit_name, pip_package_name, sample_tool.requirements.authorization)
 
-    referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
+    referenced_enums, tools_specs = build_tools_specs(
+        toolkit_package_name, tools, docs_section, enums
+    )
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
     toolkit_mdx = toolkit_page_template.format(
@@ -201,6 +242,7 @@ def build_footer(
 
 
 def build_tools_specs(
+    toolkit_name: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -212,6 +254,7 @@ def build_tools_specs(
     referenced_enums = []
     for tool in tools:
         tool_referenced_enums, tool_spec = build_tool_spec(
+            toolkit_name=toolkit_name,
             tool=tool,
             docs_section=docs_section,
             enums=enums,
@@ -226,6 +269,7 @@ def build_tools_specs(
 
 
 def build_tool_spec(
+    toolkit_name: str,
     tool: ToolDefinition,
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -234,7 +278,7 @@ def build_tool_spec(
     tool_spec_secrets_template: str = TOOL_SPEC_SECRETS,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
     tabbed_examples_list = TABBED_EXAMPLES_LIST.format(
-        toolkit_name=tool.toolkit.name.lower(),
+        toolkit_name=toolkit_name.lower(),
         tool_name=pascal_to_snake_case(tool.name),
     )
     referenced_enums, parameters = build_tool_parameters(
@@ -290,7 +334,7 @@ def build_tool_parameters(
         if schema.enum:
             enum_name, enum_class = find_enum_by_options(enums, schema.enum)
             referenced_enums.append((enum_name, enum_class))
-            param_definition = f"`Enum` [{enum_name}](/toolkits/{docs_section}/{toolkit_name}/reference#{enum_name})"
+            param_definition = f"`Enum` [{enum_name}](/mcp-servers/{docs_section}/{toolkit_name}/reference#{enum_name})"
         else:
             if schema.inner_val_type:
                 param_definition = f"`{schema.val_type}[{schema.inner_val_type}]`"
@@ -325,12 +369,15 @@ def build_examples(
         interface_signature = build_tool_interface_signature(tool)
         input_map = generate_tool_input_map(interface_signature, openai_model)
         fully_qualified_name = tool.fully_qualified_name.split("@")[0]
+
+        py_file_name = f"{pascal_to_snake_case(tool.name)}_example_call_tool.py"
         examples.append((
-            f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
+            py_file_name,
             build_python_example(fully_qualified_name, input_map),
         ))
+        js_file_name = f"{pascal_to_snake_case(tool.name)}_example_call_tool.js"
         examples.append((
-            f"{pascal_to_snake_case(tool.name)}_example_call_tool.js",
+            js_file_name,
             build_javascript_example(fully_qualified_name, input_map),
         ))
     return examples
@@ -376,18 +423,18 @@ def generate_toolkit_description(
             "role": "system",
             "content": (
                 "You are a helpful assistant. "
-                "When given a toolkit name and a list of tools, you will generate a "
-                "short, yet descriptive of the toolkit and the main actions a user "
+                "When given an MCP Server name and a list of tools, you will generate a "
+                "short, yet descriptive of the MCP Server and the main actions a user "
                 "or LLM can perform with it.\n\n"
-                "As an example, here is the Asana toolkit description:\n\n"
-                "The Arcade Asana toolkit provides a pre-built set of tools for "
+                "As an example, here is the Asana MCP Server description:\n\n"
+                "The Arcade Asana MCP Server provides a pre-built set of tools for "
                 "interacting with Asana. These tools make it easy to build agents "
                 "and AI apps that can:\n\n"
                 "- Manage teams, projects, and workspaces.\n"
                 "- Create, update, and search for tasks.\n"
                 "- Retrieve data about tasks, projects, workspaces, users, etc.\n"
                 "- Manage task attachments.\n\n"
-                "And here is a JSON string with the list of tools in the Asana toolkit:\n\n"
+                "And here is a JSON string with the list of tools in the Asana MCP Server:\n\n"
                 "```json\n\n"
                 '[["AttachFileToTask", "Attaches a file to an Asana task\n\nProvide exactly '
                 "one of file_content_str, file_content_base64, or file_content_url, never "
@@ -412,18 +459,18 @@ def generate_toolkit_description(
                 'authenticated user"], ["MarkTaskAsCompleted", "Mark a task in Asana as '
                 'completed"], ["UpdateTask", "Updates a task in Asana"]]\n\n```\n\n'
                 "Keep the description concise and to the point. The user will provide you with "
-                "the toolkit name and the list of tools. Generate the description according to "
+                "the MCP Server name and the list of tools. Generate the description according to "
                 "the instructions above."
             ),
         },
         {
             "role": "user",
             "content": (
-                f"The toolkit name is {toolkit_name} and the list of tools is:\n\n"
+                f"The MCP Server name is {toolkit_name} and the list of tools is:\n\n"
                 "```json\n\n"
                 f"{json.dumps(tools, ensure_ascii=False)}\n\n"
                 "```\n\n"
-                "Please generate a description for the toolkit."
+                "Please generate a description for the MCP Server."
             ),
         },
     ]

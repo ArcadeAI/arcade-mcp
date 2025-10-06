@@ -4,11 +4,8 @@ Learn how to create tools with different parameter types and how arcade_mcp_serv
 
 ## Running the Example
 
-- **Run**: `python -m arcade_mcp_server`
-- **Run (stdio)**: `python -m arcade_mcp_server stdio`
-- **Show loaded packages**: `python -m arcade_mcp_server --show-packages`
-- **Load specific package**: `python -m arcade_mcp_server --tool-package github`
-- **Discover all installed**: `python -m arcade_mcp_server --discover-installed`
+- **Run (HTTP default)**: `uv run 01_tools.py`
+- **Run (stdio for Claude Desktop)**: `uv run 01_tools.py stdio`
 
 ## Source Code
 
@@ -23,12 +20,12 @@ Learn how to create tools with different parameter types and how arcade_mcp_serv
 Basic tools with simple parameter types:
 
 ```python
-@tool
+@app.tool
 def hello(name: Annotated[str, "Name to greet"]) -> str:
     """Say hello to someone."""
     return f"Hello, {name}!"
 
-@tool
+@app.tool
 def add(
     a: Annotated[float, "First number"],
     b: Annotated[float, "Second number"]
@@ -42,7 +39,7 @@ def add(
 Working with lists of values:
 
 ```python
-@tool
+@app.tool
 def calculate_average(
     numbers: Annotated[list[float], "List of numbers to average"]
 ) -> Annotated[float, "Average of all numbers"]:
@@ -71,39 +68,42 @@ def create_user_profile(
     # Implementation here
 ```
 
-## Tool Discovery
+## Managing Tools in MCPApp
 
-The arcade_mcp_server CLI discovers tools in multiple ways:
+With the direct Python approach, you have full control over your tools:
 
-### 1. Current Directory
-- Scans all `*.py` files in the current directory
-- Imports and checks for `@tool` decorated functions
-
-### 2. Standard Directories
-- `tools/` directory - Common convention for organizing tools
-- `arcade_tools/` directory - Alternative naming convention
-- Both are recursively scanned for Python files
-
-### 3. Package Loading
-```bash
-# Load a specific package
-python -m arcade_mcp_server --tool-package github
-
-# Discover all installed arcade packages
-python -m arcade_mcp_server --discover-installed
+### 1. Defining Tools Directily
+Use `@app.tool` to define tools directly on your MCPApp instance:
+```python
+@app.tool
+def my_tool(param: str) -> str:
+    """Tool description."""
+    return f"Processed: {param}"
 ```
 
-### 4. File Organization
+### 2. Importing Tools from Files
+You can import tools from other files and add them explicitly:
+```python
+from my_tools import calculate, process_data
+
+# Add imported tools to the app
+app.add_tool(calculate)
+app.add_tool(process_data)
+```
+
+### 3. Project Organization
 
 Example project structure:
 ```
 my_project/
-├── hello.py          # Contains @tool functions
+├── server.py          # Main MCPApp
 ├── tools/
-│   └── math.py      # More @tool functions
-└── arcade_tools/
-    └── utils.py     # Even more @tool functions
+│   ├── math.py       # Tools using @tool decorator
+│   └── utils.py      # More tools
+└── pyproject.toml    # Dependencies
 ```
+
+This approach gives you explicit control over which tools are loaded and how they're organized.
 
 ## Best Practices
 
@@ -124,8 +124,8 @@ my_project/
 
 ## Key Concepts
 
-- **Auto-Discovery**: Automatically finds tools without explicit registration
+- **Explicit Control**: Use `@app.tool` decorators and `app.add_tool()` for precise tool management
 - **Type Safety**: Full type annotation support with runtime validation
 - **TypedDict Support**: Use TypedDict for complex structured data
-- **Flexible Organization**: Structure your tools however makes sense for your project
-- **Multiple Sources**: Discover from files, directories, and packages
+- **Import Flexibility**: Import tools from your own files and external packages
+- **Direct Execution**: Run servers directly with `uv run` for better development experience

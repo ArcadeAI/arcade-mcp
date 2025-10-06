@@ -187,4 +187,4 @@ async def batch_processing_logs(
 
 if __name__ == "__main__":
     # Run the server
-    app.run(host="127.0.0.1", port=8001)
+    app.run(host="127.0.0.1", port=8000)
