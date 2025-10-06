@@ -1,0 +1,1147 @@
+{
+  "name": "SetFinancialSetup",
+  "fully_qualified_name": "XeroApi.SetFinancialSetup@0.1.0",
+  "description": "Sets up the financial chart of accounts and conversion details.\n\nUse this tool to set up the chart of accounts, conversion date, and conversion balances in Xero.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "Xero tenant ID required to identify the specific tenant for the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "financial_setup_details",
+        "required": true,
+        "description": "JSON object containing accounts, conversion balances, and a conversion date for setting up the financial chart in Xero.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ConversionDate": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "Month": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The month the organisation starts using Xero. Value is an integer between 1 and 12"
+                },
+                "Year": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The year the organisation starts using Xero. Value is an integer greater than 2006"
+                }
+              },
+              "inner_properties": null,
+              "description": "The date when the organisation starts using Xero"
+            },
+            "ConversionBalances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "AccountCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The account code for a account"
+                },
+                "Balance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The opening balances of the account. Debits are positive, credits are negative values"
+                },
+                "BalanceDetails": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "Balance": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The opening balances of the account. Debits are positive, credits are negative values"
+                    },
+                    "CurrencyCode": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The currency of the balance (Not required for base currency)"
+                    },
+                    "CurrencyRate": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "(Optional) Exchange rate to base currency when money is spent or received. If not specified, XE rate for the day is applied"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": "Balance supplied for each account that has a value as at the conversion date."
+            },
+            "Accounts": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "Code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Customer defined alpha numeric account code e.g 200 or SALES (max length = 10)"
+                },
+                "Name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of account (max length = 150)"
+                },
+                "AccountID": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Xero identifier for an account \u2013 specified as a string following  the endpoint name   e.g. /297c2dc5-cc47-4afd-8ec8-74990b8761e9"
+                },
+                "Type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BANK",
+                    "CURRENT",
+                    "CURRLIAB",
+                    "DEPRECIATN",
+                    "DIRECTCOSTS",
+                    "EQUITY",
+                    "EXPENSE",
+                    "FIXED",
+                    "INVENTORY",
+                    "LIABILITY",
+                    "NONCURRENT",
+                    "OTHERINCOME",
+                    "OVERHEADS",
+                    "PREPAYMENT",
+                    "REVENUE",
+                    "SALES",
+                    "TERMLIAB",
+                    "PAYG"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "See Account Types"
+                },
+                "BankAccountNumber": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For bank accounts only (Account Type BANK)"
+                },
+                "Status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ACTIVE",
+                    "ARCHIVED",
+                    "DELETED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accounts with a status of ACTIVE can be updated to ARCHIVED. See Account Status Codes"
+                },
+                "Description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the Account. Valid for all types of accounts except bank accounts (max length = 4000)"
+                },
+                "BankAccountType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BANK",
+                    "CREDITCARD",
+                    "PAYPAL",
+                    "NONE",
+                    ""
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For bank accounts only. See Bank Account types"
+                },
+                "CurrencyCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "AED",
+                    "AFN",
+                    "ALL",
+                    "AMD",
+                    "ANG",
+                    "AOA",
+                    "ARS",
+                    "AUD",
+                    "AWG",
+                    "AZN",
+                    "BAM",
+                    "BBD",
+                    "BDT",
+                    "BGN",
+                    "BHD",
+                    "BIF",
+                    "BMD",
+                    "BND",
+                    "BOB",
+                    "BRL",
+                    "BSD",
+                    "BTN",
+                    "BWP",
+                    "BYN",
+                    "BYR",
+                    "BZD",
+                    "CAD",
+                    "CDF",
+                    "CHF",
+                    "CLF",
+                    "CLP",
+                    "CNY",
+                    "COP",
+                    "CRC",
+                    "CUC",
+                    "CUP",
+                    "CVE",
+                    "CZK",
+                    "DJF",
+                    "DKK",
+                    "DOP",
+                    "DZD",
+                    "EEK",
+                    "EGP",
+                    "ERN",
+                    "ETB",
+                    "EUR",
+                    "FJD",
+                    "FKP",
+                    "GBP",
+                    "GEL",
+                    "GHS",
+                    "GIP",
+                    "GMD",
+                    "GNF",
+                    "GTQ",
+                    "GYD",
+                    "HKD",
+                    "HNL",
+                    "HRK",
+                    "HTG",
+                    "HUF",
+                    "IDR",
+                    "ILS",
+                    "INR",
+                    "IQD",
+                    "IRR",
+                    "ISK",
+                    "JMD",
+                    "JOD",
+                    "JPY",
+                    "KES",
+                    "KGS",
+                    "KHR",
+                    "KMF",
+                    "KPW",
+                    "KRW",
+                    "KWD",
+                    "KYD",
+                    "KZT",
+                    "LAK",
+                    "LBP",
+                    "LKR",
+                    "LRD",
+                    "LSL",
+                    "LTL",
+                    "LVL",
+                    "LYD",
+                    "MAD",
+                    "MDL",
+                    "MGA",
+                    "MKD",
+                    "MMK",
+                    "MNT",
+                    "MOP",
+                    "MRO",
+                    "MRU",
+                    "MUR",
+                    "MVR",
+                    "MWK",
+                    "MXN",
+                    "MXV",
+                    "MYR",
+                    "MZN",
+                    "NAD",
+                    "NGN",
+                    "NIO",
+                    "NOK",
+                    "NPR",
+                    "NZD",
+                    "OMR",
+                    "PAB",
+                    "PEN",
+                    "PGK",
+                    "PHP",
+                    "PKR",
+                    "PLN",
+                    "PYG",
+                    "QAR",
+                    "RON",
+                    "RSD",
+                    "RUB",
+                    "RWF",
+                    "SAR",
+                    "SBD",
+                    "SCR",
+                    "SDG",
+                    "SEK",
+                    "SGD",
+                    "SHP",
+                    "SKK",
+                    "SLE",
+                    "SLL",
+                    "SOS",
+                    "SRD",
+                    "STD",
+                    "STN",
+                    "SVC",
+                    "SYP",
+                    "SZL",
+                    "THB",
+                    "TJS",
+                    "TMT",
+                    "TND",
+                    "TOP",
+                    "TRY",
+                    "TTD",
+                    "TWD",
+                    "TZS",
+                    "UAH",
+                    "UGX",
+                    "USD",
+                    "UYU",
+                    "UZS",
+                    "VEF",
+                    "VES",
+                    "VND",
+                    "VUV",
+                    "WST",
+                    "XAF",
+                    "XCD",
+                    "XOF",
+                    "XPF",
+                    "YER",
+                    "ZAR",
+                    "ZMW",
+                    "ZMK",
+                    "ZWD"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "3 letter alpha code for the currency \u2013 see list of currency codes"
+                },
+                "TaxType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The tax type from taxRates"
+                },
+                "EnablePaymentsToAccount": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether account can have payments applied to it"
+                },
+                "ShowInExpenseClaims": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether account code is available for use with expense claims"
+                },
+                "Class": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ASSET",
+                    "EQUITY",
+                    "EXPENSE",
+                    "LIABILITY",
+                    "REVENUE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "See Account Class Types"
+                },
+                "SystemAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "DEBTORS",
+                    "CREDITORS",
+                    "BANKCURRENCYGAIN",
+                    "GST",
+                    "GSTONIMPORTS",
+                    "HISTORICAL",
+                    "REALISEDCURRENCYGAIN",
+                    "RETAINEDEARNINGS",
+                    "ROUNDING",
+                    "TRACKINGTRANSFERS",
+                    "UNPAIDEXPCLM",
+                    "UNREALISEDCURRENCYGAIN",
+                    "WAGEPAYABLES",
+                    "CISASSETS",
+                    "CISASSET",
+                    "CISLABOUR",
+                    "CISLABOUREXPENSE",
+                    "CISLABOURINCOME",
+                    "CISLIABILITY",
+                    "CISMATERIALS",
+                    ""
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If this is a system account then this element is returned. See System Account types. Note that non-system accounts may have this element set as either \u201c\u201d or null."
+                },
+                "ReportingCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shown if set"
+                },
+                "ReportingCodeName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shown if set"
+                },
+                "HasAttachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "boolean to indicate if an account has an attachment (read only)"
+                },
+                "UpdatedDateUTC": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Last modified date UTC format"
+                },
+                "AddToWatchlist": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether the account is shown in the watchlist widget on the dashboard"
+                },
+                "ValidationErrors": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "Message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Validation error message"
+                    }
+                  },
+                  "description": "Displays array of validation error messages from the API"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Object including an accounts array, a conversion balances array and a conversion date object in body of request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "idempotency_key",
+        "required": false,
+        "description": "A unique string up to 128 characters to safely retry requests without duplicating processing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Idempotency-Key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postSetup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.settings"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Setup",
+    "http_method": "POST",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Idempotency-Key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "financial_setup_details",
+        "description": "Object including an accounts array, a conversion balances array and a conversion date object in body of request",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "ConversionDate": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "Month": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The month the organisation starts using Xero. Value is an integer between 1 and 12"
+                },
+                "Year": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The year the organisation starts using Xero. Value is an integer greater than 2006"
+                }
+              },
+              "inner_properties": null,
+              "description": "The date when the organisation starts using Xero"
+            },
+            "ConversionBalances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "AccountCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The account code for a account"
+                },
+                "Balance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The opening balances of the account. Debits are positive, credits are negative values"
+                },
+                "BalanceDetails": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "Balance": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The opening balances of the account. Debits are positive, credits are negative values"
+                    },
+                    "CurrencyCode": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The currency of the balance (Not required for base currency)"
+                    },
+                    "CurrencyRate": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "(Optional) Exchange rate to base currency when money is spent or received. If not specified, XE rate for the day is applied"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "description": "Balance supplied for each account that has a value as at the conversion date."
+            },
+            "Accounts": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "Code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Customer defined alpha numeric account code e.g 200 or SALES (max length = 10)"
+                },
+                "Name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of account (max length = 150)"
+                },
+                "AccountID": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Xero identifier for an account \u2013 specified as a string following  the endpoint name   e.g. /297c2dc5-cc47-4afd-8ec8-74990b8761e9"
+                },
+                "Type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BANK",
+                    "CURRENT",
+                    "CURRLIAB",
+                    "DEPRECIATN",
+                    "DIRECTCOSTS",
+                    "EQUITY",
+                    "EXPENSE",
+                    "FIXED",
+                    "INVENTORY",
+                    "LIABILITY",
+                    "NONCURRENT",
+                    "OTHERINCOME",
+                    "OVERHEADS",
+                    "PREPAYMENT",
+                    "REVENUE",
+                    "SALES",
+                    "TERMLIAB",
+                    "PAYG"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "See Account Types"
+                },
+                "BankAccountNumber": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For bank accounts only (Account Type BANK)"
+                },
+                "Status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ACTIVE",
+                    "ARCHIVED",
+                    "DELETED"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Accounts with a status of ACTIVE can be updated to ARCHIVED. See Account Status Codes"
+                },
+                "Description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the Account. Valid for all types of accounts except bank accounts (max length = 4000)"
+                },
+                "BankAccountType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "BANK",
+                    "CREDITCARD",
+                    "PAYPAL",
+                    "NONE",
+                    ""
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For bank accounts only. See Bank Account types"
+                },
+                "CurrencyCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "AED",
+                    "AFN",
+                    "ALL",
+                    "AMD",
+                    "ANG",
+                    "AOA",
+                    "ARS",
+                    "AUD",
+                    "AWG",
+                    "AZN",
+                    "BAM",
+                    "BBD",
+                    "BDT",
+                    "BGN",
+                    "BHD",
+                    "BIF",
+                    "BMD",
+                    "BND",
+                    "BOB",
+                    "BRL",
+                    "BSD",
+                    "BTN",
+                    "BWP",
+                    "BYN",
+                    "BYR",
+                    "BZD",
+                    "CAD",
+                    "CDF",
+                    "CHF",
+                    "CLF",
+                    "CLP",
+                    "CNY",
+                    "COP",
+                    "CRC",
+                    "CUC",
+                    "CUP",
+                    "CVE",
+                    "CZK",
+                    "DJF",
+                    "DKK",
+                    "DOP",
+                    "DZD",
+                    "EEK",
+                    "EGP",
+                    "ERN",
+                    "ETB",
+                    "EUR",
+                    "FJD",
+                    "FKP",
+                    "GBP",
+                    "GEL",
+                    "GHS",
+                    "GIP",
+                    "GMD",
+                    "GNF",
+                    "GTQ",
+                    "GYD",
+                    "HKD",
+                    "HNL",
+                    "HRK",
+                    "HTG",
+                    "HUF",
+                    "IDR",
+                    "ILS",
+                    "INR",
+                    "IQD",
+                    "IRR",
+                    "ISK",
+                    "JMD",
+                    "JOD",
+                    "JPY",
+                    "KES",
+                    "KGS",
+                    "KHR",
+                    "KMF",
+                    "KPW",
+                    "KRW",
+                    "KWD",
+                    "KYD",
+                    "KZT",
+                    "LAK",
+                    "LBP",
+                    "LKR",
+                    "LRD",
+                    "LSL",
+                    "LTL",
+                    "LVL",
+                    "LYD",
+                    "MAD",
+                    "MDL",
+                    "MGA",
+                    "MKD",
+                    "MMK",
+                    "MNT",
+                    "MOP",
+                    "MRO",
+                    "MRU",
+                    "MUR",
+                    "MVR",
+                    "MWK",
+                    "MXN",
+                    "MXV",
+                    "MYR",
+                    "MZN",
+                    "NAD",
+                    "NGN",
+                    "NIO",
+                    "NOK",
+                    "NPR",
+                    "NZD",
+                    "OMR",
+                    "PAB",
+                    "PEN",
+                    "PGK",
+                    "PHP",
+                    "PKR",
+                    "PLN",
+                    "PYG",
+                    "QAR",
+                    "RON",
+                    "RSD",
+                    "RUB",
+                    "RWF",
+                    "SAR",
+                    "SBD",
+                    "SCR",
+                    "SDG",
+                    "SEK",
+                    "SGD",
+                    "SHP",
+                    "SKK",
+                    "SLE",
+                    "SLL",
+                    "SOS",
+                    "SRD",
+                    "STD",
+                    "STN",
+                    "SVC",
+                    "SYP",
+                    "SZL",
+                    "THB",
+                    "TJS",
+                    "TMT",
+                    "TND",
+                    "TOP",
+                    "TRY",
+                    "TTD",
+                    "TWD",
+                    "TZS",
+                    "UAH",
+                    "UGX",
+                    "USD",
+                    "UYU",
+                    "UZS",
+                    "VEF",
+                    "VES",
+                    "VND",
+                    "VUV",
+                    "WST",
+                    "XAF",
+                    "XCD",
+                    "XOF",
+                    "XPF",
+                    "YER",
+                    "ZAR",
+                    "ZMW",
+                    "ZMK",
+                    "ZWD"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "3 letter alpha code for the currency \u2013 see list of currency codes"
+                },
+                "TaxType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The tax type from taxRates"
+                },
+                "EnablePaymentsToAccount": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether account can have payments applied to it"
+                },
+                "ShowInExpenseClaims": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether account code is available for use with expense claims"
+                },
+                "Class": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ASSET",
+                    "EQUITY",
+                    "EXPENSE",
+                    "LIABILITY",
+                    "REVENUE"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "See Account Class Types"
+                },
+                "SystemAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "DEBTORS",
+                    "CREDITORS",
+                    "BANKCURRENCYGAIN",
+                    "GST",
+                    "GSTONIMPORTS",
+                    "HISTORICAL",
+                    "REALISEDCURRENCYGAIN",
+                    "RETAINEDEARNINGS",
+                    "ROUNDING",
+                    "TRACKINGTRANSFERS",
+                    "UNPAIDEXPCLM",
+                    "UNREALISEDCURRENCYGAIN",
+                    "WAGEPAYABLES",
+                    "CISASSETS",
+                    "CISASSET",
+                    "CISLABOUR",
+                    "CISLABOUREXPENSE",
+                    "CISLABOURINCOME",
+                    "CISLIABILITY",
+                    "CISMATERIALS",
+                    ""
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If this is a system account then this element is returned. See System Account types. Note that non-system accounts may have this element set as either \u201c\u201d or null."
+                },
+                "ReportingCode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shown if set"
+                },
+                "ReportingCodeName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Shown if set"
+                },
+                "HasAttachments": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "boolean to indicate if an account has an attachment (read only)"
+                },
+                "UpdatedDateUTC": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Last modified date UTC format"
+                },
+                "AddToWatchlist": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean \u2013 describes whether the account is shown in the watchlist widget on the dashboard"
+                },
+                "ValidationErrors": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "Message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Validation error message"
+                    }
+                  },
+                  "description": "Displays array of validation error messages from the API"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Object including an accounts array, a conversion balances array and a conversion date object in body of request"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

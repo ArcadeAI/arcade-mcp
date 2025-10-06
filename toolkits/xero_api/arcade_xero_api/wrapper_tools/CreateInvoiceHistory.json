@@ -1,0 +1,171 @@
+{
+  "name": "CreateInvoiceHistory",
+  "fully_qualified_name": "XeroApi.CreateInvoiceHistory@0.1.0",
+  "description": "Create a history record for a specific invoice.\n\nUse this tool to log a history record for a particular invoice in Xero. Ideal for tracking changes or adding comments to an invoice's history.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "required": true,
+        "description": "Unique identifier for the invoice. This is required to create a history record for the specified invoice in Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "InvoiceID"
+      },
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "Xero identifier for the Tenant. Required for specifying which tenant the invoice history belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "idempotency_key",
+        "required": false,
+        "description": "A string up to 128 characters to safely retry requests without duplicate processing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Idempotency-Key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createInvoiceHistory'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Invoices/{InvoiceID}/History",
+    "http_method": "PUT",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "InvoiceID",
+        "tool_parameter_name": "invoice_id",
+        "description": "Unique identifier for an Invoice",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Idempotency-Key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

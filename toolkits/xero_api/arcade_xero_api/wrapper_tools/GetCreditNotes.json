@@ -1,0 +1,300 @@
+{
+  "name": "GetCreditNotes",
+  "fully_qualified_name": "XeroApi.GetCreditNotes@0.1.0",
+  "description": "Retrieve credit notes from the Xero service.\n\nUse this tool to obtain credit notes from Xero. Ideal for financial checks or reconciliations requiring credit note information.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The unique identifier for the Xero tenant. Required to specify which tenant's credit notes to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "filter_by_element",
+        "required": false,
+        "description": "A string to filter credit notes by specific criteria using any element.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an any element"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "where"
+      },
+      {
+        "name": "sort_credit_notes",
+        "required": false,
+        "description": "Specifies the order to retrieve credit notes, e.g., by date or amount.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to retrieve. Each page returns up to 100 credit notes with line items.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 credit notes will be returned in a single API call with line items shown for each credit note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "unit_decimal_places",
+        "required": false,
+        "description": "Specify the number of decimal places for unit amounts. For example, use 4 for four decimal places.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unitdp"
+      },
+      {
+        "name": "number_of_records_per_page",
+        "required": false,
+        "description": "Defines the number of credit notes to retrieve per page from the Xero service. This helps control the size of each result set.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to retrieve per page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pageSize"
+      },
+      {
+        "name": "modified_since_timestamp",
+        "required": false,
+        "description": "Only retrieve records created or modified after this timestamp (in ISO 8601 format).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "If-Modified-Since"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getCreditNotes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions.read",
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/CreditNotes",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "where",
+        "tool_parameter_name": "filter_by_element",
+        "description": "Filter by an any element",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an any element"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "sort_credit_notes",
+        "description": "Order by an any element",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "e.g. page=1 \u2013 Up to 100 credit notes will be returned in a single API call with line items shown for each credit note",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 credit notes will be returned in a single API call with line items shown for each credit note"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unitdp",
+        "tool_parameter_name": "unit_decimal_places",
+        "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pageSize",
+        "tool_parameter_name": "number_of_records_per_page",
+        "description": "Number of records to retrieve per page",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to retrieve per page"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "If-Modified-Since",
+        "tool_parameter_name": "modified_since_timestamp",
+        "description": "Only records created or modified since this timestamp will be returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

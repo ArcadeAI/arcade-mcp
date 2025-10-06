@@ -1,0 +1,339 @@
+{
+  "name": "GetBalanceSheetReport",
+  "fully_qualified_name": "XeroApi.GetBalanceSheetReport@0.1.0",
+  "description": "Retrieve the balance sheet report from Xero.\n\nFetches the balance sheet report, detailing financial positions. Useful for obtaining up-to-date financial summaries.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "Xero identifier for the Tenant. Used to specify which organization's data to retrieve in Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "report_date",
+        "required": false,
+        "description": "The specific date for which to retrieve the Balance Sheet report. Format as YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "number_of_periods",
+        "required": false,
+        "description": "The number of periods to include in the Balance Sheet report.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of periods for the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "periods"
+      },
+      {
+        "name": "comparison_timeframe",
+        "required": false,
+        "description": "The period size for comparison, e.g., MONTH, QUARTER, or YEAR.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MONTH",
+            "QUARTER",
+            "YEAR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The period size to compare to (MONTH, QUARTER, YEAR)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timeframe"
+      },
+      {
+        "name": "balance_sheet_tracking_option_id_1",
+        "required": false,
+        "description": "The first tracking option ID for generating the Balance Sheet report in Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 1 for the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingOptionID1"
+      },
+      {
+        "name": "tracking_option_id_2",
+        "required": false,
+        "description": "The tracking option ID for secondary categorization in the Balance Sheet report. This allows for filtering or segmentation based on a second tracking category within Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 2 for the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingOptionID2"
+      },
+      {
+        "name": "use_standard_layout",
+        "required": false,
+        "description": "Set to true to use the standard layout for the Balance Sheet report in Xero.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The standard layout boolean for the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "standardLayout"
+      },
+      {
+        "name": "return_cash_basis",
+        "required": false,
+        "description": "Set to True to return the Balance Sheet report using a cash basis.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "return a cash basis for the Balance Sheet report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "paymentsOnly"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportBalanceSheet'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.reports.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Reports/BalanceSheet",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "date",
+        "tool_parameter_name": "report_date",
+        "description": "The date of the Balance Sheet report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "periods",
+        "tool_parameter_name": "number_of_periods",
+        "description": "The number of periods for the Balance Sheet report",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of periods for the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "timeframe",
+        "tool_parameter_name": "comparison_timeframe",
+        "description": "The period size to compare to (MONTH, QUARTER, YEAR)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MONTH",
+            "QUARTER",
+            "YEAR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The period size to compare to (MONTH, QUARTER, YEAR)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingOptionID1",
+        "tool_parameter_name": "balance_sheet_tracking_option_id_1",
+        "description": "The tracking option 1 for the Balance Sheet report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 1 for the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingOptionID2",
+        "tool_parameter_name": "tracking_option_id_2",
+        "description": "The tracking option 2 for the Balance Sheet report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 2 for the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "standardLayout",
+        "tool_parameter_name": "use_standard_layout",
+        "description": "The standard layout boolean for the Balance Sheet report",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The standard layout boolean for the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "paymentsOnly",
+        "tool_parameter_name": "return_cash_basis",
+        "description": "return a cash basis for the Balance Sheet report",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "return a cash basis for the Balance Sheet report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

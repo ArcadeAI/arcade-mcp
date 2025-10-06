@@ -1,0 +1,428 @@
+{
+  "name": "RetrieveSalesQuotes",
+  "fully_qualified_name": "XeroApi.RetrieveSalesQuotes@0.1.0",
+  "description": "Retrieve sales quotes from Xero.\n\nThis tool fetches sales quotes from Xero, providing details of quotes issued. Use it to obtain current sales quotations.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "xero_tenant_id",
+        "required": true,
+        "description": "Xero tenant identifier for accessing the specific account's data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "filter_start_date",
+        "required": false,
+        "description": "Filter quotes issued after a specified date in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes after a particular date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "DateFrom"
+      },
+      {
+        "name": "filter_date_to",
+        "required": false,
+        "description": "Filter for sales quotes before a specified date in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes before a particular date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "DateTo"
+      },
+      {
+        "name": "expiry_date_after",
+        "required": false,
+        "description": "Filter to retrieve quotes expiring after the specified date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes expiring after a particular date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ExpiryDateFrom"
+      },
+      {
+        "name": "filter_expiry_date_before",
+        "required": false,
+        "description": "Filter for quotes expiring before a specified date (YYYY-MM-DD).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes before a particular date"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ExpiryDateTo"
+      },
+      {
+        "name": "contact_id",
+        "required": false,
+        "description": "Filter the sales quotes by specifying the contact ID to which they belong.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes belonging to a particular contact"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ContactID"
+      },
+      {
+        "name": "quote_status",
+        "required": false,
+        "description": "Filter quotes by their status (e.g., DRAFT, SENT).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes of a particular Status"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Status"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to retrieve, allowing pagination through quotes. Each page returns up to 100 quotes.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 Quotes will be returned in a single API call with line items shown for each quote"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "order_by_element",
+        "required": false,
+        "description": "Specify the element to order the sales quotes by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "quote_number_filter",
+        "required": false,
+        "description": "Filter sales quotes by specifying the quote number (e.g., QU-0001).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by quote number (e.g. GET https://.../Quotes?QuoteNumber=QU-0001)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "QuoteNumber"
+      },
+      {
+        "name": "modified_since_timestamp",
+        "required": false,
+        "description": "Retrieve records created or modified after this timestamp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "If-Modified-Since"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getQuotes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions.read",
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Quotes",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "DateFrom",
+        "tool_parameter_name": "filter_start_date",
+        "description": "Filter for quotes after a particular date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes after a particular date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "DateTo",
+        "tool_parameter_name": "filter_date_to",
+        "description": "Filter for quotes before a particular date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes before a particular date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ExpiryDateFrom",
+        "tool_parameter_name": "expiry_date_after",
+        "description": "Filter for quotes expiring after a particular date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes expiring after a particular date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ExpiryDateTo",
+        "tool_parameter_name": "filter_expiry_date_before",
+        "description": "Filter for quotes before a particular date",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes before a particular date"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ContactID",
+        "tool_parameter_name": "contact_id",
+        "description": "Filter for quotes belonging to a particular contact",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes belonging to a particular contact"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Status",
+        "tool_parameter_name": "quote_status",
+        "description": "Filter for quotes of a particular Status",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for quotes of a particular Status"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "e.g. page=1 \u2013 Up to 100 Quotes will be returned in a single API call with line items shown for each quote",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 Quotes will be returned in a single API call with line items shown for each quote"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "order_by_element",
+        "description": "Order by an any element",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "QuoteNumber",
+        "tool_parameter_name": "quote_number_filter",
+        "description": "Filter by quote number (e.g. GET https://.../Quotes?QuoteNumber=QU-0001)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by quote number (e.g. GET https://.../Quotes?QuoteNumber=QU-0001)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_id",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "If-Modified-Since",
+        "tool_parameter_name": "modified_since_timestamp",
+        "description": "Only records created or modified since this timestamp will be returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

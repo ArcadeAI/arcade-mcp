@@ -1,0 +1,300 @@
+{
+  "name": "RetrieveLinkedTransactions",
+  "fully_qualified_name": "XeroApi.RetrieveLinkedTransactions@0.1.0",
+  "description": "Retrieve linked transactions from Xero.\n\nUse this tool to get linked transactions, such as billable expenses, from the Xero platform. Call it when you need details about expenses that are linked or billable in Xero.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The Xero identifier for a specific tenant. Required for identifying the tenant whose linked transactions are being retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number to retrieve in paginated results, starting from 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Up to 100 linked transactions will be returned in a single API call. Use the page parameter to specify the page to be returned e.g. page=1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "linked_transaction_id",
+        "required": false,
+        "description": "The Xero identifier for a Linked Transaction to retrieve specific billable expenses.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Xero identifier for an Linked Transaction"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "LinkedTransactionID"
+      },
+      {
+        "name": "source_transaction_id",
+        "required": false,
+        "description": "Filter by SourceTransactionID to get linked transactions from a specific ACCPAY invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the SourceTransactionID. Get the linked transactions created from a particular ACCPAY invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "SourceTransactionID"
+      },
+      {
+        "name": "filter_by_contact_id",
+        "required": false,
+        "description": "Filter results by the customer's ContactID to get linked transactions for a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the ContactID. Get all the linked transactions that have been assigned to a particular customer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ContactID"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Filter linked transactions by status when combined with ContactID. Retrieves transactions associated with a customer based on this status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the combination of ContactID and Status. Get  the linked transactions associated to a  customer and with a status"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Status"
+      },
+      {
+        "name": "filter_by_target_transaction_id",
+        "required": false,
+        "description": "Filter linked transactions by TargetTransactionID to get those allocated to a specific ACCREC invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the TargetTransactionID. Get all the linked transactions allocated to a particular ACCREC invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "TargetTransactionID"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getLinkedTransactions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions.read",
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/LinkedTransactions",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Up to 100 linked transactions will be returned in a single API call. Use the page parameter to specify the page to be returned e.g. page=1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Up to 100 linked transactions will be returned in a single API call. Use the page parameter to specify the page to be returned e.g. page=1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "LinkedTransactionID",
+        "tool_parameter_name": "linked_transaction_id",
+        "description": "The Xero identifier for an Linked Transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Xero identifier for an Linked Transaction"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "SourceTransactionID",
+        "tool_parameter_name": "source_transaction_id",
+        "description": "Filter by the SourceTransactionID. Get the linked transactions created from a particular ACCPAY invoice",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the SourceTransactionID. Get the linked transactions created from a particular ACCPAY invoice"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ContactID",
+        "tool_parameter_name": "filter_by_contact_id",
+        "description": "Filter by the ContactID. Get all the linked transactions that have been assigned to a particular customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the ContactID. Get all the linked transactions that have been assigned to a particular customer."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Filter by the combination of ContactID and Status. Get  the linked transactions associated to a  customer and with a status",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the combination of ContactID and Status. Get  the linked transactions associated to a  customer and with a status"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "TargetTransactionID",
+        "tool_parameter_name": "filter_by_target_transaction_id",
+        "description": "Filter by the TargetTransactionID. Get all the linked transactions allocated to a particular ACCREC invoice",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the TargetTransactionID. Get all the linked transactions allocated to a particular ACCREC invoice"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
