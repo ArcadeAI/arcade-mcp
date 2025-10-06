@@ -1,0 +1,751 @@
+{
+  "name": "TrelloSearch",
+  "fully_qualified_name": "TrelloApi.TrelloSearch@0.1.0",
+  "description": "Search for anything in your Trello account.\n\nThis tool allows users to perform a search in their Trello account to find boards, cards, and other items matching their query.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_query",
+        "required": true,
+        "description": "The search query string with a length between 1 and 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query with a length of 1 to 16384 characters"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "board_filter",
+        "required": false,
+        "description": "Specify `mine` or a comma-separated list of Board IDs to filter search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`mine` or a comma-separated list of Board IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBoards"
+      },
+      {
+        "name": "organization_ids",
+        "required": false,
+        "description": "A comma-separated list of Organization IDs to search within.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of Organization IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrganizations"
+      },
+      {
+        "name": "card_ids_list",
+        "required": false,
+        "description": "A comma-separated list of Card IDs to search within specific cards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of Card IDs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idCards"
+      },
+      {
+        "name": "search_object_types",
+        "required": false,
+        "description": "Specify the Trello object types to search: `all` or a comma-separated list of `actions`, `boards`, `cards`, `members`, `organizations`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "What type or types of Trello objects you want to search. all or a comma-separated list of: `actions`, `boards`, `cards`, `members`, `organizations`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "modelTypes"
+      },
+      {
+        "name": "board_fields_to_include",
+        "required": false,
+        "description": "Specify which board fields to include. Use 'all' or a comma-separated list like 'name,url'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: `closed`, `dateLastActivity`, `dateLastView`, `desc`, `descData`, `idOrganization`, `invitations`, `invited`, `labelNames`, `memberships`, `name`, `pinned`, `powerUps`, `prefs`, `shortLink`, `shortUrl`, `starred`, `subscribed`, `url`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_fields"
+      },
+      {
+        "name": "maximum_boards_to_return",
+        "required": false,
+        "description": "The maximum number of boards to return. Must be an integer from 1 to 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of boards returned. Maximum: 1000"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boards_limit"
+      },
+      {
+        "name": "card_fields_selection",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of card fields like 'name', 'due', 'labels' to include in the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: `badges`, `checkItemStates`, `closed`, `dateLastActivity`, `desc`, `descData`, `due`, `idAttachmentCover`, `idBoard`, `idChecklists`, `idLabels`, `idList`, `idMembers`, `idMembersVoted`, `idShort`, `labels`, `manualCoverAttachment`, `name`, `pos`, `shortLink`, `shortUrl`, `subscribed`, `url`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_fields"
+      },
+      {
+        "name": "maximum_cards_to_return",
+        "required": false,
+        "description": "The maximum number of cards to return, up to 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of cards to return. Maximum: 1000"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cards_limit"
+      },
+      {
+        "name": "cards_page_number",
+        "required": false,
+        "description": "Specify the page number for card search results. Maximum value is 100.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page of results for cards. Maximum: 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cards_page"
+      },
+      {
+        "name": "include_card_attachments",
+        "required": false,
+        "description": "Indicate whether to include attachment objects with card results. Accepts true, false, or 'cover' for only card cover attachments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include attachment objects with card results. A boolean value (true or false) or cover for only card cover attachments."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_attachments"
+      },
+      {
+        "name": "organization_fields",
+        "required": false,
+        "description": "Comma-separated list of organization fields to include. Options: all, billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_fields"
+      },
+      {
+        "name": "maximum_workspaces_to_return",
+        "required": false,
+        "description": "Specify the maximum number of Workspaces to return, up to a maximum of 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of Workspaces to return. Maximum 1000"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organizations_limit"
+      },
+      {
+        "name": "member_fields",
+        "required": false,
+        "description": "Specify member fields to retrieve. Options: all, or comma-separated list like `avatarHash`, `bio`, `fullName`, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member_fields"
+      },
+      {
+        "name": "maximum_members_to_return",
+        "required": false,
+        "description": "Specify the maximum number of members to return. Must be an integer up to 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of members to return. Maximum 1000"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members_limit"
+      },
+      {
+        "name": "include_board_organization",
+        "required": false,
+        "description": "Include the parent organization with board results when set to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent organization with board results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_organization"
+      },
+      {
+        "name": "include_parent_board_with_card_results",
+        "required": false,
+        "description": "Include parent board information with card results. Use true to include.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent board with card results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_board"
+      },
+      {
+        "name": "include_parent_list_with_card_results",
+        "required": false,
+        "description": "Include the parent list with card results. True to include, false to exclude.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent list with card results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_list"
+      },
+      {
+        "name": "include_card_members",
+        "required": false,
+        "description": "True to include member objects with card results; false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include member objects with card results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_members"
+      },
+      {
+        "name": "include_card_stickers",
+        "required": false,
+        "description": "Set to true to include sticker objects with card results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include sticker objects with card results"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_stickers"
+      },
+      {
+        "name": "partial_match_search",
+        "required": false,
+        "description": "Search for content starting with any of the words in the query. Enables partial word matching within Trello.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default, Trello searches for each word in your query against exactly matching words within Member content. Specifying partial to be true means that we will look for content that starts with any of the words in your query.  If you are looking for a Card titled \"My Development Status Report\", by default you would need to search for \"Development\". If you have partial enabled, you will be able to search for \"dev\" but not \"velopment\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "partial"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-search'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/search",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query",
+        "tool_parameter_name": "search_query",
+        "description": "The search query with a length of 1 to 16384 characters",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query with a length of 1 to 16384 characters"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBoards",
+        "tool_parameter_name": "board_filter",
+        "description": "`mine` or a comma-separated list of Board IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`mine` or a comma-separated list of Board IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrganizations",
+        "tool_parameter_name": "organization_ids",
+        "description": "A comma-separated list of Organization IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of Organization IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idCards",
+        "tool_parameter_name": "card_ids_list",
+        "description": "A comma-separated list of Card IDs",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of Card IDs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "modelTypes",
+        "tool_parameter_name": "search_object_types",
+        "description": "What type or types of Trello objects you want to search. all or a comma-separated list of: `actions`, `boards`, `cards`, `members`, `organizations`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "What type or types of Trello objects you want to search. all or a comma-separated list of: `actions`, `boards`, `cards`, `members`, `organizations`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_fields",
+        "tool_parameter_name": "board_fields_to_include",
+        "description": "all or a comma-separated list of: `closed`, `dateLastActivity`, `dateLastView`, `desc`, `descData`, `idOrganization`, `invitations`, `invited`, `labelNames`, `memberships`, `name`, `pinned`, `powerUps`, `prefs`, `shortLink`, `shortUrl`, `starred`, `subscribed`, `url`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: `closed`, `dateLastActivity`, `dateLastView`, `desc`, `descData`, `idOrganization`, `invitations`, `invited`, `labelNames`, `memberships`, `name`, `pinned`, `powerUps`, `prefs`, `shortLink`, `shortUrl`, `starred`, `subscribed`, `url`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "boards_limit",
+        "tool_parameter_name": "maximum_boards_to_return",
+        "description": "The maximum number of boards returned. Maximum: 1000",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of boards returned. Maximum: 1000"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_organization",
+        "tool_parameter_name": "include_board_organization",
+        "description": "Whether to include the parent organization with board results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent organization with board results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_fields",
+        "tool_parameter_name": "card_fields_selection",
+        "description": "all or a comma-separated list of: `badges`, `checkItemStates`, `closed`, `dateLastActivity`, `desc`, `descData`, `due`, `idAttachmentCover`, `idBoard`, `idChecklists`, `idLabels`, `idList`, `idMembers`, `idMembersVoted`, `idShort`, `labels`, `manualCoverAttachment`, `name`, `pos`, `shortLink`, `shortUrl`, `subscribed`, `url`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: `badges`, `checkItemStates`, `closed`, `dateLastActivity`, `desc`, `descData`, `due`, `idAttachmentCover`, `idBoard`, `idChecklists`, `idLabels`, `idList`, `idMembers`, `idMembersVoted`, `idShort`, `labels`, `manualCoverAttachment`, `name`, `pos`, `shortLink`, `shortUrl`, `subscribed`, `url`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cards_limit",
+        "tool_parameter_name": "maximum_cards_to_return",
+        "description": "The maximum number of cards to return. Maximum: 1000",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of cards to return. Maximum: 1000"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cards_page",
+        "tool_parameter_name": "cards_page_number",
+        "description": "The page of results for cards. Maximum: 100",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page of results for cards. Maximum: 100"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_board",
+        "tool_parameter_name": "include_parent_board_with_card_results",
+        "description": "Whether to include the parent board with card results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent board with card results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_list",
+        "tool_parameter_name": "include_parent_list_with_card_results",
+        "description": "Whether to include the parent list with card results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the parent list with card results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_members",
+        "tool_parameter_name": "include_card_members",
+        "description": "Whether to include member objects with card results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include member objects with card results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_stickers",
+        "tool_parameter_name": "include_card_stickers",
+        "description": "Whether to include sticker objects with card results",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include sticker objects with card results"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_attachments",
+        "tool_parameter_name": "include_card_attachments",
+        "description": "Whether to include attachment objects with card results. A boolean value (true or false) or cover for only card cover attachments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include attachment objects with card results. A boolean value (true or false) or cover for only card cover attachments."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_fields",
+        "tool_parameter_name": "organization_fields",
+        "description": "all or a comma-separated list of billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organizations_limit",
+        "tool_parameter_name": "maximum_workspaces_to_return",
+        "description": "The maximum number of Workspaces to return. Maximum 1000",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of Workspaces to return. Maximum 1000"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "member_fields",
+        "tool_parameter_name": "member_fields",
+        "description": "all or a comma-separated list of: avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "all or a comma-separated list of: avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "members_limit",
+        "tool_parameter_name": "maximum_members_to_return",
+        "description": "The maximum number of members to return. Maximum 1000",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of members to return. Maximum 1000"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "partial",
+        "tool_parameter_name": "partial_match_search",
+        "description": "By default, Trello searches for each word in your query against exactly matching words within Member content. Specifying partial to be true means that we will look for content that starts with any of the words in your query.  If you are looking for a Card titled \"My Development Status Report\", by default you would need to search for \"Development\". If you have partial enabled, you will be able to search for \"dev\" but not \"velopment\".",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default, Trello searches for each word in your query against exactly matching words within Member content. Specifying partial to be true means that we will look for content that starts with any of the words in your query.  If you are looking for a Card titled \"My Development Status Report\", by default you would need to search for \"Development\". If you have partial enabled, you will be able to search for \"dev\" but not \"velopment\"."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

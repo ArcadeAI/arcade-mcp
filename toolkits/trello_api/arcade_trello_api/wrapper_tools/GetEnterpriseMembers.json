@@ -1,0 +1,411 @@
+{
+  "name": "GetEnterpriseMembers",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseMembers@0.1.0",
+  "description": "Retrieve members of a specified enterprise on Trello.\n\nUse this tool to get a list of members associated with a particular enterprise by providing the enterprise ID. This is useful for managing team members or reviewing enterprise membership details.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_id",
+        "required": true,
+        "description": "ID of the enterprise whose members are to be retrieved. This is required to specify which enterprise's members you want to access.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Enterprise to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "member_fields",
+        "required": false,
+        "description": "Comma-separated list of valid member fields to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-seperated list of valid [member fields](/cloud/trello/guides/rest-api/object-definitions/#member-object)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "scim_filter_query",
+        "required": false,
+        "description": "SCIM-style query to filter members. Overrides member type filters and controls pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pass a [SCIM-style query](/cloud/trello/scim/) to filter members. This takes precedence over the all/normal/admins value of members. If any of the below member_* args are set, the member array will be paginated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "sort_members",
+        "required": false,
+        "description": "SCIM-style sorting value. Prefix with '-' for descending order; otherwise, it's ascending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value prefixed by a `-` to sort descending. If no `-` is prefixed, it will be sorted ascending. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_criteria",
+        "required": false,
+        "description": "Sorting option for members. Use 'sort' parameter instead, following SCIM-style sorting. Deprecated parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated: Please use `sort` instead. This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortBy"
+      },
+      {
+        "name": "sort_order_for_listing",
+        "required": false,
+        "description": "Defines the order for sorting members. Use values: 'ascending', 'descending', 'asc', or 'desc'. Deprecated: Prefer 'sort'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ascending",
+            "descending",
+            "asc",
+            "desc",
+            "None"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated: Please use `sort` instead. One of: `ascending`, `descending`, `asc`, `desc`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortOrder"
+      },
+      {
+        "name": "member_start_index",
+        "required": false,
+        "description": "An integer between 0 and 9999 indicating where to start retrieving members.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any integer between 0 and 9999."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "startIndex"
+      },
+      {
+        "name": "member_count_filter",
+        "required": false,
+        "description": "Apply a SCIM-style filter to specify the number of members to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[SCIM-style filter](/cloud/trello/scim/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "organization_fields",
+        "required": false,
+        "description": "Specify valid values for nested organization fields to retrieve specific organization-related data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_fields"
+      },
+      {
+        "name": "included_board_fields",
+        "required": false,
+        "description": "Comma-separated list of values accepted by the nested board resource to specify included fields.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-enterprises-id-members'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/enterprises/{id}/members",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "member_fields",
+        "description": "A comma-seperated list of valid [member fields](/cloud/trello/guides/rest-api/object-definitions/#member-object).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-seperated list of valid [member fields](/cloud/trello/guides/rest-api/object-definitions/#member-object)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "scim_filter_query",
+        "description": "Pass a [SCIM-style query](/cloud/trello/scim/) to filter members. This takes precedence over the all/normal/admins value of members. If any of the below member_* args are set, the member array will be paginated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pass a [SCIM-style query](/cloud/trello/scim/) to filter members. This takes precedence over the all/normal/admins value of members. If any of the below member_* args are set, the member array will be paginated."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_members",
+        "description": "This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value prefixed by a `-` to sort descending. If no `-` is prefixed, it will be sorted ascending. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value prefixed by a `-` to sort descending. If no `-` is prefixed, it will be sorted ascending. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortBy",
+        "tool_parameter_name": "sort_criteria",
+        "description": "Deprecated: Please use `sort` instead. This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated: Please use `sort` instead. This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortOrder",
+        "tool_parameter_name": "sort_order_for_listing",
+        "description": "Deprecated: Please use `sort` instead. One of: `ascending`, `descending`, `asc`, `desc`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ascending",
+            "descending",
+            "asc",
+            "desc",
+            "None"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated: Please use `sort` instead. One of: `ascending`, `descending`, `asc`, `desc`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "startIndex",
+        "tool_parameter_name": "member_start_index",
+        "description": "Any integer between 0 and 9999.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any integer between 0 and 9999."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "member_count_filter",
+        "description": "[SCIM-style filter](/cloud/trello/scim/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "[SCIM-style filter](/cloud/trello/scim/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_fields",
+        "tool_parameter_name": "organization_fields",
+        "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_fields",
+        "tool_parameter_name": "included_board_fields",
+        "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "enterprise_id",
+        "description": "ID of the Enterprise to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Enterprise to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

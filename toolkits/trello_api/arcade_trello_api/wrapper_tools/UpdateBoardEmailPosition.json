@@ -1,0 +1,149 @@
+{
+  "name": "UpdateBoardEmailPosition",
+  "fully_qualified_name": "TrelloApi.UpdateBoardEmailPosition@0.1.0",
+  "description": "Update the email position preference on a Trello board.\n\nThis tool updates the email position preference setting for a specified Trello board. Use this tool when you need to change how emails are displayed or organized on a board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "email_position_preference",
+        "required": true,
+        "description": "Specify the email address position on the board. Valid values are 'bottom' or 'top'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "bottom",
+            "top"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: bottom, top. Determines the position of the email address."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "value"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The ID of the Trello board whose email position preference you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the board to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-boards-id-myprefs-emailposition'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/myPrefs/emailPosition",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "value",
+        "tool_parameter_name": "email_position_preference",
+        "description": "Valid values: bottom, top. Determines the position of the email address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "bottom",
+            "top"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: bottom, top. Determines the position of the email address."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The id of the board to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the board to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "name": "UpdateStickerOnTrelloCard",
+  "fully_qualified_name": "TrelloApi.UpdateStickerOnTrelloCard@0.1.0",
+  "description": "Update a sticker on a Trello card.\n\nUse this tool to update the details of a sticker on a specific Trello card by specifying the card and sticker identifiers.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "sticker_top_position",
+        "required": true,
+        "description": "The top position of the sticker, ranging from -60 to 100.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The top position of the sticker, from -60 to 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "top"
+      },
+      {
+        "name": "left_position",
+        "required": true,
+        "description": "The horizontal position of the sticker on the card, ranging from -60 to 100.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The left position of the sticker, from -60 to 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "left"
+      },
+      {
+        "name": "sticker_z_index",
+        "required": true,
+        "description": "Specifies the z-index of the sticker, determining its stacking order on the card.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The z-index of the sticker"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zIndex"
+      },
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier of the Trello card to which the sticker belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "sticker_id",
+        "required": true,
+        "description": "The unique identifier of the sticker to be updated on the Trello card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the sticker"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idSticker"
+      },
+      {
+        "name": "sticker_rotation_angle",
+        "required": false,
+        "description": "Specify the rotation angle of the sticker. Expected values are numerical, representing the angle by which the sticker should be rotated.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The rotation of the sticker"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rotate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-cards-id-stickers-idsticker'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "top",
+        "tool_parameter_name": "sticker_top_position",
+        "description": "The top position of the sticker, from -60 to 100",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The top position of the sticker, from -60 to 100"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "left",
+        "tool_parameter_name": "left_position",
+        "description": "The left position of the sticker, from -60 to 100",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The left position of the sticker, from -60 to 100"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "zIndex",
+        "tool_parameter_name": "sticker_z_index",
+        "description": "The z-index of the sticker",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The z-index of the sticker"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "rotate",
+        "tool_parameter_name": "sticker_rotation_angle",
+        "description": "The rotation of the sticker",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The rotation of the sticker"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idSticker",
+        "tool_parameter_name": "sticker_id",
+        "description": "The ID of the sticker",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the sticker"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

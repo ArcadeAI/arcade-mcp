@@ -1,0 +1,239 @@
+{
+  "name": "GetEnterpriseSignupUrl",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseSignupUrl@0.1.0",
+  "description": "Retrieve the signup URL for a specific enterprise on Trello.\n\nUse this tool to get the signup URL for a specific Trello enterprise. This can be useful when you need to invite new users to join an enterprise on Trello.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_id",
+        "required": true,
+        "description": "The unique ID of the Trello enterprise for which you want to retrieve the signup URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "redirect_url",
+        "required": false,
+        "description": "Any valid URL to which the user will be redirected after signup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid URL."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "returnUrl"
+      },
+      {
+        "name": "require_authentication",
+        "required": false,
+        "description": "Specifies if authentication is needed to access the signup URL. True means authentication is required.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authenticate"
+      },
+      {
+        "name": "has_user_accepted_confirmation",
+        "required": false,
+        "description": "Indicates if the user has acknowledged the confirmation before being redirected. Set to True if confirmed.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "confirmationAccepted"
+      },
+      {
+        "name": "tos_accepted",
+        "required": false,
+        "description": "Indicate if the user has seen and consented to the Trello ToS before redirection.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Designates whether the user has seen/consented to the Trello ToS prior to being redirected to the enterprise signup page/their IdP."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tosAccepted"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-enterprises-id-signupurl'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/enterprises/{id}/signupUrl",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authenticate",
+        "tool_parameter_name": "require_authentication",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "confirmationAccepted",
+        "tool_parameter_name": "has_user_accepted_confirmation",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "returnUrl",
+        "tool_parameter_name": "redirect_url",
+        "description": "Any valid URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid URL."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "tosAccepted",
+        "tool_parameter_name": "tos_accepted",
+        "description": "Designates whether the user has seen/consented to the Trello ToS prior to being redirected to the enterprise signup page/their IdP.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Designates whether the user has seen/consented to the Trello ToS prior to being redirected to the enterprise signup page/their IdP."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "enterprise_id",
+        "description": "ID of the enterprise to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

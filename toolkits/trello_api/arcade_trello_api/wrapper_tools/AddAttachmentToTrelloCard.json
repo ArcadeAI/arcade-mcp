@@ -1,0 +1,271 @@
+{
+  "name": "AddAttachmentToTrelloCard",
+  "fully_qualified_name": "TrelloApi.AddAttachmentToTrelloCard@0.1.0",
+  "description": "Add an attachment to a Trello card.\n\nThis tool is used to attach a file or URL to a specific Trello card by its ID. It should be called when users need to add additional resources or files to a Trello card to enhance task management or provide context.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier of the Trello card to which the attachment will be added. This is a required parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "attachment_name",
+        "required": false,
+        "description": "The name of the attachment. Provide a descriptive title, maximum length 256 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the attachment. Max length 256."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "attachment_file",
+        "required": false,
+        "description": "The file to attach as multipart/form-data. Provide the file path or binary data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The file to attach, as multipart/form-data"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file"
+      },
+      {
+        "name": "attachment_mime_type",
+        "required": false,
+        "description": "The MIME type of the attachment. Example: 'image/png'. Max length 256.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mimeType of the attachment. Max length 256"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mimeType"
+      },
+      {
+        "name": "attachment_url",
+        "required": false,
+        "description": "A URL to attach to the Trello card, starting with `http://` or `https://`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL to attach. Must start with `http://` or `https://`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "url"
+      },
+      {
+        "name": "use_attachment_as_cover",
+        "required": false,
+        "description": "Set to true to use the new attachment as a cover for the card.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to use the new attachment as a cover for the Card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "setCover"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-cards-id-attachments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{id}/attachments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "attachment_name",
+        "description": "The name of the attachment. Max length 256.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the attachment. Max length 256."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file",
+        "tool_parameter_name": "attachment_file",
+        "description": "The file to attach, as multipart/form-data",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The file to attach, as multipart/form-data"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "mimeType",
+        "tool_parameter_name": "attachment_mime_type",
+        "description": "The mimeType of the attachment. Max length 256",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mimeType of the attachment. Max length 256"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "url",
+        "tool_parameter_name": "attachment_url",
+        "description": "A URL to attach. Must start with `http://` or `https://`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL to attach. Must start with `http://` or `https://`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "setCover",
+        "tool_parameter_name": "use_attachment_as_cover",
+        "description": "Determines whether to use the new attachment as a cover for the Card.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to use the new attachment as a cover for the Card."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

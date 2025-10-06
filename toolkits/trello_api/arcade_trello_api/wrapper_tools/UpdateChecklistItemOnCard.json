@@ -1,0 +1,207 @@
+{
+  "name": "UpdateChecklistItemOnCard",
+  "fully_qualified_name": "TrelloApi.UpdateChecklistItemOnCard@0.1.0",
+  "description": "Update an item in a checklist on a Trello card.\n\nUse this tool to modify or update details of a specific item within a checklist on a Trello card. Ideal for tasks requiring checklist adjustments on project boards.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier for the Trello card containing the checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idCard"
+      },
+      {
+        "name": "checklist_item_id",
+        "required": true,
+        "description": "The ID of the checklist item to update on a Trello card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the checklist item to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idCheckItem"
+      },
+      {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The ID of the checklist to update on the Trello card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the item to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idChecklist"
+      },
+      {
+        "name": "position_in_checklist",
+        "required": false,
+        "description": "Specify the position of the item in the checklist: `top`, `bottom`, or a positive float indicating the precise position.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`top`, `bottom`, or a positive float"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-cards-idcard-checklist-idchecklist-checkitem-idcheckitem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{idCard}/checklist/{idChecklist}/checkItem/{idCheckItem}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "pos",
+        "tool_parameter_name": "position_in_checklist",
+        "description": "`top`, `bottom`, or a positive float",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`top`, `bottom`, or a positive float"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idCard",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idCheckItem",
+        "tool_parameter_name": "checklist_item_id",
+        "description": "The ID of the checklist item to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the checklist item to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idChecklist",
+        "tool_parameter_name": "checklist_id",
+        "description": "The ID of the item to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the item to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

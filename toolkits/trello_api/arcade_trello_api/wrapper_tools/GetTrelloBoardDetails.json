@@ -1,0 +1,623 @@
+{
+  "name": "GetTrelloBoardDetails",
+  "fully_qualified_name": "TrelloApi.GetTrelloBoardDetails@0.1.0",
+  "description": "Retrieve details for a specific Trello board.\n\nUse this tool to obtain information about a particular Trello board by providing its ID. It helps in accessing and displaying the specific board's details effortlessly.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier of the Trello board to retrieve details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "include_actions",
+        "required": false,
+        "description": "Indicate whether to include actions related to the board. Set to true to include.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about actions as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actions"
+      },
+      {
+        "name": "board_stars_filter",
+        "required": false,
+        "description": "Specify how board stars should be filtered. Use 'mine' to get your starred boards, or 'none' for all other boards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values are one of: `mine` or `none`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boardStars"
+      },
+      {
+        "name": "include_card_details",
+        "required": false,
+        "description": "Specify if card details should be included as a nested resource in the response. Read more about cards as nested resources.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about cards as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cards"
+      },
+      {
+        "name": "include_checklists",
+        "required": false,
+        "description": "Specify whether to include checklists as a nested resource in the response. Accepts a boolean value (true or false).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about checklists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklists"
+      },
+      {
+        "name": "board_fields_to_include",
+        "required": false,
+        "description": "Specify which fields of the board to include in the response. Use 'all' or a comma-separated list (e.g., 'name,url').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields of the board to be included in the response. Valid values: all or a comma-separated list of: closed, dateLastActivity, dateLastView, desc, descData, idMemberCreator, idOrganization, invitations, invited, labelNames, memberships, name, pinned, powerUps, prefs, shortLink, shortUrl, starred, subscribed, url"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "include_labels_resource",
+        "required": false,
+        "description": "Specify whether to include the label details as a nested resource in the response. Typically expected values might be strings such as 'true' or 'false'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about labels as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "labels"
+      },
+      {
+        "name": "include_lists",
+        "required": false,
+        "description": "Include details of lists on the Trello board. This is a nested resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about lists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "lists"
+      },
+      {
+        "name": "include_members",
+        "required": false,
+        "description": "Include member details as a nested resource in the response. Use 'true' to include or leave empty to exclude.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about members as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members"
+      },
+      {
+        "name": "include_memberships",
+        "required": false,
+        "description": "Include detailed membership information in the response. Set to 'true' to enable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about memberships as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "memberships"
+      },
+      {
+        "name": "include_card_plugin_data",
+        "required": false,
+        "description": "Set to true to include card plugin data in the response. Use with the `cards` parameter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use with the `cards` param to include card pluginData with the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_pluginData"
+      },
+      {
+        "name": "include_custom_fields",
+        "required": false,
+        "description": "Set to true to include custom fields in the board response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about custom fields as nested resources [here](#custom-fields-nested-resource)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customFields"
+      },
+      {
+        "name": "include_plugin_data",
+        "required": false,
+        "description": "Determines whether plugin data for the board should be included in the response. Accepts true or false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the pluginData for this board should be returned. Valid values: true or false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pluginData"
+      },
+      {
+        "name": "include_organization",
+        "required": false,
+        "description": "Include the organization as a nested resource in the response. Set to true to include.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about organizations as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "include_organization_plugin_data",
+        "required": false,
+        "description": "Set to true to include organization pluginData in the response. Must be used with the `organization` parameter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use with the `organization` param to include organization pluginData with the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_pluginData"
+      },
+      {
+        "name": "include_my_preferences",
+        "required": false,
+        "description": "Set to true to include your preferences with the board details.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "myPrefs"
+      },
+      {
+        "name": "include_tags",
+        "required": false,
+        "description": "Include tags (also known as collections) that the board belongs to. Set true to retrieve them, false otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Also known as collections, tags, refer to the collection(s) that a Board belongs to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tags"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-boards-id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "actions",
+        "tool_parameter_name": "include_actions",
+        "description": "This is a nested resource. Read more about actions as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about actions as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "boardStars",
+        "tool_parameter_name": "board_stars_filter",
+        "description": "Valid values are one of: `mine` or `none`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values are one of: `mine` or `none`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cards",
+        "tool_parameter_name": "include_card_details",
+        "description": "This is a nested resource. Read more about cards as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about cards as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_pluginData",
+        "tool_parameter_name": "include_card_plugin_data",
+        "description": "Use with the `cards` param to include card pluginData with the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use with the `cards` param to include card pluginData with the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checklists",
+        "tool_parameter_name": "include_checklists",
+        "description": "This is a nested resource. Read more about checklists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about checklists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "customFields",
+        "tool_parameter_name": "include_custom_fields",
+        "description": "This is a nested resource. Read more about custom fields as nested resources [here](#custom-fields-nested-resource).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about custom fields as nested resources [here](#custom-fields-nested-resource)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "board_fields_to_include",
+        "description": "The fields of the board to be included in the response. Valid values: all or a comma-separated list of: closed, dateLastActivity, dateLastView, desc, descData, idMemberCreator, idOrganization, invitations, invited, labelNames, memberships, name, pinned, powerUps, prefs, shortLink, shortUrl, starred, subscribed, url",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields of the board to be included in the response. Valid values: all or a comma-separated list of: closed, dateLastActivity, dateLastView, desc, descData, idMemberCreator, idOrganization, invitations, invited, labelNames, memberships, name, pinned, powerUps, prefs, shortLink, shortUrl, starred, subscribed, url"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "labels",
+        "tool_parameter_name": "include_labels_resource",
+        "description": "This is a nested resource. Read more about labels as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about labels as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "lists",
+        "tool_parameter_name": "include_lists",
+        "description": "This is a nested resource. Read more about lists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about lists as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "members",
+        "tool_parameter_name": "include_members",
+        "description": "This is a nested resource. Read more about members as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about members as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "memberships",
+        "tool_parameter_name": "include_memberships",
+        "description": "This is a nested resource. Read more about memberships as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about memberships as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pluginData",
+        "tool_parameter_name": "include_plugin_data",
+        "description": "Determines whether the pluginData for this board should be returned. Valid values: true or false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the pluginData for this board should be returned. Valid values: true or false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "include_organization",
+        "description": "This is a nested resource. Read more about organizations as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This is a nested resource. Read more about organizations as nested resources [here](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_pluginData",
+        "tool_parameter_name": "include_organization_plugin_data",
+        "description": "Use with the `organization` param to include organization pluginData with the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use with the `organization` param to include organization pluginData with the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "myPrefs",
+        "tool_parameter_name": "include_my_preferences",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "tags",
+        "tool_parameter_name": "include_tags",
+        "description": "Also known as collections, tags, refer to the collection(s) that a Board belongs to.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Also known as collections, tags, refer to the collection(s) that a Board belongs to."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

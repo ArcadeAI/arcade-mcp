@@ -1,0 +1,181 @@
+{
+  "name": "UpdateChecklistField",
+  "fully_qualified_name": "TrelloApi.UpdateChecklistField@0.1.0",
+  "description": "Update a specific field on a Trello checklist.\n\nUse this tool to update a specific field on a Trello checklist by providing the checklist ID and the field to be updated.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checklist_name_update_value",
+        "required": true,
+        "description": "The new name for the checklist. Must be a string between 1 and 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value to change the checklist name to. Should be a string of length 1 to 16384."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "value"
+      },
+      {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The unique identifier of the checklist to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "field_to_update",
+        "required": true,
+        "description": "Specify the checklist field to update, either 'name' or 'pos'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "pos"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Field to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-checklists-id-field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/checklists/{id}/{field}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "value",
+        "tool_parameter_name": "checklist_name_update_value",
+        "description": "The value to change the checklist name to. Should be a string of length 1 to 16384.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value to change the checklist name to. Should be a string of length 1 to 16384."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "checklist_id",
+        "description": "ID of a checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "field",
+        "tool_parameter_name": "field_to_update",
+        "description": "Field to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "pos"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Field to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

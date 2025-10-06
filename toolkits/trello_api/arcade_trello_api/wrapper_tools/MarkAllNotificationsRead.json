@@ -1,0 +1,143 @@
+{
+  "name": "MarkAllNotificationsRead",
+  "fully_qualified_name": "TrelloApi.MarkAllNotificationsRead@0.1.0",
+  "description": "Mark all Trello notifications as read.\n\nUse this tool to mark all notifications in Trello as read, helping users manage their notification inbox efficiently.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "notification_ids_to_mark",
+        "required": false,
+        "description": "A list of notification IDs to mark as read or unread. Useful for managing specific notifications.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-seperated list of IDs. Allows specifying an array of notification IDs to change the read state for. This will become useful as we add grouping of notifications to the UI, with a single button to mark all notifications in the group as read/unread."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ids"
+      },
+      {
+        "name": "mark_notifications_read",
+        "required": false,
+        "description": "Boolean to specify whether to mark notifications as read (true) or unread (false). Defaults to true (mark as read).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to specify whether to mark as read or unread (defaults to `true`, marking as read)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "read"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-notifications-all-read'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/notifications/all/read",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "read",
+        "tool_parameter_name": "mark_notifications_read",
+        "description": "Boolean to specify whether to mark as read or unread (defaults to `true`, marking as read)",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to specify whether to mark as read or unread (defaults to `true`, marking as read)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ids",
+        "tool_parameter_name": "notification_ids_to_mark",
+        "description": "A comma-seperated list of IDs. Allows specifying an array of notification IDs to change the read state for. This will become useful as we add grouping of notifications to the UI, with a single button to mark all notifications in the group as read/unread.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-seperated list of IDs. Allows specifying an array of notification IDs to change the read state for. This will become useful as we add grouping of notifications to the UI, with a single button to mark all notifications in the group as read/unread."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

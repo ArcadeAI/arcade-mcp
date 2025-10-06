@@ -1,0 +1,687 @@
+{
+  "name": "GetTrelloCardById",
+  "fully_qualified_name": "TrelloApi.GetTrelloCardById@0.1.0",
+  "description": "Retrieve Trello card details using card ID.\n\nUse this tool to get detailed information about a Trello card by providing its unique ID. Ideal for accessing specific card details such as description, labels, and more.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier for the Trello card to retrieve details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "card_fields_to_retrieve",
+        "required": false,
+        "description": "`all` or a comma-separated list of fields to retrieve for the Trello card. Defaults: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "include_action_details",
+        "required": false,
+        "description": "Specifies whether to include action details related to the card. Refer to Trello's Actions Nested Resource for options.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See the [Actions Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actions"
+      },
+      {
+        "name": "include_attachments",
+        "required": false,
+        "description": "Specify 'true', 'false', or 'cover' to determine the type of attachments to return.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`, `false`, or `cover`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachments"
+      },
+      {
+        "name": "attachment_fields",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of attachment fields to retrieve for the card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of attachment [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachment_fields"
+      },
+      {
+        "name": "member_fields_selection",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of member fields like avatarHash, fullName, initials, username. Defaults to these fields if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member_fields"
+      },
+      {
+        "name": "member_voted_fields",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of member fields like 'avatarHash, fullName, initials, username'. Defaults to specific fields if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "memberVoted_fields"
+      },
+      {
+        "name": "include_checklists",
+        "required": false,
+        "description": "Specify whether to include checklists in the card data. Use 'all' or 'none'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return the checklists on the card. `all` or `none`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklists"
+      },
+      {
+        "name": "checklist_fields",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of fields (idBoard, idCard, name, pos) to return for checklists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of `idBoard,idCard,name,pos`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checklist_fields"
+      },
+      {
+        "name": "board_fields_to_return",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of board fields like name, desc, idOrganization. Defaults are name, desc, descData, closed, idOrganization, pinned, url, prefs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/#board-object). **Defaults**: `name, desc, descData, closed, idOrganization, pinned, url, prefs`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_fields"
+      },
+      {
+        "name": "sticker_fields",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of sticker fields to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of sticker [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sticker_fields"
+      },
+      {
+        "name": "include_card_members",
+        "required": false,
+        "description": "Set to true to include member objects on the card, false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return member objects for members on the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "members"
+      },
+      {
+        "name": "include_members_who_voted",
+        "required": false,
+        "description": "Set to `true` to return member objects for members who voted on the card; set to `false` to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return member objects for members who voted on the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "membersVoted"
+      },
+      {
+        "name": "include_check_item_states",
+        "required": false,
+        "description": "Set to true to include check item states in the Trello card details response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkItemStates"
+      },
+      {
+        "name": "include_board_object",
+        "required": false,
+        "description": "Set to true to return the board object the card is on.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return the board object the card is on"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board"
+      },
+      {
+        "name": "include_lists_nested_resource",
+        "required": false,
+        "description": "Specify whether to include information about the Lists Nested Resource for the card. Use a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See the [Lists Nested Resource](/cloud/trello/guides/rest-api/nested-resources/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "list"
+      },
+      {
+        "name": "include_plugin_data",
+        "required": false,
+        "description": "Set to true to include pluginData on the card with the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include pluginData on the card with the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pluginData"
+      },
+      {
+        "name": "include_stickers",
+        "required": false,
+        "description": "Set to true to include sticker models in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include sticker models with the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "stickers"
+      },
+      {
+        "name": "include_custom_field_items",
+        "required": false,
+        "description": "Set to true to include custom field items in the card details, or false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the customFieldItems"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customFieldItems"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-cards-id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "card_fields_to_retrieve",
+        "description": "`all` or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "actions",
+        "tool_parameter_name": "include_action_details",
+        "description": "See the [Actions Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See the [Actions Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachments",
+        "tool_parameter_name": "include_attachments",
+        "description": "`true`, `false`, or `cover`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`, `false`, or `cover`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachment_fields",
+        "tool_parameter_name": "attachment_fields",
+        "description": "`all` or a comma-separated list of attachment [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of attachment [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "members",
+        "tool_parameter_name": "include_card_members",
+        "description": "Whether to return member objects for members on the card",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return member objects for members on the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "member_fields",
+        "tool_parameter_name": "member_fields_selection",
+        "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "membersVoted",
+        "tool_parameter_name": "include_members_who_voted",
+        "description": "Whether to return member objects for members who voted on the card",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return member objects for members who voted on the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "memberVoted_fields",
+        "tool_parameter_name": "member_voted_fields",
+        "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `avatarHash, fullName, initials, username`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checkItemStates",
+        "tool_parameter_name": "include_check_item_states",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checklists",
+        "tool_parameter_name": "include_checklists",
+        "description": "Whether to return the checklists on the card. `all` or `none`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return the checklists on the card. `all` or `none`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checklist_fields",
+        "tool_parameter_name": "checklist_fields",
+        "description": "`all` or a comma-separated list of `idBoard,idCard,name,pos`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of `idBoard,idCard,name,pos`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board",
+        "tool_parameter_name": "include_board_object",
+        "description": "Whether to return the board object the card is on",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to return the board object the card is on"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_fields",
+        "tool_parameter_name": "board_fields_to_return",
+        "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/#board-object). **Defaults**: `name, desc, descData, closed, idOrganization, pinned, url, prefs`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/#board-object). **Defaults**: `name, desc, descData, closed, idOrganization, pinned, url, prefs`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "list",
+        "tool_parameter_name": "include_lists_nested_resource",
+        "description": "See the [Lists Nested Resource](/cloud/trello/guides/rest-api/nested-resources/)",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "See the [Lists Nested Resource](/cloud/trello/guides/rest-api/nested-resources/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pluginData",
+        "tool_parameter_name": "include_plugin_data",
+        "description": "Whether to include pluginData on the card with the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include pluginData on the card with the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "stickers",
+        "tool_parameter_name": "include_stickers",
+        "description": "Whether to include sticker models with the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include sticker models with the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sticker_fields",
+        "tool_parameter_name": "sticker_fields",
+        "description": "`all` or a comma-separated list of sticker [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of sticker [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "customFieldItems",
+        "tool_parameter_name": "include_custom_field_items",
+        "description": "Whether to include the customFieldItems",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the customFieldItems"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

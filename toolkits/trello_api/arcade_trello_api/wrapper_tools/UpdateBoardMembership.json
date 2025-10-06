@@ -1,0 +1,243 @@
+{
+  "name": "UpdateBoardMembership",
+  "fully_qualified_name": "TrelloApi.UpdateBoardMembership@0.1.0",
+  "description": "Update an existing membership on a Trello board.\n\nUse this tool to modify details of a membership on a Trello board. It requires specifying the board ID and the membership ID to update.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "membership_type",
+        "required": true,
+        "description": "Specifies the role of the member on the board: 'admin', 'normal', or 'observer'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal",
+            "observer"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: admin, normal, observer. Determines the type of member that this membership will be to this board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The ID of the Trello board to update the membership for. This is required to specify which board is being modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the board to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "membership_id_to_add",
+        "required": true,
+        "description": "The ID of the membership to add to the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a membership that should be added to this board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMembership"
+      },
+      {
+        "name": "membership_field_type",
+        "required": false,
+        "description": "Specify the type of membership field to update. Valid values include all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "avatarHash",
+            "bio",
+            "bioData",
+            "confirmed",
+            "fullName",
+            "idPremOrgsAdmin",
+            "initials",
+            "memberType",
+            "products",
+            "status",
+            "url",
+            "username"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-boards-id-memberships-idmembership'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/memberships/{idMembership}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "membership_type",
+        "description": "One of: admin, normal, observer. Determines the type of member that this membership will be to this board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal",
+            "observer"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: admin, normal, observer. Determines the type of member that this membership will be to this board."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "member_fields",
+        "tool_parameter_name": "membership_field_type",
+        "description": "Valid values: all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "avatarHash",
+            "bio",
+            "bioData",
+            "confirmed",
+            "fullName",
+            "idPremOrgsAdmin",
+            "initials",
+            "memberType",
+            "products",
+            "status",
+            "url",
+            "username"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The id of the board to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the board to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMembership",
+        "tool_parameter_name": "membership_id_to_add",
+        "description": "The id of a membership that should be added to this board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a membership that should be added to this board."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}
