@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "arcade_arcade_expert"
+version = "0.0.1"
+description = "Arcade.dev LLM tools for everything Arcade.dev related. Super meta, we know!"
+authors = ["Arcade <dev@arcade.dev>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade-ai = "^1.0.5"
+httpx = "^0.28.1"
+markdownify = "^1.1.0"
+openai = "^1.55.3"
+validators = "^0.35.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.0"
+pytest-cov = "^4.0.0"
+mypy = "^1.5.1"
+pre-commit = "^3.4.0"
+tox = "^4.11.1"
+ruff = "^0.7.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0,<2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+files = ["arcade_arcade_expert/**/*.py"]
+python_version = "3.10"
+disallow_untyped_defs = "True"
+disallow_any_unimported = "True"
+no_implicit_optional = "True"
+check_untyped_defs = "True"
+warn_return_any = "True"
+warn_unused_ignores = "True"
+show_error_codes = "True"
+ignore_missing_imports = "True"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.report]
+skip_empty = true
