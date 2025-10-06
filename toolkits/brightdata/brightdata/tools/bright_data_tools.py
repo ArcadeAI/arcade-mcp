@@ -1,13 +1,14 @@
 import json
 import time
 from enum import Enum
-from typing import Annotated, Dict, Optional
+from typing import Annotated, Any, Optional, cast
 
 import requests
-from arcade_tdk import ToolContext, tool
 from arcade_core.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
 
 from ..bright_data_client import BrightDataClient
+
 
 class DeviceType(str, Enum):
     MOBILE = "mobile"
@@ -17,16 +18,19 @@ class DeviceType(str, Enum):
     ANDROID = "android"
     ANDROID_TABLET = "android_tablet"
 
+
 class SearchEngine(str, Enum):
     GOOGLE = "google"
     BING = "bing"
     YANDEX = "yandex"
+
 
 class SearchType(str, Enum):
     IMAGES = "images"
     SHOPPING = "shopping"
     NEWS = "news"
     JOBS = "jobs"
+
 
 class SourceType(str, Enum):
     AMAZON_PRODUCT = "amazon_product"
@@ -46,6 +50,7 @@ class SourceType(str, Enum):
     BOOKING_HOTEL_LISTINGS = "booking_hotel_listings"
     YOUTUBE_VIDEOS = "youtube_videos"
 
+
 @tool(requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"])
 def scrape_as_markdown(
     context: ToolContext,
@@ -53,7 +58,7 @@ def scrape_as_markdown(
 ) -> Annotated[str, "Scraped webpage content as Markdown"]:
     """
     Scrape a webpage and return content in Markdown format using Bright Data.
-    
+
     Examples:
         scrape_as_markdown("https://example.com") -> "# Example Page\n\nContent..."
         scrape_as_markdown("https://news.ycombinator.com") -> "# Hacker News\n..."
@@ -61,13 +66,13 @@ def scrape_as_markdown(
     api_key = context.get_secret("BRIGHTDATA_API_KEY")
     zone = context.get_secret("BRIGHTDATA_ZONE")
     client = BrightDataClient.create_client(api_key=api_key, zone=zone)
-    
+
     payload = {"url": url, "zone": zone, "format": "raw", "data_format": "markdown"}
     return client.make_request(payload)
 
 
 @tool(requires_secrets=["BRIGHTDATA_API_KEY", "BRIGHTDATA_ZONE"])
-def search_engine(
+def search_engine(  # noqa: C901
     context: ToolContext,
     query: Annotated[str, "Search query"],
     engine: Annotated[SearchEngine, "Search engine to use"] = SearchEngine.GOOGLE,
@@ -82,7 +87,7 @@ def search_engine(
 ) -> Annotated[str, "Search results as Markdown or JSON"]:
     """
     Search using Google, Bing, or Yandex with advanced parameters using Bright Data.
-    
+
     Examples:
         search_engine("climate change") -> "# Search Results\n\n## Climate Change - Wikipedia\n..."
         search_engine("Python tutorials", engine="bing", num_results=5) -> "# Bing Results\n..."
@@ -91,13 +96,13 @@ def search_engine(
     api_key = context.get_secret("BRIGHTDATA_API_KEY")
     zone = context.get_secret("BRIGHTDATA_ZONE")
     client = BrightDataClient.create_client(api_key=api_key, zone=zone)
-    
+
     encoded_query = BrightDataClient.encode_query(query)
 
     base_urls = {
-    SearchEngine.GOOGLE: f"https://www.google.com/search?q={encoded_query}",
-    SearchEngine.BING: f"https://www.bing.com/search?q={encoded_query}",
-    SearchEngine.YANDEX: f"https://yandex.com/search/?text={encoded_query}",
+        SearchEngine.GOOGLE: f"https://www.google.com/search?q={encoded_query}",
+        SearchEngine.BING: f"https://www.bing.com/search?q={encoded_query}",
+        SearchEngine.YANDEX: f"https://yandex.com/search/?text={encoded_query}",
     }
 
     search_url = base_urls[engine]
@@ -118,7 +123,7 @@ def search_engine(
                 search_types = {
                     SearchType.IMAGES: "isch",
                     SearchType.SHOPPING: "shop",
-                    SearchType.NEWS: "nws"
+                    SearchType.NEWS: "nws",
                 }
                 tbm_value = search_types.get(search_type, search_type)
                 params.append(f"tbm={tbm_value}")
@@ -167,7 +172,10 @@ def web_data_feed(
     context: ToolContext,
     source_type: Annotated[SourceType, "Type of data source"],
     url: Annotated[str, "URL of the web resource to extract data from"],
-    num_of_reviews: Annotated[Optional[int], "Number of reviews to retrieve. Only applicable for facebook_company_reviews. Default is None"] = None,
+    num_of_reviews: Annotated[
+        Optional[int],
+        "Number of reviews to retrieve. Only applicable for facebook_company_reviews. Default is None",
+    ] = None,
     timeout: Annotated[int, "Maximum time in seconds to wait for data retrieval"] = 600,
     polling_interval: Annotated[int, "Time in seconds between polling attempts"] = 1,
 ) -> Annotated[str, "Structured data from the requested source as JSON"]:
@@ -184,7 +192,7 @@ def web_data_feed(
     - zillow_properties_listing
     - booking_hotel_listings
     - youtube_videos
-    
+
     Examples:
         web_data_feed("amazon_product", "https://amazon.com/dp/B08N5WRWNW") -> "{\"title\": \"Product Name\", ...}"
         web_data_feed("linkedin_person_profile", "https://linkedin.com/in/johndoe") -> "{\"name\": \"John Doe\", ...}"
@@ -195,7 +203,7 @@ def web_data_feed(
     if num_of_reviews is not None and source_type != SourceType.FACEBOOK_COMPANY_REVIEWS:
         raise RetryableToolError(
             f"num_of_reviews parameter is only applicable for facebook_company_reviews, not for {source_type.value}",
-            additional_prompt_content="The num_of_reviews parameter should only be used with facebook_company_reviews source type."
+            additional_prompt_content="The num_of_reviews parameter should only be used with facebook_company_reviews source type.",
         )
     data = _extract_structured_data(
         client=client,
@@ -215,7 +223,7 @@ def _extract_structured_data(
     num_of_reviews: Optional[int] = None,
     timeout: int = 600,
     polling_interval: int = 1,
-) -> Dict:
+) -> dict[str, Any]:
     """
     Extract structured data from various sources.
     """
@@ -246,15 +254,18 @@ def _extract_structured_data(
 
     trigger_response = requests.post(
         "https://api.brightdata.com/datasets/v3/trigger",
-        params={"dataset_id": dataset_id, "include_errors": True},
+        params={"dataset_id": dataset_id, "include_errors": "true"},
         headers=client.headers,
         json=[request_data],
+        timeout=30,
     )
 
     trigger_data = trigger_response.json()
     if not trigger_data.get("snapshot_id"):
-        raise RetryableToolError("No snapshot ID returned from trigger request",
-        additional_prompt_content="Invalid input provided, use search_engine to get the relevant data first ")
+        raise RetryableToolError(
+            "No snapshot ID returned from trigger request",
+            additional_prompt_content="Invalid input provided, use search_engine to get the relevant data first ",
+        )
 
     snapshot_id = trigger_data["snapshot_id"]
 
@@ -267,16 +278,20 @@ def _extract_structured_data(
                 f"https://api.brightdata.com/datasets/v3/snapshot/{snapshot_id}",
                 params={"format": "json"},
                 headers=client.headers,
+                timeout=30,
             )
 
-            snapshot_data = snapshot_response.json()
+            snapshot_data = cast(dict[str, Any], snapshot_response.json())
 
-            if isinstance(snapshot_data, dict) and snapshot_data.get("status") in ("running", "building"):
+            if isinstance(snapshot_data, dict) and snapshot_data.get("status") in (
+                "running",
+                "building",
+            ):
                 attempts += 1
                 time.sleep(polling_interval)
                 continue
-
-            return snapshot_data
+            else:
+                return snapshot_data
 
         except Exception:
             attempts += 1
