@@ -62,6 +62,9 @@ async def make_request(
         else:
             return response
 
+    # This should never be reached, but satisfies type checker
+    raise httpx.RequestError("Max retries exceeded")  # noqa: TRY003
+
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action(
