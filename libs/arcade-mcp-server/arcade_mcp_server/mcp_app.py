@@ -6,6 +6,7 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
@@ -210,6 +211,8 @@ class MCPApp:
 
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
+        host, port, transport = MCPApp._get_configuration_overrides(host, port, transport)
+
         if transport in ["http", "streamable-http", "streamable"]:
             run_arcade_mcp(
                 catalog=self._catalog,
@@ -231,6 +234,37 @@ class MCPApp:
             )
         else:
             raise ServerError(f"Invalid transport: {transport}")
+
+    @staticmethod
+    def _get_configuration_overrides(
+        host: str, port: int, transport: TransportType
+    ) -> tuple[str, int, TransportType]:
+        """Get configuration overrides from environment variables."""
+        if envvar_transport := os.getenv("ARCADE_SERVER_TRANSPORT"):
+            transport = envvar_transport
+            logger.debug(
+                f"Using '{transport}' as transport from ARCADE_SERVER_TRANSPORT environment variable"
+            )
+
+        # host and port are only relevant for HTTP Streamable transport
+        if transport in ["http", "streamable-http", "streamable"]:
+            if envvar_host := os.getenv("ARCADE_SERVER_HOST"):
+                host = envvar_host
+                logger.debug(f"Using '{host}' as host from ARCADE_SERVER_HOST environment variable")
+
+            if envvar_port := os.getenv("ARCADE_SERVER_PORT"):
+                try:
+                    port = int(envvar_port)
+                except ValueError:
+                    logger.warning(
+                        f"Invalid port: '{envvar_port}' from ARCADE_SERVER_PORT environment variable. Using default port {port}"
+                    )
+                else:
+                    logger.debug(
+                        f"Using '{port}' as port from ARCADE_SERVER_PORT environment variable"
+                    )
+
+        return host, port, transport
 
 
 class _ToolsAPI:
