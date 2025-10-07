@@ -1,4 +1,4 @@
-"""API Wrapper Tools for miro
+"""Arcade Starter Tools for Miro
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
