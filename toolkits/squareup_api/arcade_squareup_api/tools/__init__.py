@@ -1,4 +1,4 @@
-"""API Wrapper Tools for Squareup
+"""Arcade Starter Tools for Squareup
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
