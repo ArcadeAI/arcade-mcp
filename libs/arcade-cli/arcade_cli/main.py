@@ -23,10 +23,11 @@ from arcade_cli.constants import (
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcade_cli.deployment import Deployment
+from arcade_cli.deployment import Config, Deployment, LocalPackages, Secret, Worker
 from arcade_cli.display import (
     display_eval_results,
 )
+from arcade_cli.secret import _upsert_secret_to_engine
 from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
@@ -531,51 +532,68 @@ def configure(
         handle_cli_error(f"Failed to configure {client}", e, debug)
 
 
-@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run", hidden=True)
+@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run")
 def deploy(
-    deployment_file: str = typer.Option(
-        "worker.toml",
-        "--deployment-file",
-        "-d",
-        help="The deployment file to deploy.",
+    entrypoint: str = typer.Option(
+        "./server.py",
+        "--entrypoint",
+        "-e",
+        help=(
+            "Path to the Python file that should be executed when starting the app. "
+            "The path must be relative to the project root (where pyproject.toml is located). "
+            "For example: --entrypoint src/my_package/main.py"
+        ),
     ),
-    cloud_host: str = typer.Option(
-        PROD_CLOUD_HOST,
-        "--cloud-host",
-        "-c",
-        help="The Arcade Cloud host to deploy to.",
-        hidden=True,
+    server_id: str = typer.Option(  # TODO: Don't need this. Just use the MCPApp's name.
+        "server-1",
+        "--server-id",
+        help="A unique ID for the server you are deploying.",
     ),
-    cloud_port: Optional[int] = typer.Option(
-        None,
-        "--cloud-port",
-        "-cp",
-        help="The port of the Arcade Cloud host.",
-        hidden=True,
+    secret: str = typer.Option(
+        "test-secret",
+        "--secret",
+        "-s",
+        help="The shared secret between the server and Arcade Engine.",
+    ),
+    timeout: int = typer.Option(
+        120,
+        "--timeout",
+        "-t",
+        help="The maximum execution time in seconds for a tool in this server.",
+    ),
+    retries: int = typer.Option(
+        3,
+        "--retries",
+        "-r",
+        help="The number of times to retry a failed tool invocation.",
     ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
         "--host",
         "-h",
         help="The Arcade Engine host to register the server to.",
+        hidden=True,
     ),
     port: Optional[int] = typer.Option(
         None,
         "--port",
         "-p",
         help="The port of the Arcade Engine host.",
+        hidden=True,
     ),
     force_tls: bool = typer.Option(
         False,
         "--tls",
         help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        hidden=True,
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
+        hidden=True,
     ),
-    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Deploy a server to Arcade Cloud.
@@ -584,53 +602,66 @@ def deploy(
     config = validate_and_get_config()
     engine_url = compute_base_url(force_tls, force_no_tls, host, port)
     engine_client = Arcade(api_key=config.api.key, base_url=engine_url)
-    cloud_url = compute_base_url(force_tls, force_no_tls, cloud_host, cloud_port)
-    cloud_client = httpx.Client(
-        base_url=cloud_url, headers={"Authorization": f"Bearer {config.api.key}"}
+    engine_httpx_client = httpx.Client(
+        base_url=engine_url, headers={"Authorization": f"Bearer {config.api.key}"}
     )
 
     # Fetch deployment configuration
     try:
-        deployment = Deployment.from_toml(Path(deployment_file))
+        deployment = Deployment(
+            toml_path=Path("todo_get_rid_of_deployment_from_toml.toml"),
+            worker=[
+                Worker(
+                    toml_path=Path("todo_get_rid_of_deployment_from_toml.toml"),
+                    config=Config(
+                        entrypoint=entrypoint,
+                        id=server_id,
+                        enabled=True,
+                        secret=Secret(value=secret, pattern=None),
+                        timeout=timeout,
+                        retries=retries,
+                    ),
+                    local_source=LocalPackages(packages=["."]),
+                )
+            ],
+        )
     except Exception as e:
         handle_cli_error("Failed to parse deployment file", e, debug)
+    with console.status(f"Deploying {deployment.worker[0].config.id}"):
+        worker = deployment.worker[0]
+        console.log(f"Deploying '{worker.config.id}'...", style="dim")
+        try:
+            # Discover and upload secrets
+            required_secret_keys = worker.get_required_secrets()
 
-    with console.status(f"Deploying {len(deployment.worker)} servers"):
-        for worker in deployment.worker:
-            console.log(f"Deploying '{worker.config.id}...'", style="dim")
-            try:
-                # Discover and upload secrets
-                required_secret_keys = worker.get_required_secrets()
-                for secret_key in required_secret_keys:
-                    secret_value = os.getenv(secret_key)
-                    if not secret_value:
-                        console.log(
-                            f"⚠️ Secret '{secret_key}' not found in environment, skipping.",
-                            style="yellow",
-                        )
-                        continue
-                    try:
-                        secret._upsert_secret_to_engine(
-                            engine_url, config.api.key, secret_key, secret_value
-                        )
-                    except Exception as e:
-                        handle_cli_error(
-                            f"Failed to upload secret '{secret_key}'", e, debug, should_exit=False
-                        )
-                    else:
-                        console.log(
-                            f"✅ Secret '{secret_key}' uploaded successfully",
-                            style="dim green",
-                        )
+            for secret_key in required_secret_keys:
+                secret_value = os.getenv(secret_key)
+                if not secret_value:
+                    console.log(
+                        f"⚠️ Secret '{secret_key}' not found in environment, skipping.",
+                        style="yellow",
+                    )
+                    continue
+                try:
+                    _upsert_secret_to_engine(engine_url, config.api.key, secret_key, secret_value)
+                except Exception as e:
+                    handle_cli_error(
+                        f"Failed to upload secret '{secret_key}'", e, debug, should_exit=False
+                    )
+                else:
+                    console.log(
+                        f"✅ Secret '{secret_key}' uploaded successfully",
+                        style="dim green",
+                    )
 
-                # Attempt to deploy worker
-                worker.request().execute(cloud_client, engine_client)
-                console.log(
-                    f"✅ Server '{worker.config.id}' deployed successfully.",
-                    style="dim",
-                )
-            except Exception as e:
-                handle_cli_error(f"Failed to deploy server '{worker.config.id}'", e, debug)
+            # Attempt to deploy worker
+            worker.request().execute(engine_httpx_client, engine_client)
+            console.log(
+                f"✅ Server '{worker.config.id}' deployed successfully.",
+                style="dim",
+            )
+        except Exception as e:
+            handle_cli_error(f"Failed to deploy server '{worker.config.id}'", e, debug)
 
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")

@@ -174,6 +174,8 @@ class Config(BaseModel):
 # Cloud request for deploying a worker
 class Request(BaseModel):
     name: str
+    entrypoint: str = "./server.py"
+    type: str = "mcp"
     secret: Secret
     enabled: bool
     timeout: int
@@ -213,8 +215,8 @@ class Request(BaseModel):
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:
         # Attempt to deploy worker to the cloud
         try:
-            cloud_response = cloud_client.put(
-                str(cloud_client.base_url) + "/api/v1/workers",
+            cloud_response = cloud_client.post(
+                str(cloud_client.base_url) + "/v1/deployments",
                 json=self.model_dump(mode="json"),
                 timeout=360,
             )

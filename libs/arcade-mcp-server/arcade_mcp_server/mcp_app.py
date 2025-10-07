@@ -6,6 +6,7 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
@@ -209,12 +210,13 @@ class MCPApp:
             sys.exit(1)
 
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
+        transport = os.getenv("ARCADE_SERVER_TRANSPORT", transport)
 
         if transport in ["http", "streamable-http", "streamable"]:
             run_arcade_mcp(
                 catalog=self._catalog,
-                host=host,
-                port=port,
+                host=os.getenv("ARCADE_SERVER_HOST", host),
+                port=os.getenv("ARCADE_SERVER_PORT", port),
                 reload=reload,
                 **self.server_kwargs,
             )
