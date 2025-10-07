@@ -1,0 +1,133 @@
+{
+  "name": "RetrieveMiroAppCardInfo",
+  "fully_qualified_name": "MiroApi.RetrieveMiroAppCardInfo@0.1.0",
+  "description": "Retrieve information for a specific Miro app card.\n\nThis tool retrieves details about an app card item on a Miro board, requiring 'boards:read' scope. It's useful for getting detailed information about app cards on a board to display or process further.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier of the Miro board for retrieving a specific app card item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board from which you want to retrieve a specific item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "item_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the app card item to retrieve from the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-app-card-item'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id}/app_cards/{item_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board from which you want to retrieve a specific item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board from which you want to retrieve a specific item."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "item_id",
+        "description": "Unique identifier (ID) of the item that you want to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item that you want to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "name": "GetOrganizationTeams",
+  "fully_qualified_name": "MiroApi.GetOrganizationTeams@0.1.0",
+  "description": "Retrieve a list of teams in an enterprise organization.\n\nUse this tool to retrieve a list of teams within an existing enterprise organization on Miro. This is available only for Enterprise plan users with Company Admin roles. Ensure appropriate 'organizations:teams:read' scope access is granted.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization to retrieve teams for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "The maximum number of teams to return in the response. This controls the pagination of the results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "page_cursor",
+        "required": false,
+        "description": "Indicator for the current page position. Leave empty for first page or use the value from the previous request's cursor for subsequent pages.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "team_name_filter",
+        "required": false,
+        "description": "Filters teams by name using a case insensitive partial match. For example, 'dev' will match both 'Developer's team' and 'Team for developers'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name query. Filters teams by name using case insensitive partial match. A value \"dev\" will return both \"Developer's team\" and \"Team for developers\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-get-teams'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "page_cursor",
+        "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "team_name_filter",
+        "description": "Name query. Filters teams by name using case insensitive partial match. A value \"dev\" will return both \"Developer's team\" and \"Team for developers\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name query. Filters teams by name using case insensitive partial match. A value \"dev\" will return both \"Developer's team\" and \"Team for developers\"."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The id of the Organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

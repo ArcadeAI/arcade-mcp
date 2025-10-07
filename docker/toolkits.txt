@@ -1,3 +1,4 @@
 arcade-box-api
+arcade-miro-api
 arcade-slack-api
 arcade-stripe-api

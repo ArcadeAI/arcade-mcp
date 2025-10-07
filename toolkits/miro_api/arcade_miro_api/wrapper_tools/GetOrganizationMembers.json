@@ -1,0 +1,319 @@
+{
+  "name": "GetOrganizationMembers",
+  "fully_qualified_name": "MiroApi.GetOrganizationMembers@0.1.0",
+  "description": "Retrieve members of an organization in Miro.\n\nThis tool fetches members of a Miro organization using the organization ID or user emails. It requires the 'organizations:read' scope and is available only to Enterprise plan users with Company Admin roles. This should be used to obtain detailed information about organization members.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier of the organization to retrieve members from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "user_emails",
+        "required": false,
+        "description": "A comma-separated list of user emails to retrieve specific organization members.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "emails"
+      },
+      {
+        "name": "filter_by_role",
+        "required": false,
+        "description": "Specify the role to filter organization members by, such as 'organization_internal_admin' or 'organization_internal_user'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization_internal_admin",
+            "organization_internal_user",
+            "organization_external_user",
+            "organization_team_guest_user",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role"
+      },
+      {
+        "name": "member_license_type",
+        "required": false,
+        "description": "Specify the license type of members to filter by. Accepts values: full, occasional, free, free_restricted, full_trial, or unknown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "full",
+            "occasional",
+            "free",
+            "free_restricted",
+            "full_trial",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "license"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string used for paginating results. Allows fetching the next set of organization members.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "member_retrieval_limit",
+        "required": false,
+        "description": "Specify the maximum number of organization members to retrieve. This is used to limit the size of the results returned by the API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "only_active_members",
+        "required": false,
+        "description": "Set to true to retrieve only active members. Filters based on member activity status.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "active"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-get-organization-members'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/members",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "emails",
+        "tool_parameter_name": "user_emails",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "role",
+        "tool_parameter_name": "filter_by_role",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization_internal_admin",
+            "organization_internal_user",
+            "organization_external_user",
+            "organization_team_guest_user",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "license",
+        "tool_parameter_name": "member_license_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "full",
+            "occasional",
+            "free",
+            "free_restricted",
+            "full_trial",
+            "unknown"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "active",
+        "tool_parameter_name": "only_active_members",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "member_retrieval_limit",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "id of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "id of the organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

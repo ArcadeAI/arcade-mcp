@@ -1,0 +1,197 @@
+{
+  "name": "GetMiroTeamProjects",
+  "fully_qualified_name": "MiroApi.GetMiroTeamProjects@0.1.0",
+  "description": "Retrieve a list of projects for a specified team in a Miro organization.\n\nThis tool retrieves all projects in a specified team of an organization using Miro's Enterprise API. Accessible only to Company Admins with the Enterprise plan, it allows fetching both shared and private projects by leveraging Content Admin permissions.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the Miro organization for retrieving the list of projects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization from which you want to retrieve the list of available projects."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique ID of the team for which you want to retrieve the list of projects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team from which you want to retrieve the list of available projects."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "The maximum number of project results to return per call. If more projects exist, a cursor for pagination will be provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return per call. If the number of projects in the response is greater than the limit specified, the response returns the cursor parameter with a value."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Specify the cursor value to paginate through results. Leave empty for the first page; use the value from the previous response for subsequent pages.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-get-projects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/projects",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "The maximum number of results to return per call. If the number of projects in the response is greater than the limit specified, the response returns the cursor parameter with a value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to return per call. If the number of projects in the response is greater than the limit specified, the response returns the cursor parameter with a value."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An indicator of the position of a page in the full set of results. To obtain the first page leave it empty. To obtain subsequent pages set it to the value returned in the cursor field of the previous request."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The ID of the organization from which you want to retrieve the list of available projects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the organization from which you want to retrieve the list of available projects."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "The ID of the team from which you want to retrieve the list of available projects.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the team from which you want to retrieve the list of available projects."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "name": "AttachTagToItem",
+  "fully_qualified_name": "MiroApi.AttachTagToItem@0.1.0",
+  "description": "Attach an existing tag to a specified board item in Miro.\n\nUse this tool to attach an existing tag to a card or sticky note item on a Miro board. Note that updates made via this tool will not be reflected on the board in real-time; you need to refresh the board to see changes. Suitable for up to 8 tags per item.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tag_identifier",
+        "required": true,
+        "description": "The unique ID of the tag to attach to the specified item on Miro.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the tag you want to add to the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_id"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the board containing the item to which you want to add a tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board with the item that you want to add a tag to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id_PlatformTags"
+      },
+      {
+        "name": "item_id",
+        "required": true,
+        "description": "Unique identifier of the item to which you want to attach a tag on the Miro board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item to which you want to add a tag."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'attach-tag-to-item'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id_PlatformTags}/items/{item_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "tag_id",
+        "tool_parameter_name": "tag_identifier",
+        "description": "Unique identifier (ID) of the tag you want to add to the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the tag you want to add to the item."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_id_PlatformTags",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board with the item that you want to add a tag to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board with the item that you want to add a tag to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "item_id",
+        "description": "Unique identifier (ID) of the item to which you want to add a tag.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the item to which you want to add a tag."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

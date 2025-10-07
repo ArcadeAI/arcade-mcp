@@ -1,0 +1,235 @@
+{
+  "name": "GetAuditLogs",
+  "fully_qualified_name": "MiroApi.GetAuditLogs@0.1.0",
+  "description": "Retrieve audit logs from the last 90 days.\n\nUse this tool to access a page of audit events from the past 90 days. If older data is needed, consider using Miro's CSV export feature. Required scope: auditlogs:read.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "created_after",
+        "required": true,
+        "description": "Retrieve audit logs created after the specified date and time in UTC format (ISO 8601 with milliseconds and a trailing Z).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve audit logs created after the date and time provided. This is the start date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-03-30T17:26:50.000Z` as the value for the `createdAfter` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\"\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdAfter"
+      },
+      {
+        "name": "audit_log_end_date",
+        "required": true,
+        "description": "Retrieve audit logs created before this date and time. Use UTC format, following ISO 8601 with milliseconds and 'Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve audit logs created before the date and time provided. This is the end date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-04-30T17:26:50.000Z` as the value for the `createdBefore` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdBefore"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for pagination; use to retrieve the next portion of results based on the previously returned cursor value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor-paginated method returns a portion of the total set of results based on the `limit` specified and a `cursor` that points to the next portion of the results. To retrieve the next set of results of the collection, set the `cursor` parameter in your next request to the appropriate cursor value returned in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "max_results_limit",
+        "required": false,
+        "description": "Specifies the maximum number of audit log results to return. Default is 100 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned based on the `limit` specified in the request. For example, if there are `30` results, the request has no `cursor` value, and the `limit` is set to `20`,the `size` of the results will be `20`. The rest of the results will not be returned. To retrieve the rest of the results, you must make another request and set the appropriate value for the `cursor` parameter value that  you obtained from the response.<br>Default: `100`\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Defines the sort order for the audit logs. Use 'ASC' for ascending and 'DESC' for descending. Defaults to 'ASC'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort order in which you want to view the result set. Based on the value you provide, the results are sorted in an ascending or descending order of the audit log creation date (audit log `createdAt` parameter).<br>Default: `ASC`\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sorting"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-get-audit-logs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/audit/logs",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "createdAfter",
+        "tool_parameter_name": "created_after",
+        "description": "Retrieve audit logs created after the date and time provided. This is the start date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-03-30T17:26:50.000Z` as the value for the `createdAfter` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\"\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve audit logs created after the date and time provided. This is the start date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-03-30T17:26:50.000Z` as the value for the `createdAfter` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\"\n"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdBefore",
+        "tool_parameter_name": "audit_log_end_date",
+        "description": "Retrieve audit logs created before the date and time provided. This is the end date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-04-30T17:26:50.000Z` as the value for the `createdBefore` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve audit logs created before the date and time provided. This is the end date of the duration for which you want to retrieve audit logs. For example, if you want to retrieve audit logs between `2023-03-30T17:26:50.000Z` and `2023-04-30T17:26:50.000Z`, provide `2023-04-30T17:26:50.000Z` as the value for the `createdBefore` parameter.<br>Format: UTC, adheres to [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601), including milliseconds and a [trailing Z offset](https://en.wikipedia.org/wiki/ISO_8601#Coordinated_Universal_Time_(UTC)).\n"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A cursor-paginated method returns a portion of the total set of results based on the `limit` specified and a `cursor` that points to the next portion of the results. To retrieve the next set of results of the collection, set the `cursor` parameter in your next request to the appropriate cursor value returned in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor-paginated method returns a portion of the total set of results based on the `limit` specified and a `cursor` that points to the next portion of the results. To retrieve the next set of results of the collection, set the `cursor` parameter in your next request to the appropriate cursor value returned in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_limit",
+        "description": "Maximum number of results returned based on the `limit` specified in the request. For example, if there are `30` results, the request has no `cursor` value, and the `limit` is set to `20`,the `size` of the results will be `20`. The rest of the results will not be returned. To retrieve the rest of the results, you must make another request and set the appropriate value for the `cursor` parameter value that  you obtained from the response.<br>Default: `100`\n",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned based on the `limit` specified in the request. For example, if there are `30` results, the request has no `cursor` value, and the `limit` is set to `20`,the `size` of the results will be `20`. The rest of the results will not be returned. To retrieve the rest of the results, you must make another request and set the appropriate value for the `cursor` parameter value that  you obtained from the response.<br>Default: `100`\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sorting",
+        "tool_parameter_name": "sort_order",
+        "description": "Sort order in which you want to view the result set. Based on the value you provide, the results are sorted in an ascending or descending order of the audit log creation date (audit log `createdAt` parameter).<br>Default: `ASC`\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort order in which you want to view the result set. Based on the value you provide, the results are sorted in an ascending or descending order of the audit log creation date (audit log `createdAt` parameter).<br>Default: `ASC`\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "name": "RetrieveMindmapNodes",
+  "fully_qualified_name": "MiroApi.RetrieveMindmapNodes@0.1.0",
+  "description": "Fetches mind map nodes from a specified board.\n\nUse this tool to retrieve a list of mind map nodes for a specific board in Miro. It supports cursor-based pagination for fetching large sets of nodes incrementally. Requires 'boards:read' scope.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_identifier",
+        "required": true,
+        "description": "The unique identifier for the Miro board to retrieve mind map nodes from. Ensure this ID is valid and corresponds to an existing board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board from which you want to retrieve mind map nodes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "max_results_limit",
+        "required": false,
+        "description": "Specifies the maximum number of mind map nodes to return in a single call. Use it to control data page size.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string indicating the position in the paginated results to fetch the next set of mind map nodes. Use the value provided in the previous API response to continue fetching additional results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Points to the next portion of the results set"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-mindmap-nodes-experimental'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2-experimental/boards/{board_id}/mindmap_nodes",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_limit",
+        "description": "Maximum number of results returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Points to the next portion of the results set",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Points to the next portion of the results set"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_identifier",
+        "description": "Unique identifier (ID) of the board from which you want to retrieve mind map nodes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board from which you want to retrieve mind map nodes."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

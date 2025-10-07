@@ -1,0 +1,229 @@
+{
+  "name": "GetItemsWithinFrame",
+  "fully_qualified_name": "MiroApi.GetItemsWithinFrame@0.1.0",
+  "description": "Retrieve items within a specific frame in a Miro board.\n\nUse this tool to obtain items located within a particular frame on a Miro board. It supports cursor-based pagination for efficient data retrieval. Ideal for accessing and managing child items of a frame.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "frame_id",
+        "required": true,
+        "description": "The ID of the frame to retrieve all child items from on the Miro board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the frame for which you want to retrieve the list of available items."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent_item_id"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "Unique identifier (ID) of the Miro board containing the frame to retrieve items from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board that contains the frame for which you want to retrieve the list of available items."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id_PlatformContainers"
+      },
+      {
+        "name": "results_limit",
+        "required": false,
+        "description": "The maximum number of items to return in the response. Helps control pagination size.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "item_type",
+        "required": false,
+        "description": "Specify the type of items to retrieve within the frame. Use for filtering by item type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for pagination to retrieve the next set of results. Use the value from the previous response to continue fetching items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-items-within-frame'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/boards/{board_id_PlatformContainers}/items",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "parent_item_id",
+        "tool_parameter_name": "frame_id",
+        "description": "ID of the frame for which you want to retrieve the list of available items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the frame for which you want to retrieve the list of available items."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_limit",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "item_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_id_PlatformContainers",
+        "tool_parameter_name": "board_id",
+        "description": "Unique identifier (ID) of the board that contains the frame for which you want to retrieve the list of available items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board that contains the frame for which you want to retrieve the list of available items."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

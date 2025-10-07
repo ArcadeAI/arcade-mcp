@@ -1,0 +1,201 @@
+{
+  "name": "GetBoardItems",
+  "fully_qualified_name": "MiroApi.GetBoardItems@0.1.0",
+  "description": "Retrieve items from a Miro board.\n\nThis tool retrieves a list of items from a specific Miro board using a cursor-based pagination method. It can fetch all items, child items within a parent item, or specific types of items based on query parameters. Useful for managing and navigating board content efficiently.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_identifier",
+        "required": true,
+        "description": "Unique identifier of the Miro board to retrieve items from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to retrieve the list of available items."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_id"
+      },
+      {
+        "name": "item_limit",
+        "required": false,
+        "description": "Specifies the maximum number of items to retrieve from the board in one request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "item_type",
+        "required": false,
+        "description": "Specify the type of items to retrieve, such as 'shape'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "shape"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The cursor value to retrieve the next set of results for board items. Use the value from the previous response's cursor to paginate through results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-items-experimental'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2-experimental/boards/{board_id}/items",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "item_limit",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "item_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "shape"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_id",
+        "tool_parameter_name": "board_identifier",
+        "description": "Unique identifier (ID) of the board for which you want to retrieve the list of available items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier (ID) of the board for which you want to retrieve the list of available items."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
