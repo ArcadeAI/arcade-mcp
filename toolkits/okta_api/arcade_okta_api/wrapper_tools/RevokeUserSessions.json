@@ -1,0 +1,169 @@
+{
+  "name": "RevokeUserSessions",
+  "fully_qualified_name": "OktaApi.RevokeUserSessions@0.1.0",
+  "description": "Revoke all active sessions for a user in Okta.\n\nUse this tool to revoke all active identity provider sessions for a specified user in Okta. This action requires the user to re-authenticate on the next action. Optionally, you can also revoke associated OpenID Connect and OAuth tokens and clear remembered factors across devices. This does not affect sessions for web or native apps.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "okta_user_id",
+        "required": true,
+        "description": "The unique identifier for an existing Okta user whose sessions will be revoked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "revoke_oauth_tokens",
+        "required": false,
+        "description": "Set to true to revoke issued OpenID Connect and OAuth refresh and access tokens.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Revokes issued OpenID Connect and OAuth refresh and access tokens"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oauthTokens"
+      },
+      {
+        "name": "clear_remembered_factors_for_all_devices",
+        "required": false,
+        "description": "Set to true to clear the user's remembered factors for all devices. Defaults to false in Classic Engine.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Clears the user's remembered factors for all devices.\n> **Note:** This parameter defaults to false in Classic Engine."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "forgetDevices"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revokeUserSessions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/sessions",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "oauthTokens",
+        "tool_parameter_name": "revoke_oauth_tokens",
+        "description": "Revokes issued OpenID Connect and OAuth refresh and access tokens",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Revokes issued OpenID Connect and OAuth refresh and access tokens"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "forgetDevices",
+        "tool_parameter_name": "clear_remembered_factors_for_all_devices",
+        "description": "Clears the user's remembered factors for all devices.\n> **Note:** This parameter defaults to false in Classic Engine.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Clears the user's remembered factors for all devices.\n> **Note:** This parameter defaults to false in Classic Engine."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "userId",
+        "tool_parameter_name": "okta_user_id",
+        "description": "ID of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "name": "DeleteInactiveGroupPushMapping",
+  "fully_qualified_name": "OktaApi.DeleteInactiveGroupPushMapping@0.1.0",
+  "description": "Delete an inactive group push mapping.\n\nUse this tool to delete a specific group push mapping that is in an 'INACTIVE' state. This is useful for managing and maintaining group configurations within an application.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The unique identifier for the application associated with the group push mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      },
+      {
+        "name": "group_push_mapping_id",
+        "required": true,
+        "description": "ID of the group push mapping to be deleted. Must be in an 'INACTIVE' state.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Group push mapping ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mappingId"
+      },
+      {
+        "name": "delete_target_group",
+        "required": true,
+        "description": "Set to `true` to delete the target group; `false` to retain it. Controls whether the target group is also deleted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, the target group is also deleted. If set to `false`, the target group isn't deleted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deleteTargetGroup"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteGroupPushMapping'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.groups.manage",
+          "okta.apps.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/apps/{appId}/group-push/mappings/{mappingId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "deleteTargetGroup",
+        "tool_parameter_name": "delete_target_group",
+        "description": "If set to `true`, the target group is also deleted. If set to `false`, the target group isn't deleted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, the target group is also deleted. If set to `false`, the target group isn't deleted."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appId",
+        "tool_parameter_name": "application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "mappingId",
+        "tool_parameter_name": "group_push_mapping_id",
+        "description": "Group push mapping ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Group push mapping ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

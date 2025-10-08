@@ -1,0 +1,169 @@
+{
+  "name": "AssignUserLinkedObject",
+  "fully_qualified_name": "OktaApi.AssignUserLinkedObject@0.1.0",
+  "description": "Assign a primary user to an associated user in Okta.\n\nUse this tool to assign a primary user relationship to an associated user in Okta. If the associated user already has a different primary user for this relationship, the previous link will be removed, ensuring only one primary user per associated user.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id_or_login",
+        "required": true,
+        "description": "ID or login of the associated user. Use 'me' for the current session user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userIdOrLogin"
+      },
+      {
+        "name": "primary_relationship_name",
+        "required": true,
+        "description": "Specify the name of the primary relationship to assign to the associated user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the `primary` relationship being assigned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryRelationshipName"
+      },
+      {
+        "name": "primary_user_id",
+        "required": true,
+        "description": "User ID to assign as the `primary` relationship for the `associated` user. Provide the specific user ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User ID to be assigned to the `primary` relationship for the `associated` user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primaryUserId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'assignLinkedObjectValueForPrimary'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userIdOrLogin}/linkedObjects/{primaryRelationshipName}/{primaryUserId}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userIdOrLogin",
+        "tool_parameter_name": "user_id_or_login",
+        "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryRelationshipName",
+        "tool_parameter_name": "primary_relationship_name",
+        "description": "Name of the `primary` relationship being assigned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the `primary` relationship being assigned"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "primaryUserId",
+        "tool_parameter_name": "primary_user_id",
+        "description": "User ID to be assigned to the `primary` relationship for the `associated` user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User ID to be assigned to the `primary` relationship for the `associated` user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

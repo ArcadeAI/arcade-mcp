@@ -1,0 +1,105 @@
+{
+  "name": "SuspendDevice",
+  "fully_qualified_name": "OktaApi.SuspendDevice@0.1.0",
+  "description": "Suspend a device by setting its status to 'SUSPENDED'.\n\nThis tool is used to suspend a device in Okta by changing its status to 'SUSPENDED'. This status allows for temporary suspension intended for operations like creating and deleting device user links. It is a non-destructive, reversible status that can be lifted by unsuspending or deactivating the device.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_id",
+        "required": true,
+        "description": "The unique identifier (ID) of the device to be suspended. This ID is required for executing the suspension operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the device"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deviceId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'suspendDevice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.devices.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/devices/{deviceId}/lifecycle/suspend",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "deviceId",
+        "tool_parameter_name": "device_id",
+        "description": "`id` of the device",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the device"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

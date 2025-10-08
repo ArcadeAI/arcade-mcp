@@ -1,0 +1,137 @@
+{
+  "name": "DeleteEmailTemplateCustomizations",
+  "fully_qualified_name": "OktaApi.DeleteEmailTemplateCustomizations@0.1.0",
+  "description": "Deletes all customizations for an email template.\n\nUse this tool to delete all customizations for a specific email template in Okta. If Custom languages for Okta Email Templates is enabled, all customizations, including those in additional languages, are removed. Otherwise, only customizations in Okta-supported languages are deleted.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "brand_id",
+        "required": true,
+        "description": "The ID of the brand whose email template customizations are to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "brandId"
+      },
+      {
+        "name": "email_template_name",
+        "required": true,
+        "description": "The name of the email template to delete customizations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "templateName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteAllCustomizations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.templates.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/brands/{brandId}/templates/email/{templateName}/customizations",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "brandId",
+        "tool_parameter_name": "brand_id",
+        "description": "The ID of the brand",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "templateName",
+        "tool_parameter_name": "email_template_name",
+        "description": "The name of the email template",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "name": "SubscribeRoleToNotification",
+  "fully_qualified_name": "OktaApi.SubscribeRoleToNotification@0.1.0",
+  "description": "Subscribe a role to a specific notification type.\n\nThis tool subscribes a specific role to a designated notification type in Okta, overriding individual user subscriptions within that role.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "role_reference",
+        "required": true,
+        "description": "Reference to an existing role. Use `roleType` for standard roles and `roleId` for custom roles. Check documentation for details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A reference to an existing role. Standard roles require a `roleType`, while Custom Roles require a `roleId`. See [Standard Roles](/openapi/okta-management/guides/roles/#standard-roles)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roleRef"
+      },
+      {
+        "name": "notification_type",
+        "required": true,
+        "description": "The type of notification to subscribe the role to. Choose from: AD_AGENT, AGENT_AUTO_UPDATE_NOTIFICATION, AGENT_AUTO_UPDATE_NOTIFICATION_LDAP, APP_IMPORT, CONNECTOR_AGENT, IWA_AGENT, LDAP_AGENT, OKTA_ANNOUNCEMENT, OKTA_UPDATE, RATELIMIT_NOTIFICATION, REPORT_SUSPICIOUS_ACTIVITY, USER_DEPROVISION, USER_LOCKED_OUT.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD_AGENT",
+            "AGENT_AUTO_UPDATE_NOTIFICATION",
+            "AGENT_AUTO_UPDATE_NOTIFICATION_LDAP",
+            "APP_IMPORT",
+            "CONNECTOR_AGENT",
+            "IWA_AGENT",
+            "LDAP_AGENT",
+            "OKTA_ANNOUNCEMENT",
+            "OKTA_UPDATE",
+            "RATELIMIT_NOTIFICATION",
+            "REPORT_SUSPICIOUS_ACTIVITY",
+            "USER_DEPROVISION",
+            "USER_LOCKED_OUT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notificationType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'subscribeByNotificationTypeRole'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/roles/{roleRef}/subscriptions/{notificationType}/subscribe",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "roleRef",
+        "tool_parameter_name": "role_reference",
+        "description": "A reference to an existing role. Standard roles require a `roleType`, while Custom Roles require a `roleId`. See [Standard Roles](/openapi/okta-management/guides/roles/#standard-roles).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A reference to an existing role. Standard roles require a `roleType`, while Custom Roles require a `roleId`. See [Standard Roles](/openapi/okta-management/guides/roles/#standard-roles)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "notificationType",
+        "tool_parameter_name": "notification_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD_AGENT",
+            "AGENT_AUTO_UPDATE_NOTIFICATION",
+            "AGENT_AUTO_UPDATE_NOTIFICATION_LDAP",
+            "APP_IMPORT",
+            "CONNECTOR_AGENT",
+            "IWA_AGENT",
+            "LDAP_AGENT",
+            "OKTA_ANNOUNCEMENT",
+            "OKTA_UPDATE",
+            "RATELIMIT_NOTIFICATION",
+            "REPORT_SUSPICIOUS_ACTIVITY",
+            "USER_DEPROVISION",
+            "USER_LOCKED_OUT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

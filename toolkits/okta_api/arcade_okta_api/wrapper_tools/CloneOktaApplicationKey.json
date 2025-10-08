@@ -1,0 +1,169 @@
+{
+  "name": "CloneOktaApplicationKey",
+  "fully_qualified_name": "OktaApi.CloneOktaApplicationKey@0.1.0",
+  "description": "Clone X.509 certificate between Okta applications.\n\nThis tool clones an X.509 certificate from a source application to a target application within Okta. It should be called when you need to share application key credentials across different applications. Note that sharing certificates is not a recommended security practice.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_application_key",
+        "required": true,
+        "description": "Unique key of the target application for cloning the X.509 certificate.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique key of the target Application"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "targetAid"
+      },
+      {
+        "name": "source_application_id",
+        "required": true,
+        "description": "The ID of the source application from which the X.509 certificate will be cloned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      },
+      {
+        "name": "key_credential_id",
+        "required": true,
+        "description": "ID of the Key Credential for the application to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Key Credential for the application"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "keyId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'cloneApplicationKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.apps.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/apps/{appId}/credentials/keys/{keyId}/clone",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "targetAid",
+        "tool_parameter_name": "target_application_key",
+        "description": "Unique key of the target Application",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique key of the target Application"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "appId",
+        "tool_parameter_name": "source_application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "keyId",
+        "tool_parameter_name": "key_credential_id",
+        "description": "ID of the Key Credential for the application",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Key Credential for the application"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

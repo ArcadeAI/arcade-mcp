@@ -1,0 +1,137 @@
+{
+  "name": "ListAgentPoolUpdates",
+  "fully_qualified_name": "OktaApi.ListAgentPoolUpdates@0.1.0",
+  "description": "Retrieve all updates for a specific agent pool.\n\nUse this tool to get a list of all updates related to a specific agent pool in Okta. It provides details on changes or modifications to the agent pool identified by the provided pool ID.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "agent_pool_id",
+        "required": true,
+        "description": "ID of the agent pool to retrieve updates for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the agent pool for which the settings apply to"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "poolId"
+      },
+      {
+        "name": "return_scheduled_or_adhoc",
+        "required": false,
+        "description": "Return only scheduled or ad-hoc updates if true. If false or not provided, returns the full list of updates.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only scheduled or ad-hoc updates. If this parameter isn't provided, Okta returns the entire list of updates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scheduled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAgentPoolsUpdates'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.agentPools.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/agentPools/{poolId}/updates",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "scheduled",
+        "tool_parameter_name": "return_scheduled_or_adhoc",
+        "description": "Return only scheduled or ad-hoc updates. If this parameter isn't provided, Okta returns the entire list of updates.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only scheduled or ad-hoc updates. If this parameter isn't provided, Okta returns the entire list of updates."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "poolId",
+        "tool_parameter_name": "agent_pool_id",
+        "description": "ID of the agent pool for which the settings apply to",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the agent pool for which the settings apply to"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

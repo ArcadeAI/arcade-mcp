@@ -1,0 +1,349 @@
+{
+  "name": "ListPoliciesByType",
+  "fully_qualified_name": "OktaApi.ListPoliciesByType@0.1.0",
+  "description": "Lists all policies of a specified type.\n\nUse this tool to retrieve a list of policies filtered by a specified type. It is useful for managing or reviewing specific policy sets within the Okta platform.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "policy_type",
+        "required": true,
+        "description": "Specifies the type of policy to return. Available types include `OKTA_SIGN_ON`, `PASSWORD`, `MFA_ENROLL`, `IDP_DISCOVERY`, and those exclusive to Okta Identity Engine like `ACCESS_POLICY`, `DEVICE_SIGNAL_COLLECTION`, `PROFILE_ENROLLMENT`, `POST_AUTH_SESSION`, and `ENTITY_RISK`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OKTA_SIGN_ON",
+            "PASSWORD",
+            "MFA_ENROLL",
+            "IDP_DISCOVERY",
+            "ACCESS_POLICY",
+            "DEVICE_SIGNAL_COLLECTION",
+            "PROFILE_ENROLLMENT",
+            "POST_AUTH_SESSION",
+            "ENTITY_RISK"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the type of policy to return. The following policy types are available only with the Okta Identity Engine - `ACCESS_POLICY`, <x-lifecycle class=\"ea\"></x-lifecycle> `DEVICE_SIGNAL_COLLECTION`, `PROFILE_ENROLLMENT`, `POST_AUTH_SESSION`, and `ENTITY_RISK`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "filter_by_policy_status",
+        "required": false,
+        "description": "Filter policies by their status. Acceptable values are `ACTIVE` or `INACTIVE`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by the `status` of the policy - `ACTIVE` or `INACTIVE`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "policy_name_prefix_query",
+        "required": false,
+        "description": "Refines the query by specifying the prefix of the policy name using the startWith method.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by policy name prefix (startWith method) passed in as `q=string`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "expand_policy_details",
+        "required": false,
+        "description": "Determines if additional policy details should be included in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "sort_policies_by_name",
+        "required": false,
+        "description": "Set to refine the query by sorting policies based on their names in ascending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by sorting on the policy `name` in ascending order"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortBy"
+      },
+      {
+        "name": "max_policies_to_return",
+        "required": false,
+        "description": "Specifies the maximum number of policies to return. Use this for controlling pagination size.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the number of policies returned, see [Pagination](https://developer.okta.com/docs/api/#pagination)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "authorization_server_reference",
+        "required": false,
+        "description": "Reference ID for the associated authorization server to filter policies.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reference to the associated authorization server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resourceId"
+      },
+      {
+        "name": "pagination_end_cursor",
+        "required": false,
+        "description": "End page cursor for pagination. Use to retrieve the next set of results in a paginated list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End page cursor for pagination, see [Pagination](https://developer.okta.com/docs/api/#pagination)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listPolicies'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.policies.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/policies",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "policy_type",
+        "description": "Specifies the type of policy to return. The following policy types are available only with the Okta Identity Engine - `ACCESS_POLICY`, <x-lifecycle class=\"ea\"></x-lifecycle> `DEVICE_SIGNAL_COLLECTION`, `PROFILE_ENROLLMENT`, `POST_AUTH_SESSION`, and `ENTITY_RISK`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OKTA_SIGN_ON",
+            "PASSWORD",
+            "MFA_ENROLL",
+            "IDP_DISCOVERY",
+            "ACCESS_POLICY",
+            "DEVICE_SIGNAL_COLLECTION",
+            "PROFILE_ENROLLMENT",
+            "POST_AUTH_SESSION",
+            "ENTITY_RISK"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the type of policy to return. The following policy types are available only with the Okta Identity Engine - `ACCESS_POLICY`, <x-lifecycle class=\"ea\"></x-lifecycle> `DEVICE_SIGNAL_COLLECTION`, `PROFILE_ENROLLMENT`, `POST_AUTH_SESSION`, and `ENTITY_RISK`."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_policy_status",
+        "description": "Refines the query by the `status` of the policy - `ACTIVE` or `INACTIVE`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by the `status` of the policy - `ACTIVE` or `INACTIVE`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "q",
+        "tool_parameter_name": "policy_name_prefix_query",
+        "description": "Refines the query by policy name prefix (startWith method) passed in as `q=string`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by policy name prefix (startWith method) passed in as `q=string`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_policy_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortBy",
+        "tool_parameter_name": "sort_policies_by_name",
+        "description": "Refines the query by sorting on the policy `name` in ascending order",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Refines the query by sorting on the policy `name` in ascending order"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_policies_to_return",
+        "description": "Defines the number of policies returned, see [Pagination](https://developer.okta.com/docs/api/#pagination)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the number of policies returned, see [Pagination](https://developer.okta.com/docs/api/#pagination)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "resourceId",
+        "tool_parameter_name": "authorization_server_reference",
+        "description": "Reference to the associated authorization server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reference to the associated authorization server"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_end_cursor",
+        "description": "End page cursor for pagination, see [Pagination](https://developer.okta.com/docs/api/#pagination)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End page cursor for pagination, see [Pagination](https://developer.okta.com/docs/api/#pagination)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

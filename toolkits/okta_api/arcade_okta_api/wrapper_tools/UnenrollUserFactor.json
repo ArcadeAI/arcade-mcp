@@ -1,0 +1,169 @@
+{
+  "name": "UnenrollUserFactor",
+  "fully_qualified_name": "OktaApi.UnenrollUserFactor@0.1.0",
+  "description": "Unenroll a factor from a specified user.\n\nThis tool unenrolls an existing factor for a specified user in Okta. It cannot unenroll a factor from a deactivated user. Use this to allow a user to enroll a new factor instead. Unenrolling certain factors may automatically unenroll related factors.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "ID of an existing Okta user to unenroll the factor from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "user_factor_id",
+        "required": true,
+        "description": "ID of the existing user factor to be unenrolled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing user factor"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "factorId"
+      },
+      {
+        "name": "remove_phone_number_as_recovery_method",
+        "required": false,
+        "description": "If true, removes the phone number as both a recovery method and a factor. Applicable only for 'sms' and 'call' factors.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, removes the phone number as both a recovery method and a factor. This parameter is only used for the `sms` and `call` factors."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "removeRecoveryEnrollment"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'unenrollFactor'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/factors/{factorId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "removeRecoveryEnrollment",
+        "tool_parameter_name": "remove_phone_number_as_recovery_method",
+        "description": "If `true`, removes the phone number as both a recovery method and a factor. This parameter is only used for the `sms` and `call` factors.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, removes the phone number as both a recovery method and a factor. This parameter is only used for the `sms` and `call` factors."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "userId",
+        "tool_parameter_name": "user_id",
+        "description": "ID of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "factorId",
+        "tool_parameter_name": "user_factor_id",
+        "description": "ID of an existing user factor",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing user factor"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

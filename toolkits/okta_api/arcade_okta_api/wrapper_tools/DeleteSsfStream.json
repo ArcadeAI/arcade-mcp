@@ -1,0 +1,105 @@
+{
+  "name": "DeleteSsfStream",
+  "fully_qualified_name": "OktaApi.DeleteSsfStream@0.1.0",
+  "description": "Delete a specified SSF Stream.\n\nUse this tool to delete an SSF Stream by providing a stream ID. If no stream ID is provided, it deletes the stream associated with the Client ID from the OAuth token.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "stream_id_for_deletion",
+        "required": false,
+        "description": "The ID of the SSF Stream to delete. If not provided, deletes the stream associated with the Client ID from the OAuth token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the specified SSF Stream configuration"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "stream_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteSsfStream'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ssf.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/ssf/stream",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "stream_id",
+        "tool_parameter_name": "stream_id_for_deletion",
+        "description": "The ID of the specified SSF Stream configuration",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the specified SSF Stream configuration"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

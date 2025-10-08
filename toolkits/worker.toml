@@ -1,0 +1,10 @@
+[[worker]]
+
+[worker.config]
+id = "demo-worker"
+enabled = true
+timeout = 30
+retries = 3
+secret = "023632bd6fe5f18364bbe115456b2225"
+[worker.local_source]
+packages = [ "./okta_api",]

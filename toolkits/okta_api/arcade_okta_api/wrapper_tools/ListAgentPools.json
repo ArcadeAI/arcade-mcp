@@ -1,0 +1,185 @@
+{
+  "name": "ListAgentPools",
+  "fully_qualified_name": "OktaApi.ListAgentPools@0.1.0",
+  "description": "Lists all agent pools with pagination support.\n\nUse this tool to retrieve a comprehensive list of agent pools, including support for pagination to manage large datasets.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "maximum_agent_pools",
+        "required": false,
+        "description": "Maximum number of agent pools to be returned per pool type.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of agent pools returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limitPerPoolType"
+      },
+      {
+        "name": "agent_pool_type",
+        "required": false,
+        "description": "Specify the agent type to filter the search. Options are AD, IWA, LDAP, MFA, OPP, RUM, or Radius.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD",
+            "IWA",
+            "LDAP",
+            "MFA",
+            "OPP",
+            "RUM",
+            "Radius"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Agent type to search for"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "poolType"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "An opaque string cursor for pagination, specifying current list position, obtained from the `Link` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAgentPools'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.agentPools.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/agentPools",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limitPerPoolType",
+        "tool_parameter_name": "maximum_agent_pools",
+        "description": "Maximum number of agent pools returned",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of agent pools returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "poolType",
+        "tool_parameter_name": "agent_pool_type",
+        "description": "Agent type to search for",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "AD",
+            "IWA",
+            "LDAP",
+            "MFA",
+            "OPP",
+            "RUM",
+            "Radius"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Agent type to search for"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "name": "ListOktaInlineHooks",
+  "fully_qualified_name": "OktaApi.ListOktaInlineHooks@0.1.0",
+  "description": "Retrieve all inline hooks or those of a specific type in Okta.\n\nThis tool retrieves all Okta inline hooks or can be used to list inline hooks of a specific type. Supported types include user import, token transformation, SAML assertion, telephony provider, password import, and registration inline hooks.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "inline_hook_type",
+        "required": false,
+        "description": "Specify one of the supported inline hook types to filter results. Options include user import, token transformation, SAML assertion, telephony provider, password import, and registration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "com.okta.import.transform",
+            "com.okta.oauth2.tokens.transform",
+            "com.okta.saml.tokens.transform",
+            "com.okta.user.credential.password.import",
+            "com.okta.user.pre-registration",
+            "com.okta.telephony.provider"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of the supported inline hook types"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listInlineHooks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.inlineHooks.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/inlineHooks",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "inline_hook_type",
+        "description": "One of the supported inline hook types",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "com.okta.import.transform",
+            "com.okta.oauth2.tokens.transform",
+            "com.okta.saml.tokens.transform",
+            "com.okta.user.credential.password.import",
+            "com.okta.user.pre-registration",
+            "com.okta.telephony.provider"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of the supported inline hook types"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

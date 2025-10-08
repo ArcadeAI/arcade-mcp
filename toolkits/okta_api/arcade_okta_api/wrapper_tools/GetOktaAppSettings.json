@@ -1,0 +1,105 @@
+{
+  "name": "GetOktaAppSettings",
+  "fully_qualified_name": "OktaApi.GetOktaAppSettings@0.1.0",
+  "description": "Retrieve settings for a specific Okta app.\n\nUse this tool to get the configuration settings of an Okta first-party app specified by its name.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "okta_app_key_name",
+        "required": true,
+        "description": "The key name for the Okta app. Supported apps include 'admin-console'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key name for the Okta app.<br>\nSupported apps:\n  * Okta Admin Console (`admin-console`)\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getFirstPartyAppSettings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.apps.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/first-party-app-settings/{appName}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "appName",
+        "tool_parameter_name": "okta_app_key_name",
+        "description": "The key name for the Okta app.<br>\nSupported apps:\n  * Okta Admin Console (`admin-console`)\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key name for the Okta app.<br>\nSupported apps:\n  * Okta Admin Console (`admin-console`)\n"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

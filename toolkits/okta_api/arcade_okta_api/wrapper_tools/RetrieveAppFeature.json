@@ -1,0 +1,143 @@
+{
+  "name": "RetrieveAppFeature",
+  "fully_qualified_name": "OktaApi.RetrieveAppFeature@0.1.0",
+  "description": "Retrieve a feature for a specific application.\n\nUse this tool to get detailed information about a specific feature in an application by providing the app ID and feature name. It helps in understanding the feature's status and properties for a given app.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The unique ID of the application for which the feature should be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "appId"
+      },
+      {
+        "name": "feature_name",
+        "required": true,
+        "description": "Specify the feature name to retrieve. Options are 'USER_PROVISIONING' or 'INBOUND_PROVISIONING'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "USER_PROVISIONING",
+            "INBOUND_PROVISIONING"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the Feature"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "featureName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getFeatureForApplication'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.apps.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/apps/{appId}/features/{featureName}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "appId",
+        "tool_parameter_name": "application_id",
+        "description": "Application ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "featureName",
+        "tool_parameter_name": "feature_name",
+        "description": "Name of the Feature",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "USER_PROVISIONING",
+            "INBOUND_PROVISIONING"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the Feature"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

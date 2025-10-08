@@ -1,0 +1,173 @@
+{
+  "name": "DeactivateUserAccount",
+  "fully_qualified_name": "OktaApi.DeactivateUserAccount@0.1.0",
+  "description": "Permanently deactivate a user account.\n\nUse this tool to deactivate a user account that is not already deprovisioned. This action deprovisions the user from all assigned applications and cannot be undone. Ensure deactivation is intended, as it may result in data loss like emails or files. Asynchronous deactivation is supported by including the 'Prefer: respond-async' HTTP header.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_identifier",
+        "required": true,
+        "description": "An ID, login, or unambiguous shortname of an existing Okta user to be deactivated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID, login, or login shortname (as long as the shortname is unambiguous) of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "enable_asynchronous_processing",
+        "required": false,
+        "description": "Set to `true` to request asynchronous user deactivation processing, otherwise defaults to synchronous processing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "respond-async"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Request asynchronous processing"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Prefer"
+      },
+      {
+        "name": "send_deactivation_email",
+        "required": false,
+        "description": "If true, sends a deactivation email to the admin.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sends a deactivation email to the admin if `true`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sendEmail"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deactivateUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{id}/lifecycle/deactivate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "sendEmail",
+        "tool_parameter_name": "send_deactivation_email",
+        "description": "Sends a deactivation email to the admin if `true`",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sends a deactivation email to the admin if `true`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "user_identifier",
+        "description": "An ID, login, or login shortname (as long as the shortname is unambiguous) of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID, login, or login shortname (as long as the shortname is unambiguous) of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Prefer",
+        "tool_parameter_name": "enable_asynchronous_processing",
+        "description": "Request asynchronous processing",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "respond-async"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Request asynchronous processing"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

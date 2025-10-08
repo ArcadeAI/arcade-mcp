@@ -1,0 +1,137 @@
+{
+  "name": "ListLinkedUsers",
+  "fully_qualified_name": "OktaApi.ListLinkedUsers@0.1.0",
+  "description": "Retrieve linked or associated users for a given relationship.\n\nUtilize this tool to list either the self link for a primary user or all associated users based on a specified relationship name. If no associations exist, it returns an empty array. Suitable for retrieving user associations in applications using Okta.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_identifier_or_login",
+        "required": true,
+        "description": "The ID or login of the user to get the primary user ID or associated users. Use 'me' for the current session user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userIdOrLogin"
+      },
+      {
+        "name": "relationship_name",
+        "required": true,
+        "description": "Specify the name of the primary or associated relationship to be queried for linked users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the `primary` or `associated` relationship being queried"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "relationshipName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listLinkedObjectsForUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userIdOrLogin}/linkedObjects/{relationshipName}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userIdOrLogin",
+        "tool_parameter_name": "user_identifier_or_login",
+        "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If for the `self` link, this is the ID of the user for whom you want to get the primary user ID. If for the `associated` relation, this is the user ID or login value of the user assigned the associated relationship.\n\nThis can be `me` to represent the current session user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "relationshipName",
+        "tool_parameter_name": "relationship_name",
+        "description": "Name of the `primary` or `associated` relationship being queried",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the `primary` or `associated` relationship being queried"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
