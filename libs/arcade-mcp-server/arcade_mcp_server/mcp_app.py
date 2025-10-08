@@ -103,7 +103,8 @@ class MCPApp:
         self.server: MCPServer | None = None
 
         self._load_env()
-        self._setup_logging()
+        if not logger._core.handlers:  # type: ignore[attr-defined]
+            self._setup_logging(transport == "stdio")
 
     # Properties (exposed below initializer)
     @property
@@ -128,17 +129,21 @@ class MCPApp:
             load_dotenv(env_path, override=False)
             logger.info(f"Loaded environment from {env_path}")
 
-    def _setup_logging(self) -> None:
+    def _setup_logging(self, stdio_mode: bool = False) -> None:
         logger.remove()
+
+        # In stdio mode, use stderr (stdout is reserved for JSON-RPC)
+        sink = sys.stderr if stdio_mode else sys.stdout
+
         if self.log_level == "DEBUG":
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{line}</cyan> | <level>{message}</level>"
         else:
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
         logger.add(
-            sys.stdout,
+            sink,
             format=format_str,
             level=self.log_level,
-            colorize=True,
+            colorize=(not stdio_mode),
             diagnose=(self.log_level == "DEBUG"),
         )
 
@@ -209,9 +214,12 @@ class MCPApp:
             logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
             sys.exit(1)
 
-        logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
-
         host, port, transport = MCPApp._get_configuration_overrides(host, port, transport)
+
+        # Since the transport could have changed since __init__, we need to setup logging again
+        self._setup_logging(transport == "stdio")
+
+        logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
             run_arcade_mcp(
