@@ -11,7 +11,6 @@ from typing import Any
 import toml
 from arcade_core import Toolkit
 from arcade_core.catalog import ToolCatalog
-from arcade_core.toolkit import Validate
 from arcadepy import Arcade, NotFoundError
 from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
 from packaging.requirements import Requirement
@@ -169,26 +168,6 @@ class Config(BaseModel):
         if secret.pattern:
             return f"$env:{secret.pattern}"
         return secret.value
-
-
-deployment_request = {
-    "name": "my-mcp-server",
-    "type": "mcp",
-    "entrypoint": "server.py",
-    "description": "My custom MCP server deployment",
-    "environment": {"LOG_LEVEL": "DEBUG", "CUSTOM_VAR": "value"},
-    "secrets": {"MY_SECRET_KEY": "secret-value", "API_TOKEN": "another-secret"},
-    "toolkits": {
-        "bundles": [
-            {
-                "name": "my-mcp-server",
-                "version": "1.0.0",
-                "bytes": create_bundle_bytes("./path/to/your/mcp-server"),
-            }
-        ],
-        "packages": [],  # MCP deployments don't support packages
-    },
-}
 
 
 # Cloud request for deploying a worker
