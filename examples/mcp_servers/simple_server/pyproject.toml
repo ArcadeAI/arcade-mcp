@@ -35,3 +35,11 @@ target-version = "py310"
 python_version = "3.10"
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-mcp = { path = "../../../", editable = true }
+arcade-mcp-server = { path = "../../../libs/arcade-mcp-server/", editable = true }
+arcade-serve = { path = "../../../libs/arcade-serve/", editable = true }
+arcade-tdk = { path = "../../../libs/arcade-tdk/", editable = true }

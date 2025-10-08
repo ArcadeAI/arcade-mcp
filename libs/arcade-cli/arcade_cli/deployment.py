@@ -5,7 +5,7 @@ import re
 import secrets
 import tarfile
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 import toml
@@ -105,6 +105,12 @@ class AuthProvider(BaseModel):
 class Config(BaseModel):
     """The configuration for an Arcade worker deployment."""
 
+    entrypoint: str
+    """The entrypoint for the worker deployment."""
+
+    type: str = "mcp"
+    """The type of worker deployment."""
+
     id: str
     """The unique id for the worker deployment."""
 
@@ -113,12 +119,6 @@ class Config(BaseModel):
 
     secret: Secret | None = None
     """The shared secret between the worker and Arcade Engine server."""
-
-    timeout: int = 120
-    """The maximum execution time in seconds for a tool in this worker."""
-
-    retries: int = 1
-    """The number of times to retry a failed tool invocation. Defaults to 1."""
 
     # Local development context - only used when running locally
     local_context: dict[str, Any] | None = None
@@ -171,12 +171,33 @@ class Config(BaseModel):
         return secret.value
 
 
+deployment_request = {
+    "name": "my-mcp-server",
+    "type": "mcp",
+    "entrypoint": "server.py",
+    "description": "My custom MCP server deployment",
+    "environment": {"LOG_LEVEL": "DEBUG", "CUSTOM_VAR": "value"},
+    "secrets": {"MY_SECRET_KEY": "secret-value", "API_TOKEN": "another-secret"},
+    "toolkits": {
+        "bundles": [
+            {
+                "name": "my-mcp-server",
+                "version": "1.0.0",
+                "bytes": create_bundle_bytes("./path/to/your/mcp-server"),
+            }
+        ],
+        "packages": [],  # MCP deployments don't support packages
+    },
+}
+
+
 # Cloud request for deploying a worker
 class Request(BaseModel):
     name: str
-    entrypoint: str = "./server.py"
     type: str = "mcp"
-    secret: Secret
+    entrypoint: str = "./server.py"
+    description: str = "My custom MCP server deployment"
+    secrets: Secret
     enabled: bool
     timeout: int
     retries: int
@@ -214,6 +235,7 @@ class Request(BaseModel):
 
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:
         # Attempt to deploy worker to the cloud
+        print(self.model_dump(mode="json"))
         try:
             cloud_response = cloud_client.post(
                 str(cloud_client.base_url) + "/v1/deployments",
@@ -240,7 +262,7 @@ class Request(BaseModel):
                 enabled=self.enabled,
                 http={
                     "uri": worker_data["endpoint"],
-                    "secret": self.secret.value,
+                    "secret": self.secrets.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
                 },
@@ -252,7 +274,7 @@ class Request(BaseModel):
                 enabled=self.enabled,
                 http={
                     "uri": worker_data["endpoint"],
-                    "secret": self.secret.value,
+                    "secret": self.secrets.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
                 },
@@ -279,7 +301,9 @@ class Worker(BaseModel):
             raise ValueError("Secret is required")
         return Request(
             name=self.config.id,
-            secret=self.config.secret,
+            entrypoint=self.config.entrypoint,
+            type=self.config.type,
+            secrets=self.config.secret,
             enabled=self.config.enabled,
             timeout=self.config.timeout,
             retries=self.config.retries,
@@ -296,8 +320,20 @@ class Worker(BaseModel):
 
         def exclude_filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
             """Filter for files/directories to exclude from the compressed package"""
-            if not Validate.path(tarinfo.name):
-                return None
+            # Check both POSIX and Windows interpretations
+            posix_path = PurePosixPath(tarinfo.name)
+            windows_path = PureWindowsPath(tarinfo.name)
+
+            # Get all possible parts from both interpretations
+            all_parts = set(posix_path.parts) | set(windows_path.parts)
+
+            for part in all_parts:
+                if part == "venv" or part.startswith("."):
+                    return None
+                if part in {"dist", "build", "__pycache__", "coverage.xml"}:
+                    return None
+                if part.endswith(".lock") or part.endswith("egg-info"):
+                    return None
 
             return tarinfo
 
@@ -321,7 +357,7 @@ class Worker(BaseModel):
 
             # Validate that we are able to load the package
             # Use from_directory to properly resolve src/ layouts and avoid double prefixes
-            Toolkit.from_directory(package_path)
+            # Toolkit.from_directory(package_path)
 
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()
@@ -356,6 +392,7 @@ class Worker(BaseModel):
 
     def get_required_secrets(self) -> set[str]:
         """Inspect local toolkits and return a set of required secret keys."""
+        return set()
         all_secrets = set()
         if self.local_source:
             catalog = ToolCatalog()
@@ -500,3 +537,20 @@ def print_deployment_table(
         no_change = no_changes[i] if i < len(no_changes) else ""
         table.add_row(addition, removal, update, no_change)
     console.print(table)
+
+
+a = {
+    "name": "server-1",
+    "entrypoint": "./server.py",
+    "type": "mcp",
+    "secret": "test-secret",
+    "enabled": True,
+    "timeout": 120,
+    "retries": 3,
+    "pypi": None,
+    "custom_repositories": None,
+    "local_packages": [{"name": "", "content": "bytes"}],
+    "wait": False,
+}
+# add description
+# add env

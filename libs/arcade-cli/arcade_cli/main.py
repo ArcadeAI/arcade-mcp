@@ -549,24 +549,6 @@ def deploy(
         "--server-id",
         help="A unique ID for the server you are deploying.",
     ),
-    secret: str = typer.Option(
-        "test-secret",
-        "--secret",
-        "-s",
-        help="The shared secret between the server and Arcade Engine.",
-    ),
-    timeout: int = typer.Option(
-        120,
-        "--timeout",
-        "-t",
-        help="The maximum execution time in seconds for a tool in this server.",
-    ),
-    retries: int = typer.Option(
-        3,
-        "--retries",
-        "-r",
-        help="The number of times to retry a failed tool invocation.",
-    ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
         "--host",
@@ -609,17 +591,16 @@ def deploy(
     # Fetch deployment configuration
     try:
         deployment = Deployment(
-            toml_path=Path("todo_get_rid_of_deployment_from_toml.toml"),
+            toml_path=Path("no_longer_needed.toml"),
             worker=[
                 Worker(
-                    toml_path=Path("todo_get_rid_of_deployment_from_toml.toml"),
+                    toml_path=Path("no_longer_needed.toml"),
                     config=Config(
                         entrypoint=entrypoint,
+                        type="mcp",
                         id=server_id,
                         enabled=True,
-                        secret=Secret(value=secret, pattern=None),
-                        timeout=timeout,
-                        retries=retries,
+                        secret=Secret(value="todo_discover_required_tool_secrets", pattern=None),
                     ),
                     local_source=LocalPackages(packages=["."]),
                 )
