@@ -9,6 +9,7 @@ description = "MCP Server created with Arcade.dev"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-mcp-server>={{ arcade_mcp_server_min_version }},<{{ arcade_mcp_server_max_version }}",
+    "httpx>=0.28.0,<1.0.0",
 ]
 
 [project.optional-dependencies]

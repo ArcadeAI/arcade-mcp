@@ -513,7 +513,7 @@ class Tools(_ContextComponent):
             definition=tool.definition,
             input_model=tool.input_model,
             output_model=tool.output_model,
-            context=tool_context,
+            context=self._ctx,
             **params,
         )
         return cast(ToolCallOutput, result)

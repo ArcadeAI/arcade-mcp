@@ -664,7 +664,7 @@ class MCPServer:
                 definition=tool.definition,
                 input_model=tool.input_model,
                 output_model=tool.output_model,
-                context=tool_context,
+                context=mctx if mctx is not None else tool_context,
                 **input_params,
             )
 
