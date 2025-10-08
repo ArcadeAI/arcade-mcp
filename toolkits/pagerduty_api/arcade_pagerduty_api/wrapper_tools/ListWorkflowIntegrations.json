@@ -128,6 +128,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -145,6 +146,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -162,6 +164,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -179,6 +182,7 @@
         "accepted_as": "header",
         "required": true,
         "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
         "documentation_urls": []
       }
     ],

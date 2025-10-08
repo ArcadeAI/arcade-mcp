@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],

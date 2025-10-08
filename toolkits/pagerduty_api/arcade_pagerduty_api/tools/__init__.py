@@ -78,12 +78,6 @@ async def get_related_tags(
         str,
         "The unique identifier for the resource you want to retrieve tags for, such as a User, Team, or Escalation Policy.",  # noqa: E501
     ],
-    versioning_accept_header: Annotated[
-        str, "Specify the version of the API response format using this header."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request. Only 'application/json' is supported."
-    ],
     results_per_page_limit: Annotated[
         int | None, "Specify the number of results to return per page."
     ] = None,
@@ -110,8 +104,8 @@ async def get_related_tags(
             "total": include_total_in_pagination,
         }),
         headers=remove_none_values({
-            "Accept": versioning_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -127,12 +121,6 @@ async def get_related_tags(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_account_abilities(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "The `Accept` header specifying the API version for the request."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the resource. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listAbilities'."]:
     """Retrieve a list of all abilities for your account.
 
@@ -142,8 +130,8 @@ async def get_account_abilities(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -160,13 +148,6 @@ async def get_account_abilities(
 async def check_account_ability(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier for the specific account ability to check."],
-    versioning_header: Annotated[
-        str,
-        "The version of the API to be used. This should be provided in the format required by the `Accept` header.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the MIME type of the request body, typically set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAbility'."]:
     """Check if your account has a specific feature ability.
 
@@ -176,8 +157,8 @@ async def check_account_ability(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -193,10 +174,6 @@ async def check_account_ability(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_pagerduty_addons(
     context: ToolContext,
-    api_version: Annotated[str, "The API version to accept; used as a versioning header."],
-    content_type_header: Annotated[
-        str, "Sets the content type for the request. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of add-ons to display per page."
     ] = None,
@@ -234,8 +211,8 @@ async def list_pagerduty_addons(
             "filter": addon_type_filter,
         }),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -252,12 +229,6 @@ async def list_pagerduty_addons(
 async def get_addon_details(
     context: ToolContext,
     addon_id: Annotated[str, "The unique ID of the Pagerduty Add-on to retrieve details for."],
-    accept_version_header: Annotated[
-        str, "Specifies the version of the API to accept. Used for versioning the response format."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAddon'."]:
     """Retrieve details of a specific Pagerduty Add-on.
 
@@ -267,8 +238,8 @@ async def get_addon_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -285,12 +256,6 @@ async def get_addon_details(
 async def remove_pagerduty_addon(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the add-on to be removed from PagerDuty."],
-    accept_version_header: Annotated[
-        str, "The versioning header for the request, used to specify the API version."
-    ],
-    content_type_json: Annotated[
-        str, "Set the content type for the request. Use 'application/json' for this API call."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteAddon'."]:
     """Remove an existing add-on from PagerDuty.
 
@@ -300,8 +265,8 @@ async def remove_pagerduty_addon(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -317,13 +282,6 @@ async def remove_pagerduty_addon(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_alert_grouping_settings(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to accept responses from, using the `Accept` header for versioning.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the format of the response content. Typically set to 'application/json'."
-    ],
     next_page_cursor: Annotated[
         str | None, "Cursor to retrieve the next page of results; use if more pages are available."
     ] = None,
@@ -356,8 +314,8 @@ async def list_alert_grouping_settings(
             "service_ids[]": service_ids,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -376,12 +334,6 @@ async def get_alert_grouping_setting(
     alert_grouping_setting_id: Annotated[
         str, "The unique identifier of the alert grouping setting to retrieve."
     ],
-    accept_version_header: Annotated[
-        str, "Versioning header for API requests, specifies the format of the response data."
-    ],
-    content_type: Annotated[
-        str, "The MIME type of the request content. Use 'application/json' for this API."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAlertGroupingSetting'."]:
     """Retrieve an existing alert grouping setting by ID.
 
@@ -393,8 +345,8 @@ async def get_alert_grouping_setting(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -413,12 +365,6 @@ async def delete_alert_grouping_setting(
     alert_grouping_setting_id: Annotated[
         str, "The ID of the alert grouping setting to be deleted."
     ],
-    versioning_header: Annotated[
-        str, "Specify the version of the API to use by setting the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "The Content-Type header value, must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteAlertGroupingSetting'."]:
     """Delete an existing alert grouping setting.
 
@@ -430,8 +376,8 @@ async def delete_alert_grouping_setting(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -450,13 +396,6 @@ async def get_enriched_incident_data(
     incident_id: Annotated[
         str, "The unique ID of the incident for which to retrieve enriched analytics and metrics."
     ],
-    api_version_header: Annotated[
-        str,
-        "Specify the version of the API to request. This uses the `Accept` header for versioning.",
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the format of the returned data. Use 'application/json' for JSON responses."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAnalyticsIncidentsById'."]:
     """Retrieve enriched data and metrics for a specific incident.
 
@@ -466,8 +405,8 @@ async def get_enriched_incident_data(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -483,12 +422,6 @@ async def get_enriched_incident_data(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_audit_records(
     context: ToolContext,
-    versioning_accept_header: Annotated[
-        str, "Specify the version of the API you wish to use with the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request, use 'application/json'."
-    ],
     result_limit: Annotated[
         int | None, "Specify the maximum number of audit records to return in a single request."
     ] = None,
@@ -548,8 +481,8 @@ async def list_audit_records(
             "actions[]": action_filter,
         }),
         headers=remove_none_values({
-            "Accept": versioning_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -565,11 +498,6 @@ async def list_audit_records(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_automation_actions(
     context: ToolContext,
-    versioning_header: Annotated[
-        str,
-        "The versioning header for API requests. Use 'Accept' header format to specify the version.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "Specifies the request's media type. Must be 'application/json'."],
     max_results_limit: Annotated[
         int | None, "Specifies the maximum number of automation actions to return in one request."
     ] = None,
@@ -616,8 +544,8 @@ async def list_automation_actions(
             "action_type": filter_by_action_type,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -636,13 +564,6 @@ async def get_automation_action(
     automation_action_id: Annotated[
         str, "The unique ID of the automation action to retrieve from Pagerduty."
     ],
-    api_version_header: Annotated[
-        str,
-        "Specifies the version of the API to accept. Required for determining the versioning scheme.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the content type of the request. For this endpoint, use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAutomationAction'."]:
     """Retrieve details of a specific automation action.
 
@@ -654,8 +575,8 @@ async def get_automation_action(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -675,12 +596,6 @@ async def delete_automation_action(
         str,
         "The unique ID of the automation action to delete. It identifies which action will be removed.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str, "Specify the API version to use with the 'Accept' header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Specifies the content type of the request body. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteAutomationAction'."]:
     """Delete a specified automation action by ID.
 
@@ -690,8 +605,8 @@ async def delete_automation_action(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -710,12 +625,6 @@ async def get_associated_services(
     resource_id: Annotated[
         str, "The unique identifier for the resource to fetch associated services."
     ],
-    version_header: Annotated[
-        str, "String to specify the version of the API to accept, used in the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "Set to 'application/json' to specify the media type for the request."
-    ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'getAutomationActionsActionServiceAssociations'.",
@@ -730,8 +639,8 @@ async def get_associated_services(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -754,13 +663,6 @@ async def get_automation_action_service_details(
         str,
         "The unique identifier for the service whose automation action relationship details are needed.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str, "Specifies the version of the API to accept, used for versioning control."
-    ],
-    content_type_header: Annotated[
-        str,
-        "The 'Content-Type' header specifies the media type for the request. Use 'application/json'.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getAutomationActionsActionServiceAssociation'."
 ]:
@@ -774,8 +676,8 @@ async def get_automation_action_service_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -796,13 +698,6 @@ async def disassociate_automation_action(
         str,
         "The unique identifier for the service from which the automation action will be disassociated.",  # noqa: E501
     ],
-    api_version: Annotated[
-        str,
-        "Specify the API version using the `Accept` header format, e.g., 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Set the content type for the request header. Use 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteAutomationActionServiceAssociation'."
 ]:
@@ -816,8 +711,8 @@ async def disassociate_automation_action(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -836,14 +731,6 @@ async def retrieve_action_team_associations(
     resource_id: Annotated[
         str, "The ID of the automation action resource to retrieve team associations for."
     ],
-    accept_version_header: Annotated[
-        str,
-        "The versioning header indicating the desired API version to accept. Specify the version of the API to use.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str,
-        "Specifies the media type of the resource request. It should be set to 'application/json'.",
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getAutomationActionsActionTeamAssociations'."
 ]:
@@ -857,8 +744,8 @@ async def retrieve_action_team_associations(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -880,12 +767,6 @@ async def disassociate_automation_action_from_team(
     team_identifier: Annotated[
         str, "The unique identifier for the team to disassociate from the automation action."
     ],
-    versioning_header: Annotated[
-        str, "The value for the `Accept` header used to specify the API version."
-    ],
-    content_type: Annotated[
-        str, "Specify the format for the request body. Must be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteAutomationActionTeamAssociation'."
 ]:
@@ -899,8 +780,8 @@ async def disassociate_automation_action_from_team(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -920,13 +801,6 @@ async def get_action_team_association(
         str, "The unique identifier for the Automation Action resource to fetch its details."
     ],
     team_id: Annotated[str, "The unique identifier for the team in Pagerduty."],
-    api_version: Annotated[
-        str,
-        "Specify the API version using the `Accept` header format (e.g., application/vnd.pagerduty+json;version=2).",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getAutomationActionsActionTeamAssociation'."
 ]:
@@ -940,8 +814,8 @@ async def get_action_team_association(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -957,13 +831,6 @@ async def get_action_team_association(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_automation_action_invocations(
     context: ToolContext,
-    versioning_accept_header: Annotated[
-        str,
-        "The `Accept` header specifies the version of the API to use. Input the API version as a string.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specify the media type of the resource being sent. Must be 'application/json'."
-    ],
     invocation_state: Annotated[
         str | None,
         "Specify the current state of the invocation. Expected values: prepared, created, sent, queued, running, aborted, completed, error, unknown.",  # noqa: E501
@@ -994,8 +861,8 @@ async def list_automation_action_invocations(
             "action_id": automation_action_id,
         }),
         headers=remove_none_values({
-            "Accept": versioning_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1012,13 +879,6 @@ async def list_automation_action_invocations(
 async def get_automation_action_invocation(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier for the automation action invocation."],
-    accept_versioning_header: Annotated[
-        str,
-        "Specify the versioning header for the API request. Use this to indicate the version of the API to be used.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the resource. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAutomationActionsInvocation'."]:
     """Retrieve detailed information about an automation action invocation.
 
@@ -1028,8 +888,8 @@ async def get_automation_action_invocation(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1045,12 +905,6 @@ async def get_automation_action_invocation(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_automation_action_runners(
     context: ToolContext,
-    accept_versioning_header: Annotated[
-        str, "The versioning header for the API request, used in the 'Accept' field."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the response data. Must be set to 'application/json'."
-    ],
     maximum_results_limit: Annotated[
         int | None,
         "Specifies the maximum number of Automation Action runners to retrieve. This is the lesser of the provided value or the API's maximum limit.",  # noqa: E501
@@ -1081,8 +935,8 @@ async def list_automation_action_runners(
             "include[]": additional_data_inclusion,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1101,10 +955,6 @@ async def fetch_automation_action_runner(
     resource_id: Annotated[
         str, "The unique identifier of the automation action runner to fetch details for."
     ],
-    accept_header_version: Annotated[str, "Specify the API version using the `Accept` header."],
-    content_type_header: Annotated[
-        str, "Specifies the format of the request body. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAutomationActionsRunner'."]:
     """Retrieve details of an Automation Action runner by ID.
 
@@ -1114,8 +964,8 @@ async def fetch_automation_action_runner(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1134,12 +984,6 @@ async def delete_automation_action_runner(
     automation_action_runner_id: Annotated[
         str, "The unique identifier for the Automation Action runner to be deleted."
     ],
-    versioning_header: Annotated[
-        str, "Specify the version of the API to use for the request by setting the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type as 'application/json'. Default is 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteAutomationActionsRunner'."]:
     """Delete an Automation Action runner by ID.
 
@@ -1151,8 +995,8 @@ async def delete_automation_action_runner(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1171,11 +1015,6 @@ async def get_runner_team_associations(
     resource_id: Annotated[
         str, "The unique identifier of the runner resource to retrieve associated team references."
     ],
-    versioning_header: Annotated[
-        str,
-        "The `Accept` header for API versioning, typically in format `application/vnd.pagerduty+json;version=2`.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "Specify the format of content, typically 'application/json'."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getAutomationActionsRunnerTeamAssociations'."
 ]:
@@ -1189,8 +1028,8 @@ async def get_runner_team_associations(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1210,14 +1049,6 @@ async def disassociate_runner_from_team(
         str, "The unique ID of the runner resource to be disassociated from the team."
     ],
     team_id: Annotated[str, "The ID of the team to disassociate the runner from."],
-    versioning_header: Annotated[
-        str,
-        "Specifies the version of the API to use via the `Accept` header. Format usually like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    set_content_type_header: Annotated[
-        str,
-        "Specifies the Content-Type header for the request. Use 'application/json' as the value.",
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteAutomationActionsRunnerTeamAssociation'."
 ]:
@@ -1231,8 +1062,8 @@ async def disassociate_runner_from_team(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": set_content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1253,12 +1084,6 @@ async def get_runner_team_association(
         str,
         "The unique identifier for the team whose runner association details are being fetched.",
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API using the `Accept` header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the resource. Use 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getAutomationActionsRunnerTeamAssociation'."
 ]:
@@ -1272,8 +1097,8 @@ async def get_runner_team_association(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1289,13 +1114,6 @@ async def get_runner_team_association(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_business_services(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "Specifies the versioning header for the 'Accept' field to determine API response format.",
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "The maximum number of results to return per page."
     ] = None,
@@ -1320,8 +1138,8 @@ async def list_business_services(
             "total": include_total_in_pagination,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1340,12 +1158,6 @@ async def get_business_service_details(
     business_service_id: Annotated[
         str, "The unique identifier of the business service to retrieve details for."
     ],
-    api_version: Annotated[
-        str, "Specify the API version using the 'Accept' header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type of the response. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getBusinessService'."]:
     """Retrieve details of an existing business service.
 
@@ -1355,8 +1167,8 @@ async def get_business_service_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1373,12 +1185,6 @@ async def get_business_service_details(
 async def delete_business_service(
     context: ToolContext,
     business_service_id: Annotated[str, "The unique identifier of the business service to delete."],
-    api_version_header: Annotated[
-        str, "Specify the version of the API to use by setting the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "The Content-Type header for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteBusinessService'."]:
     """Delete an existing business service.
 
@@ -1388,8 +1194,8 @@ async def delete_business_service(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1406,10 +1212,6 @@ async def delete_business_service(
 async def subscribe_to_business_service(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier of the business service to subscribe to."],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the API version required for the request. Use the appropriate version string.",
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'createBusinessServiceAccountSubscription'."
 ]:
@@ -1423,7 +1225,7 @@ async def subscribe_to_business_service(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1443,9 +1245,6 @@ async def unsubscribe_from_business_service(
         str,
         "The ID of the resource to unsubscribe from. This identifies the specific business service in Pagerduty.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str, "Specify the version of the API to accept. This is used for versioning the request."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'removeBusinessServiceAccountSubscription'."
 ]:
@@ -1459,7 +1258,7 @@ async def unsubscribe_from_business_service(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1478,9 +1277,6 @@ async def get_business_service_subscribers(
     business_service_id: Annotated[
         str, "The ID of the business service to retrieve subscribers for."
     ],
-    versioning_header: Annotated[
-        str, "The version identifier for the API, supplied in the 'Accept' header format."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getBusinessServiceSubscribers'."]:
     """Retrieve subscribers of a business service.
 
@@ -1492,7 +1288,7 @@ async def get_business_service_subscribers(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1511,7 +1307,6 @@ async def get_supporting_service_impacts(
     resource_id: Annotated[
         str, "The unique identifier of the business service to retrieve supporting impacts for."
     ],
-    accept_version: Annotated[str, "Specifies the versioning header for the API response format."],
     include_additional_fields: Annotated[
         str | None,
         "Specify additional fields like highest impacting priority or total impacted count to be included in the response.",  # noqa: E501
@@ -1536,7 +1331,7 @@ async def get_supporting_service_impacts(
             "ids[]": resource_ids,
         }),
         headers=remove_none_values({
-            "Accept": accept_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1552,9 +1347,6 @@ async def get_supporting_service_impacts(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_top_level_business_service_impactors(
     context: ToolContext,
-    api_version_header: Annotated[
-        str, "Specify the version of the API to use via the Accept header."
-    ],
     business_service_ids: Annotated[
         str | None,
         "A list of IDs for the specific business services to retrieve impactors for. This filters the impactors to those affecting these services.",  # noqa: E501
@@ -1570,7 +1362,7 @@ async def get_top_level_business_service_impactors(
         method="GET",
         params=remove_none_values({"ids[]": business_service_ids}),
         headers=remove_none_values({
-            "Accept": api_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1586,9 +1378,6 @@ async def get_top_level_business_service_impactors(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_business_service_impacts(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "Specify the version of the API to use in the `Accept` header for versioning purposes."
-    ],
     include_additional_fields: Annotated[
         str | None,
         "Specify additional fields to include, like highest impacting priority or total impacted count. Options: 'services.highest_impacting_priority', 'total_impacted_count'.",  # noqa: E501
@@ -1609,7 +1398,7 @@ async def get_business_service_impacts(
             "ids[]": specific_business_service_ids,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1625,7 +1414,6 @@ async def get_business_service_impacts(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_priority_thresholds(
     context: ToolContext,
-    versioning_header: Annotated[str, "Specifies the API version in the 'Accept' header format."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getBusinessServicePriorityThresholds'."
 ]:
@@ -1637,7 +1425,7 @@ async def get_priority_thresholds(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1653,9 +1441,6 @@ async def get_priority_thresholds(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def clear_priority_thresholds(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "Specifies the API version using the `Accept` header for versioning."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteBusinessServicePriorityThresholds'."
 ]:
@@ -1667,7 +1452,7 @@ async def clear_priority_thresholds(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1683,12 +1468,6 @@ async def clear_priority_thresholds(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_change_events(
     context: ToolContext,
-    accept_versioning_header: Annotated[
-        str, "Specify the API version to use via the `Accept` header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Sets the content type of the request. It must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "The number of results to display per page of the response."
     ] = None,
@@ -1733,8 +1512,8 @@ async def list_change_events(
             "until": end_date_utc,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1750,13 +1529,6 @@ async def list_change_events(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def send_change_event(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "The `Accept` header used for versioning the API request. Specify the API version required.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "The MIME type of the request body. Should always be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'createChangeEvent'."]:
     """Send change events to Pagerduty's Events API.
 
@@ -1766,8 +1538,8 @@ async def send_change_event(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1784,12 +1556,6 @@ async def send_change_event(
 async def get_change_event_details(
     context: ToolContext,
     resource_id: Annotated[str, "The unique ID of the change event to retrieve details for."],
-    accept_version_header: Annotated[
-        str, "Specifies the API version using the `Accept` header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Sets the media type of the response. Typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getChangeEvent'."]:
     """Retrieve details about a specific change event.
 
@@ -1799,8 +1565,8 @@ async def get_change_event_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1816,13 +1582,6 @@ async def get_change_event_details(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_escalation_policies(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str,
-        "Specifies the API version to accept as a versioning header. Used for API response version control.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Indicate the media type for the response, typically 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None,
         "Specifies the number of escalation policy results returned per page. Used for pagination.",
@@ -1872,8 +1631,8 @@ async def list_escalation_policies(
             "sort_by": sort_results_by,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1890,13 +1649,6 @@ async def list_escalation_policies(
 async def get_escalation_policy_info(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier for the escalation policy resource."],
-    response_versioning_header: Annotated[
-        str,
-        "Specifies the API version for the response format. Use the `Accept` header to manage versioning.",  # noqa: E501
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the response format of the API. Use 'application/json'."
-    ],
     additional_models_to_include: Annotated[
         str | None,
         "Array of additional models to include in the escalation policy response. Options are 'services', 'teams', or 'targets'.",  # noqa: E501
@@ -1910,8 +1662,8 @@ async def get_escalation_policy_info(
         method="GET",
         params=remove_none_values({"include[]": additional_models_to_include}),
         headers=remove_none_values({
-            "Accept": response_versioning_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1931,13 +1683,6 @@ async def delete_escalation_policy(
         str,
         "The ID of the escalation policy to be deleted. Ensure it is not in use before proceeding.",
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specify the version for the `Accept` header as a string. This is required for versioning the API call.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the request body. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteEscalationPolicy'."]:
     """Delete an existing escalation policy.
 
@@ -1947,8 +1692,8 @@ async def delete_escalation_policy(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1965,13 +1710,6 @@ async def delete_escalation_policy(
 async def get_escalation_policy_audit_records(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the escalation policy to retrieve audit records for."],
-    version_header: Annotated[
-        str,
-        "Specify the API version header using the 'Accept' header to determine response format.",
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the response. Set as 'application/json'."
-    ],
     result_limit: Annotated[
         int | None,
         "Specify the maximum number of audit records to return, capped by the API's maximum limit.",
@@ -2006,8 +1744,8 @@ async def get_escalation_policy_audit_records(
             "until": end_date_range_for_search,
         }),
         headers=remove_none_values({
-            "Accept": version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2023,12 +1761,6 @@ async def get_escalation_policy_audit_records(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_global_event_orchestrations(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "The versioning header to specify the API version for the request."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the resource, should be set to 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "The number of results to display per page in the response."
     ] = None,
@@ -2053,8 +1785,8 @@ async def list_global_event_orchestrations(
             "sort_by": sort_by_field,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2073,11 +1805,6 @@ async def get_global_event_orchestration(
     event_orchestration_id: Annotated[
         str, "The unique ID of the Global Event Orchestration to retrieve details for."
     ],
-    api_versioning_header: Annotated[
-        str,
-        "Specifies the version of the API to use for requests. Determines response format and features.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "The media type of the request body. Must be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchestration'."]:
     """Fetch details of a Global Event Orchestration by ID.
 
@@ -2087,8 +1814,8 @@ async def get_global_event_orchestration(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2107,13 +1834,6 @@ async def delete_global_event_orchestration(
     event_orchestration_id: Annotated[
         str, "The unique identifier of the Event Orchestration to be deleted."
     ],
-    versioning_header: Annotated[
-        str,
-        "Specifies the version of the API to accept. Used for content negotiation and ensuring compatibility.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteOrchestration'."]:
     """Delete a Global Event Orchestration in PagerDuty.
 
@@ -2123,8 +1843,8 @@ async def delete_global_event_orchestration(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2143,12 +1863,6 @@ async def list_event_orchestration_integrations(
     event_orchestration_id: Annotated[
         str, "The unique identifier for the specific event orchestration to retrieve integrations."
     ],
-    accept_header: Annotated[
-        str, "Versioning header to specify the API version. Use as the 'Accept' header."
-    ],
-    content_type_json: Annotated[
-        str, "Specifies the content type as 'application/json' for the request header."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listOrchestrationIntegrations'."]:
     """Retrieve integrations for an event orchestration.
 
@@ -2160,8 +1874,8 @@ async def list_event_orchestration_integrations(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header,
-            "Content-Type": content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2183,14 +1897,6 @@ async def get_integration_details(
     integration_id: Annotated[
         str, "The unique identifier for the specific integration to retrieve details from."
     ],
-    accept_version_header: Annotated[
-        str,
-        "The versioning header to specify the API response format. Use correct API versioning as required.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specify the content type for the request headers. Only 'application/json' is accepted.",
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchestrationIntegration'."]:
     """Retrieve integration details for event orchestrations.
 
@@ -2202,8 +1908,8 @@ async def get_integration_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2223,10 +1929,6 @@ async def delete_integration_with_routing_key(
     integration_identifier: Annotated[
         str, "The unique identifier for the PagerDuty integration to be deleted."
     ],
-    versioning_header: Annotated[str, "Specify the API version to use for the 'Accept' header."],
-    content_type: Annotated[
-        str, "Specifies the content type for the request. It should be set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteOrchestrationIntegration'."]:
     """Deletes a PagerDuty integration and its routing key.
 
@@ -2238,8 +1940,8 @@ async def delete_integration_with_routing_key(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2259,12 +1961,6 @@ async def get_global_orchestration_rules(
         str,
         "The unique identifier for an Event Orchestration, required to fetch its global orchestration rules.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str, "The `Accept` header specifies the API version for the response."
-    ],
-    content_type: Annotated[
-        str, "The content type header for the request, expected to be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchPathGlobal'."]:
     """Fetch the Global Orchestration Rules for Event Processing.
 
@@ -2276,8 +1972,8 @@ async def get_global_orchestration_rules(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2296,13 +1992,6 @@ async def get_orchestration_routing_rules(
     event_orchestration_id: Annotated[
         str, "The unique identifier for the Event Orchestration to retrieve routing rules."
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to use, using the `Accept` header as a versioning header.",
-    ],
-    set_content_type: Annotated[
-        str, "Specify the Content-Type header. Only 'application/json' is accepted."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchPathRouter'."]:
     """Retrieve routing rules for a Global Orchestration.
 
@@ -2314,8 +2003,8 @@ async def get_orchestration_routing_rules(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": set_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2334,13 +2023,6 @@ async def get_unrouted_event_rules(
     event_orchestration_id: Annotated[
         str, "The unique identifier for an Event Orchestration to fetch unrouted event rules."
     ],
-    accept_header_for_versioning: Annotated[
-        str,
-        "The `Accept` header specifies the API version for the request. Expected format is a string indicating the desired version.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request body. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchPathUnrouted'."]:
     """Retrieve rules for unrouted events in a global orchestration.
 
@@ -2352,8 +2034,8 @@ async def get_unrouted_event_rules(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_for_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2372,12 +2054,6 @@ async def get_service_orchestration(
     service_identifier: Annotated[
         str, "The unique ID of the service for which orchestration details are to be retrieved."
     ],
-    response_version: Annotated[
-        str, "Specifies the API version for the response using the Accept header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the request. Use 'application/json'."
-    ],
     include_models: Annotated[
         str | None,
         "An array of additional models like 'migrated_metadata' to include in the response.",
@@ -2393,8 +2069,8 @@ async def get_service_orchestration(
         method="GET",
         params=remove_none_values({"include[]": include_models}),
         headers=remove_none_values({
-            "Accept": response_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2411,12 +2087,6 @@ async def get_service_orchestration(
 async def get_service_orchestration_status(
     context: ToolContext,
     service_id: Annotated[str, "The unique identifier for the service you want to query."],
-    api_version_accept_header: Annotated[
-        str, "The `Accept` header to specify the API version for the request."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOrchActiveStatus'."]:
     """Retrieve a service orchestration's active status.
 
@@ -2428,8 +2098,8 @@ async def get_service_orchestration_status(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2449,10 +2119,6 @@ async def list_cache_variables(
         str,
         "The unique identifier for an Event Orchestration. Required to list the cache variables.",
     ],
-    version_accept_header: Annotated[
-        str, "Specify the API version using the 'Accept' header for versioning."
-    ],
-    content_type: Annotated[str, "The content type header, expected to be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listCacheVarOnGlobalOrch'."]:
     """Retrieve cache variables for a global event orchestration.
 
@@ -2464,8 +2130,8 @@ async def list_cache_variables(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2485,11 +2151,6 @@ async def create_cache_variable_global_event(
         str,
         "The unique identifier for the Event Orchestration. This ID is used to specify which orchestration the cache variable will be created for.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the `Accept` versioning header for API version control. Required for obtaining the correct API version.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "Set the content type for the request. Use 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'createCacheVarOnGlobalOrch'."]:
     """Create a cache variable for global event orchestration.
 
@@ -2501,8 +2162,8 @@ async def create_cache_variable_global_event(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2525,12 +2186,6 @@ async def get_global_orch_cache_variable(
     cache_variable_identifier: Annotated[
         str, "The unique ID of a Cache Variable to retrieve within a Global Event Orchestration."
     ],
-    use_versioning_header: Annotated[
-        str, "Specify the API version using the 'Accept' header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Set the Content-Type for the request. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getCacheVarOnGlobalOrch'."]:
     """Fetch a Cache Variable for a Global Event Orchestration.
 
@@ -2542,8 +2197,8 @@ async def get_global_orch_cache_variable(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": use_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2565,11 +2220,6 @@ async def update_event_cache_variable(
     cache_variable_id: Annotated[
         str, "The ID of the Cache Variable to update for the event orchestration."
     ],
-    accept_header: Annotated[
-        str,
-        "Specifies the version of the API to be used during the request. Set this to ensure compatibility.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "The media type of the request body. Must be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'updateCacheVarOnGlobalOrch'."]:
     """Update a cache variable for a global event orchestration.
 
@@ -2581,8 +2231,8 @@ async def update_event_cache_variable(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2606,12 +2256,6 @@ async def delete_cache_variable_event_orchestration(
         str,
         "The ID of a specific Cache Variable to be deleted. Required for identifying the variable within the event orchestration.",  # noqa: E501
     ],
-    accept_versioning_header: Annotated[
-        str, "Specifies the versioning of the API using the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the resource (must be 'application/json')."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteCacheVarOnGlobalOrch'."]:
     """Delete a cache variable for a global event orchestration.
 
@@ -2623,8 +2267,8 @@ async def delete_cache_variable_event_orchestration(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2646,13 +2290,6 @@ async def get_external_data_cache_variable(
     cache_variable_id: Annotated[
         str, "The ID of the cache variable to retrieve data for in the orchestration."
     ],
-    versioning_header: Annotated[
-        str, "The `Accept` header used for API versioning. Specify the desired version format."
-    ],
-    content_type: Annotated[
-        str,
-        "Sets the content type of the request to 'application/json'. This is required for the API call.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getExternalDataCacheVarDataOnGlobalOrch'."
 ]:
@@ -2666,8 +2303,8 @@ async def get_external_data_cache_variable(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2687,12 +2324,6 @@ async def update_cache_variable_data(
         str, "The unique ID of the Event Orchestration to update the cache variable for."
     ],
     cache_variable_id: Annotated[str, "The unique identifier for the Cache Variable to update."],
-    accept_version_header: Annotated[
-        str, "Specify the API version using the 'Accept' header as a versioning header."
-    ],
-    content_type: Annotated[
-        str, "Indicate the media type of the resource. Use 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'updateExternalDataCacheVarDataOnGlobalOrch'."
 ]:
@@ -2706,8 +2337,8 @@ async def update_cache_variable_data(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2730,12 +2361,6 @@ async def delete_external_data_cache_variable(
     cache_variable_id: Annotated[
         str, "The unique identifier for the specific cache variable to be deleted."
     ],
-    accept_version_header: Annotated[
-        str, "Specify the API version with the Accept header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the Content-Type header for requests. Only 'application/json' is valid."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteExternalDataCacheVarDataOnGlobalOrch'."
 ]:
@@ -2749,8 +2374,8 @@ async def delete_external_data_cache_variable(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2769,12 +2394,6 @@ async def list_service_event_cache_variables(
     service_id: Annotated[
         str, "The unique identifier for the service to retrieve cache variables."
     ],
-    api_version_accept_header: Annotated[
-        str, "Specifies the API version using the 'Accept' header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the content type of the request, should be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listCacheVarOnServiceOrch'."]:
     """List cache variables for a service event orchestration.
 
@@ -2786,8 +2405,8 @@ async def list_service_event_cache_variables(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2806,12 +2425,6 @@ async def create_cache_variable_for_event(
     service_id: Annotated[
         str, "The unique identifier for the service where the cache variable will be created."
     ],
-    versioning_header: Annotated[
-        str, "The versioning header used to specify the API version for requests."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type of the request. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'createCacheVarOnServiceOrch'."]:
     """Create a cache variable for service event orchestration.
 
@@ -2823,8 +2436,8 @@ async def create_cache_variable_for_event(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2847,13 +2460,6 @@ async def get_service_event_cache_variable(
     cache_variable_id: Annotated[
         str, "The unique identifier for the cache variable in the service event orchestration."
     ],
-    versioning_header: Annotated[
-        str,
-        "Specifies the API versioning using the 'Accept' header. Provide the version of the API you want to use.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the resource, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getCacheVarOnServiceOrch'."]:
     """Retrieve a cache variable from a service event orchestration.
 
@@ -2865,8 +2471,8 @@ async def get_service_event_cache_variable(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2888,13 +2494,6 @@ async def update_service_event_cache_variable(
     cache_variable_id: Annotated[
         str, "The unique identifier for the cache variable you want to update."
     ],
-    accept_version_header: Annotated[
-        str,
-        "A string representing the version of the API to use, specified in the `Accept` header.",
-    ],
-    content_type: Annotated[
-        str, "Specify the content type of the request header. Typically set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'updateCacheVarOnServiceOrch'."]:
     """Update a cache variable for a service event orchestration.
 
@@ -2906,8 +2505,8 @@ async def update_service_event_cache_variable(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2929,12 +2528,6 @@ async def delete_cache_variable(
     cache_variable_id: Annotated[
         str, "The ID of the Cache Variable to be deleted from the service event orchestration."
     ],
-    api_version_accept_header: Annotated[
-        str, "Specify the API version using the `Accept` header for version control."
-    ],
-    content_type_header: Annotated[
-        str, "The MIME type for the request content, should be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteCacheVarOnServiceOrch'."]:
     """Delete a cache variable from a service event orchestration.
 
@@ -2946,8 +2539,8 @@ async def delete_cache_variable(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2970,13 +2563,6 @@ async def retrieve_service_cache_variable(
         str,
         "The unique identifier for a Cache Variable. Use this to specify which external data cache variable you want to retrieve for service event orchestration.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str,
-        "Specify the API version using the 'Accept' header. This is crucial for version control.",
-    ],
-    content_type: Annotated[
-        str, "Set to 'application/json' to specify the data format for the request."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getExternalDataCacheVarDataOnServiceOrch'."
 ]:
@@ -2990,8 +2576,8 @@ async def retrieve_service_cache_variable(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3011,13 +2597,6 @@ async def update_external_data_cache_variable(
     cache_variable_id: Annotated[
         str, "The ID of the cache variable to be updated in the service orchestration."
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to use by setting the Accept header value. This controls versioning for the request.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Set the content type for the request. Must be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'updateExternalDataCacheVarDataOnServiceOrch'."
 ]:
@@ -3031,8 +2610,8 @@ async def update_external_data_cache_variable(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3054,12 +2633,6 @@ async def delete_service_cache_variable_data(
     cache_variable_id: Annotated[
         str, "The unique identifier for a Cache Variable in a service's event orchestration."
     ],
-    versioning_header: Annotated[
-        str, "The version of the API to use, specified by the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "The Content-Type header for the request, typically set to 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteExternalDataCacheVarDataOnServiceOrch'."
 ]:
@@ -3073,8 +2646,8 @@ async def delete_service_cache_variable_data(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3093,10 +2666,6 @@ async def list_event_orchestration_features(
     event_orchestration_id: Annotated[
         str, "The unique identifier for the Event Orchestration to retrieve feature settings for."
     ],
-    accept_header_version: Annotated[
-        str, "The versioning header used to specify the API version in the request."
-    ],
-    content_type: Annotated[str, "Specify the media type of the request. Use 'application/json'."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'listEventOrchestrationFeatureEnablements'."
 ]:
@@ -3110,8 +2679,8 @@ async def list_event_orchestration_features(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3127,13 +2696,6 @@ async def list_event_orchestration_features(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_extension_schemas(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "Specifies the version of the API response. Used for versioning with the `Accept` header.",
-    ],
-    set_content_type: Annotated[
-        str, "Specify the content type of the request. Use 'application/json' for JSON format."
-    ],
     results_per_page: Annotated[
         int | None, "The number of results to display per page when listing extension schemas."
     ] = None,
@@ -3158,8 +2720,8 @@ async def list_extension_schemas(
             "total": include_total_in_pagination,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": set_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3178,12 +2740,6 @@ async def get_extension_vendor_details(
     extension_vendor_id: Annotated[
         str, "The unique identifier for the specific PagerDuty extension vendor."
     ],
-    versioning_header: Annotated[
-        str, "Specifies the API version to use. Set this using the `Accept` header format."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the response content. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getExtensionSchema'."]:
     """Retrieve details of a specific PagerDuty extension vendor.
 
@@ -3193,8 +2749,8 @@ async def get_extension_vendor_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3210,13 +2766,6 @@ async def get_extension_vendor_details(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_pagerduty_extensions(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to accept using the 'Accept' header for versioning purposes.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Sets the Content-Type of the request, typically 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of extensions to retrieve per page."
     ] = None,
@@ -3258,8 +2807,8 @@ async def list_pagerduty_extensions(
             "include[]": include_additional_details,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3278,13 +2827,6 @@ async def get_extension_details(
     extension_id: Annotated[
         str, "The unique ID of the PagerDuty extension to retrieve details for."
     ],
-    versioning_header: Annotated[
-        str, "The versioning header for the API request. Specify the desired API version."
-    ],
-    content_type_header: Annotated[
-        str,
-        'Indicates the format of the request payload. Use "application/json" for JSON formatted data.',  # noqa: E501
-    ],
     include_additional_details: Annotated[
         str | None,
         "Specify additional details to include in the response. Options are 'extension_schemas', 'extension_objects', and 'temporarily_disabled'.",  # noqa: E501
@@ -3298,8 +2840,8 @@ async def get_extension_details(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3319,12 +2861,6 @@ async def delete_extension(
         str,
         "The unique identifier for the extension to be deleted. This is necessary to specify which extension to remove.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str, "Set the `Accept` header for versioning. Specify the API version to use."
-    ],
-    content_type_header: Annotated[
-        str, "The Content-Type header must be set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteExtension'."]:
     """Delete an existing extension in Pagerduty.
 
@@ -3334,8 +2870,8 @@ async def delete_extension(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3352,10 +2888,6 @@ async def delete_extension(
 async def enable_extension(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the extension resource to enable in Pagerduty."],
-    api_version: Annotated[
-        str, "Specify the API version using the 'Accept' header for versioning purposes."
-    ],
-    content_type: Annotated[str, "Specify the content type of the request as 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'enableExtension'."]:
     """Enable a temporarily disabled extension in Pagerduty.
 
@@ -3365,8 +2897,8 @@ async def enable_extension(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3382,13 +2914,6 @@ async def enable_extension(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incident_workflows(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str,
-        "Specify the API version using the `Accept` header. This determines the format and version of the response returned.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request. Use 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the maximum number of incident workflow results to return per page."
     ] = None,
@@ -3421,8 +2946,8 @@ async def list_incident_workflows(
             "include[]": include_additional_details,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3442,12 +2967,6 @@ async def get_incident_workflow(
         str,
         "The unique identifier for the Incident Workflow you wish to retrieve. This ID is required to specify the exact workflow in Pagerduty.",  # noqa: E501
     ],
-    accept_versioning_header: Annotated[
-        str, "The `Accept` header specifies the API version for retrieving the Incident Workflow."
-    ],
-    content_type: Annotated[
-        str, "Set to 'application/json' to specify the format of the data being sent."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getIncidentWorkflow'."]:
     """Retrieve details of an existing Incident Workflow.
 
@@ -3457,8 +2976,8 @@ async def get_incident_workflow(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3475,12 +2994,6 @@ async def get_incident_workflow(
 async def delete_incident_workflow(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier of the incident workflow to be deleted."],
-    api_version_header: Annotated[
-        str, "The API versioning header used for specifying which version of the API to use."
-    ],
-    content_type_header: Annotated[
-        str, "The media type of the request, set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteIncidentWorkflow'."]:
     """Deletes an existing incident workflow by ID.
 
@@ -3490,8 +3003,8 @@ async def delete_incident_workflow(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3507,13 +3020,6 @@ async def delete_incident_workflow(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incident_workflow_actions(
     context: ToolContext,
-    api_version_accept_header: Annotated[
-        str, "Specifies the API version to accept using the 'Accept' header for versioning."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Sets the Content-Type header for the request. Use 'application/json' to specify JSON response format.",  # noqa: E501
-    ],
     limit_results: Annotated[
         int | None, "Specifies the maximum number of workflow actions to return in the response."
     ] = None,
@@ -3538,8 +3044,8 @@ async def list_incident_workflow_actions(
             "keyword": filter_by_keyword,
         }),
         headers=remove_none_values({
-            "Accept": api_version_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3556,10 +3062,6 @@ async def list_incident_workflow_actions(
 async def get_incident_workflow_action(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the incident workflow action to retrieve details for."],
-    version_accept_header: Annotated[str, "The versioning header used for API version control."],
-    content_type_header: Annotated[
-        str, "Specifies the format of the request body. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getIncidentWorkflowAction'."]:
     """Retrieve details of a specific incident workflow action.
 
@@ -3569,8 +3071,8 @@ async def get_incident_workflow_action(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3586,10 +3088,6 @@ async def get_incident_workflow_action(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incident_workflow_triggers(
     context: ToolContext,
-    accept_version_header: Annotated[str, "Specify the `Accept` header for API versioning."],
-    content_type: Annotated[
-        str, "Specifies the media type of the request. Use 'application/json'."
-    ],
     filter_by_workflow_id: Annotated[
         str | None,
         "Filter triggers to those configured to start the specified workflow ID. Useful for listing services associated with it.",  # noqa: E501
@@ -3644,8 +3142,8 @@ async def list_incident_workflow_triggers(
             "cursor": pagination_cursor,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3664,12 +3162,6 @@ async def get_incident_workflow_trigger(
     resource_id: Annotated[
         str, "The unique identifier for the resource to retrieve the Incident Workflows Trigger."
     ],
-    versioning_header: Annotated[
-        str, "Specifies the version of the API to use. This is set via the 'Accept' header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the returned data. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getIncidentWorkflowTrigger'."]:
     """Retrieve details of an existing Incident Workflows Trigger.
 
@@ -3679,8 +3171,8 @@ async def get_incident_workflow_trigger(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3699,12 +3191,6 @@ async def delete_incident_workflow_trigger(
     resource_id: Annotated[
         str, "The unique identifier for the incident workflow trigger to be deleted."
     ],
-    accept_version_header: Annotated[
-        str, "The versioning identifier for the API, specified in the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type of the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteIncidentWorkflowTrigger'."]:
     """Deletes an existing incident workflow trigger.
 
@@ -3714,8 +3200,8 @@ async def delete_incident_workflow_trigger(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3737,12 +3223,6 @@ async def remove_service_from_workflow_trigger(
     service_identifier: Annotated[
         str, "The unique identifier for the service to be removed from the workflow trigger."
     ],
-    accept_header_version: Annotated[
-        str, "Specifies the API version using the 'Accept' header for versioning."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Must be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteServiceFromIncidentWorkflowTrigger'."
 ]:
@@ -3756,8 +3236,8 @@ async def remove_service_from_workflow_trigger(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3773,13 +3253,6 @@ async def remove_service_from_workflow_trigger(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incidents(
     context: ToolContext,
-    version_accept_header: Annotated[
-        str,
-        "Specify the `Accept` header for versioning purposes. This determines the version of the API response.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the request. Must be 'application/json'."
-    ],
     number_of_results_per_page: Annotated[
         int | None, "Specifies the number of incidents to return per page, up to a maximum of 100."
     ] = None,
@@ -3862,8 +3335,8 @@ async def list_incidents(
             "until": end_date_range,
         }),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3882,12 +3355,6 @@ async def retrieve_incident_detail(
     incident_id: Annotated[
         str, "The unique identifier or number for the incident to retrieve details."
     ],
-    response_version: Annotated[
-        str, "Specify the version of the API response using the `Accept` header format."
-    ],
-    content_type_header: Annotated[
-        str, "Set to 'application/json' to specify the content type in the request header."
-    ],
     additional_details_to_include: Annotated[
         str | None,
         "Array of additional details to include, such as 'acknowledgers', 'agents', etc.",
@@ -3901,8 +3368,8 @@ async def retrieve_incident_detail(
         method="GET",
         params=remove_none_values({"include[]": additional_details_to_include}),
         headers=remove_none_values({
-            "Accept": response_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3919,12 +3386,6 @@ async def retrieve_incident_detail(
 async def list_incident_alerts(
     context: ToolContext,
     incident_id: Annotated[str, "The unique identifier for the incident to retrieve alerts."],
-    accept_versioning_header: Annotated[
-        str, "Specify the version of the API to accept using the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "Specify the format of the content. Use 'application/json' for JSON format."
-    ],
     results_per_page: Annotated[
         int | None, "Specifies the number of alert results to return per page."
     ] = None,
@@ -3967,8 +3428,8 @@ async def list_incident_alerts(
             "include[]": additional_details_to_include,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3988,12 +3449,6 @@ async def get_incident_alert_details(
         str, "The unique identifier of the alert resource to retrieve details for."
     ],
     alert_id: Annotated[str, "The ID of the alert you want to retrieve details for."],
-    response_version_header: Annotated[
-        str, "Specifies the API version to use in the request via the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. For this API, use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getIncidentAlert'."]:
     """Retrieve detailed information about a specific alert.
 
@@ -4005,8 +3460,8 @@ async def get_incident_alert_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": response_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4025,10 +3480,6 @@ async def get_impacted_business_services(
     incident_id: Annotated[
         str, "The unique identifier for the incident affecting business services."
     ],
-    versioning_header: Annotated[
-        str,
-        "Specify the version of the API to use by providing the appropriate `Accept` header value.",
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getIncidentImpactedBusinessServices'."
 ]:
@@ -4042,7 +3493,7 @@ async def get_impacted_business_services(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4087,12 +3538,6 @@ async def get_incident_field_values(
 async def list_incident_log_entries(
     context: ToolContext,
     incident_id: Annotated[str, "The unique ID of the incident to retrieve log entries for."],
-    versioning_header: Annotated[
-        str, "Specify the API version using the `Accept` header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the format of the response data. Typically, use 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specifies the number of log entries returned per page."
     ] = None,
@@ -4141,8 +3586,8 @@ async def list_incident_log_entries(
             "include[]": additional_models_to_include,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4159,12 +3604,6 @@ async def list_incident_log_entries(
 async def list_incident_notes(
     context: ToolContext,
     incident_id: Annotated[str, "The unique ID of the incident for which to list notes."],
-    accept_version_header: Annotated[
-        str, "Specifies the versioning information for the API using the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the content format for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listIncidentNotes'."]:
     """Retrieve existing notes for a specified incident.
 
@@ -4174,8 +3613,8 @@ async def list_incident_notes(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4192,12 +3631,6 @@ async def list_incident_notes(
 async def get_outlier_incident_info(
     context: ToolContext,
     incident_id: Annotated[str, "The unique ID of the incident to retrieve outlier details for."],
-    accept_versioning_header: Annotated[
-        str, "Specify the API version as a string using the `Accept` header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request body. Must be 'application/json'."
-    ],
     start_date_for_search: Annotated[
         str | None, "The start date of the range for searching outlier incidents."
     ] = None,
@@ -4217,8 +3650,8 @@ async def get_outlier_incident_info(
             "additional_details[]": additional_attributes_for_related_incidents,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4238,12 +3671,6 @@ async def retrieve_past_incidents(
         str,
         "The identifier of the service or incident for which past incidents are to be retrieved.",
     ],
-    versioning_header: Annotated[
-        str, "Specify the version of the API using the 'Accept' header for versioning control."
-    ],
-    content_type: Annotated[
-        str, "Specifies the content type of the response. Use 'application/json'."
-    ],
     results_limit: Annotated[
         int | None, "Specify the number of past incidents to be returned."
     ] = None,
@@ -4260,8 +3687,8 @@ async def retrieve_past_incidents(
         method="GET",
         params=remove_none_values({"limit": results_limit, "total": include_total_count}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4280,12 +3707,6 @@ async def list_related_change_events_for_incident(
     incident_id: Annotated[
         str, "The unique ID of the incident for which related change events are to be retrieved."
     ],
-    versioning_header_accept: Annotated[
-        str, "Specifies the version of the response format using the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the Content-Type header, typically set to 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specifies the number of change events to return per page."
     ] = None,
@@ -4298,8 +3719,8 @@ async def list_related_change_events_for_incident(
         method="GET",
         params=remove_none_values({"limit": results_per_page}),
         headers=remove_none_values({
-            "Accept": versioning_header_accept,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4318,12 +3739,6 @@ async def get_recent_related_incidents(
     resource_id: Annotated[
         str, "The unique identifier of the resource to fetch related incidents for."
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API using the 'Accept' header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Sets the 'Content-Type' header. Should be 'application/json'."
-    ],
     include_additional_incident_details: Annotated[
         str | None,
         "Indicate if additional attributes should be included for returned incidents. Valid option is 'incident'.",  # noqa: E501
@@ -4337,8 +3752,8 @@ async def get_recent_related_incidents(
         method="GET",
         params=remove_none_values({"additional_details[]": include_additional_incident_details}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4357,7 +3772,6 @@ async def get_incident_notification_subscribers(
     incident_id: Annotated[
         str, "The unique identifier for the incident to retrieve its notification subscribers."
     ],
-    versioning_header: Annotated[str, "Specifies the 'Accept' header for API versioning."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getIncidentNotificationSubscribers'."
 ]:
@@ -4371,7 +3785,7 @@ async def get_incident_notification_subscribers(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4387,12 +3801,6 @@ async def get_incident_notification_subscribers(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incident_types(
     context: ToolContext,
-    accept_versioning_header: Annotated[
-        str, "Specifies the versioning for the API response by setting the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type for the request. Use 'application/json'."
-    ],
     filter_incident_types_by_state: Annotated[
         str | None, "Filter incident types by their enabled state: 'enabled', 'disabled', or 'all'."
     ] = None,
@@ -4405,8 +3813,8 @@ async def list_incident_types(
         method="GET",
         params=remove_none_values({"filter": filter_incident_types_by_state}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4425,12 +3833,6 @@ async def get_incident_type_info(
     incident_type_identifier: Annotated[
         str, "The ID or name of the incident type to get detailed information about it."
     ],
-    accept_version_header: Annotated[
-        str, "Specifies the API version for response format using the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "Specify the Content-Type for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getIncidentType'."]:
     """Get detailed information about a specific incident type.
 
@@ -4442,8 +3844,8 @@ async def get_incident_type_info(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4462,13 +3864,6 @@ async def list_incident_custom_fields(
     incident_type_identifier: Annotated[
         str, "The ID or name of the incident type to retrieve custom fields for."
     ],
-    accept_header_version: Annotated[
-        str,
-        "The versioning header for the API response. Specify the desired version using the `Accept` header.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Set this to 'application/json' to specify the content type of the response."
-    ],
     include_additional_details: Annotated[
         str | None,
         "Specifies additional details to include in the response, such as 'field_options'.",
@@ -4484,8 +3879,8 @@ async def list_incident_custom_fields(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4507,12 +3902,6 @@ async def get_custom_field_for_incident_type(
     field_identifier: Annotated[
         str, "The unique ID of the custom field to retrieve for the incident type."
     ],
-    versioning_accept_header: Annotated[
-        str, "The `Accept` header used for versioning the API response. Specify the version needed."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the content type for the response, typically 'application/json'."
-    ],
     include_field_options: Annotated[
         str | None, "Optional: Specify 'field_options' to include additional details."
     ] = None,
@@ -4525,8 +3914,8 @@ async def get_custom_field_for_incident_type(
         method="GET",
         params=remove_none_values({"include[]": include_field_options}),
         headers=remove_none_values({
-            "Accept": versioning_accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4548,12 +3937,6 @@ async def delete_incident_custom_field(
     field_id: Annotated[
         str, "The unique identifier for the custom field to be deleted from the incident type."
     ],
-    version_accept_header: Annotated[
-        str, "Specify the API version using the `Accept` header format."
-    ],
-    content_type: Annotated[
-        str, "Specifies the content type of the request body, usually 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteIncidentTypeCustomField'."]:
     """Delete a custom field from an incident type.
 
@@ -4565,8 +3948,8 @@ async def delete_incident_custom_field(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4588,13 +3971,6 @@ async def list_custom_field_options(
     field_identifier: Annotated[
         str, "The unique identifier for the custom field whose options are being retrieved."
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specifies the API versioning for the request using the Accept header. Ensure this matches the required version format.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "The format of the requested response, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listIncidentTypeCustomField'."]:
     """List available options for a custom incident field.
 
@@ -4606,8 +3982,8 @@ async def list_custom_field_options(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4629,12 +4005,6 @@ async def get_custom_field_option_details(
     ],
     field_option_id: Annotated[str, "The unique ID of the field option to retrieve details for."],
     field_identifier: Annotated[str, "The unique ID of the custom field for the incident type."],
-    accept_version_header: Annotated[
-        str, "Specify the version of the API to use by setting the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the request. Usually set to 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getIncidentTypeCustomFieldFieldOptions'."
 ]:
@@ -4650,8 +4020,8 @@ async def get_custom_field_option_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4676,10 +4046,6 @@ async def delete_custom_field_option(
     field_id: Annotated[
         str, "The unique identifier of the custom field associated with the incident type."
     ],
-    accept_version_header: Annotated[str, "Specify the `Accept` header for API versioning."],
-    set_content_type: Annotated[
-        str, "Specify the media type of the request payload. Must be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteIncidentTypeCustomFieldFieldOption'."
 ]:
@@ -4695,8 +4061,8 @@ async def delete_custom_field_option(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": set_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4712,12 +4078,6 @@ async def delete_custom_field_option(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_license_allocations(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "Specify the API version using the `Accept` header as a versioning header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the MIME type of the request body. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of results to return per page."
     ] = None,
@@ -4733,8 +4093,8 @@ async def list_license_allocations(
         method="GET",
         params=remove_none_values({"limit": results_per_page, "offset": pagination_offset}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4750,13 +4110,6 @@ async def list_license_allocations(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_account_licenses(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str,
-        "Specify the versioning header using the 'Accept' header to determine API response format.",
-    ],
-    content_type: Annotated[
-        str, "Specifies the mime type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listLicenses'."]:
     """Fetches licenses associated with your account.
 
@@ -4766,8 +4119,8 @@ async def list_account_licenses(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4783,12 +4136,6 @@ async def list_account_licenses(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def fetch_incident_logs(
     context: ToolContext,
-    accept_header: Annotated[
-        str, "The versioning header for API requests. Specify the API version to use."
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the media type for the response. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of log entry results to return per page."
     ] = None,
@@ -4842,8 +4189,8 @@ async def fetch_incident_logs(
             "team_ids[]": team_ids,
         }),
         headers=remove_none_values({
-            "Accept": accept_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4862,13 +4209,6 @@ async def get_incident_log_entry(
     incident_log_entry_id: Annotated[
         str, "The unique identifier of the incident log entry to retrieve."
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API using the `Accept` header versioning format."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specify the content type of the request header. Use 'application/json' for JSON responses.",  # noqa: E501
-    ],
     results_time_zone: Annotated[
         str | None,
         "Specify the time zone for rendering results. Defaults to the account's time zone.",
@@ -4886,8 +4226,8 @@ async def get_incident_log_entry(
         method="GET",
         params=remove_none_values({"time_zone": results_time_zone, "include[]": include_models}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4903,12 +4243,6 @@ async def get_incident_log_entry(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_maintenance_windows(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "Use the 'Accept' header to specify the API versioning for the request."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request body. Use 'application/json'."
-    ],
     name_filter_query: Annotated[
         str | None, "Filter results to show only maintenance windows whose name matches this query."
     ] = None,
@@ -4955,8 +4289,8 @@ async def list_maintenance_windows(
             "filter": maintenance_window_state_filter,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4975,12 +4309,6 @@ async def get_maintenance_window(
     maintenance_window_id: Annotated[
         str, "The ID of the maintenance window you want to retrieve details for."
     ],
-    accept_version_header: Annotated[
-        str, "Specifies the versioning header using the `Accept` header format."
-    ],
-    set_content_type: Annotated[
-        str, "Sets the content type for the request. Typically 'application/json'."
-    ],
     include_models: Annotated[
         str | None,
         "Specify additional models to include in the response. Options: 'teams', 'services', 'users'. Accepts an array of strings.",  # noqa: E501
@@ -4994,8 +4322,8 @@ async def get_maintenance_window(
         method="GET",
         params=remove_none_values({"include[]": include_models}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": set_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5014,13 +4342,6 @@ async def delete_future_or_active_maintenance_window(
     maintenance_window_id: Annotated[
         str, "The ID of the maintenance window to be deleted or ended."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specify the version for the API by using the 'Accept' header. This is required for versioning of the API response.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the format of the request body. Must be set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteMaintenanceWindow'."]:
     """Delete or end a future or active maintenance window.
 
@@ -5030,8 +4351,8 @@ async def delete_future_or_active_maintenance_window(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5054,12 +4375,6 @@ async def list_notifications(
     end_date: Annotated[
         str,
         "Specify the end date for the search range. Must be in the same format as the start date ('since') and within 3 months of it.",  # noqa: E501
-    ],
-    versioning_header: Annotated[
-        str, "Specify the versioning for the API response using the Accept header."
-    ],
-    content_type: Annotated[
-        str, "Specify the format of the response, typically set to 'application/json'."
     ],
     results_per_page: Annotated[
         int | None, "Specify the number of notification results to display per page."
@@ -5099,8 +4414,8 @@ async def list_notifications(
             "include[]": additional_details_to_include,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5123,14 +4438,6 @@ async def revoke_oauth_delegations(
         str,
         "Specifies OAuth delegations to target: 'mobile' or 'web'. Multiple values can be separated by commas.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str,
-        "The versioning header used to specify the API version. Typically a format like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str,
-        "Specify the type of content being sent. Only 'application/json' is accepted for this API.",
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteOauthDelegations'."]:
     """Revoke all OAuth delegations for specified criteria.
 
@@ -5140,8 +4447,8 @@ async def revoke_oauth_delegations(
         method="DELETE",
         params=remove_none_values({"user_id": user_identifier, "type": delegation_type}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5157,13 +4464,6 @@ async def revoke_oauth_delegations(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_on_call_entries(
     context: ToolContext,
-    versioning_header: Annotated[
-        str, "Specify the version of the API to use by setting the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str,
-        "The Content-Type header specifies the media type of the request. Use 'application/json'.",
-    ],
     results_time_zone: Annotated[
         str | None,
         "Time zone in which results will be rendered. Defaults to the account time zone if not specified.",  # noqa: E501
@@ -5228,8 +4528,8 @@ async def list_on_call_entries(
             "earliest": return_earliest_on_call,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5245,13 +4545,6 @@ async def list_on_call_entries(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def fetch_recent_paused_incident_alerts(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "The version of the API to use, specified by the `Accept` header. Used for versioning control.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Set this to 'application/json' to specify the format of the request content."
-    ],
     start_date_range: Annotated[
         str | None, "The start date for the search range in ISO 8601 format (YYYY-MM-DD)."
     ] = None,
@@ -5279,8 +4572,8 @@ async def fetch_recent_paused_incident_alerts(
             "suspended_by": filter_by_suspension_method,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5296,12 +4589,6 @@ async def fetch_recent_paused_incident_alerts(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_paused_incident_report_counts(
     context: ToolContext,
-    use_accept_versioning: Annotated[
-        str, "Specify if the `Accept` header should be used as a versioning header. True to enable."
-    ],
-    content_type_header: Annotated[
-        str, "Sets the content type for the request; must be 'application/json'."
-    ],
     start_date: Annotated[
         str | None, "The start date for the search range in YYYY-MM-DD format."
     ] = None,
@@ -5330,8 +4617,8 @@ async def get_paused_incident_report_counts(
             "suspended_by": filter_by_suspended_source,
         }),
         headers=remove_none_values({
-            "Accept": use_accept_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5347,10 +4634,6 @@ async def get_paused_incident_report_counts(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_incident_priorities(
     context: ToolContext,
-    accept_versioning_header: Annotated[
-        str, "The versioning header for API requests, used to specify the API version to accept."
-    ],
-    content_type_header: Annotated[str, "Set the 'Content-Type' header as 'application/json'."],
     results_per_page: Annotated[
         int | None, "Number of incident priorities to include per page."
     ] = None,
@@ -5374,8 +4657,8 @@ async def list_incident_priorities(
             "total": include_total_in_response,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5391,13 +4674,6 @@ async def list_incident_priorities(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_pagerduty_rulesets(
     context: ToolContext,
-    api_version_header: Annotated[
-        str,
-        "Specify the version of the API to use via the 'Accept' header. This is used for versioning.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the response. Default is 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specifies the number of rulesets to be returned per page in the result set."
     ] = None,
@@ -5422,8 +4698,8 @@ async def list_pagerduty_rulesets(
             "total": include_total_in_response,
         }),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5440,13 +4716,6 @@ async def list_pagerduty_rulesets(
 async def get_pagerduty_ruleset(
     context: ToolContext,
     ruleset_id: Annotated[str, "The unique identifier for the PagerDuty ruleset to retrieve."],
-    accept_version_header: Annotated[
-        str,
-        "Specify the version of the API to accept using the `Accept` header. This is used for versioning the API response.",  # noqa: E501
-    ],
-    content_type_json: Annotated[
-        str, "The 'Content-Type' header must be set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getRuleset'."]:
     """Retrieve a PagerDuty ruleset for event routing.
 
@@ -5456,8 +4725,8 @@ async def get_pagerduty_ruleset(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5474,12 +4743,6 @@ async def get_pagerduty_ruleset(
 async def delete_ruleset(
     context: ToolContext,
     ruleset_id: Annotated[str, "The unique identifier for the ruleset to be deleted."],
-    use_versioning_header: Annotated[
-        str, "Specify the `Accept` versioning header to determine the API version."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteRuleset'."]:
     """Delete a ruleset from Pagerduty.
 
@@ -5489,8 +4752,8 @@ async def delete_ruleset(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": use_versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5507,13 +4770,6 @@ async def delete_ruleset(
 async def list_event_rules(
     context: ToolContext,
     ruleset_id: Annotated[str, "The unique ID of the ruleset to retrieve event rules for."],
-    accept_version_header: Annotated[
-        str, "Specifies the version of the API to use by setting the 'Accept' header."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specifies the format of the data being sent. For this endpoint, use 'application/json'.",
-    ],
     results_per_page: Annotated[
         int | None,
         "Defines the number of event rules returned per page. Use this to control the volume of data in each response.",  # noqa: E501
@@ -5538,8 +4794,8 @@ async def list_event_rules(
             "total": include_total_in_response,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5557,10 +4813,6 @@ async def get_event_rule_details(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier of the resource within Pagerduty."],
     event_rule_id: Annotated[str, "The ID of the specific Event Rule to retrieve from a ruleset."],
-    accept_header_versioning: Annotated[
-        str, "Specifies the version of the API to use via the `Accept` header."
-    ],
-    content_type: Annotated[str, "The media type of the resource. Must be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getRulesetEventRule'."]:
     """Retrieve details of a specific event rule from a ruleset.
 
@@ -5572,8 +4824,8 @@ async def get_event_rule_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5593,12 +4845,6 @@ async def delete_event_rule(
     event_rule_id: Annotated[
         str, "The ID of the event rule to delete from the ruleset in Pagerduty."
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API you want to use by setting the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "Specify the media type for the request payload. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteRulesetEventRule'."]:
     """Delete an event rule from a ruleset in Pagerduty.
 
@@ -5610,8 +4856,8 @@ async def delete_event_rule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5627,13 +4873,6 @@ async def delete_event_rule(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_on_call_schedules(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "The `Accept` header specifying desired API versioning. Use it to ensure version compatibility.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the format of the data being sent. Use 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of results to return per page."
     ] = None,
@@ -5687,8 +4926,8 @@ async def list_on_call_schedules(
             "until": end_date_range,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5705,14 +4944,6 @@ async def list_on_call_schedules(
 async def get_schedule_info(
     context: ToolContext,
     schedule_id: Annotated[str, "The unique identifier for the schedule resource in Pagerduty."],
-    accept_header_versioning: Annotated[
-        str,
-        "The `Accept` header specifies versioning information for the API request. Use a valid versioning value formatted as a string.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specifies the MIME type of the request body. Must be 'application/json' for this endpoint.",  # noqa: E501
-    ],
     time_zone_for_results: Annotated[
         str | None,
         "Specify the time zone for rendering results. Defaults to the schedule's time zone.",
@@ -5746,8 +4977,8 @@ async def get_schedule_info(
             "include_next_oncall_for_user": user_id_for_next_oncall,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5764,12 +4995,6 @@ async def get_schedule_info(
 async def delete_on_call_schedule(
     context: ToolContext,
     schedule_id: Annotated[str, "The unique identifier of the on-call schedule to be deleted."],
-    versioning_header: Annotated[
-        str, "The versioning header for the request, typically specifying API version."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteSchedule'."]:
     """Delete an on-call schedule in PagerDuty.
 
@@ -5779,8 +5004,8 @@ async def delete_on_call_schedule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5798,13 +5023,6 @@ async def get_schedule_audit_records(
     context: ToolContext,
     resource_id: Annotated[
         str, "The unique identifier for the schedule resource to retrieve audit records for."
-    ],
-    accept_version_header: Annotated[
-        str,
-        "The versioning header used to specify the API response format. Provide the version of the API you are targeting.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Defines the format of the response. It should always be 'application/json'."
     ],
     maximum_records: Annotated[
         int | None,
@@ -5836,8 +5054,8 @@ async def get_schedule_audit_records(
             "until": end_date,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5861,13 +5079,6 @@ async def list_schedule_overrides(
         "The end date for the search range in 'YYYY-MM-DD' format. Specifies the last day to include in the results.",  # noqa: E501
     ],
     resource_id: Annotated[str, "The ID of the schedule resource to fetch overrides for."],
-    accept_header_versioning: Annotated[
-        str, "Specify the versioning format for the API response using the Accept header."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Set the 'Content-Type' header to specify the format of the request body. Typically 'application/json'.",  # noqa: E501
-    ],
     return_only_editable_overrides: Annotated[
         bool | None,
         "Set to true to return only future editable overrides, providing only their IDs.",
@@ -5890,8 +5101,8 @@ async def list_schedule_overrides(
             "overflow": allow_overflow,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5912,12 +5123,6 @@ async def remove_schedule_override(
         str,
         "The ID of the override on the schedule to be removed. This is required for identifying the specific schedule override to delete.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str, "The versioning header used to specify the API version for the request."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type for the request; use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteScheduleOverride'."]:
     """Remove a schedule override in Pagerduty.
 
@@ -5929,8 +5134,8 @@ async def remove_schedule_override(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5950,13 +5155,6 @@ async def list_on_call_schedule_users(
         str,
         "The unique identifier of the schedule to retrieve users for within the specified time range.",  # noqa: E501
     ],
-    api_version_header: Annotated[
-        str, "Specifies the API version. Use the `Accept` header to manage versioning."
-    ],
-    use_json_content_type: Annotated[
-        str,
-        "Indicate whether to use JSON as the content type for the request. Defaults to 'application/json'.",  # noqa: E501
-    ],
     start_date_range: Annotated[
         str | None, "The start of the date range for searching users on call. Format as YYYY-MM-DD."
     ] = None,
@@ -5973,8 +5171,8 @@ async def list_on_call_schedule_users(
         method="GET",
         params=remove_none_values({"since": start_date_range, "until": end_date}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": use_json_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5993,10 +5191,6 @@ async def get_business_service_dependencies(
     resource_id: Annotated[
         str, "The unique identifier for the Business Service whose dependencies you want to fetch."
     ],
-    accept_versioning_header: Annotated[
-        str, "The versioning header to specify API version, using the `Accept` header."
-    ],
-    content_type: Annotated[str, "Specifies the content type. Must be 'application/json'."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getBusinessServiceServiceDependencies'."
 ]:
@@ -6010,8 +5204,8 @@ async def get_business_service_dependencies(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6030,12 +5224,6 @@ async def get_technical_service_dependencies(
     service_id: Annotated[
         str, "The unique ID of the technical service whose dependencies are to be retrieved."
     ],
-    accept_header_versioning: Annotated[
-        str, "Specify the versioning for the API response using the 'Accept' header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the data sent to the API. Must be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getTechnicalServiceServiceDependencies'."
 ]:
@@ -6049,8 +5237,8 @@ async def get_technical_service_dependencies(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6066,12 +5254,6 @@ async def get_technical_service_dependencies(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_services(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "Specifies the API version using the Accept header for versioning purposes."
-    ],
-    content_type: Annotated[
-        str, "Sets the media type of the resource. Accepts only 'application/json'."
-    ],
     filter_by_name: Annotated[
         str | None, "Filters services by specifying a name query to match."
     ] = None,
@@ -6124,8 +5306,8 @@ async def list_services(
             "name": filter_by_service_name,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6144,12 +5326,6 @@ async def get_service_details(
     service_id: Annotated[
         str, "The unique identifier of the Pagerduty service to retrieve details for."
     ],
-    accept_versioning_header: Annotated[
-        str, "Specify the versioning for the API response using the `Accept` header value."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the request payload. Typically set to 'application/json'."
-    ],
     include_additional_details: Annotated[
         str | None,
         "Specify which additional details to include, such as escalation policies, teams, integrations, and auto pause notifications parameters.",  # noqa: E501
@@ -6163,8 +5339,8 @@ async def get_service_details(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6181,8 +5357,6 @@ async def get_service_details(
 async def delete_service(
     context: ToolContext,
     service_id: Annotated[str, "The unique ID of the service to be deleted."],
-    accept_header: Annotated[str, "Specify the version of the API to use via the `Accept` header."],
-    content_type: Annotated[str, "The MIME type of the request body, must be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteService'."]:
     """Delete an existing service in Pagerduty.
 
@@ -6192,8 +5366,8 @@ async def delete_service(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6210,14 +5384,6 @@ async def delete_service(
 async def list_service_audit_records(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the resource to retrieve audit records for."],
-    api_version_header: Annotated[
-        str,
-        "The versioning header for the API, typically formatted like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str,
-        "The Content-Type header for specifying the format of the response. Use 'application/json'.",  # noqa: E501
-    ],
     result_limit: Annotated[
         int | None, "The maximum number of audit records to retrieve in one call."
     ] = None,
@@ -6246,8 +5412,8 @@ async def list_service_audit_records(
             "until": end_date_range,
         }),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6266,13 +5432,6 @@ async def list_service_change_events(
     service_resource_id: Annotated[
         str,
         "The ID of the service resource to retrieve change events for. This ID is mandatory for identifying the specific service.",  # noqa: E501
-    ],
-    versioning_header: Annotated[
-        str,
-        "The `Accept` header for versioning the API calls. Use this to specify the version of the API you are targeting.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "The Content-Type header value. Should be 'application/json'."
     ],
     start_date_utc: Annotated[
         str | None,
@@ -6317,8 +5476,8 @@ async def list_service_change_events(
             "integration_ids[]": integration_ids,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6339,13 +5498,6 @@ async def get_service_integration_details(
         str,
         "The unique ID of the integration associated with a service. Required to retrieve specific integration details.",  # noqa: E501
     ],
-    version_header: Annotated[
-        str, "A versioning string for the `Accept` header to specify API version."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specifies the format of the request body. Use 'application/json' for JSON formatted requests.",  # noqa: E501
-    ],
     include_additional_details: Annotated[
         str | None, "Specify additional details to include, such as 'services' or 'vendors'."
     ] = None,
@@ -6360,8 +5512,8 @@ async def get_service_integration_details(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6379,13 +5531,6 @@ async def list_service_event_rules(
     context: ToolContext,
     resource_id: Annotated[
         str, "The unique identifier of the service whose event rules are to be listed."
-    ],
-    response_version_header: Annotated[
-        str,
-        "Specifies the version of the API response using the Accept header for version control in requests.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the request. Set to 'application/json'."
     ],
     results_per_page: Annotated[
         int | None, "The number of results to return per page. Specify an integer value."
@@ -6416,8 +5561,8 @@ async def list_service_event_rules(
             "include[]": include_additional_models,
         }),
         headers=remove_none_values({
-            "Accept": response_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6437,13 +5582,6 @@ async def convert_event_rules_to_orchestration(
         str,
         "The unique identifier of the resource to be converted. This is required for the conversion process.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the API version using the `Accept` header. Required for versioning the response format.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "The media type for the request payload, set to 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'convertServiceEventRulesToEventOrchestration'."
 ]:
@@ -6455,8 +5593,8 @@ async def convert_event_rules_to_orchestration(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6478,12 +5616,6 @@ async def get_service_event_rule(
     event_rule_id: Annotated[
         str, "The ID of the event rule to retrieve from the specified service."
     ],
-    accept_header: Annotated[
-        str, "The `Accept` header specifies the API version to use for the request."
-    ],
-    content_type_header: Annotated[
-        str, "Indicates the format of the content being sent. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getServiceEventRule'."]:
     """Retrieve a specific event rule from a Pagerduty service.
 
@@ -6495,8 +5627,8 @@ async def get_service_event_rule(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6518,12 +5650,6 @@ async def delete_service_event_rule(
     event_rule_id: Annotated[
         str, "The unique identifier of the Event Rule to delete from a service."
     ],
-    accept_version_header: Annotated[
-        str, "The `Accept` header for specifying the API version in the request."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the `Content-Type` for the request, typically `application/json`."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteServiceEventRule'."]:
     """Delete an event rule from a service in Pagerduty.
 
@@ -6535,8 +5661,8 @@ async def delete_service_event_rule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6552,12 +5678,6 @@ async def delete_service_event_rule(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_service_custom_fields(
     context: ToolContext,
-    api_version: Annotated[
-        str, "Specify the API version using the `Accept` header for versioning purposes."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the Content-Type header for the request, typically 'application/json'."
-    ],
     include_additional_details: Annotated[
         str | None, "Specify additional details to include, such as 'field_options'."
     ] = None,
@@ -6570,8 +5690,8 @@ async def list_service_custom_fields(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": api_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6588,12 +5708,6 @@ async def list_service_custom_fields(
 async def show_service_custom_field(
     context: ToolContext,
     custom_field_id: Annotated[str, "The unique identifier for the custom field to be retrieved."],
-    accept_versioning_header: Annotated[
-        str, "Specifies the version of the API to use for the request."
-    ],
-    content_type_header: Annotated[
-        str, "The format of the request body. Must be set to 'application/json'."
-    ],
     include_additional_details: Annotated[
         str | None, "Specifies additional details to include, such as field options."
     ] = None,
@@ -6608,8 +5722,8 @@ async def show_service_custom_field(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6626,10 +5740,6 @@ async def show_service_custom_field(
 async def delete_service_custom_field(
     context: ToolContext,
     field_id: Annotated[str, "The unique identifier of the custom field to be deleted."],
-    api_version_header: Annotated[
-        str, "The versioning header for the request, specifying the API version to use."
-    ],
-    content_type: Annotated[str, "Specify the content type as 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteServiceCustomField'."]:
     """Delete a custom field from a service in PagerDuty.
 
@@ -6639,8 +5749,8 @@ async def delete_service_custom_field(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6660,12 +5770,6 @@ async def retrieve_field_options(
         str,
         "The unique identifier for the custom field whose options you want to retrieve. This is required to specify which field's options should be listed.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str, "Specify the version for the API response using the 'Accept' header."
-    ],
-    content_type: Annotated[
-        str, "The Content-Type header for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listServiceCustomFieldOptions'."]:
     """Retrieve all options for a specified custom field.
 
@@ -6677,8 +5781,8 @@ async def retrieve_field_options(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6700,13 +5804,6 @@ async def get_service_custom_field_option(
     field_option_id: Annotated[
         str, "The identifier for the specific field option to retrieve details from a service."
     ],
-    accept_header_version: Annotated[
-        str, "The versioning header to specify the API version for the request."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Set the 'Content-Type' header to specify the media type. Use 'application/json' for this API.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getServiceCustomFieldOption'."]:
     """Retrieve a specific field option for a service.
 
@@ -6718,8 +5815,8 @@ async def get_service_custom_field_option(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6739,12 +5836,6 @@ async def remove_field_option(
         str, "The unique identifier of the field whose option you want to delete."
     ],
     field_option_id: Annotated[str, "The unique identifier for the field option to be deleted."],
-    accept_version_header: Annotated[
-        str, "Specifies the API version to use in the Accept header for versioning."
-    ],
-    content_type: Annotated[
-        str, "MIME type for the request body. Expected value: 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteServiceCustomFieldOption'."]:
     """Delete a service custom field option in Pagerduty.
 
@@ -6756,8 +5847,8 @@ async def remove_field_option(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6776,13 +5867,6 @@ async def get_service_custom_field_values(
     resource_id: Annotated[
         str, "The ID of the Pagerduty service to retrieve custom field values for."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specify the version of the API to use for this request. It's sent in the Accept header to control versioning.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getServiceCustomFieldValues'."]:
     """Retrieve custom field values for a specified service in Pagerduty.
 
@@ -6792,8 +5876,8 @@ async def get_service_custom_field_values(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6812,12 +5896,6 @@ async def list_service_feature_enablements(
     service_id: Annotated[
         str, "The unique identifier of the service to retrieve feature enablement settings for."
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API to use with the `Accept` header."
-    ],
-    content_type: Annotated[
-        str, "The format of the content type expected in the response. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listServiceFeatureEnablements'."]:
     """Retrieve feature enablement settings for a specific service.
 
@@ -6827,8 +5905,8 @@ async def list_service_feature_enablements(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6844,10 +5922,6 @@ async def list_service_feature_enablements(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_account_standards(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to use for retrieving account standards. This is included in the `Accept` header.",  # noqa: E501
-    ],
     standard_resource_type: Annotated[
         str | None, "Specify the type of resource for standards, e.g., 'technical_service'."
     ] = None,
@@ -6866,7 +5940,7 @@ async def get_account_standards(
             "resource_type": standard_resource_type,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6889,9 +5963,6 @@ async def list_resource_standards(
         str,
         "Specifies the type of resource to list standards for. Use 'technical_services' to refer to technical service resources.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str, "The `Accept` header used for API versioning. Specify the version of the API to use."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'listResourceStandardsManyServices'."
 ]:
@@ -6905,7 +5976,7 @@ async def list_resource_standards(
         method="GET",
         params=remove_none_values({"ids": resource_ids}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6927,10 +5998,6 @@ async def get_resource_standards(
     resource_type: Annotated[
         str, "The type of resource to list standards for. Accepted value: 'technical_services'."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specify the version of the API response format using this header, such as 'application/vnd.pagerduty.v2+json'.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listResourceStandards'."]:
     """Retrieve standards for a specific resource in PagerDuty.
 
@@ -6942,7 +6009,7 @@ async def get_resource_standards(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6958,10 +6025,6 @@ async def get_resource_standards(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_status_dashboards(
     context: ToolContext,
-    accept_header_versioning: Annotated[
-        str,
-        "The Accept header versioning for the API request. Specify the API version you want to use.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listStatusDashboards'."]:
     """Retrieve all custom status dashboard views.
 
@@ -6971,7 +6034,7 @@ async def get_status_dashboards(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6988,7 +6051,6 @@ async def get_status_dashboards(
 async def get_status_dashboard_by_id(
     context: ToolContext,
     dashboard_id: Annotated[str, "The unique PagerDuty ID of the status dashboard to retrieve."],
-    version_accept_header: Annotated[str, "The versioning header for the API request."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusDashboardById'."]:
     """Retrieve a status dashboard using its PagerDuty ID.
 
@@ -6998,7 +6060,7 @@ async def get_status_dashboard_by_id(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7017,9 +6079,6 @@ async def get_impacted_services_by_dashboard_id(
     dashboard_id: Annotated[
         str, "The unique identifier for the Status Dashboard to fetch impacted services."
     ],
-    accept_header_version: Annotated[
-        str, "Specifies the version of the API to use in the request header."
-    ],
     include_additional_fields: Annotated[
         str | None,
         "Specify additional fields to include, such as highest impacting priority or total impacted count.",  # noqa: E501
@@ -7037,7 +6096,7 @@ async def get_impacted_services_by_dashboard_id(
         method="GET",
         params=remove_none_values({"additional_fields[]": include_additional_fields}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7057,10 +6116,6 @@ async def get_status_dashboard(
         str,
         "The human-readable URL slug for the status dashboard, typically a dash-separated string.",
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specify the version of the API to use for fetching the status dashboard. This is set via the 'Accept' header.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusDashboardByUrlSlug'."]:
     """Retrieve a status dashboard using its URL slug.
 
@@ -7072,7 +6127,7 @@ async def get_status_dashboard(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7092,9 +6147,6 @@ async def get_service_impacts_by_url_slug(
         str,
         "The URL slug for the status dashboard to identify and retrieve impacted business services.",  # noqa: E501
     ],
-    response_versioning_header: Annotated[
-        str, "Specifies the API version for the request using the Accept header."
-    ],
     include_additional_fields: Annotated[
         str | None,
         "Specify additional fields like highest impacting priority or total impacted count for business services.",  # noqa: E501
@@ -7112,7 +6164,7 @@ async def get_service_impacts_by_url_slug(
         method="GET",
         params=remove_none_values({"additional_fields[]": include_additional_fields}),
         headers=remove_none_values({
-            "Accept": response_versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7128,9 +6180,6 @@ async def get_service_impacts_by_url_slug(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_status_pages(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "The API version to specify in the `Accept` header for versioning requests."
-    ],
     status_page_type: Annotated[
         str | None, "Specifies if the status page is 'public' or 'private'."
     ] = None,
@@ -7143,7 +6192,7 @@ async def list_status_pages(
         method="GET",
         params=remove_none_values({"status_page_type": status_page_type}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7162,10 +6211,6 @@ async def list_status_page_impacts(
     status_page_id: Annotated[
         str, "The unique identifier of the status page to retrieve impacts for."
     ],
-    versioning_header: Annotated[
-        str,
-        "Specify the API versioning header to be used, typically a string like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
     filter_by_post_type: Annotated[
         str | None,
         "Specify the type of post to filter impacts by, such as 'incident' or 'maintenance'.",
@@ -7179,7 +6224,7 @@ async def list_status_page_impacts(
         method="GET",
         params=remove_none_values({"post_type": filter_by_post_type}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7200,10 +6245,6 @@ async def get_status_page_impact(
         str,
         "The unique identifier for the impact on the status page. Required to retrieve specific impact details.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specifies the API versioning for the Accept header. Use the format 'application/vnd.pagerduty+json;version=1'.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusPageImpact'."]:
     """Retrieve impact details for a specific status page using IDs.
 
@@ -7215,7 +6256,7 @@ async def get_status_page_impact(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7234,9 +6275,6 @@ async def list_status_page_services(
     status_page_id: Annotated[
         str, "The unique identifier for the status page whose services you want to list."
     ],
-    accept_version_header: Annotated[
-        str, "The versioning header for API requests, specified in the `Accept` format."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listStatusPageServices'."]:
     """Retrieve a list of services for a specific status page.
 
@@ -7246,7 +6284,7 @@ async def list_status_page_services(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7264,9 +6302,6 @@ async def get_status_page_service(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the status page resource to retrieve the service from."],
     status_page_service_id: Annotated[str, "The unique ID of the Status Page service to retrieve."],
-    versioning_header: Annotated[
-        str, "Specifies the version of the API to be used by setting the `Accept` header."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusPageService'."]:
     """Retrieve service details for a specific status page.
 
@@ -7278,7 +6313,7 @@ async def get_status_page_service(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7297,9 +6332,6 @@ async def list_status_page_severities(
     status_page_id: Annotated[
         str, "The unique identifier for the status page to retrieve severities for."
     ],
-    accept_version_header: Annotated[
-        str, "The `Accept` header specifying the API version for versioning purposes."
-    ],
     filter_by_post_type: Annotated[
         str | None, "Specify the type of post to filter by: 'incident' or 'maintenance'."
     ] = None,
@@ -7312,7 +6344,7 @@ async def list_status_page_severities(
         method="GET",
         params=remove_none_values({"post_type": filter_by_post_type}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7333,9 +6365,6 @@ async def get_status_page_severity(
         str,
         "The ID of the specific severity for the status page. Use this to retrieve severity details.",  # noqa: E501
     ],
-    accept_version_header: Annotated[
-        str, "Specifies the version of the API response format using the Accept header."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusPageSeverity'."]:
     """Retrieve severity details for a status page by ID.
 
@@ -7347,7 +6376,7 @@ async def get_status_page_severity(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7364,9 +6393,6 @@ async def get_status_page_severity(
 async def list_status_page_statuses(
     context: ToolContext,
     status_page_id: Annotated[str, "The ID of the status page to retrieve statuses for."],
-    accept_header_versioning: Annotated[
-        str, "Specifies the API version using the 'Accept' header."
-    ],
     filter_by_post_type: Annotated[
         str | None,
         "Specify the type of post to filter the statuses, such as 'incident' or 'maintenance'.",
@@ -7380,7 +6406,7 @@ async def list_status_page_statuses(
         method="GET",
         params=remove_none_values({"post_type": filter_by_post_type}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7400,9 +6426,6 @@ async def get_status_page_status(
     status_page_status_id: Annotated[
         str, "Provide the ID of the Status Page status to retrieve its current status."
     ],
-    versioning_header: Annotated[
-        str, "The `Accept` header specifying the API version for the request."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusPageStatus'."]:
     """Retrieve the status of a specific status page.
 
@@ -7414,7 +6437,7 @@ async def get_status_page_status(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7433,9 +6456,6 @@ async def list_status_page_posts(
     resource_id: Annotated[
         str,
         "The ID of the status page to retrieve posts from. This is required to identify the specific page.",  # noqa: E501
-    ],
-    accept_versioning_header: Annotated[
-        str, "Specifies the API response format version using the 'Accept' header."
     ],
     filter_by_post_type: Annotated[
         str | None,
@@ -7462,7 +6482,7 @@ async def list_status_page_posts(
             "status[]": status_identifiers,
         }),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7484,9 +6504,6 @@ async def get_status_page_post(
     status_page_post_id: Annotated[
         str, "The unique identifier for the specific status page post to retrieve."
     ],
-    versioning_header_accept: Annotated[
-        str, "Specify the version of the API to use with the `Accept` header for versioning."
-    ],
     include_models: Annotated[
         list[str] | None,
         "Array of additional models to include in the response. Add model names as needed.",
@@ -7502,7 +6519,7 @@ async def get_status_page_post(
         method="GET",
         params=remove_none_values({"include[]": include_models}),
         headers=remove_none_values({
-            "Accept": versioning_header_accept,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7522,9 +6539,6 @@ async def delete_status_page_post(
         str, "The ID of the status page from which the post will be deleted."
     ],
     status_page_post_id: Annotated[str, "The unique ID of the Status Page Post to be deleted."],
-    accept_header_version: Annotated[
-        str, "Specifies the versioning for the API using the 'Accept' header."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteStatusPagePost'."]:
     """Delete a post from a status page by ID.
 
@@ -7536,7 +6550,7 @@ async def delete_status_page_post(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7559,9 +6573,6 @@ async def list_status_page_post_updates(
         str,
         "The unique identifier for a specific post on the status page. Used to fetch related post updates.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str, "Specifies the versioning information via the `Accept` header."
-    ],
     filter_by_reviewed_status: Annotated[
         str | None, "Filter post updates by their reviewed status ('approved' or 'not_reviewed')."
     ] = None,
@@ -7576,7 +6587,7 @@ async def list_status_page_post_updates(
         method="GET",
         params=remove_none_values({"reviewed_status": filter_by_reviewed_status}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7599,9 +6610,6 @@ async def get_post_update(
     status_page_post_update_id: Annotated[
         str, "The ID of the Status Page Post Update to be retrieved from Pagerduty."
     ],
-    accept_header: Annotated[
-        str, "The `Accept` header used for versioning. Specify the API version required."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getPostUpdate'."]:
     """Retrieve a specific post update by post and update ID.
 
@@ -7613,7 +6621,7 @@ async def get_post_update(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7636,10 +6644,6 @@ async def delete_status_page_post_update(
     status_page_post_update_id: Annotated[
         str, "The ID of the specific Status Page Post Update to be deleted."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the version of the API to accept. Typically a string like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteStatusPagePostUpdate'."]:
     """Deletes a specific post update from a status page.
 
@@ -7651,7 +6655,7 @@ async def delete_status_page_post_update(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7671,9 +6675,6 @@ async def get_postmortem_report(
     status_page_post_id: Annotated[
         str, "The unique identifier of the Status Page Post to retrieve the postmortem details."
     ],
-    response_version_header: Annotated[
-        str, "Specifies the `Accept` header for versioning the response."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getPostmortem'."]:
     """Retrieve postmortem details using a specific post ID.
 
@@ -7685,7 +6686,7 @@ async def get_postmortem_report(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": response_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7705,9 +6706,6 @@ async def delete_postmortem(
     status_page_post_id: Annotated[
         str, "The ID of the specific Status Page Post to delete the postmortem from."
     ],
-    accept_version_header: Annotated[
-        str, "The header used for API versioning. Specify the API version needed for the request."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteStatusPagePostmortem'."]:
     """Delete a postmortem from a Pagerduty status page post.
 
@@ -7719,7 +6717,7 @@ async def delete_postmortem(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7736,9 +6734,6 @@ async def delete_postmortem(
 async def get_status_page_subscriptions(
     context: ToolContext,
     status_page_id: Annotated[str, "The ID of the status page to retrieve subscriptions for."],
-    accept_header_version: Annotated[
-        str, "Versioning information for the API request, set via the 'Accept' HTTP header."
-    ],
     subscription_status_filter: Annotated[
         str | None, "Filter subscriptions by status: 'active' or 'pending'."
     ] = None,
@@ -7756,7 +6751,7 @@ async def get_status_page_subscriptions(
             "channel": subscription_channel_filter,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7776,9 +6771,6 @@ async def get_status_page_subscription(
     status_page_subscription_id: Annotated[
         str, "The ID of the Status Page subscription to be retrieved."
     ],
-    accept_header_version: Annotated[
-        str, "Specify the version of the API using the Accept header."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStatusPageSubscription'."]:
     """Retrieve a subscription from a Status Page using IDs.
 
@@ -7790,7 +6782,7 @@ async def get_status_page_subscription(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7812,9 +6804,6 @@ async def delete_status_page_subscription(
     status_page_subscription_id: Annotated[
         str, "The ID of the Status Page subscription to be deleted."
     ],
-    accept_version_header: Annotated[
-        str, "A string for the `Accept` header, used for API versioning."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteStatusPageSubscription'."]:
     """Delete a subscription for a status page by ID.
 
@@ -7826,7 +6815,7 @@ async def delete_status_page_subscription(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7842,13 +6831,6 @@ async def delete_status_page_subscription(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_account_tags(
     context: ToolContext,
-    version_accept_header: Annotated[
-        str,
-        "Specifies the API version via the `Accept` header to control the format of the response.",
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the response format. Use 'application/json' to receive JSON responses."
-    ],
     results_per_page: Annotated[int | None, "The number of tag results to return per page."] = None,
     pagination_offset: Annotated[
         int | None, "Offset index from where to start returning paginated search results."
@@ -7874,8 +6856,8 @@ async def list_account_tags(
             "query": label_filter,
         }),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7894,10 +6876,6 @@ async def get_existing_tag_details(
     resource_id: Annotated[
         str, "The unique identifier of the tag resource to retrieve details for."
     ],
-    accept_header_versioning: Annotated[
-        str, "The Accept header used for API versioning in Pagerduty requests."
-    ],
-    content_type_header: Annotated[str, "Specify the content type. Must be 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTag'."]:
     """Retrieve details of an existing tag in Pagerduty.
 
@@ -7907,8 +6885,8 @@ async def get_existing_tag_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7927,12 +6905,6 @@ async def remove_pagerduty_tag(
     resource_id: Annotated[
         str, "The ID of the Pagerduty resource from which the tag will be removed."
     ],
-    versioning_accept_header: Annotated[
-        str, "The `Accept` header specifies the API version for the request."
-    ],
-    content_type_json: Annotated[
-        str, "Specifies the format of the request, must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteTag'."]:
     """Remove an existing tag from Pagerduty entities.
 
@@ -7942,8 +6914,8 @@ async def remove_pagerduty_tag(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_accept_header,
-            "Content-Type": content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7966,13 +6938,6 @@ async def get_related_entities_by_tag(
     entity_type: Annotated[
         str,
         "Specifies the type of entity related with the tag, such as users, teams, or escalation policies.",  # noqa: E501
-    ],
-    response_format_version: Annotated[
-        str, "Specifies the API version for the request. This is set using the `Accept` header."
-    ],
-    content_type_header: Annotated[
-        str,
-        "Specifies the media type of the resource. Default and only valid value is 'application/json'.",  # noqa: E501
     ],
     results_per_page: Annotated[
         int | None,
@@ -8000,8 +6965,8 @@ async def get_related_entities_by_tag(
             "total": include_total_in_response,
         }),
         headers=remove_none_values({
-            "Accept": response_format_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8017,12 +6982,6 @@ async def get_related_entities_by_tag(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_pagerduty_teams(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "Specify the version of the API to use via the Accept header."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the resource. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of results to be displayed per page."
     ] = None,
@@ -8051,8 +7010,8 @@ async def list_pagerduty_teams(
             "query": search_query,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8069,13 +7028,6 @@ async def list_pagerduty_teams(
 async def get_team_details(
     context: ToolContext,
     team_id: Annotated[str, "The ID of the team resource to retrieve details for."],
-    api_version_header: Annotated[
-        str,
-        "Specifies the API version for response format. Use the `Accept` header for versioning.",
-    ],
-    content_type_header: Annotated[
-        str, "The 'Content-Type' header value for the request; must be 'application/json'."
-    ],
     include_additional_models: Annotated[
         str | None, "Specifies additional models to include in the response, such as 'privileges'."
     ] = None,
@@ -8088,8 +7040,8 @@ async def get_team_details(
         method="GET",
         params=remove_none_values({"include[]": include_additional_models}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8106,10 +7058,6 @@ async def get_team_details(
 async def delete_existing_team(
     context: ToolContext,
     team_id: Annotated[str, "The unique identifier for the team to be deleted."],
-    version_header: Annotated[str, "Specify the versioning information using the `Accept` header."],
-    content_type: Annotated[
-        str, "Specifies the media type of the resource. Must be 'application/json'."
-    ],
     reassignment_team_id: Annotated[
         str | None,
         "The ID of the team to which unresolved incidents will be reassigned. If omitted, incidents become account-level.",  # noqa: E501
@@ -8123,8 +7071,8 @@ async def delete_existing_team(
         method="DELETE",
         params=remove_none_values({"reassignment_team": reassignment_team_id}),
         headers=remove_none_values({
-            "Accept": version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8141,12 +7089,6 @@ async def delete_existing_team(
 async def get_team_audit_records(
     context: ToolContext,
     team_id: Annotated[str, "The unique identifier for the team to retrieve audit records for."],
-    versioning_header: Annotated[
-        str, "The versioning header for the API, typically specified using 'Accept'."
-    ],
-    force_content_type_json: Annotated[
-        str, "Ensures the content type for the request is set to 'application/json'."
-    ],
     records_limit: Annotated[
         int | None,
         "Specify the maximum number of audit records to return. This should be the lesser of the requested limit or the maximum allowed by the API.",  # noqa: E501
@@ -8177,8 +7119,8 @@ async def get_team_audit_records(
             "until": end_date,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": force_content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8199,13 +7141,6 @@ async def remove_team_escalation_policy(
         str,
         "The ID of the escalation policy to be removed from the team. It should be provided as a string.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str, "Set the `Accept` header for API versioning when removing an escalation policy."
-    ],
-    force_content_type_json: Annotated[
-        str,
-        "Specify 'application/json' as the content type. It ensures the request is formatted as JSON.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteTeamEscalationPolicy'."]:
     """Remove an escalation policy from a specified team in PagerDuty.
 
@@ -8217,8 +7152,8 @@ async def remove_team_escalation_policy(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": force_content_type_json,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8238,10 +7173,6 @@ async def add_escalation_policy_to_team(
         str, "The unique identifier for the team to which the escalation policy will be added."
     ],
     escalation_policy_id: Annotated[str, "The ID of the escalation policy to add to the team."],
-    accept_header_version: Annotated[str, "The `Accept` header for specifying the API version."],
-    content_type_header: Annotated[
-        str, "Specifies the media type of the request. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'updateTeamEscalationPolicy'."]:
     """Add an escalation policy to a team in Pagerduty.
 
@@ -8253,8 +7184,8 @@ async def add_escalation_policy_to_team(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8271,12 +7202,6 @@ async def add_escalation_policy_to_team(
 async def get_team_members(
     context: ToolContext,
     team_id: Annotated[str, "The unique identifier of the team whose members are being retrieved."],
-    accept_version_header: Annotated[
-        str, "Versioning header used for specifying the version of the API to use."
-    ],
-    response_content_type: Annotated[
-        str, "The desired content type for the response. Set to 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "Specify the number of results to return per page."
     ] = None,
@@ -8305,8 +7230,8 @@ async def get_team_members(
             "include[]": include_additional_models,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8326,10 +7251,6 @@ async def get_team_notification_subscriptions(
         str,
         "The unique identifier of the team whose notification subscriptions are to be retrieved.",
     ],
-    use_version_header: Annotated[
-        str,
-        "Specify the desired API version for the response. This should be provided in the `Accept` header.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getTeamNotificationSubscriptions'."
 ]:
@@ -8341,7 +7262,7 @@ async def get_team_notification_subscriptions(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": use_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8362,10 +7283,6 @@ async def remove_user_from_team(
         str,
         "The ID of the user to be removed from the team. This identifies the specific team member.",
     ],
-    versioning_header: Annotated[str, "Specifies the API version to use via the Accept header."],
-    content_type: Annotated[
-        str, "Specifies the format of the request body. Must be set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteTeamUser'."]:
     """Remove a user from a specific team.
 
@@ -8377,8 +7294,8 @@ async def remove_user_from_team(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8497,12 +7414,6 @@ async def delete_template(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_template_fields(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str, "Specifies the versioning for the API response using the Accept header."
-    ],
-    content_type: Annotated[
-        str, "Specify the media type of the request body. Expected value: 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTemplateFields'."]:
     """Retrieve fields for account templates in Pagerduty.
 
@@ -8512,8 +7423,8 @@ async def get_template_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8529,11 +7440,6 @@ async def get_template_fields(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_pagerduty_users(
     context: ToolContext,
-    accept_version_header: Annotated[
-        str,
-        "The `Accept` header for versioning the API response. Specify the version of the API you want to use.",  # noqa: E501
-    ],
-    content_type: Annotated[str, "Specifies the format of the response. Use 'application/json'."],
     user_name_filter: Annotated[
         str | None,
         "Filter results to show only users whose names match this query. Use a string to specify the filter.",  # noqa: E501
@@ -8572,8 +7478,8 @@ async def list_pagerduty_users(
             "include[]": include_additional_models,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8590,12 +7496,6 @@ async def list_pagerduty_users(
 async def get_user_details(
     context: ToolContext,
     user_id: Annotated[str, "The unique ID of the PagerDuty user to retrieve details for."],
-    accept_header_version: Annotated[
-        str, "Specifies the API version via the `Accept` header for versioning responses."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request header. Must be 'application/json'."
-    ],
     include_models: Annotated[
         str | None,
         "Specify additional models to include in the response. Options: 'contact_methods', 'notification_rules', 'teams', 'subdomains'.",  # noqa: E501
@@ -8609,8 +7509,8 @@ async def get_user_details(
         method="GET",
         params=remove_none_values({"include[]": include_models}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8627,12 +7527,6 @@ async def get_user_details(
 async def remove_existing_user(
     context: ToolContext,
     user_id: Annotated[str, "The unique ID of the user to be removed from the Pagerduty account."],
-    version_accept_header: Annotated[
-        str, "The 'Accept' header specifies the API version for the request."
-    ],
-    content_type: Annotated[
-        str, "The HTTP header indicating the media type, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteUser'."]:
     """Delete a user from the Pagerduty account.
 
@@ -8642,8 +7536,8 @@ async def remove_existing_user(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8660,13 +7554,6 @@ async def remove_existing_user(
 async def get_user_audit_records(
     context: ToolContext,
     user_id: Annotated[str, "The unique ID of the user whose audit records you want to retrieve."],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the version of the API response. Use it to ensure compatibility with the expected API output format.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the media type of the request. Should be 'application/json'."
-    ],
     result_limit: Annotated[
         int | None,
         "Defines the maximum number of audit records to retrieve per request. The request will return up to this number of records, or fewer if the result set is smaller.",  # noqa: E501
@@ -8697,8 +7584,8 @@ async def get_user_audit_records(
             "until": end_date,
         }),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8717,10 +7604,6 @@ async def list_user_contact_methods(
     user_id: Annotated[
         str, "The unique identifier for the PagerDuty user to retrieve contact methods for."
     ],
-    accept_version_header: Annotated[
-        str, "Specifies the API version for the request using the `Accept` header."
-    ],
-    content_type: Annotated[str, "The response format for the API, default is 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserContactMethods'."]:
     """Retrieves contact methods for a specific PagerDuty user.
 
@@ -8730,8 +7613,8 @@ async def list_user_contact_methods(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8753,10 +7636,6 @@ async def get_user_contact_method(
     contact_method_id: Annotated[
         str, "The unique identifier for a user's contact method in Pagerduty."
     ],
-    accept_header_version: Annotated[
-        str, "Specifies the versioning for the API request using the `Accept` header."
-    ],
-    content_type: Annotated[str, "Specify the media type of the response. Use 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserContactMethod'."]:
     """Retrieve details about a user's contact method.
 
@@ -8768,8 +7647,8 @@ async def get_user_contact_method(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8789,13 +7668,6 @@ async def remove_user_contact_method(
     contact_method_id: Annotated[
         str, "The ID of the contact method to be removed from the user's profile in PagerDuty."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the version of the API to use. Typically a string format like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Set the 'Content-Type' header for the request. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteUserContactMethod'."]:
     """Removes a user's contact method in PagerDuty.
 
@@ -8807,8 +7679,8 @@ async def remove_user_contact_method(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8827,12 +7699,6 @@ async def get_user_license(
     user_id: Annotated[
         str, "The unique identifier for the user whose license information is being retrieved."
     ],
-    api_version_header: Annotated[
-        str, "Defines the API version using the `Accept` header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "This sets the Content-Type header for the API call. Use `application/json`."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserLicense'."]:
     """Retrieve the license allocated to a Pagerduty user.
 
@@ -8842,8 +7708,8 @@ async def get_user_license(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8862,13 +7728,6 @@ async def list_user_notification_rules(
     user_id: Annotated[
         str,
         "The unique identifier of the PagerDuty user whose notification rules are being retrieved.",
-    ],
-    response_format_version: Annotated[
-        str,
-        "Specifies the version of the API to use for the response format. Use the `Accept` header for versioning.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the response. Only 'application/json' is supported."
     ],
     include_additional_details: Annotated[
         str | None, "Specify additional details to include, such as 'contact_methods'."
@@ -8889,8 +7748,8 @@ async def list_user_notification_rules(
             "urgency": incident_urgency,
         }),
         headers=remove_none_values({
-            "Accept": response_format_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8910,13 +7769,6 @@ async def get_user_notification_rule(
         str, "The unique identifier for the user whose notification rule is being accessed."
     ],
     notification_rule_id: Annotated[str, "The ID of the notification rule for the specific user."],
-    versioning_header: Annotated[
-        str,
-        "Specify the version of the API to use for the `Accept` header. This is used for versioning.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the MIME type of the request body. Default is 'application/json'."
-    ],
     include_additional_details: Annotated[
         str | None, "Specify additional details to include, such as 'contact_methods'."
     ] = None,
@@ -8931,8 +7783,8 @@ async def get_user_notification_rule(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8955,13 +7807,6 @@ async def remove_user_notification_rule(
         str,
         "The ID of the notification rule to be removed for the user. This is required to specify which rule to delete.",  # noqa: E501
     ],
-    accept_header_version: Annotated[
-        str,
-        "Specify the API version using the Accept header for versioning. Ensure correct version is provided.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteUserNotificationRule'."]:
     """Remove a notification rule for a PagerDuty user.
 
@@ -8973,8 +7818,8 @@ async def remove_user_notification_rule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8994,10 +7839,6 @@ async def get_user_notification_subscriptions(
         str,
         "The unique identifier for the user whose notification subscriptions are being retrieved.",
     ],
-    version_accept_header: Annotated[
-        str,
-        "Specify the version of the API to use by setting the `Accept` header value. Required for versioning.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getUserNotificationSubscriptions'."
 ]:
@@ -9011,7 +7852,7 @@ async def get_user_notification_subscriptions(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9030,10 +7871,6 @@ async def list_user_handoff_notification_rules(
     user_id: Annotated[
         str, "Specify the ID of the PagerDuty user to retrieve their handoff notification rules."
     ],
-    accept_version_header: Annotated[
-        str, "Specify the API version using the `Accept` header for versioning."
-    ],
-    content_type: Annotated[str, "The content type for the request. Use 'application/json'."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserHandoffNotificationRules'."]:
     """Retrieve handoff notification rules for a PagerDuty user.
 
@@ -9045,8 +7882,8 @@ async def list_user_handoff_notification_rules(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9069,13 +7906,6 @@ async def get_user_handoff_notification_rule(
     handoff_notification_rule_id: Annotated[
         str, "The ID of the user's oncall handoff notification rule to retrieve details for."
     ],
-    api_version_header: Annotated[
-        str,
-        "The versioning header to specify the API version. This typically uses the `Accept` header format.",  # noqa: E501
-    ],
-    content_type_header: Annotated[
-        str, "The content type header for the request, typically set to 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserHandoffNotifiactionRule'."]:
     """Retrieve a user's handoff notification rule details.
 
@@ -9087,8 +7917,8 @@ async def get_user_handoff_notification_rule(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": api_version_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9111,12 +7941,6 @@ async def remove_user_handoff_notification_rule(
     oncall_handoff_notification_rule_id: Annotated[
         str, "The ID of the oncall handoff notification rule to be removed for the user."
     ],
-    versioning_header: Annotated[
-        str, "Specify the version of the API you want to use. Use the `Accept` header format."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request. Use 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteUserHandoffNotificationRule'."
 ]:
@@ -9131,8 +7955,8 @@ async def remove_user_handoff_notification_rule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9151,12 +7975,6 @@ async def get_active_user_sessions(
     user_id: Annotated[
         str, "The unique ID of the PagerDuty user whose active sessions you want to retrieve."
     ],
-    version_accept_header: Annotated[
-        str, "Specify the `Accept` header to determine the API version you want to interact with."
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the request body. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserSessions'."]:
     """Retrieve active PagerDuty user sessions.
 
@@ -9166,8 +7984,8 @@ async def get_active_user_sessions(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": version_accept_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9193,16 +8011,10 @@ async def get_user_session_details(
     user_session_id: Annotated[
         str, "The unique session ID for the PagerDuty user session to retrieve details."
     ],
-    accept_header_version: Annotated[
-        str, "The versioning header for API response. Use it to specify the API version."
-    ],
-    content_type: Annotated[
-        str, "Specify the content type for the request, typically 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getUserSession'."]:
     """Retrieve details about a specific PagerDuty user session.
 
-    This tool is used to get information about a users session in PagerDuty. It does not include OAuth tokens issued after November 2021. Users are members of a PagerDuty account who can interact with account data, including incidents. Ensure appropriate OAuth scopes (`users:sessions.read`) are set."""  # noqa: E501
+    This tool is used to get information about a user's session in PagerDuty. It does not include OAuth tokens issued after November 2021. Users are members of a PagerDuty account who can interact with account data, including incidents. Ensure appropriate OAuth scopes (`users:sessions.read`) are set."""  # noqa: E501
     response = await make_request(
         url="https://api.pagerduty.com/users/{id}/sessions/{type}/{session_id}".format(  # noqa: UP032
             id=resource_id, type=session_type, session_id=user_session_id
@@ -9210,8 +8022,8 @@ async def get_user_session_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9231,13 +8043,6 @@ async def get_user_status_update_rules(
         str,
         "The ID of the PagerDuty user whose status update notification rules you want to retrieve.",
     ],
-    accept_header_version: Annotated[
-        str,
-        "The `Accept` header specifies the API versioning. Use it to ensure compatibility with specific API versions.",  # noqa: E501
-    ],
-    set_content_type: Annotated[
-        str, "Set the content type for the request. Use 'application/json'."
-    ],
     include_additional_details: Annotated[
         str | None, "Specify additional details to include, such as 'contact_methods'."
     ] = None,
@@ -9254,8 +8059,8 @@ async def get_user_status_update_rules(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": set_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9274,12 +8079,6 @@ async def create_user_status_update_notification_rule(
     user_resource_id: Annotated[
         str, "The ID of the user resource for which the notification rule should be created."
     ],
-    accept_header_version: Annotated[
-        str, "Specifies the API version to use as an accept header for versioning."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the request body. Must be set to 'application/json'."
-    ],
     status_update_notification_rule: Annotated[
         dict[str, dict[str, dict[str, str]]] | None,
         "JSON object defining the status update notification rule. Must include contact method details.",  # noqa: E501
@@ -9297,8 +8096,8 @@ async def create_user_status_update_notification_rule(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9318,12 +8117,6 @@ async def get_user_status_update_notification_rule(
     status_update_notification_rule_id: Annotated[
         str, "The ID of the user's status update notification rule to retrieve details for."
     ],
-    accept_version_header: Annotated[
-        str, "The versioning header used for accepting responses in a specific API version."
-    ],
-    content_type: Annotated[
-        str, "Specifies the format of the request. Currently, only 'application/json' is supported."
-    ],
     include_additional_details: Annotated[
         str | None,
         "Specify details to include, such as contact methods. Use values like 'contact_methods'.",
@@ -9341,8 +8134,8 @@ async def get_user_status_update_notification_rule(
         method="GET",
         params=remove_none_values({"include[]": include_additional_details}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9364,13 +8157,6 @@ async def delete_user_notification_rule(
     status_update_notification_rule_id: Annotated[
         str, "The ID of the status update notification rule to be removed for the user."
     ],
-    accept_header_versioning: Annotated[
-        str,
-        "Specify the API version using the Accept header for versioning purposes. This helps determine the format of the response you will receive.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "Specifies the media type of the resource, required as 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteUserStatusUpdateNotificationRule'."
 ]:
@@ -9384,8 +8170,8 @@ async def delete_user_notification_rule(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_versioning,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9401,12 +8187,6 @@ async def delete_user_notification_rule(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def get_current_user_details(
     context: ToolContext,
-    versioning_header: Annotated[
-        str, "The `Accept` header for specifying the API version in the request."
-    ],
-    content_type_header: Annotated[
-        str, "Specifies the format of the data being sent. Use 'application/json'."
-    ],
     include_additional_models: Annotated[
         str | None,
         "Specify additional models to include in the response, such as contact methods, notification rules, teams, or subdomains.",  # noqa: E501
@@ -9420,8 +8200,8 @@ async def get_current_user_details(
         method="GET",
         params=remove_none_values({"include[]": include_additional_models}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9437,13 +8217,6 @@ async def get_current_user_details(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_vendors(
     context: ToolContext,
-    versioning_header: Annotated[
-        str,
-        "Specifies the version of the API to use for vendor listing. Typically in the format 'application/json;version=2'.",  # noqa: E501
-    ],
-    response_format_content_type: Annotated[
-        str, "Specifies the media type of the response. Must be 'application/json'."
-    ],
     results_per_page: Annotated[
         int | None, "The number of vendor results to return per page."
     ] = None,
@@ -9468,8 +8241,8 @@ async def list_vendors(
             "total": include_total_in_response,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": response_format_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9486,12 +8259,6 @@ async def list_vendors(
 async def get_vendor_details(
     context: ToolContext,
     vendor_id: Annotated[str, "The unique identifier for the vendor integration to be retrieved."],
-    versioning_header: Annotated[
-        str, "Specifies the versioning header for the API using the 'Accept' header."
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the content type of the response. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getVendor'."]:
     """Get details about a specific vendor integration.
 
@@ -9501,8 +8268,8 @@ async def get_vendor_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9518,9 +8285,6 @@ async def get_vendor_details(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_webhook_subscriptions(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "Specifies the version of the API to be accepted in the request header."
-    ],
     results_per_page: Annotated[int | None, "The number of results to display per page."] = None,
     pagination_offset: Annotated[int | None, "Offset to start pagination search results."] = None,
     resource_filter_type: Annotated[
@@ -9548,7 +8312,7 @@ async def list_webhook_subscriptions(
             "filter_id": resource_filter_id,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9567,10 +8331,6 @@ async def get_webhook_subscription_details(
     webhook_subscription_id: Annotated[
         str, "The unique identifier of the webhook subscription to retrieve details for."
     ],
-    accept_versioning_header: Annotated[
-        str,
-        "Specifies the versioning header to use for the API request. It determines the format of the response data.",  # noqa: E501
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWebhookSubscription'."]:
     """Retrieve details of a specific webhook subscription.
 
@@ -9582,7 +8342,7 @@ async def get_webhook_subscription_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9599,9 +8359,6 @@ async def get_webhook_subscription_details(
 async def delete_webhook_subscription(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier of the webhook subscription to be deleted."],
-    accept_header_version: Annotated[
-        str, "The `Accept` header specifying API version for webhook deletion."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteWebhookSubscription'."]:
     """Deletes a specified webhook subscription in Pagerduty.
 
@@ -9611,7 +8368,7 @@ async def delete_webhook_subscription(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9628,9 +8385,6 @@ async def delete_webhook_subscription(
 async def enable_webhook_subscription(
     context: ToolContext,
     resource_id: Annotated[str, "The unique identifier for the webhook to be reactivated."],
-    accept_header_version: Annotated[
-        str, "The `Accept` header value for versioning the API response."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'enableWebhookSubscription'."]:
     """Enable a temporarily disabled webhook subscription.
 
@@ -9640,7 +8394,7 @@ async def enable_webhook_subscription(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9659,9 +8413,6 @@ async def test_webhook_subscription(
     resource_id: Annotated[
         str, "The unique identifier for the webhook subscription resource to be tested."
     ],
-    accept_versioning_header: Annotated[
-        str, "Specify the API version as a string using the `Accept` header for version control."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'testWebhookSubscription'."]:
     """Test a webhook subscription with a ping event.
 
@@ -9671,7 +8422,7 @@ async def test_webhook_subscription(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9687,12 +8438,6 @@ async def test_webhook_subscription(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_oauth_clients(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "Specify the version for the `Accept` header in API requests."
-    ],
-    content_type_header: Annotated[
-        str, "Specify the content type for the request. Only 'application/json' is supported."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listOauthClients'."]:
     """Retrieve all OAuth clients for webhook subscriptions.
 
@@ -9702,8 +8447,8 @@ async def list_oauth_clients(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9723,13 +8468,6 @@ async def get_oauth_client_details(
         str,
         "The unique ID of the OAuth client resource to retrieve details for. Requires admin or owner role permissions.",  # noqa: E501
     ],
-    versioning_header: Annotated[
-        str,
-        "Specifies the API version using the `Accept` header. Provide the version format required by the service.",  # noqa: E501
-    ],
-    response_content_type: Annotated[
-        str, "Specifies the format of the response. Use 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getOauthClient'."]:
     """Retrieve details of a specific OAuth client by ID.
 
@@ -9741,8 +8479,8 @@ async def get_oauth_client_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
-            "Content-Type": response_content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9759,12 +8497,6 @@ async def get_oauth_client_details(
 async def delete_oauth_client(
     context: ToolContext,
     resource_id: Annotated[str, "The ID of the OAuth client to be deleted."],
-    accept_version_header: Annotated[
-        str, "Specifies the API version using the 'Accept' header for the request."
-    ],
-    content_type: Annotated[
-        str, "Specifies the format of the request. Must be 'application/json'."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteOauthClient'."]:
     """Delete an OAuth client and disassociate subscriptions.
 
@@ -9776,8 +8508,8 @@ async def delete_oauth_client(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9793,9 +8525,6 @@ async def delete_oauth_client(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_workflow_integrations(
     context: ToolContext,
-    accept_header_version: Annotated[
-        str, "Specifies the API version for the response using the `Accept` header."
-    ],
     result_limit: Annotated[
         int | None, "Specifies the maximum number of workflow integrations to retrieve in one call."
     ] = None,
@@ -9819,7 +8548,7 @@ async def list_workflow_integrations(
             "include_deprecated": include_deprecated_integrations,
         }),
         headers=remove_none_values({
-            "Accept": accept_header_version,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9838,9 +8567,6 @@ async def get_workflow_integration_details(
     resource_id: Annotated[
         str, "The unique identifier for the Workflow Integration resource in Pagerduty."
     ],
-    accept_version_header: Annotated[
-        str, "Specify the API version using the Accept header for versioning."
-    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWorkflowIntegration'."]:
     """Retrieve details about a Workflow Integration.
 
@@ -9850,7 +8576,7 @@ async def get_workflow_integration_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9866,9 +8592,6 @@ async def get_workflow_integration_details(
 @tool(requires_auth=OAuth2(id="arcade-pagerduty"))
 async def list_workflow_integration_connections(
     context: ToolContext,
-    versioning_header: Annotated[
-        str, "Specify the version of the API response format using the `Accept` header."
-    ],
     result_limit: Annotated[
         int | None,
         "Specify the maximum number of results to return. Defaults to the smaller of the request's limit or the API's maximum.",  # noqa: E501
@@ -9895,7 +8618,7 @@ async def list_workflow_integration_connections(
             "name": filter_by_partial_name,
         }),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9913,9 +8636,6 @@ async def get_integration_connections(
     context: ToolContext,
     workflow_integration_id: Annotated[
         str, "The unique identifier for the specific Workflow Integration."
-    ],
-    version_header: Annotated[
-        str, "The versioning header used in the 'Accept' field to specify API version."
     ],
     request_limit: Annotated[
         int | None,
@@ -9946,7 +8666,7 @@ async def get_integration_connections(
             "name": filter_integration_by_partial_name,
         }),
         headers=remove_none_values({
-            "Accept": version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9965,13 +8685,6 @@ async def create_workflow_integration_connection(
     workflow_integration_id: Annotated[
         str, "The unique ID of the workflow integration to create a connection for."
     ],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the API version using the 'Accept' header; typically a string like 'application/vnd.pagerduty+json;version=2'.",  # noqa: E501
-    ],
-    content_type: Annotated[
-        str, "The content type for the request header, should be 'application/json'."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'createWorkflowIntegrationConnection'."
 ]:
@@ -9985,8 +8698,8 @@ async def create_workflow_integration_connection(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
-            "Content-Type": content_type,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -10006,10 +8719,6 @@ async def get_workflow_integration_connection_details(
         str, "The unique ID of the Workflow Integration to retrieve connection details for."
     ],
     resource_id: Annotated[str, "The ID of the resource to get details for."],
-    versioning_header: Annotated[
-        str,
-        "Specifies the version of the API to be used. Provide a string value indicating the desired API version.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getWorkflowIntegrationConnection'."
 ]:
@@ -10023,7 +8732,7 @@ async def get_workflow_integration_connection_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": versioning_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -10043,12 +8752,6 @@ async def update_workflow_integration_connection(
     resource_id: Annotated[
         str, "The ID of the resource to update in the workflow integration connection."
     ],
-    accept_header_version: Annotated[
-        str, "The `Accept` header for specifying the API version. Used as a versioning header."
-    ],
-    content_type_format: Annotated[
-        str, "Specify the media type of the resource. Only 'application/json' is supported."
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'updateWorkflowIntegrationConnection'."
 ]:
@@ -10062,8 +8765,8 @@ async def update_workflow_integration_connection(
         method="PATCH",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_header_version,
-            "Content-Type": content_type_format,
+            "Accept": "application/vnd.pagerduty+json;version=2",
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -10083,10 +8786,6 @@ async def delete_workflow_integration_connection(
         str, "The unique ID of the Workflow Integration to be deleted."
     ],
     resource_id: Annotated[str, "The unique identifier of the resource to be deleted."],
-    accept_version_header: Annotated[
-        str,
-        "Specifies the `Accept` header for versioning the API request. Required for specifying the API version.",  # noqa: E501
-    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleteWorkflowIntegrationConnection'."
 ]:
@@ -10100,7 +8799,7 @@ async def delete_workflow_integration_connection(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
-            "Accept": accept_version_header,
+            "Accept": "application/vnd.pagerduty+json;version=2",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),

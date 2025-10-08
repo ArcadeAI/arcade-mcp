@@ -165,6 +165,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -182,6 +183,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -199,6 +201,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -216,6 +219,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -233,6 +237,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -257,6 +262,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],

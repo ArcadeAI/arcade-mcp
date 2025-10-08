@@ -83,6 +83,7 @@
         "accepted_as": "header",
         "required": true,
         "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
         "documentation_urls": []
       }
     ],
