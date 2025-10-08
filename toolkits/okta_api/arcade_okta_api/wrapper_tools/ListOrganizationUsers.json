@@ -1,0 +1,361 @@
+{
+  "name": "ListOrganizationUsers",
+  "fully_qualified_name": "OktaApi.ListOrganizationUsers@0.1.0",
+  "description": "Retrieve a list of active users in the organization.\n\nUse this tool to obtain a list of active users within your organization. You can filter or search for a specific subset of users, but users with a status of 'DEPROVISIONED' are excluded from the default response.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_search_query",
+        "required": false,
+        "description": "Search for users using a filtering expression. Supports various properties and must be URL encoded. Warning: Complex or overly long queries can cause errors.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches for users with a supported filtering expression for most properties. Okta recommends using this parameter for optimal search performance. \n\n> **Note:** Using an overly complex or long search query can result in an error.\n\nThis operation supports [pagination](https://developer.okta.com/docs/api/#pagination). Use an ID lookup for records that you update to ensure your results contain the latest data. Returned users include those with the `DEPROVISIONED` status.\n\nProperty names in the search parameter are case sensitive, whereas operators (`eq`, `sw`, and so on) and string values are case insensitive. Unlike with user logins, diacritical marks are significant in search string values: a search for `isaac.brock` finds `Isaac.Brock`, but doesn't find a property whose value is `is\u00e1\u00e0c.br\u00f6ck`. \n\nThis operation requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `search=profile.department eq \"Engineering\"` is encoded as `search=profile.department%20eq%20%22Engineering%22`. If you use the special character `\"` within a quoted string, it must also be escaped `\\` and encoded. For example, `search=profile.lastName eq \"bob\"smith\"` is encoded as `search=profile.lastName%20eq%20%22bob%5C%22smith%22`. See [Special Characters](https://developer.okta.com/docs/api/#special-characters).\n\nThis operation searches many properties:\n  * Any user profile attribute, including custom-defined attributes\n  * The top-level properties: `id`, `status`, `created`, `activated`, `statusChanged`, and `lastUpdated`\n  * The [user type](https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserType/#tag/UserType/operation/updateUserType) accessed as `type.id`\n\n> **Note:** <x-lifecycle class=\"ea\"></x-lifecycle> The ability to search by user classification is available as an [Early Access](https://developer.okta.com/docs/api/openapi/okta-management/guides/release-lifecycle/#early-access-ea) feature. The `classification.type` property cannot be used in conjunction with other search terms. You can search using `classification.type eq \"LITE\"` or `classification.type eq \"STANDARD\"`.\n\nYou can also use `sortBy` and `sortOrder` parameters. The `ne` (not equal) operator isn't supported, but you can obtain the same result by using `lt ... or ... gt`. For example, to see all users except those that have a status of `STAGED`, use `(status lt \"STAGED\" or status gt \"STAGED\")`.\n\nYou can search properties that are arrays. If any element matches the search term, the entire array (object) is returned. Okta follows the [SCIM Protocol Specification](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for searching arrays. You can search multiple arrays, multiple values in an array, as well as using the standard logical and filtering operators. See [Filter](https://developer.okta.com/docs/reference/core-okta-api/#filter).\n\nSearches for users can be filtered by the following operators: `sw`, `eq`, and `co`. You can only use `co` with these select user profile attributes: `profile.firstName`, `profile.lastName`, `profile.email`, and `profile.login`. See [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "filter_expression",
+        "required": false,
+        "description": "A URL-encoded string to filter users by supported properties like `status`, `lastUpdated`, `id`, `profile.login`, `profile.email`, `profile.firstName`, and `profile.lastName`. Supports `eq` and some inequality operators for `lastUpdated`. Logical operators `and` and `or` are also supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters users with a supported expression for a subset of properties. \n\n> **Note:** Returned users include those with the `DEPROVISIONED` status.\n\nThis requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `filter=lastUpdated gt \"2013-06-01T00:00:00.000Z\"` is encoded as `filter=lastUpdated%20gt%20%222013-06-01T00:00:00.000Z%22`. Filtering is case-sensitive for property names and query values, while operators are case-insensitive.\n\nFiltering supports the following limited number of properties: `status`, `lastUpdated`, `id`, `profile.login`, `profile.email`, `profile.firstName`, and `profile.lastName`.\n\nAdditionally, filtering supports only the equal `eq` operator from the standard Okta API filtering semantics, except in the case of the `lastUpdated` property. This property can also use the inequality operators (`gt`, `ge`, `lt`, and `le`). For logical operators, only the logical operators `and` and `or` are supported. The `not` operator isn't supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "query_user_search",
+        "required": false,
+        "description": "Retrieve users by matching queries against firstName, lastName, or email. Omits `DEPROVISIONED` users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Finds users who match the specified query. This doesn't support pagination.\n\n> **Note:** For optimal performance, use the `search` parameter instead.\n\nUse the `q` parameter for simple queries, such as a lookup of users by name when creating a people picker.\n\nThe value of `q` is matched against `firstName`, `lastName`, or `email`. This performs a `startsWith` match, but this is an implementation detail and can change without notice. You don't need to specify `firstName`, `lastName`, or `email`.\n\n> **Note:** Using the `q` parameter in a request omits users that have a status of `DEPROVISIONED`. To return all users, use a filter or search query instead."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "An opaque string used as a cursor for pagination to specify the current location in the user list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specifies the number of user records to return. Defaults to 10 if `q` is provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results returned. Defaults to 10 if `q` is provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "sort_users_by_field",
+        "required": false,
+        "description": "Specify the field to sort users by. Use for search queries only. Example: `profile.lastName`. Users with the same value will be ordered by `id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies field to sort by (for search queries only). This can be any single property, for example `sortBy=profile.lastName`. Users with the same value for the `sortBy` property will be ordered by `id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortBy"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specifies the sort order for user listing, either 'asc' for ascending or 'desc' for descending. This is relevant only when 'sort_by' is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort order: `asc` or `desc` (for search queries only). Sorting is done in ASCII sort order (that is, by ASCII character value), but isn't case sensitive. `sortOrder` is ignored if `sortBy` isn't present."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortOrder"
+      },
+      {
+        "name": "include_metadata_classification",
+        "required": false,
+        "description": "Include metadata in the `_embedded` property to retrieve user classification details. Supported value: `classification`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "<x-lifecycle-container><x-lifecycle class=\"ea\"></x-lifecycle></x-lifecycle-container>A parameter to include metadata in the `_embedded` property. Supported value: `classification`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "response_media_type",
+        "required": false,
+        "description": "Specifies the media type of the resource with optional `okta-response` values for performance optimization. Enum values are `omitCredentials`, `omitCredentialsLinks`, and `omitTransitioningToStatus`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the media type of the resource. Optional `okta-response` value can be included for performance optimization.\n\nComplex DelAuth configurations may degrade performance when fetching specific parts of the response, and passing this parameter can omit these parts, bypassing the bottleneck.\n\nEnum values for `okta-response`:\n  * `omitCredentials`: Omits the credentials subobject from the response.\n  * `omitCredentialsLinks`: Omits the following HAL links from the response: Update password, Change recovery question, Start forgot password flow, Reset password, Reset factors, Unlock.\n  * `omitTransitioningToStatus`: Omits the `transitioningToStatus` field from the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listUsers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "search",
+        "tool_parameter_name": "user_search_query",
+        "description": "Searches for users with a supported filtering expression for most properties. Okta recommends using this parameter for optimal search performance. \n\n> **Note:** Using an overly complex or long search query can result in an error.\n\nThis operation supports [pagination](https://developer.okta.com/docs/api/#pagination). Use an ID lookup for records that you update to ensure your results contain the latest data. Returned users include those with the `DEPROVISIONED` status.\n\nProperty names in the search parameter are case sensitive, whereas operators (`eq`, `sw`, and so on) and string values are case insensitive. Unlike with user logins, diacritical marks are significant in search string values: a search for `isaac.brock` finds `Isaac.Brock`, but doesn't find a property whose value is `is\u00e1\u00e0c.br\u00f6ck`. \n\nThis operation requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `search=profile.department eq \"Engineering\"` is encoded as `search=profile.department%20eq%20%22Engineering%22`. If you use the special character `\"` within a quoted string, it must also be escaped `\\` and encoded. For example, `search=profile.lastName eq \"bob\"smith\"` is encoded as `search=profile.lastName%20eq%20%22bob%5C%22smith%22`. See [Special Characters](https://developer.okta.com/docs/api/#special-characters).\n\nThis operation searches many properties:\n  * Any user profile attribute, including custom-defined attributes\n  * The top-level properties: `id`, `status`, `created`, `activated`, `statusChanged`, and `lastUpdated`\n  * The [user type](https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserType/#tag/UserType/operation/updateUserType) accessed as `type.id`\n\n> **Note:** <x-lifecycle class=\"ea\"></x-lifecycle> The ability to search by user classification is available as an [Early Access](https://developer.okta.com/docs/api/openapi/okta-management/guides/release-lifecycle/#early-access-ea) feature. The `classification.type` property cannot be used in conjunction with other search terms. You can search using `classification.type eq \"LITE\"` or `classification.type eq \"STANDARD\"`.\n\nYou can also use `sortBy` and `sortOrder` parameters. The `ne` (not equal) operator isn't supported, but you can obtain the same result by using `lt ... or ... gt`. For example, to see all users except those that have a status of `STAGED`, use `(status lt \"STAGED\" or status gt \"STAGED\")`.\n\nYou can search properties that are arrays. If any element matches the search term, the entire array (object) is returned. Okta follows the [SCIM Protocol Specification](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for searching arrays. You can search multiple arrays, multiple values in an array, as well as using the standard logical and filtering operators. See [Filter](https://developer.okta.com/docs/reference/core-okta-api/#filter).\n\nSearches for users can be filtered by the following operators: `sw`, `eq`, and `co`. You can only use `co` with these select user profile attributes: `profile.firstName`, `profile.lastName`, `profile.email`, and `profile.login`. See [Operators](https://developer.okta.com/docs/api/#operators).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches for users with a supported filtering expression for most properties. Okta recommends using this parameter for optimal search performance. \n\n> **Note:** Using an overly complex or long search query can result in an error.\n\nThis operation supports [pagination](https://developer.okta.com/docs/api/#pagination). Use an ID lookup for records that you update to ensure your results contain the latest data. Returned users include those with the `DEPROVISIONED` status.\n\nProperty names in the search parameter are case sensitive, whereas operators (`eq`, `sw`, and so on) and string values are case insensitive. Unlike with user logins, diacritical marks are significant in search string values: a search for `isaac.brock` finds `Isaac.Brock`, but doesn't find a property whose value is `is\u00e1\u00e0c.br\u00f6ck`. \n\nThis operation requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `search=profile.department eq \"Engineering\"` is encoded as `search=profile.department%20eq%20%22Engineering%22`. If you use the special character `\"` within a quoted string, it must also be escaped `\\` and encoded. For example, `search=profile.lastName eq \"bob\"smith\"` is encoded as `search=profile.lastName%20eq%20%22bob%5C%22smith%22`. See [Special Characters](https://developer.okta.com/docs/api/#special-characters).\n\nThis operation searches many properties:\n  * Any user profile attribute, including custom-defined attributes\n  * The top-level properties: `id`, `status`, `created`, `activated`, `statusChanged`, and `lastUpdated`\n  * The [user type](https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserType/#tag/UserType/operation/updateUserType) accessed as `type.id`\n\n> **Note:** <x-lifecycle class=\"ea\"></x-lifecycle> The ability to search by user classification is available as an [Early Access](https://developer.okta.com/docs/api/openapi/okta-management/guides/release-lifecycle/#early-access-ea) feature. The `classification.type` property cannot be used in conjunction with other search terms. You can search using `classification.type eq \"LITE\"` or `classification.type eq \"STANDARD\"`.\n\nYou can also use `sortBy` and `sortOrder` parameters. The `ne` (not equal) operator isn't supported, but you can obtain the same result by using `lt ... or ... gt`. For example, to see all users except those that have a status of `STAGED`, use `(status lt \"STAGED\" or status gt \"STAGED\")`.\n\nYou can search properties that are arrays. If any element matches the search term, the entire array (object) is returned. Okta follows the [SCIM Protocol Specification](https://tools.ietf.org/html/rfc7644#section-3.4.2.2) for searching arrays. You can search multiple arrays, multiple values in an array, as well as using the standard logical and filtering operators. See [Filter](https://developer.okta.com/docs/reference/core-okta-api/#filter).\n\nSearches for users can be filtered by the following operators: `sw`, `eq`, and `co`. You can only use `co` with these select user profile attributes: `profile.firstName`, `profile.lastName`, `profile.email`, and `profile.login`. See [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "filter_expression",
+        "description": "Filters users with a supported expression for a subset of properties. \n\n> **Note:** Returned users include those with the `DEPROVISIONED` status.\n\nThis requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `filter=lastUpdated gt \"2013-06-01T00:00:00.000Z\"` is encoded as `filter=lastUpdated%20gt%20%222013-06-01T00:00:00.000Z%22`. Filtering is case-sensitive for property names and query values, while operators are case-insensitive.\n\nFiltering supports the following limited number of properties: `status`, `lastUpdated`, `id`, `profile.login`, `profile.email`, `profile.firstName`, and `profile.lastName`.\n\nAdditionally, filtering supports only the equal `eq` operator from the standard Okta API filtering semantics, except in the case of the `lastUpdated` property. This property can also use the inequality operators (`gt`, `ge`, `lt`, and `le`). For logical operators, only the logical operators `and` and `or` are supported. The `not` operator isn't supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters users with a supported expression for a subset of properties. \n\n> **Note:** Returned users include those with the `DEPROVISIONED` status.\n\nThis requires [URL encoding](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding). For example, `filter=lastUpdated gt \"2013-06-01T00:00:00.000Z\"` is encoded as `filter=lastUpdated%20gt%20%222013-06-01T00:00:00.000Z%22`. Filtering is case-sensitive for property names and query values, while operators are case-insensitive.\n\nFiltering supports the following limited number of properties: `status`, `lastUpdated`, `id`, `profile.login`, `profile.email`, `profile.firstName`, and `profile.lastName`.\n\nAdditionally, filtering supports only the equal `eq` operator from the standard Okta API filtering semantics, except in the case of the `lastUpdated` property. This property can also use the inequality operators (`gt`, `ge`, `lt`, and `le`). For logical operators, only the logical operators `and` and `or` are supported. The `not` operator isn't supported. See [Filter](https://developer.okta.com/docs/api/#filter) and [Operators](https://developer.okta.com/docs/api/#operators)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "q",
+        "tool_parameter_name": "query_user_search",
+        "description": "Finds users who match the specified query. This doesn't support pagination.\n\n> **Note:** For optimal performance, use the `search` parameter instead.\n\nUse the `q` parameter for simple queries, such as a lookup of users by name when creating a people picker.\n\nThe value of `q` is matched against `firstName`, `lastName`, or `email`. This performs a `startsWith` match, but this is an implementation detail and can change without notice. You don't need to specify `firstName`, `lastName`, or `email`.\n\n> **Note:** Using the `q` parameter in a request omits users that have a status of `DEPROVISIONED`. To return all users, use a filter or search query instead.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Finds users who match the specified query. This doesn't support pagination.\n\n> **Note:** For optimal performance, use the `search` parameter instead.\n\nUse the `q` parameter for simple queries, such as a lookup of users by name when creating a people picker.\n\nThe value of `q` is matched against `firstName`, `lastName`, or `email`. This performs a `startsWith` match, but this is an implementation detail and can change without notice. You don't need to specify `firstName`, `lastName`, or `email`.\n\n> **Note:** Using the `q` parameter in a request omits users that have a status of `DEPROVISIONED`. To return all users, use a filter or search query instead."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "Specifies the number of results returned. Defaults to 10 if `q` is provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results returned. Defaults to 10 if `q` is provided."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortBy",
+        "tool_parameter_name": "sort_users_by_field",
+        "description": "Specifies field to sort by (for search queries only). This can be any single property, for example `sortBy=profile.lastName`. Users with the same value for the `sortBy` property will be ordered by `id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies field to sort by (for search queries only). This can be any single property, for example `sortBy=profile.lastName`. Users with the same value for the `sortBy` property will be ordered by `id`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortOrder",
+        "tool_parameter_name": "sort_order",
+        "description": "Specifies the sort order: `asc` or `desc` (for search queries only). Sorting is done in ASCII sort order (that is, by ASCII character value), but isn't case sensitive. `sortOrder` is ignored if `sortBy` isn't present.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort order: `asc` or `desc` (for search queries only). Sorting is done in ASCII sort order (that is, by ASCII character value), but isn't case sensitive. `sortOrder` is ignored if `sortBy` isn't present."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "include_metadata_classification",
+        "description": "<x-lifecycle-container><x-lifecycle class=\"ea\"></x-lifecycle></x-lifecycle-container>A parameter to include metadata in the `_embedded` property. Supported value: `classification`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "<x-lifecycle-container><x-lifecycle class=\"ea\"></x-lifecycle></x-lifecycle-container>A parameter to include metadata in the `_embedded` property. Supported value: `classification`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "response_media_type",
+        "description": "Specifies the media type of the resource. Optional `okta-response` value can be included for performance optimization.\n\nComplex DelAuth configurations may degrade performance when fetching specific parts of the response, and passing this parameter can omit these parts, bypassing the bottleneck.\n\nEnum values for `okta-response`:\n  * `omitCredentials`: Omits the credentials subobject from the response.\n  * `omitCredentialsLinks`: Omits the following HAL links from the response: Update password, Change recovery question, Start forgot password flow, Reset password, Reset factors, Unlock.\n  * `omitTransitioningToStatus`: Omits the `transitioningToStatus` field from the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the media type of the resource. Optional `okta-response` value can be included for performance optimization.\n\nComplex DelAuth configurations may degrade performance when fetching specific parts of the response, and passing this parameter can omit these parts, bypassing the bottleneck.\n\nEnum values for `okta-response`:\n  * `omitCredentials`: Omits the credentials subobject from the response.\n  * `omitCredentialsLinks`: Omits the following HAL links from the response: Update password, Change recovery question, Start forgot password flow, Reset password, Reset factors, Unlock.\n  * `omitTransitioningToStatus`: Omits the `transitioningToStatus` field from the response."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

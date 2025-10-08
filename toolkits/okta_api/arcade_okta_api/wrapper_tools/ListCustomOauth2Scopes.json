@@ -1,0 +1,233 @@
+{
+  "name": "ListCustomOauth2Scopes",
+  "fully_qualified_name": "OktaApi.ListCustomOauth2Scopes@0.1.0",
+  "description": "Retrieve all custom OAuth2 token scopes.\n\nThis tool is used to list all custom OAuth2 token scopes for a specific authorization server identified by its ID. Call this tool when you need to access or display the custom scopes defined in an OAuth2 authorization server.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authorization_server_id",
+        "required": true,
+        "description": "The ID of the Authorization Server to retrieve custom token scopes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authServerId"
+      },
+      {
+        "name": "query_custom_scope_name",
+        "required": false,
+        "description": "Search for custom token scopes by matching values in their names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches the `name` of Custom Token Scopes for matching values"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "q"
+      },
+      {
+        "name": "custom_token_scopes_filter",
+        "required": false,
+        "description": "Filter the list of custom token scopes using a specific expression.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expression for Custom Token Scopes"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "pagination_cursor_next_page",
+        "required": false,
+        "description": "Specify the pagination cursor for fetching the next page of scopes. Use the cursor from the next link as an opaque value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of scopes.\nTreat the after cursor as an opaque value and obtain it through the next link relationship. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specifies the number of OAuth2 scopes to return per page. Handles pagination automatically.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of objects to return per page.\nIf there are multiple pages of results, the Link header contains a `next` link that you need to use as an opaque value (follow it, don't parse it). See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listOAuth2Scopes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.authorizationServers.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/authorizationServers/{authServerId}/scopes",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "q",
+        "tool_parameter_name": "query_custom_scope_name",
+        "description": "Searches the `name` of Custom Token Scopes for matching values",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Searches the `name` of Custom Token Scopes for matching values"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "custom_token_scopes_filter",
+        "description": "Filter expression for Custom Token Scopes",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expression for Custom Token Scopes"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor_next_page",
+        "description": "Specifies the pagination cursor for the next page of scopes.\nTreat the after cursor as an opaque value and obtain it through the next link relationship. See [Pagination](https://developer.okta.com/docs/api/#pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of scopes.\nTreat the after cursor as an opaque value and obtain it through the next link relationship. See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Specifies the number of objects to return per page.\nIf there are multiple pages of results, the Link header contains a `next` link that you need to use as an opaque value (follow it, don't parse it). See [Pagination](https://developer.okta.com/docs/api/#pagination).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of objects to return per page.\nIf there are multiple pages of results, the Link header contains a `next` link that you need to use as an opaque value (follow it, don't parse it). See [Pagination](https://developer.okta.com/docs/api/#pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "authServerId",
+        "tool_parameter_name": "authorization_server_id",
+        "description": "`id` of the Authorization Server",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`id` of the Authorization Server"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "name": "DeleteEmailCustomization",
+  "fully_qualified_name": "OktaApi.DeleteEmailCustomization@0.1.0",
+  "description": "Deletes an Email Customization by its unique identifier.\n\nUse this tool to delete an email customization in Okta using its unique ID. Note that if custom languages for Okta Email Templates are disabled, the deletion of additional language customizations by ID won't be registered.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "brand_id",
+        "required": true,
+        "description": "The unique identifier for the brand whose email customization is to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "brandId"
+      },
+      {
+        "name": "email_template_name",
+        "required": true,
+        "description": "The name of the email template to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "templateName"
+      },
+      {
+        "name": "email_customization_id",
+        "required": true,
+        "description": "The unique identifier for the email customization to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the email customization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customizationId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteEmailCustomization'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.templates.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/brands/{brandId}/templates/email/{templateName}/customizations/{customizationId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "brandId",
+        "tool_parameter_name": "brand_id",
+        "description": "The ID of the brand",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the brand"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "templateName",
+        "tool_parameter_name": "email_template_name",
+        "description": "The name of the email template",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the email template"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "customizationId",
+        "tool_parameter_name": "email_customization_id",
+        "description": "The ID of the email customization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the email customization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

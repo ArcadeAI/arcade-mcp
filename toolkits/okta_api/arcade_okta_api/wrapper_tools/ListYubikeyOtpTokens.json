@@ -1,0 +1,335 @@
+{
+  "name": "ListYubikeyOtpTokens",
+  "fully_qualified_name": "OktaApi.ListYubikeyOtpTokens@0.1.0",
+  "description": "Lists all YubiKey OTP tokens in the organization.\n\nUse this tool to retrieve all YubiKey OTP tokens associated with the organization. It helps in managing and auditing YubiKey token deployments.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor_for_next_page",
+        "required": false,
+        "description": "Specifies the pagination cursor for the next page of YubiKey OTP tokens.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of tokens"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "after"
+      },
+      {
+        "name": "expand_user_resource",
+        "required": false,
+        "description": "Set to 'user' to embed the User resource if assigned to a YubiKey token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Embeds the [user](/openapi/okta-management/management/tag/User/) resource if the YubiKey token is assigned to a user and `expand` is set to `user`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "filter_tokens_by",
+        "required": false,
+        "description": "Filter expression to narrow down tokens (e.g., by email, serial, status, etc.).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "profile.email",
+            "profile.serial",
+            "activated",
+            "user.id",
+            "created",
+            "status",
+            "lastVerified"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The expression used to filter tokens"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specifies the number of YubiKey OTP tokens returned per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results per page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "sort_tokens_by",
+        "required": false,
+        "description": "Specify how to sort the YubiKey tokens. Options: profile.email, profile.serial, activated, user.id, created, status, lastVerified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "profile.email",
+            "profile.serial",
+            "activated",
+            "user.id",
+            "created",
+            "status",
+            "lastVerified"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value of how the tokens are sorted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortBy"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specifies the sort order for the YubiKey OTP tokens, either `ASC` for ascending or `DESC` for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort order, either `ASC` or `DESC`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortOrder"
+      },
+      {
+        "name": "download_as_csv",
+        "required": false,
+        "description": "Set to True to return tokens as a downloadable CSV. The default limit changes to 1000.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns tokens in a CSV to download instead of in the response. When you use this query parameter, the `limit` default changes to 1000."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "forDownload"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listYubikeyOtpTokens'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.users.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/org/factors/yubikey_token/tokens",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "after",
+        "tool_parameter_name": "pagination_cursor_for_next_page",
+        "description": "Specifies the pagination cursor for the next page of tokens",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the pagination cursor for the next page of tokens"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_user_resource",
+        "description": "Embeds the [user](/openapi/okta-management/management/tag/User/) resource if the YubiKey token is assigned to a user and `expand` is set to `user`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Embeds the [user](/openapi/okta-management/management/tag/User/) resource if the YubiKey token is assigned to a user and `expand` is set to `user`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "filter_tokens_by",
+        "description": "The expression used to filter tokens",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "profile.email",
+            "profile.serial",
+            "activated",
+            "user.id",
+            "created",
+            "status",
+            "lastVerified"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The expression used to filter tokens"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "forDownload",
+        "tool_parameter_name": "download_as_csv",
+        "description": "Returns tokens in a CSV to download instead of in the response. When you use this query parameter, the `limit` default changes to 1000.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns tokens in a CSV to download instead of in the response. When you use this query parameter, the `limit` default changes to 1000."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "Specifies the number of results per page",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the number of results per page"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortBy",
+        "tool_parameter_name": "sort_tokens_by",
+        "description": "The value of how the tokens are sorted",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "profile.email",
+            "profile.serial",
+            "activated",
+            "user.id",
+            "created",
+            "status",
+            "lastVerified"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The value of how the tokens are sorted"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortOrder",
+        "tool_parameter_name": "sort_order",
+        "description": "Specifies the sort order, either `ASC` or `DESC`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort order, either `ASC` or `DESC`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

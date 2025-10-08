@@ -1,0 +1,137 @@
+{
+  "name": "AssignAppsToRoleForUser",
+  "fully_qualified_name": "OktaApi.AssignAppsToRoleForUser@0.1.0",
+  "description": "Assigns all applications to a user's role in Okta.\n\nUse this tool to assign all available applications to a specified user's `APP_ADMIN` role in Okta. It should be called when you need to automate the process of granting a user access to all applications under a specific role.",
+  "toolkit": {
+    "name": "ArcadeOktaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "okta_user_id",
+        "required": true,
+        "description": "ID of an existing Okta user to assign apps to their role.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "role_assignment_id",
+        "required": true,
+        "description": "The ID of the specific role assignment to which all apps will be assigned for the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roleAssignmentId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'assignAllAppsAsTargetToRoleForUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-okta",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "okta.roles.manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the okta API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://{yourOktaDomain}/api/v1/users/{userId}/roles/{roleAssignmentId}/targets/catalog/apps",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "userId",
+        "tool_parameter_name": "okta_user_id",
+        "description": "ID of an existing Okta user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of an existing Okta user"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "roleAssignmentId",
+        "tool_parameter_name": "role_assignment_id",
+        "description": "The `id` of the role assignment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `id` of the role assignment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
