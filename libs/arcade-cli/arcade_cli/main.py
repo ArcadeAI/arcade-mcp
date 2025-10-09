@@ -633,6 +633,70 @@ def deploy(
                 handle_cli_error(f"Failed to deploy server '{worker.config.id}'", e, debug)
 
 
+@cli.command(
+    name="deploy-server", help="Deploy MCP servers to Arcade Engine", rich_help_panel="Run"
+)
+def deploy_server(
+    entrypoint: str = typer.Option(
+        "./server.py",
+        "--entrypoint",
+        "-e",
+        help="Path to the Python file that contains the MCPApp instance (relative to project root)",
+    ),
+    host: str = typer.Option(
+        PROD_ENGINE_HOST,
+        "--host",
+        "-h",
+        help="The Arcade Engine host to deploy to",
+        hidden=True,
+    ),
+    port: Optional[int] = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="The port of the Arcade Engine",
+        hidden=True,
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Force TLS for the connection to the Arcade Engine",
+        hidden=True,
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Disable TLS for the connection to the Arcade Engine",
+        hidden=True,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Deploy an MCP server directly to Arcade Engine.
+
+    This command should be run from the root of your MCP server package
+    (the directory containing pyproject.toml).
+
+    Examples:
+        cd my_mcp_server/
+        arcade deploy-server
+        arcade deploy-server --entrypoint src/server.py
+    """
+    from arcade_cli.deploy_server import deploy_server_logic
+
+    try:
+        deploy_server_logic(
+            entrypoint=entrypoint,
+            host=host,
+            port=port,
+            force_tls=force_tls,
+            force_no_tls=force_no_tls,
+            debug=debug,
+        )
+    except Exception as e:
+        handle_cli_error("Failed to deploy server", e, debug)
+
+
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
     host: str = typer.Option(
