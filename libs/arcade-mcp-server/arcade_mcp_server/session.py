@@ -376,7 +376,7 @@ class ServerSession:
             # Send response if any
             if response and self.write_stream:
                 if hasattr(response, "model_dump_json"):
-                    response_data = response.model_dump_json(exclude_none=True)
+                    response_data = response.model_dump_json(exclude_none=True, by_alias=True)
                 else:
                     response_data = json.dumps(response)
 
