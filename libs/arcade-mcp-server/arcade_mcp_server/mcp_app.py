@@ -59,7 +59,7 @@ class MCPApp:
     def __init__(
         self,
         name: str = "ArcadeMCP",
-        version: str = "1.0.0dev",
+        version: str = "0.1.0",
         title: str | None = None,
         instructions: str | None = None,
         log_level: str = "INFO",
@@ -227,6 +227,10 @@ class MCPApp:
                 host=host,
                 port=port,
                 reload=reload,
+                name=self.name,
+                version=self.version,
+                title=self.title,
+                instructions=self.instructions,
                 **self.server_kwargs,
             )
         elif transport == "stdio":
@@ -237,6 +241,10 @@ class MCPApp:
             asyncio.run(
                 run_stdio_server(
                     catalog=self._catalog,
+                    name=self.name,
+                    version=self.version,
+                    title=self.title,
+                    instructions=self.instructions,
                     **self.server_kwargs,
                 )
             )

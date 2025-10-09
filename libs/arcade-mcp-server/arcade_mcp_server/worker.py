@@ -97,11 +97,17 @@ def create_arcade_mcp(
         log_level=logging.DEBUG if debug else logging.INFO,
     )
 
+    # Extract MCPServer-specific parameters from kwargs
+    server_kwargs = {}
+    for key in ["name", "version", "title", "instructions"]:
+        if key in kwargs:
+            server_kwargs[key] = kwargs.pop(key)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         try:
             logger.debug(f"Server lifespan startup. OTEL enabled: {otel_enable}")
-            async with create_lifespan(catalog, mcp_settings, **kwargs) as components:
+            async with create_lifespan(catalog, mcp_settings, **server_kwargs) as components:
                 app.state.mcp_server = components["mcp_server"]
                 app.state.session_manager = components["session_manager"]
                 yield
@@ -115,10 +121,11 @@ def create_arcade_mcp(
             await logger.complete()
             logger.debug("Server lifespan shutdown complete.")
 
+    # Use server_kwargs for FastAPI app metadata, falling back to settings
     app = FastAPI(
-        title=(mcp_settings.server.title or mcp_settings.server.name),
-        description=(mcp_settings.server.instructions or ""),
-        version=mcp_settings.server.version,
+        title=(server_kwargs.get("title") or mcp_settings.server.title or mcp_settings.server.name),
+        description=(server_kwargs.get("instructions") or mcp_settings.server.instructions or ""),
+        version=(server_kwargs.get("version") or mcp_settings.server.version),
         docs_url="/docs" if not mcp_settings.arcade.auth_disabled else None,
         redoc_url="/redoc" if not mcp_settings.arcade.auth_disabled else None,
         lifespan=lifespan,
@@ -221,6 +228,8 @@ def create_arcade_mcp_factory() -> FastAPI:
     show_packages = os.environ.get("ARCADE_MCP_SHOW_PACKAGES", "false").lower() == "true"
     server_name = os.environ.get("ARCADE_MCP_SERVER_NAME")
     server_version = os.environ.get("ARCADE_MCP_SERVER_VERSION")
+    server_title = os.environ.get("ARCADE_MCP_SERVER_TITLE")
+    server_instructions = os.environ.get("ARCADE_MCP_SERVER_INSTRUCTIONS")
 
     # Rediscover tools since there have been changes
     try:
@@ -250,6 +259,10 @@ def create_arcade_mcp_factory() -> FastAPI:
         kwargs["name"] = server_name
     if server_version:
         kwargs["version"] = server_version
+    if server_title:
+        kwargs["title"] = server_title
+    if server_instructions:
+        kwargs["instructions"] = server_instructions
 
     return create_arcade_mcp(
         catalog=catalog,
@@ -291,6 +304,10 @@ def run_arcade_mcp(
             os.environ["ARCADE_MCP_SERVER_NAME"] = kwargs["name"]
         if kwargs.get("version"):
             os.environ["ARCADE_MCP_SERVER_VERSION"] = kwargs["version"]
+        if kwargs.get("title"):
+            os.environ["ARCADE_MCP_SERVER_TITLE"] = kwargs["title"]
+        if kwargs.get("instructions"):
+            os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = kwargs["instructions"]
 
         # import string is required for reload mode
         app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
