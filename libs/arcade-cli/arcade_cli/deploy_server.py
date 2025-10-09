@@ -5,23 +5,106 @@ This module handles the deployment of MCP servers to Arcade Engine via the /v1/d
 It is completely independent from the legacy arcade_cli.deployment module to allow for clean separation.
 """
 
+import ast
 import base64
 import importlib.util
 import io
 import os
+import subprocess
 import sys
 import tarfile
+import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import httpx
 from rich.console import Console
 
 from arcade_cli.utils import compute_base_url, validate_and_get_config
 
+if TYPE_CHECKING:
+    from arcade_mcp_server.mcp_app import MCPApp
+
 console = Console()
 
 
-def load_mcp_app_from_entrypoint(entrypoint: str) -> "MCPApp":  # type: ignore
+def validate_entrypoint_structure(entrypoint: str) -> None:
+    """
+    Validate that the entrypoint file has proper structure with if __name__ == "__main__".
+
+    This ensures that app.run() or similar blocking calls are protected and won't
+    block the import when we load the MCPApp for inspection.
+
+    Args:
+        entrypoint: Path to the entrypoint file
+
+    Raises:
+        ValueError: If the file structure is invalid
+    """
+    entrypoint_path = Path(entrypoint).resolve()
+
+    try:
+        with open(entrypoint_path) as f:
+            source = f.read()
+    except Exception as e:
+        raise ValueError(f"Failed to read entrypoint file: {e}") from e
+
+    try:
+        tree = ast.parse(source, filename=str(entrypoint_path))
+    except SyntaxError as e:
+        raise ValueError(f"Syntax error in entrypoint file: {e}") from e
+
+    # Check if there's an if __name__ == "__main__" block
+    has_main_block = False
+
+    for node in ast.walk(tree):
+        # Check for if __name__ == "__main__" pattern
+        if isinstance(node, ast.If):
+            if _is_main_guard(node):
+                has_main_block = True
+                break
+
+    if not has_main_block:
+        raise ValueError(
+            f"Entrypoint file '{entrypoint}' must have an 'if __name__ == \"__main__\"' block that runs the server.\n\n"
+            "The entrypoint should be structured like:\n\n"
+            "  app = MCPApp(name='my_server', version='1.0.0')\n\n"
+            "  @app.tool\n"
+            "  def my_tool():\n"
+            "      ...\n\n"
+            "  if __name__ == '__main__':\n"
+            "      app.run()\n\n"
+        )
+
+
+def _is_main_guard(node: ast.If) -> bool:
+    """Check if an If node is an if __name__ == '__main__' guard."""
+    if not isinstance(node.test, ast.Compare):
+        return False
+
+    compare = node.test
+    if not isinstance(compare.left, ast.Name):
+        return False
+
+    if compare.left.id != "__name__":
+        return False
+
+    if len(compare.ops) != 1 or not isinstance(compare.ops[0], ast.Eq):
+        return False
+
+    if len(compare.comparators) != 1:
+        return False
+
+    comparator = compare.comparators[0]
+    if isinstance(comparator, ast.Constant):
+        return comparator.value == "__main__"
+    elif isinstance(comparator, ast.Str):  # Python 3.7 compatibility
+        return comparator.s == "__main__"
+
+    return False
+
+
+def load_mcp_app_from_entrypoint(entrypoint: str) -> "MCPApp":
     """
     Dynamically import the entrypoint file and extract the MCPApp instance.
 
@@ -171,6 +254,154 @@ def create_package_archive(package_dir: Path) -> str:
     return package_bytes_b64
 
 
+def start_local_server(entrypoint: str, port: int = 8000) -> subprocess.Popen:
+    """
+    Start the MCP server locally as a subprocess.
+
+    Args:
+        entrypoint: Path to the entrypoint file
+        port: Port to run the server on
+
+    Returns:
+        The subprocess handle
+
+    Raises:
+        ValueError: If the server process fails to start
+    """
+    # Use Python to run the entrypoint file
+    cmd = [sys.executable, entrypoint]
+
+    # Start the process, capturing stdout and stderr
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env={**os.environ, "PORT": str(port)},
+    )
+
+    return process
+
+
+def check_server_health(port: int = 8000, timeout: int = 30, check_interval: float = 0.5) -> bool:
+    """
+    Poll the server's health endpoint until it responds or times out.
+
+    Args:
+        port: Port the server is running on
+        timeout: Maximum time to wait in seconds
+        check_interval: Time between health checks in seconds
+
+    Returns:
+        True if the server becomes healthy, False otherwise
+    """
+    health_url = f"http://127.0.0.1:{port}/worker/health"
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            response = httpx.get(health_url, timeout=2.0)
+            if response.status_code == 200:
+                return True
+        except (httpx.ConnectError, httpx.TimeoutException):
+            # Server not ready yet, continue polling
+            pass
+        except Exception:
+            # Unexpected error, but continue polling
+            pass
+
+        time.sleep(check_interval)
+
+    return False
+
+
+def stop_local_server(process: subprocess.Popen) -> None:
+    """
+    Stop the local MCP server process.
+
+    Args:
+        process: The subprocess handle
+    """
+    try:
+        # Try graceful shutdown first
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            # Force kill if graceful shutdown fails
+            process.kill()
+            process.wait()
+    except Exception:
+        # If anything goes wrong, try to kill it
+        try:
+            process.kill()
+        except Exception:
+            pass
+
+
+def verify_server_starts(entrypoint: str, port: int = 8000, debug: bool = False) -> None:
+    """
+    Verify that the server starts and becomes healthy.
+
+    Args:
+        entrypoint: Path to the entrypoint file
+        port: Port to run the server on
+        debug: Whether to show debug information
+
+    Raises:
+        ValueError: If the server fails to start or become healthy
+    """
+    console.print("\nVerifying server starts correctly...", style="dim")
+
+    # Start the server
+    try:
+        process = start_local_server(entrypoint, port)
+    except Exception as e:
+        raise ValueError(f"Failed to start server process: {e}") from e
+
+    # Check if process immediately failed
+    time.sleep(0.5)
+    if process.poll() is not None:
+        # Process already exited
+        _, stderr = process.communicate()
+        error_msg = stderr.strip() if stderr else "Unknown error"
+        raise ValueError(f"Server process exited immediately: {error_msg}")
+
+    # Poll health endpoint
+    try:
+        is_healthy = check_server_health(port=port, timeout=30)
+
+        if not is_healthy:
+            # Server didn't become healthy in time
+            stop_local_server(process)
+
+            # Try to get error output
+            try:
+                _, stderr = process.communicate(timeout=2)
+                error_msg = stderr.strip() if stderr else "Server failed to become healthy"
+            except subprocess.TimeoutExpired:
+                error_msg = "Server failed to become healthy within 30 seconds"
+
+            raise ValueError(error_msg)
+
+        # Server is healthy!
+        console.print("✓ Server started successfully and is healthy", style="green")
+
+        # Stop the server
+        stop_local_server(process)
+
+        if debug:
+            console.print("  Server verification complete, process stopped", style="dim")
+
+    except ValueError:
+        # Re-raise verification errors
+        raise
+    except Exception as e:
+        # Cleanup and raise
+        stop_local_server(process)
+        raise ValueError(f"Error during server verification: {e}") from e
+
+
 def upsert_secrets_to_engine(
     engine_url: str, api_key: str, secrets: set[str], debug: bool = False
 ) -> None:
@@ -255,7 +486,7 @@ def deploy_server_to_engine(
     client = httpx.Client(
         base_url=engine_url,
         headers={"Authorization": f"Bearer {api_key}"},
-        timeout=360.0,
+        timeout=360,
     )
 
     try:
@@ -312,14 +543,29 @@ def deploy_server_logic(
             "Please run this command from the root of your MCP server package."
         )
 
-    # Step 3: Load MCPApp from entrypoint
+    # Step 3: Validate entrypoint structure
+    try:
+        validate_entrypoint_structure(entrypoint)
+    except Exception as e:
+        raise ValueError(f"Invalid entrypoint structure: {e}") from e
+
+    # Step 4: Verify server starts and is healthy
+    try:
+        verify_server_starts(entrypoint, port=8000, debug=debug)
+    except Exception as e:
+        raise ValueError(
+            f"Server verification failed: {e}\n"
+            "Please ensure your server starts correctly before deploying."
+        ) from e
+
+    # Step 5: Load MCPApp from entrypoint
     console.print(f"\nLoading MCP server from {entrypoint}...", style="dim")
     try:
         app = load_mcp_app_from_entrypoint(entrypoint)
     except Exception as e:
         raise ValueError(f"Failed to load MCPApp from {entrypoint}: {e}") from e
 
-    # Step 4: Get server name and version from app
+    # Step 6: Get server name and version from app
     server_name = app.name
     server_version = app.version
     tool_count = len(list(app._catalog))
@@ -327,16 +573,16 @@ def deploy_server_logic(
     console.print(f"✓ Found server: {server_name} v{server_version}", style="green")
     console.print(f"  Discovered {tool_count} tool(s) in catalog", style="dim")
 
-    # Step 5: Discover required secrets
+    # Step 7: Discover required secrets
     required_secrets = get_required_secrets(app)
 
-    # Step 6: Upsert secrets to engine
+    # Step 8: Upsert secrets to engine
     if required_secrets:
         upsert_secrets_to_engine(engine_url, config.api.key, required_secrets, debug)
     else:
         console.print("\nNo secrets required", style="dim")
 
-    # Step 7: Create tar.gz archive of current directory
+    # Step 9: Create tar.gz archive of current directory
     console.print("\nCreating deployment package...", style="dim")
     try:
         archive_base64 = create_package_archive(current_dir)
@@ -346,7 +592,7 @@ def deploy_server_logic(
     except Exception as e:
         raise ValueError(f"Failed to create package archive: {e}") from e
 
-    # Step 8: Build deployment request payload
+    # Step 10: Build deployment request payload
     deployment_request = {
         "name": server_name,
         "type": "mcp",
@@ -363,14 +609,14 @@ def deploy_server_logic(
         },
     }
 
-    # Step 9: Send deployment request to engine
+    # Step 11: Send deployment request to engine
     console.print("\nDeploying to Arcade Engine...", style="dim")
     try:
         response = deploy_server_to_engine(engine_url, config.api.key, deployment_request, debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 
-    # Step 10: Display success message with deployment details
+    # Step 12: Display success message with deployment details
     console.print(
         f"✓ Server '{server_name}' v{server_version} deployed successfully", style="bold green"
     )
