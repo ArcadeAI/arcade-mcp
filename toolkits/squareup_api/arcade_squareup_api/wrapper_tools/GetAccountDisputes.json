@@ -1,0 +1,187 @@
+{
+  "name": "GetAccountDisputes",
+  "fully_qualified_name": "SquareupApi.GetAccountDisputes@0.1.0",
+  "description": "Fetches disputes associated with an account.\n\nUse this tool to retrieve all disputes linked to a specific account. This can help in tracking and managing any disputes that have arisen.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor for retrieving the next set of dispute results from a previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "dispute_states_filter",
+        "required": false,
+        "description": "Filter disputes by their states. Options include 'INQUIRY_EVIDENCE_REQUIRED', 'INQUIRY_PROCESSING', 'INQUIRY_CLOSED', 'EVIDENCE_REQUIRED', 'PROCESSING', 'WON', 'LOST', 'ACCEPTED'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "INQUIRY_EVIDENCE_REQUIRED",
+            "INQUIRY_PROCESSING",
+            "INQUIRY_CLOSED",
+            "EVIDENCE_REQUIRED",
+            "PROCESSING",
+            "WON",
+            "LOST",
+            "ACCEPTED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The dispute states used to filter the result. If not specified, the endpoint returns all disputes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "states"
+      },
+      {
+        "name": "location_identifier",
+        "required": false,
+        "description": "The ID of the location to return a list of disputes for. If not provided, returns disputes for all locations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for which to return a list of disputes.\nIf not specified, the endpoint returns disputes associated with all locations."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListDisputes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "DISPUTES_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/disputes",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "states",
+        "tool_parameter_name": "dispute_states_filter",
+        "description": "The dispute states used to filter the result. If not specified, the endpoint returns all disputes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "INQUIRY_EVIDENCE_REQUIRED",
+            "INQUIRY_PROCESSING",
+            "INQUIRY_CLOSED",
+            "EVIDENCE_REQUIRED",
+            "PROCESSING",
+            "WON",
+            "LOST",
+            "ACCEPTED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The dispute states used to filter the result. If not specified, the endpoint returns all disputes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_identifier",
+        "description": "The ID of the location for which to return a list of disputes.\nIf not specified, the endpoint returns disputes associated with all locations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for which to return a list of disputes.\nIf not specified, the endpoint returns disputes associated with all locations."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

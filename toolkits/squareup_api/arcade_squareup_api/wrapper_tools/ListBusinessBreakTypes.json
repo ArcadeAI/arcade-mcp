@@ -1,0 +1,169 @@
+{
+  "name": "ListBusinessBreakTypes",
+  "fully_qualified_name": "SquareupApi.ListBusinessBreakTypes@0.1.0",
+  "description": "Retrieve a list of BreakType instances for a business.\n\nThis tool provides a paginated list of BreakType instances associated with a business. Use it to fetch information about different break types configured in a business's system.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_location_id",
+        "required": false,
+        "description": "Filter results to only include BreakTypes associated with a specific location.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the returned `BreakType` results to only those that are associated with the\nspecified location."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "The maximum number of BreakType results to return per page, between 1 and 200. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of `BreakType` results to return per page. The number can range between 1\nand 200. The default is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A pointer to the next page of BreakType results for retrieval.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pointer to the next page of `BreakType` results to fetch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListBreakTypes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_SETTINGS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/break-types",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "location_id",
+        "tool_parameter_name": "filter_by_location_id",
+        "description": "Filter the returned `BreakType` results to only those that are associated with the\nspecified location.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the returned `BreakType` results to only those that are associated with the\nspecified location."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "The maximum number of `BreakType` results to return per page. The number can range between 1\nand 200. The default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of `BreakType` results to return per page. The number can range between 1\nand 200. The default is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pointer to the next page of `BreakType` results to fetch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pointer to the next page of `BreakType` results to fetch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

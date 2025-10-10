@@ -1,0 +1,105 @@
+{
+  "name": "RemoveSquareOnlineSnippet",
+  "fully_qualified_name": "SquareupApi.RemoveSquareOnlineSnippet@0.1.0",
+  "description": "Delete a snippet from a Square Online site.\n\nUse this tool to remove a snippet from a Square Online site. Call it when you have the site ID from which you want to delete the snippet. Ideal for managing online site content efficiently.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "site_id_for_snippet_removal",
+        "required": true,
+        "description": "The unique ID of the Square Online site containing the snippet to remove.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the site that contains the snippet."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "site_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteSnippet'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ONLINE_STORE_SNIPPETS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/sites/{site_id}/snippet",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "site_id",
+        "tool_parameter_name": "site_id_for_snippet_removal",
+        "description": "The ID of the site that contains the snippet.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the site that contains the snippet."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

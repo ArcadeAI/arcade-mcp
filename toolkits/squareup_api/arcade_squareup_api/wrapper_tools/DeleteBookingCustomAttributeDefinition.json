@@ -1,0 +1,105 @@
+{
+  "name": "DeleteBookingCustomAttributeDefinition",
+  "fully_qualified_name": "SquareupApi.DeleteBookingCustomAttributeDefinition@0.1.0",
+  "description": "Deletes a bookings custom attribute definition.\n\nUse to delete a custom attribute definition for bookings. Requires specific OAuth scopes depending on permission level: `APPOINTMENTS_WRITE` for buyer-level or both `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level. Seller-level calls require an Appointments Plus or Premium subscription.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_attribute_definition_key",
+        "required": true,
+        "description": "The unique key of the custom attribute definition to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteBookingCustomAttributeDefinition'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "key",
+        "tool_parameter_name": "custom_attribute_definition_key",
+        "description": "The key of the custom attribute definition to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to delete."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

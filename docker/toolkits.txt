@@ -1,4 +1,5 @@
 arcade-box-api
 arcade-slack-api
 arcade-stripe-api
+arcade-squareup-api
 arcade-xero-api

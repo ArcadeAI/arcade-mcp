@@ -1,0 +1,105 @@
+{
+  "name": "DeleteOrderCustomAttributeDefinition",
+  "fully_qualified_name": "SquareupApi.DeleteOrderCustomAttributeDefinition@0.1.0",
+  "description": "Delete an order-related custom attribute definition.\n\nDeletes a custom attribute definition related to an order from a Square seller account. Only the owner of the definition can perform this action.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_attribute_key",
+        "required": true,
+        "description": "The key identifying the custom attribute definition to be deleted from the seller's account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteOrderCustomAttributeDefinition'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ORDERS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "key",
+        "tool_parameter_name": "custom_attribute_key",
+        "description": "The key of the custom attribute definition to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to delete."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

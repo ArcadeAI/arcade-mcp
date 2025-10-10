@@ -1,0 +1,169 @@
+{
+  "name": "ListSubscriptionEvents",
+  "fully_qualified_name": "SquareupApi.ListSubscriptionEvents@0.1.0",
+  "description": "Retrieve events for a specific subscription.\n\nCall this tool to retrieve all events related to a specific subscription using the Square API. Useful for tracking changes and updates within a subscription lifecycle.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The unique ID of the subscription to retrieve events for. Use this to specify which subscription's events to list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to retrieve the events for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Specify the cursor to fetch the next set of subscription events if results exceed the limit. Leave unset for the last page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the total number of resulting subscription events exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "max_events_per_page",
+        "required": false,
+        "description": "The maximum number of subscription events to return in a single response page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The upper limit on the number of subscription events to return\nin a paged response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListSubscriptionEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "SUBSCRIPTIONS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/subscriptions/{subscription_id}/events",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "When the total number of resulting subscription events exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When the total number of resulting subscription events exceeds the limit of a paged response, \nspecify the cursor returned from a preceding response here to fetch the next set of results.\nIf the cursor is unset, the response contains the last page of the results.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_events_per_page",
+        "description": "The upper limit on the number of subscription events to return\nin a paged response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The upper limit on the number of subscription events to return\nin a paged response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "subscription_id",
+        "description": "The ID of the subscription to retrieve the events for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the subscription to retrieve the events for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
