@@ -22,6 +22,15 @@
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run `python server.py`",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "server.py",
+      "console": "integratedTerminal",
+      "cwd": "/absolute/path/to/your/mcp_server",
+      "args": []
     }
   ]
 }

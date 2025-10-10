@@ -179,3 +179,58 @@ class TestMCPApp:
         # Test removing a resource at runtime
         removed_resource = await mcp_app.resources.remove("file:///test.txt")
         assert removed_resource.uri == "file:///test.txt"
+
+    def test_get_configuration_overrides(self, monkeypatch):
+        """Test configuration overrides from environment variables."""
+        # Ensure environment variables are clear at the start
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT", raising=False)
+        monkeypatch.delenv("ARCADE_SERVER_HOST", raising=False)
+        monkeypatch.delenv("ARCADE_SERVER_PORT", raising=False)
+
+        # Test default values (no environment variables)
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        assert host == "127.0.0.1"
+        assert port == 8000
+        assert transport == "http"
+
+        # Test transport override
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "stdio")
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        assert transport == "stdio"
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+        # Test host override (only works with HTTP transport)
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
+        monkeypatch.setenv("ARCADE_SERVER_HOST", "192.168.1.1")
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        assert host == "192.168.1.1"
+        assert transport == "http"
+        monkeypatch.delenv("ARCADE_SERVER_HOST")
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+        # Test port override (only works with HTTP transport)
+        monkeypatch.setenv("ARCADE_SERVER_PORT", "9000")
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        assert port == 9000
+        monkeypatch.delenv("ARCADE_SERVER_PORT")
+
+        # Test invalid port value
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "http")
+        monkeypatch.setenv("ARCADE_SERVER_PORT", "invalid_port")
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        assert port == 8000  # Should keep the default value
+        monkeypatch.delenv("ARCADE_SERVER_PORT")
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")
+
+        # Test host/port with stdio transport
+        monkeypatch.setenv("ARCADE_SERVER_TRANSPORT", "stdio")
+        monkeypatch.setenv("ARCADE_SERVER_HOST", "192.168.1.1")
+        monkeypatch.setenv("ARCADE_SERVER_PORT", "9000")
+        host, port, transport = MCPApp._get_configuration_overrides("127.0.0.1", 8000, "http")
+        # For stdio, host and port are still returned but not used by the server
+        assert host == "127.0.0.1"  # Host should remain unchanged for stdio transport
+        assert port == 8000  # Port should remain unchanged for stdio transport
+        assert transport == "stdio"
+        monkeypatch.delenv("ARCADE_SERVER_HOST")
+        monkeypatch.delenv("ARCADE_SERVER_PORT")
+        monkeypatch.delenv("ARCADE_SERVER_TRANSPORT")

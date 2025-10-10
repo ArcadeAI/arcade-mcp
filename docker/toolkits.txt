@@ -2,3 +2,4 @@ arcade-box-api
 arcade-calendly-api
 arcade-slack-api
 arcade-stripe-api
+arcade-xero-api

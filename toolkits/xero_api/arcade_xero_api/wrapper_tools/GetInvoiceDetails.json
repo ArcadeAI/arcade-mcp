@@ -1,0 +1,172 @@
+{
+  "name": "GetInvoiceDetails",
+  "fully_qualified_name": "XeroApi.GetInvoiceDetails@0.1.0",
+  "description": "Retrieve a specific invoice using its unique ID.\n\nUse this tool to get detailed information about a specific sales invoice or purchase bill by providing its unique invoice ID. This can be helpful when checking invoice details in the Xero accounting system.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_identifier",
+        "required": true,
+        "description": "Unique identifier for the invoice to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "InvoiceID"
+      },
+      {
+        "name": "xero_tenant_id",
+        "required": true,
+        "description": "Xero identifier for the Tenant. Used to specify which tenant's invoice is retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "unit_decimal_places",
+        "required": false,
+        "description": "Specify the number of decimal places to use for unit amounts, e.g., 4 for four decimal places.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unitdp"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getInvoice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions.read",
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Invoices/{InvoiceID}",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "unitdp",
+        "tool_parameter_name": "unit_decimal_places",
+        "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "InvoiceID",
+        "tool_parameter_name": "invoice_identifier",
+        "description": "Unique identifier for an Invoice",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_id",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

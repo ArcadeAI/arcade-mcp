@@ -68,6 +68,11 @@ def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
             openWorldHint=requirements.authorization is not None,
         )
 
+        # Build meta with requirements if any exist
+        meta = None
+        if requirements.authorization or requirements.secrets or requirements.metadata:
+            meta = {"requirements": requirements.model_dump()}
+
         # Instantiate MCPTool model to ensure shape correctness
         return MCPTool(
             name=name,
@@ -76,6 +81,7 @@ def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
             inputSchema=input_schema,
             outputSchema=output_schema if output_schema else None,
             annotations=annotations,
+            _meta=meta,
         )
 
     except Exception:

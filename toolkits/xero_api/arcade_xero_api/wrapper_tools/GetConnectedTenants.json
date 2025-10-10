@@ -1,0 +1,105 @@
+{
+  "name": "GetConnectedTenants",
+  "fully_qualified_name": "XeroIdentityApi.GetConnectedTenants@0.1.0",
+  "description": "Fetch active Tenants connections from Xero organization.\n\nUse this tool to retrieve a list of active connections associated with your Xero organization. It should be called when verifying or reviewing the connections currently established with Xero.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_auth_event_id",
+        "required": false,
+        "description": "A string used to filter the results by a specific authEventId, narrowing down the connections returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by authEventId"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authEventId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getConnections'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.settings.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/Connections",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authEventId",
+        "tool_parameter_name": "filter_auth_event_id",
+        "description": "Filter by authEventId",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by authEventId"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

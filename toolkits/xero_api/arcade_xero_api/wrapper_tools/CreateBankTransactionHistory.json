@@ -1,0 +1,171 @@
+{
+  "name": "CreateBankTransactionHistory",
+  "fully_qualified_name": "XeroApi.CreateBankTransactionHistory@0.1.0",
+  "description": "Creates a record in the bank transaction history.\n\nUse this tool to create a history record for a specific bank transaction in Xero. It's useful for logging changes or updates to bank transactions.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "bank_transaction_id",
+        "required": true,
+        "description": "Xero-generated unique identifier for the bank transaction to create a history record.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero generated unique identifier for a bank transaction"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "BankTransactionID"
+      },
+      {
+        "name": "tenant_id",
+        "required": true,
+        "description": "Xero identifier for the tenant. This is required to specify which Xero account the transaction history will be associated with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "idempotency_key",
+        "required": false,
+        "description": "A unique key to prevent duplicate processing. Maximum 128 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Idempotency-Key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createBankTransactionHistoryRecord'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/BankTransactions/{BankTransactionID}/History",
+    "http_method": "PUT",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "BankTransactionID",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "Xero generated unique identifier for a bank transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero generated unique identifier for a bank transaction"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_id",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Idempotency-Key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This allows you to safely retry requests without the risk of duplicate processing. 128 character max."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

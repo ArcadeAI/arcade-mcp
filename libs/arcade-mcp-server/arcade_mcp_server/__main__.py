@@ -54,7 +54,7 @@ def setup_logging(level: str = "INFO", stdio_mode: bool = False) -> None:
     # Remove existing handlers
     logger.remove()
 
-    # Configure output destination
+    # In stdio mode, use stderr (stdout is reserved for JSON-RPC)
     sink = sys.stderr if stdio_mode else sys.stdout
 
     # Add handler with appropriate format
@@ -69,7 +69,7 @@ def setup_logging(level: str = "INFO", stdio_mode: bool = False) -> None:
         sink,
         format=format_str,
         level=level,
-        colorize=True,
+        colorize=(not stdio_mode),
         diagnose=(level == "DEBUG"),
     )
 
