@@ -125,10 +125,10 @@ class MCPServer:
 
         Args:
             catalog: Tool catalog
-            name: Server name (defaults to settings.server.name or "ArcadeMCP")
-            version: Server version (defaults to settings.server.version or "0.1.0")
-            title: Server title for display (defaults to settings.server.title or name)
-            instructions: Server instructions (defaults to settings.server.instructions)
+            name: Server name
+            version: Server version
+            title: Server title for display
+            instructions: Server instructions
             settings: MCP settings (uses env if not provided)
             middleware: List of middleware to apply
             lifespan: Lifespan manager function
@@ -136,6 +136,9 @@ class MCPServer:
             arcade_api_key: Arcade API key (overrides settings)
             arcade_api_url: Arcade API URL (overrides settings)
         """
+        self._started = False
+        self._lock = asyncio.Lock()
+
         # Settings (load first so we can use values from it)
         self.settings = settings or MCPSettings.from_env()
 
@@ -154,12 +157,10 @@ class MCPServer:
 
         self.instructions = (
             instructions
-            if instructions is not None
+            if instructions
             else (self.settings.server.instructions or self._default_instructions())
         )
 
-        self._started = False
-        self._lock = asyncio.Lock()
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
         # Initialize Arcade client
