@@ -1,0 +1,267 @@
+{
+  "name": "GetEventInvitees",
+  "fully_qualified_name": "CalendlyApi.GetEventInvitees@0.1.0",
+  "description": "Fetch invitees for a specific scheduled event.\n\nUse this tool to retrieve a list of people invited to a specific event by providing the event's unique identifier. It helps in managing and viewing event attendees.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_unique_identifier",
+        "required": true,
+        "description": "The unique identifier of the event to retrieve invitees for. Use this to specify which event's attendees you want to list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      },
+      {
+        "name": "invitee_status",
+        "required": false,
+        "description": "Filter invitees by their status: 'active' or 'canceled'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "canceled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the invitee \"canceled\" or still \"active\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "sort_order_by_creation",
+        "required": false,
+        "description": "Specify the sort order of invitees by their created_at date. Use \"asc\" for ascending or \"desc\" for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the **created_at** field and direction specified: ascending (\"asc\") or descending (\"desc\")"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "filter_by_email",
+        "required": false,
+        "description": "Filter results by the invitee's email address. Only invitees with this email will be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by email address"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token for fetching the next or previous portion of the event invitee list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "number_of_invitees_to_return",
+        "required": false,
+        "description": "The number of invitee records to return in the response. Determines how many invitees are included per request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-event-invitees'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/scheduled_events/{uuid}/invitees",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "invitee_status",
+        "description": "Indicates if the invitee \"canceled\" or still \"active\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "canceled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the invitee \"canceled\" or still \"active\""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order_by_creation",
+        "description": "Order results by the **created_at** field and direction specified: ascending (\"asc\") or descending (\"desc\")",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the **created_at** field and direction specified: ascending (\"asc\") or descending (\"desc\")"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "filter_by_email",
+        "description": "Indicates if the results should be filtered by email address",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by email address"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_invitees_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "uuid",
+        "tool_parameter_name": "event_unique_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
