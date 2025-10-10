@@ -1,0 +1,242 @@
+{
+  "name": "GetOutlierIncidentInfo",
+  "fully_qualified_name": "PagerdutyApi.GetOutlierIncidentInfo@0.1.0",
+  "description": "Retrieve outlier incident details for a specific incident.\n\nUse this tool to obtain detailed information about an outlier incident associated with a specific service incident in Pagerduty. Requires scoped OAuth with `incidents.read` permission.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_id",
+        "required": true,
+        "description": "The unique ID of the incident to retrieve outlier details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_versioning_header",
+        "required": true,
+        "description": "Specify the API version as a string using the `Accept` header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the media type of the request body. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "start_date_for_search",
+        "required": false,
+        "description": "The start date of the range for searching outlier incidents.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "additional_attributes_for_related_incidents",
+        "required": false,
+        "description": "List of additional attributes for the returned related incidents. Options include 'incident'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional attributes to any of the returned incidents for related incidents."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "additional_details[]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getOutlierIncident'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}/outlier_incident",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "since",
+        "tool_parameter_name": "start_date_for_search",
+        "description": "The start of the date range over which you want to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "additional_details[]",
+        "tool_parameter_name": "additional_attributes_for_related_incidents",
+        "description": "Array of additional attributes to any of the returned incidents for related incidents.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional attributes to any of the returned incidents for related incidents."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

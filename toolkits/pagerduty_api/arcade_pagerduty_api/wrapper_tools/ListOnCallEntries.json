@@ -1,0 +1,510 @@
+{
+  "name": "ListOnCallEntries",
+  "fully_qualified_name": "PagerdutyApi.ListOnCallEntries@0.1.0",
+  "description": "Retrieve on-call entries within a specified time range.\n\nUse this tool to get on-call entries for users according to specified escalation policies and rules within a given timeframe. Useful for managing on-call schedules and understanding who is responsible during specific periods. Ensure you have the required OAuth permissions (`oncalls.read`) before calling this tool.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specify the version of the API to use by setting the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "The Content-Type header specifies the media type of the request. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "results_time_zone",
+        "required": false,
+        "description": "Time zone in which results will be rendered. Defaults to the account time zone if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_zone"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of on-call entries to retrieve per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Offset to start pagination for search results, defining where to begin in the result set.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "additional_details_to_include",
+        "required": false,
+        "description": "Array specifying additional details to include: 'escalation_policies', 'users', 'schedules'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "escalation_policies",
+            "users",
+            "schedules"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional details to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include[]"
+      },
+      {
+        "name": "filter_by_user_ids",
+        "required": false,
+        "description": "Filters the on-call entries to include only those for the specified user IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified user IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_ids[]"
+      },
+      {
+        "name": "filter_by_escalation_policy_ids",
+        "required": false,
+        "description": "Array of escalation policy IDs to filter on-call entries, showing results only for specified IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified escalation policy IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "escalation_policy_ids[]"
+      },
+      {
+        "name": "filter_by_schedule_ids",
+        "required": false,
+        "description": "An array of schedule IDs to filter results. Include `null` to add permanent on-calls for direct user escalation targets.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified schedule IDs. If `null` is provided in the array, it includes permanent on-calls due to direct user escalation targets."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "schedule_ids[]"
+      },
+      {
+        "name": "start_time_range",
+        "required": false,
+        "description": "Specify the start time for the search range. Defaults to the current time. Valid entries are up to 90 days in the future.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "end_time_range",
+        "required": false,
+        "description": "The end of the time range for searching on-call entries. Must be within 90 days of current time and cannot be before the start time. Defaults to current time if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future, and the `until` time cannot be before the `since` time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "include_total_in_response",
+        "required": false,
+        "description": "Set this to true to include the total number of on-call entries in pagination responses. This may increase response time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "return_earliest_on_call",
+        "required": false,
+        "description": "Set to true to filter and return only the earliest on-call for each escalation policy, level, and user.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This will filter on-calls such that only the earliest on-call for each combination of escalation policy, escalation level, and user is returned. This is useful for determining when the \"next\" on-calls are for a given set of filters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "earliest"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listOnCalls'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/oncalls",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "time_zone",
+        "tool_parameter_name": "results_time_zone",
+        "description": "Time zone in which results will be rendered. This will default to the account time zone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Offset to start pagination search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "include_total_in_response",
+        "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include[]",
+        "tool_parameter_name": "additional_details_to_include",
+        "description": "Array of additional details to include.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "escalation_policies",
+            "users",
+            "schedules"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional details to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_ids[]",
+        "tool_parameter_name": "filter_by_user_ids",
+        "description": "Filters the results, showing only on-calls for the specified user IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified user IDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "escalation_policy_ids[]",
+        "tool_parameter_name": "filter_by_escalation_policy_ids",
+        "description": "Filters the results, showing only on-calls for the specified escalation policy IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified escalation policy IDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "schedule_ids[]",
+        "tool_parameter_name": "filter_by_schedule_ids",
+        "description": "Filters the results, showing only on-calls for the specified schedule IDs. If `null` is provided in the array, it includes permanent on-calls due to direct user escalation targets.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the results, showing only on-calls for the specified schedule IDs. If `null` is provided in the array, it includes permanent on-calls due to direct user escalation targets."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "start_time_range",
+        "description": "The start of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "end_time_range",
+        "description": "The end of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future, and the `until` time cannot be before the `since` time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the time range over which you want to search. If an on-call period overlaps with the range, it will be included in the result. Defaults to current time. On-call shifts are limited to 90 days in the future, and the `until` time cannot be before the `since` time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "earliest",
+        "tool_parameter_name": "return_earliest_on_call",
+        "description": "This will filter on-calls such that only the earliest on-call for each combination of escalation policy, escalation level, and user is returned. This is useful for determining when the \"next\" on-calls are for a given set of filters.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "This will filter on-calls such that only the earliest on-call for each combination of escalation policy, escalation level, and user is returned. This is useful for determining when the \"next\" on-calls are for a given set of filters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

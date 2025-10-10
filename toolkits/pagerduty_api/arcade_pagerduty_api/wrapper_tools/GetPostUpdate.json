@@ -1,0 +1,201 @@
+{
+  "name": "GetPostUpdate",
+  "fully_qualified_name": "PagerdutyApi.GetPostUpdate@0.1.0",
+  "description": "Retrieve a specific post update by post and update ID.\n\nFetch a post update for a post using the post ID and post update ID on Pagerduty.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique ID of the resource to retrieve the post update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "status_page_post_id",
+        "required": true,
+        "description": "The unique ID of the Status Page Post to retrieve the update for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_id"
+      },
+      {
+        "name": "status_page_post_update_id",
+        "required": true,
+        "description": "The ID of the Status Page Post Update to be retrieved from Pagerduty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post Update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_update_id"
+      },
+      {
+        "name": "accept_header",
+        "required": true,
+        "description": "The `Accept` header used for versioning. Specify the API version required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getPostUpdate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}/post_updates/{post_update_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "post_id",
+        "tool_parameter_name": "status_page_post_id",
+        "description": "The ID of the Status Page Post.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "post_update_id",
+        "tool_parameter_name": "status_page_post_update_id",
+        "description": "The ID of the Status Page Post Update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post Update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

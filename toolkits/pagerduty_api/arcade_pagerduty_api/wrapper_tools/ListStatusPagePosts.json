@@ -1,0 +1,246 @@
+{
+  "name": "ListStatusPagePosts",
+  "fully_qualified_name": "PagerdutyApi.ListStatusPagePosts@0.1.0",
+  "description": "Retrieve posts for a specific status page.\n\nUse this tool to list all posts associated with a specific status page by providing its ID. This is useful for monitoring updates or changes communicated through the status page.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The ID of the status page to retrieve posts from. This is required to identify the specific page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_versioning_header",
+        "required": true,
+        "description": "Specifies the API response format version using the 'Accept' header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "filter_by_post_type",
+        "required": false,
+        "description": "Specifies the post type to filter results, such as 'incident' or 'maintenance'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident",
+            "maintenance"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Post type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_type"
+      },
+      {
+        "name": "filter_reviewed_status",
+        "required": false,
+        "description": "Specify the reviewed status of the posts to retrieve, such as 'approved' or 'not_reviewed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "approved",
+            "not_reviewed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the reviewed status of the Post to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reviewed_status"
+      },
+      {
+        "name": "status_identifiers",
+        "required": false,
+        "description": "Array of status identifiers to filter posts by. Use to narrow down to specific statuses.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an array of Status identifiers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status[]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listStatusPagePosts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/posts",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "post_type",
+        "tool_parameter_name": "filter_by_post_type",
+        "description": "Filter by Post type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident",
+            "maintenance"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Post type."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reviewed_status",
+        "tool_parameter_name": "filter_reviewed_status",
+        "description": "Filter by the reviewed status of the Post to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "approved",
+            "not_reviewed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by the reviewed status of the Post to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status[]",
+        "tool_parameter_name": "status_identifiers",
+        "description": "Filter by an array of Status identifiers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an array of Status identifiers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

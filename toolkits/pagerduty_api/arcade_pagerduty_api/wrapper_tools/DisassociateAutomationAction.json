@@ -1,0 +1,205 @@
+{
+  "name": "DisassociateAutomationAction",
+  "fully_qualified_name": "PagerdutyApi.DisassociateAutomationAction@0.1.0",
+  "description": "Disassociate an Automation Action from a service.\n\nUse this tool to remove the association between an automation action and a specified service when you need to manage or update service configurations.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The ID of the resource to be disassociated from the service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "service_identifier",
+        "required": true,
+        "description": "The unique identifier for the service from which the automation action will be disassociated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The service ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "service_id"
+      },
+      {
+        "name": "api_version",
+        "required": true,
+        "description": "Specify the API version using the `Accept` header format, e.g., 'application/vnd.pagerduty+json;version=2'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Set the content type for the request header. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteAutomationActionServiceAssociation'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/automation_actions/actions/{id}/services/{service_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "service_id",
+        "tool_parameter_name": "service_identifier",
+        "description": "The service ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The service ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

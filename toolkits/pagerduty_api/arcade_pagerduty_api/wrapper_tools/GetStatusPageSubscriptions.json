@@ -1,0 +1,215 @@
+{
+  "name": "GetStatusPageSubscriptions",
+  "fully_qualified_name": "PagerdutyApi.GetStatusPageSubscriptions@0.1.0",
+  "description": "Retrieve subscriptions for a specific status page using its ID.\n\n",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "status_page_id",
+        "required": true,
+        "description": "The ID of the status page to retrieve subscriptions for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "Versioning information for the API request, set via the 'Accept' HTTP header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "subscription_status_filter",
+        "required": false,
+        "description": "Filter subscriptions by status: 'active' or 'pending'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "pending"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Subscription status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "subscription_channel_filter",
+        "required": false,
+        "description": "Filter subscriptions by channel type. Accepted values: 'webhook', 'email', 'slack'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "webhook",
+            "email",
+            "slack"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Subscription channel."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listStatusPageSubscriptions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/subscriptions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "subscription_status_filter",
+        "description": "Filter by Subscription status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "pending"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Subscription status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "channel",
+        "tool_parameter_name": "subscription_channel_filter",
+        "description": "Filter by Subscription channel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "webhook",
+            "email",
+            "slack"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by Subscription channel."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "status_page_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

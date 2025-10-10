@@ -1,0 +1,674 @@
+{
+  "name": "ListIncidents",
+  "fully_qualified_name": "PagerdutyApi.ListIncidents@0.1.0",
+  "description": "Retrieve a list of current incidents.\n\nThis tool provides a list of existing incidents, representing problems or issues needing resolution. It should be called when detailed information on current incidents is required. This requires OAuth scope: `incidents.read`.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "version_accept_header",
+        "required": true,
+        "description": "Specify the `Accept` header for versioning purposes. This determines the version of the API response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "number_of_results_per_page",
+        "required": false,
+        "description": "Specifies the number of incidents to return per page, up to a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page. Maximum of 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Offset for pagination, indicating the starting point for search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "ignore_date_filters",
+        "required": false,
+        "description": "Set to 'all' to ignore 'since' and 'until' date filters, using all available data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to all, the since and until parameters and defaults are ignored."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_range"
+      },
+      {
+        "name": "incident_deduplication_key",
+        "required": false,
+        "description": "A string representing the de-duplication key of the incident. Incidents with child alerts do not have an incident key. Use it to query incidents by matching alert keys.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident de-duplication key. Incidents with child alerts do not have an incident key; querying by incident key will return incidents whose alerts have alert_key matching the given incident key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_key"
+      },
+      {
+        "name": "filter_by_service_ids",
+        "required": false,
+        "description": "List of service IDs to filter incidents. Only incidents linked to these service IDs will be returned.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns only the incidents associated with the passed service(s). This expects one or more service IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "service_ids[]"
+      },
+      {
+        "name": "team_ids",
+        "required": false,
+        "description": "Array of team IDs to filter incidents. Only relevant incidents for these teams will be returned.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_ids[]"
+      },
+      {
+        "name": "assigned_user_ids",
+        "required": false,
+        "description": "List of user IDs to filter incidents assigned to specific users. Only incidents with statuses of triggered or acknowledged will be returned, as resolved incidents are not assigned to any user.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns only the incidents currently assigned to the passed user(s). This expects one or more user IDs. Note: When using the assigned_to_user filter, you will only receive incidents with statuses of triggered or acknowledged. This is because resolved incidents are not assigned to any user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_ids[]"
+      },
+      {
+        "name": "urgency_filters",
+        "required": false,
+        "description": "Array of urgencies to filter incidents by. Options: 'high', 'low'. Defaults to all urgencies.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "high",
+            "low"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of the urgencies of the incidents to be returned. Defaults to all urgencies. Account must have the `urgencies` ability to do this."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "urgencies[]"
+      },
+      {
+        "name": "time_zone",
+        "required": false,
+        "description": "Time zone for rendering results. Defaults to the account time zone if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_zone"
+      },
+      {
+        "name": "incident_statuses",
+        "required": false,
+        "description": "Specify statuses to filter incidents: triggered, acknowledged, resolved. Allows multiple selections.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "triggered",
+            "acknowledged",
+            "resolved"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only incidents with the given statuses. To query multiple statuses, pass `statuses[]` more than once, for example: `https://api.pagerduty.com/incidents?statuses[]=triggered&statuses[]=acknowledged`. (More status codes may be introduced in the future.)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "statuses[]"
+      },
+      {
+        "name": "sort_incidents_by",
+        "required": false,
+        "description": "Specify fields to sort incidents by, with optional direction (e.g., 'incident_number:asc'). Up to two fields allowed.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used to specify both the field you wish to sort the results on (incident_number/created_at/resolved_at/urgency), as well as the direction (asc/desc) of the results. The sort_by field and direction should be separated by a colon. A maximum of two fields can be included, separated by a comma. Sort direction defaults to ascending. The account must have the `urgencies` ability to sort by the urgency."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_by"
+      },
+      {
+        "name": "include_additional_details",
+        "required": false,
+        "description": "Specify additional details to include, such as acknowledgers, agents, or services, using predefined categories.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "acknowledgers",
+            "agents",
+            "assignees",
+            "conference_bridge",
+            "escalation_policies",
+            "first_trigger_log_entries",
+            "priorities",
+            "services",
+            "teams",
+            "users"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional details to include."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include[]"
+      },
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "The start of the date range for searching incidents. Maximum range is 6 months; default is 1 month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search. Maximum range is 6 months and default is 1 month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "end_date_range",
+        "required": false,
+        "description": "The end date of the search range. Maximum span is 6 months; defaults to 1 month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search. Maximum range is 6 months and default is 1 month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "include_total_in_response",
+        "required": false,
+        "description": "Set to true to populate the `total` field in the pagination response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listIncidents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "number_of_results_per_page",
+        "description": "The number of results per page. Maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page. Maximum of 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Offset to start pagination search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "include_total_in_response",
+        "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_range",
+        "tool_parameter_name": "ignore_date_filters",
+        "description": "When set to all, the since and until parameters and defaults are ignored.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to all, the since and until parameters and defaults are ignored."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "incident_key",
+        "tool_parameter_name": "incident_deduplication_key",
+        "description": "Incident de-duplication key. Incidents with child alerts do not have an incident key; querying by incident key will return incidents whose alerts have alert_key matching the given incident key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident de-duplication key. Incidents with child alerts do not have an incident key; querying by incident key will return incidents whose alerts have alert_key matching the given incident key."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "service_ids[]",
+        "tool_parameter_name": "filter_by_service_ids",
+        "description": "Returns only the incidents associated with the passed service(s). This expects one or more service IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns only the incidents associated with the passed service(s). This expects one or more service IDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_ids[]",
+        "tool_parameter_name": "team_ids",
+        "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_ids[]",
+        "tool_parameter_name": "assigned_user_ids",
+        "description": "Returns only the incidents currently assigned to the passed user(s). This expects one or more user IDs. Note: When using the assigned_to_user filter, you will only receive incidents with statuses of triggered or acknowledged. This is because resolved incidents are not assigned to any user.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns only the incidents currently assigned to the passed user(s). This expects one or more user IDs. Note: When using the assigned_to_user filter, you will only receive incidents with statuses of triggered or acknowledged. This is because resolved incidents are not assigned to any user."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "urgencies[]",
+        "tool_parameter_name": "urgency_filters",
+        "description": "Array of the urgencies of the incidents to be returned. Defaults to all urgencies. Account must have the `urgencies` ability to do this.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "high",
+            "low"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of the urgencies of the incidents to be returned. Defaults to all urgencies. Account must have the `urgencies` ability to do this."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "time_zone",
+        "tool_parameter_name": "time_zone",
+        "description": "Time zone in which results will be rendered. This will default to the account time zone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "statuses[]",
+        "tool_parameter_name": "incident_statuses",
+        "description": "Return only incidents with the given statuses. To query multiple statuses, pass `statuses[]` more than once, for example: `https://api.pagerduty.com/incidents?statuses[]=triggered&statuses[]=acknowledged`. (More status codes may be introduced in the future.)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "triggered",
+            "acknowledged",
+            "resolved"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only incidents with the given statuses. To query multiple statuses, pass `statuses[]` more than once, for example: `https://api.pagerduty.com/incidents?statuses[]=triggered&statuses[]=acknowledged`. (More status codes may be introduced in the future.)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_by",
+        "tool_parameter_name": "sort_incidents_by",
+        "description": "Used to specify both the field you wish to sort the results on (incident_number/created_at/resolved_at/urgency), as well as the direction (asc/desc) of the results. The sort_by field and direction should be separated by a colon. A maximum of two fields can be included, separated by a comma. Sort direction defaults to ascending. The account must have the `urgencies` ability to sort by the urgency.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used to specify both the field you wish to sort the results on (incident_number/created_at/resolved_at/urgency), as well as the direction (asc/desc) of the results. The sort_by field and direction should be separated by a colon. A maximum of two fields can be included, separated by a comma. Sort direction defaults to ascending. The account must have the `urgencies` ability to sort by the urgency."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include[]",
+        "tool_parameter_name": "include_additional_details",
+        "description": "Array of additional details to include.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "acknowledgers",
+            "agents",
+            "assignees",
+            "conference_bridge",
+            "escalation_policies",
+            "first_trigger_log_entries",
+            "priorities",
+            "services",
+            "teams",
+            "users"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional details to include."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "start_date",
+        "description": "The start of the date range over which you want to search. Maximum range is 6 months and default is 1 month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search. Maximum range is 6 months and default is 1 month."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "end_date_range",
+        "description": "The end of the date range over which you want to search. Maximum range is 6 months and default is 1 month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search. Maximum range is 6 months and default is 1 month."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "version_accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,415 @@
+{
+  "name": "ListAutomationActions",
+  "fully_qualified_name": "PagerdutyApi.ListAutomationActions@0.1.0",
+  "description": "Retrieve all automation actions in alphabetical order.\n\nUse this tool to get a list of all automation actions from Pagerduty, sorted by action name. This can be helpful for monitoring or managing automation tasks. Supports query-based filtering and cursor-based pagination.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The versioning header for API requests. Use 'Accept' header format to specify the version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the request's media type. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "max_results_limit",
+        "required": false,
+        "description": "Specifies the maximum number of automation actions to return in one request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "next_results_cursor",
+        "required": false,
+        "description": "Used to request the next set of results, commonly obtained from the 'next_cursor' field of the previous response. If not provided, retrieval starts from the beginning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "filter_by_name",
+        "required": false,
+        "description": "Filters results by matching a case insensitive substring in the action name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the name (case insensitive substring matching)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "filter_by_runner_id",
+        "required": false,
+        "description": "Filter results by a specific runner. Use 'any' to include only results linked to runners, excluding unlinked results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones linked to the specified runner.\nSpecifying the value `any` filters results to include the ones linked to runners only,\nthus omitting the results not linked to runners.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "runner_id"
+      },
+      {
+        "name": "filter_by_classification",
+        "required": false,
+        "description": "Specify 'diagnostic' or 'remediation' to filter results by classification category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "diagnostic",
+            "remediation"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the specified classification (aka category)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "classification"
+      },
+      {
+        "name": "filter_by_team_id",
+        "required": false,
+        "description": "Filters the results to include actions associated with the given team ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones associated with the specified team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "filter_by_service_id",
+        "required": false,
+        "description": "Filter actions to include only those associated with the specified service ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones associated with the specified service"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "service_id"
+      },
+      {
+        "name": "filter_by_action_type",
+        "required": false,
+        "description": "Filter results to include actions matching specified type: 'script' or 'process_automation'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "script",
+            "process_automation"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the specified action type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "action_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAllAutomationActions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/automation_actions/actions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_limit",
+        "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "next_results_cursor",
+        "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "filter_by_name",
+        "description": "Filters results to include the ones matching the name (case insensitive substring matching)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the name (case insensitive substring matching)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "runner_id",
+        "tool_parameter_name": "filter_by_runner_id",
+        "description": "Filters results to include the ones linked to the specified runner.\nSpecifying the value `any` filters results to include the ones linked to runners only,\nthus omitting the results not linked to runners.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones linked to the specified runner.\nSpecifying the value `any` filters results to include the ones linked to runners only,\nthus omitting the results not linked to runners.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "classification",
+        "tool_parameter_name": "filter_by_classification",
+        "description": "Filters results to include the ones matching the specified classification (aka category)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "diagnostic",
+            "remediation"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the specified classification (aka category)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "filter_by_team_id",
+        "description": "Filters results to include the ones associated with the specified team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones associated with the specified team."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "service_id",
+        "tool_parameter_name": "filter_by_service_id",
+        "description": "Filters results to include the ones associated with the specified service",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones associated with the specified service"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "action_type",
+        "tool_parameter_name": "filter_by_action_type",
+        "description": "Filters results to include the ones matching the specified action type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "script",
+            "process_automation"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results to include the ones matching the specified action type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

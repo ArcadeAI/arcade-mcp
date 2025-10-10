@@ -1,0 +1,458 @@
+{
+  "name": "ListIncidentWorkflowTriggers",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflowTriggers@0.1.0",
+  "description": "Retrieve a list of existing incident workflow triggers.\n\nUse this tool to fetch all existing incident workflow triggers from Pagerduty. It helps in identifying available workflow triggers for automation or integration purposes.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "Specify the `Accept` header for API versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the request. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "filter_by_workflow_id",
+        "required": false,
+        "description": "Filter triggers to those configured to start the specified workflow ID. Useful for listing services associated with it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured to start the given workflow. Useful for listing all services associated with the given workflow"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_id"
+      },
+      {
+        "name": "incident_identifier",
+        "required": false,
+        "description": "Filter triggers by the incident's service, if provided. Cannot be used with `service_identifier`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured on the service of the given incident. Useful for finding manual triggers that are configured on the service for a specific incident. Cannot be specified if `service_id` is provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "specific_service_id",
+        "required": false,
+        "description": "Filter triggers for incidents in a specific service. Cannot be used with `specific_incident_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured for incidents in the given service. Useful for listing all workflows associated with the given service. Cannot be specified if `incident_id` is provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "service_id"
+      },
+      {
+        "name": "trigger_type",
+        "required": false,
+        "description": "Show triggers of a specified type, such as 'manual', 'conditional', or 'incident_type'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "manual",
+            "conditional",
+            "incident_type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers of the given type. For example \u201cmanual\u201d to search for manual triggers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trigger_type"
+      },
+      {
+        "name": "filter_workflow_name_contains",
+        "required": false,
+        "description": "Filter triggers by workflows whose names contain this substring.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured to start workflows whose name contain the provided value."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_name_contains"
+      },
+      {
+        "name": "sort_triggers_by",
+        "required": false,
+        "description": "Specify a property to sort the triggers. Options: workflow_id, workflow_id asc, workflow_name desc, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "workflow_id",
+            "workflow_id asc",
+            "workflow_id desc",
+            "workflow_name",
+            "workflow_name asc",
+            "workflow_name desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, returns triggers sorted by the specified property."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_by"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "The number of incident workflow triggers to return, up to the API's maximum limit.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Optional string to request the next set of results. Use the `next_cursor` from the previous request; starts at the beginning if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "show_disabled_triggers",
+        "required": false,
+        "description": "Set to true to show disabled triggers, false to show enabled. Deprecated and will be removed soon.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, filters between disabled and enabled Triggers.\nThis query parameter is deprecated, and will be removed in a future version of this API.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_disabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listIncidentWorkflowTriggers'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incident_workflows/triggers",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workflow_id",
+        "tool_parameter_name": "filter_by_workflow_id",
+        "description": "If provided, only show triggers configured to start the given workflow. Useful for listing all services associated with the given workflow",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured to start the given workflow. Useful for listing all services associated with the given workflow"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_identifier",
+        "description": "If provided, only show triggers configured on the service of the given incident. Useful for finding manual triggers that are configured on the service for a specific incident. Cannot be specified if `service_id` is provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured on the service of the given incident. Useful for finding manual triggers that are configured on the service for a specific incident. Cannot be specified if `service_id` is provided."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "service_id",
+        "tool_parameter_name": "specific_service_id",
+        "description": "If provided, only show triggers configured for incidents in the given service. Useful for listing all workflows associated with the given service. Cannot be specified if `incident_id` is provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured for incidents in the given service. Useful for listing all workflows associated with the given service. Cannot be specified if `incident_id` is provided."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "trigger_type",
+        "tool_parameter_name": "trigger_type",
+        "description": "If provided, only show triggers of the given type. For example \u201cmanual\u201d to search for manual triggers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "manual",
+            "conditional",
+            "incident_type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers of the given type. For example \u201cmanual\u201d to search for manual triggers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "workflow_name_contains",
+        "tool_parameter_name": "filter_workflow_name_contains",
+        "description": "If provided, only show triggers configured to start workflows whose name contain the provided value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, only show triggers configured to start workflows whose name contain the provided value."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_disabled",
+        "tool_parameter_name": "show_disabled_triggers",
+        "description": "If provided, filters between disabled and enabled Triggers.\nThis query parameter is deprecated, and will be removed in a future version of this API.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, filters between disabled and enabled Triggers.\nThis query parameter is deprecated, and will be removed in a future version of this API.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_by",
+        "tool_parameter_name": "sort_triggers_by",
+        "description": "If provided, returns triggers sorted by the specified property.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "workflow_id",
+            "workflow_id asc",
+            "workflow_id desc",
+            "workflow_name",
+            "workflow_name asc",
+            "workflow_name desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If provided, returns triggers sorted by the specified property."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
