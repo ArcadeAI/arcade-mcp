@@ -1,0 +1,137 @@
+{
+  "name": "RemoveInvoiceAttachment",
+  "fully_qualified_name": "SquareupApi.RemoveInvoiceAttachment@0.1.0",
+  "description": "Remove an attachment from an invoice and delete the file.\n\nUse this tool to permanently delete an attachment from an invoice. It is applicable only for invoices in the DRAFT, SCHEDULED, UNPAID, or PARTIALLY_PAID state.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "required": true,
+        "description": "The unique identifier of the invoice to remove the attachment from. Applicable for invoices in specific states (DRAFT, SCHEDULED, UNPAID, PARTIALLY_PAID).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [invoice](entity:Invoice) to delete the attachment from."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invoice_id"
+      },
+      {
+        "name": "attachment_id",
+        "required": true,
+        "description": "The unique identifier of the attachment to delete from the invoice. It should be a string corresponding to the attachment's ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [attachment](entity:InvoiceAttachment) to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachment_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteInvoiceAttachment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVOICES_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/invoices/{invoice_id}/attachments/{attachment_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "tool_parameter_name": "invoice_id",
+        "description": "The ID of the [invoice](entity:Invoice) to delete the attachment from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [invoice](entity:Invoice) to delete the attachment from."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachment_id",
+        "tool_parameter_name": "attachment_id",
+        "description": "The ID of the [attachment](entity:InvoiceAttachment) to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [attachment](entity:InvoiceAttachment) to delete."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "name": "RetrieveMerchantInfo",
+  "fully_qualified_name": "SquareupApi.RetrieveMerchantInfo@0.1.0",
+  "description": "Retrieve details of a specific merchant using merchant ID.\n\nUse this tool to obtain the `Merchant` object details by providing the `merchant_id`. It should be called when users need specific information about a merchant via their unique ID.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "merchant_id",
+        "required": true,
+        "description": "The unique ID of the merchant to retrieve. Use 'me' to access the current accessible merchant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the merchant to retrieve. If the string \"me\" is supplied as the ID,\nthen retrieve the merchant that is currently accessible to this call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "merchant_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RetrieveMerchant'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "MERCHANT_PROFILE_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/merchants/{merchant_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "merchant_id",
+        "tool_parameter_name": "merchant_id",
+        "description": "The ID of the merchant to retrieve. If the string \"me\" is supplied as the ID,\nthen retrieve the merchant that is currently accessible to this call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the merchant to retrieve. If the string \"me\" is supplied as the ID,\nthen retrieve the merchant that is currently accessible to this call."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
