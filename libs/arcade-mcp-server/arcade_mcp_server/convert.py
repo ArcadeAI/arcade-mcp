@@ -71,7 +71,7 @@ def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
         # Build meta with requirements if any exist
         meta = None
         if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"requirements": requirements.model_dump()}
+            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
 
         # Instantiate MCPTool model to ensure shape correctness
         return MCPTool(
