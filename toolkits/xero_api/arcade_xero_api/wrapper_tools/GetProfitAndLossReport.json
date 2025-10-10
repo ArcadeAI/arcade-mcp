@@ -1,0 +1,435 @@
+{
+  "name": "GetProfitAndLossReport",
+  "fully_qualified_name": "XeroApi.GetProfitAndLossReport@0.1.0",
+  "description": "Retrieve profit and loss report from Xero.\n\nCall this tool to obtain detailed profit and loss reports for financial analysis.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The Xero identifier for the tenant. Required to specify which tenant's data to access.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "from_date",
+        "required": false,
+        "description": "Filter the report by the starting date in YYYY-MM-DD format, e.g., 2021-02-01.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the from date of the report e.g. 2021-02-01"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fromDate"
+      },
+      {
+        "name": "end_date",
+        "required": false,
+        "description": "Filter by the end date of the report in YYYY-MM-DD format, e.g., 2021-02-28.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the to date of the report e.g. 2021-02-28"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "toDate"
+      },
+      {
+        "name": "number_of_comparison_periods",
+        "required": false,
+        "description": "The number of periods to compare, must be an integer between 1 and 12.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of periods to compare (integer between 1 and 12)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "periods"
+      },
+      {
+        "name": "comparison_timeframe",
+        "required": false,
+        "description": "The period size to compare to for the report. Options are MONTH, QUARTER, or YEAR.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MONTH",
+            "QUARTER",
+            "YEAR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The period size to compare to (MONTH, QUARTER, YEAR)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timeframe"
+      },
+      {
+        "name": "tracking_category_id",
+        "required": false,
+        "description": "The first tracking category ID for the Profit and Loss report filter. Expect a string representing the tracking category identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The trackingCategory 1 for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingCategoryID"
+      },
+      {
+        "name": "secondary_tracking_category_id",
+        "required": false,
+        "description": "The ID of the second tracking category for the Profit and Loss report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The trackingCategory 2 for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingCategoryID2"
+      },
+      {
+        "name": "tracking_option_1_id",
+        "required": false,
+        "description": "The identifier for the first tracking option in the Profit and Loss report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 1 for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingOptionID"
+      },
+      {
+        "name": "tracking_option_id_2",
+        "required": false,
+        "description": "The second tracking option identifier for filtering the Profit and Loss report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 2 for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trackingOptionID2"
+      },
+      {
+        "name": "return_standard_layout",
+        "required": false,
+        "description": "Set to true to return the Profit and Loss report in the standard layout.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return the standard layout for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "standardLayout"
+      },
+      {
+        "name": "return_cash_basis_only",
+        "required": false,
+        "description": "Specify true to return the Profit and Loss report on a cash only basis.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return cash only basis for the ProfitAndLoss report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "paymentsOnly"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportProfitAndLoss'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.reports.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "fromDate",
+        "tool_parameter_name": "from_date",
+        "description": "filter by the from date of the report e.g. 2021-02-01",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the from date of the report e.g. 2021-02-01"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "toDate",
+        "tool_parameter_name": "end_date",
+        "description": "filter by the to date of the report e.g. 2021-02-28",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the to date of the report e.g. 2021-02-28"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "periods",
+        "tool_parameter_name": "number_of_comparison_periods",
+        "description": "The number of periods to compare (integer between 1 and 12)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of periods to compare (integer between 1 and 12)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "timeframe",
+        "tool_parameter_name": "comparison_timeframe",
+        "description": "The period size to compare to (MONTH, QUARTER, YEAR)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MONTH",
+            "QUARTER",
+            "YEAR"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The period size to compare to (MONTH, QUARTER, YEAR)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingCategoryID",
+        "tool_parameter_name": "tracking_category_id",
+        "description": "The trackingCategory 1 for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The trackingCategory 1 for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingCategoryID2",
+        "tool_parameter_name": "secondary_tracking_category_id",
+        "description": "The trackingCategory 2 for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The trackingCategory 2 for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingOptionID",
+        "tool_parameter_name": "tracking_option_1_id",
+        "description": "The tracking option 1 for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 1 for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "trackingOptionID2",
+        "tool_parameter_name": "tracking_option_id_2",
+        "description": "The tracking option 2 for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The tracking option 2 for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "standardLayout",
+        "tool_parameter_name": "return_standard_layout",
+        "description": "Return the standard layout for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return the standard layout for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "paymentsOnly",
+        "tool_parameter_name": "return_cash_basis_only",
+        "description": "Return cash only basis for the ProfitAndLoss report",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return cash only basis for the ProfitAndLoss report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

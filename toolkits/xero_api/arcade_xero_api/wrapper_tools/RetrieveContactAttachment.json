@@ -1,0 +1,204 @@
+{
+  "name": "RetrieveContactAttachment",
+  "fully_qualified_name": "XeroApi.RetrieveContactAttachment@0.1.0",
+  "description": "Retrieve a specific contact attachment by ID.\n\nUse this tool to get a specific attachment from a contact by providing the unique attachment ID. Useful for accessing detailed attachment data linked to a contact in Xero.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "contact_id",
+        "required": true,
+        "description": "Unique identifier for a Contact in Xero to retrieve a specific attachment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Contact"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ContactID"
+      },
+      {
+        "name": "attachment_id",
+        "required": true,
+        "description": "Unique identifier for the Attachment object from a contact in Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Attachment object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "AttachmentID"
+      },
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The unique identifier for the tenant in Xero to access specific data connected to a tenant account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "attachment_mime_type",
+        "required": true,
+        "description": "The MIME type of the attachment file (e.g., image/jpeg, application/pdf).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contentType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getContactAttachmentById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.attachments",
+          "accounting.attachments.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Contacts/{ContactID}/Attachments/{AttachmentID}",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "ContactID",
+        "tool_parameter_name": "contact_id",
+        "description": "Unique identifier for a Contact",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Contact"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "AttachmentID",
+        "tool_parameter_name": "attachment_id",
+        "description": "Unique identifier for Attachment object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Attachment object"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "contentType",
+        "tool_parameter_name": "attachment_mime_type",
+        "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
