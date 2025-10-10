@@ -37,12 +37,12 @@ class TestMCPServer:
         server = MCPServer(
             catalog=tool_catalog,
             name="Test Server",
-            version="1.0.0",
+            version="1.9.0",
             settings=mcp_settings,
         )
 
         assert server.name == "Test Server"
-        assert server.version == "1.0.0"
+        assert server.version == "1.9.0"
         assert server.title == "Test Server"
         assert server.settings == mcp_settings
 
