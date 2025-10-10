@@ -35,7 +35,7 @@ toolkit_name = "arcade_xero_api"
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = { path = "../../", editable = true }
+arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 [tool.mypy]
