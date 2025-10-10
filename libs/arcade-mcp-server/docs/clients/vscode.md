@@ -18,7 +18,7 @@ Use VSCode's integrated terminal to run MCP servers:
 1. Open integrated terminal (`Ctrl/Cmd + ` `)
 2. Start your MCP server:
    ```bash
-   python -m arcade_mcp_server --reload --debug
+   uv run server.py
    ```
 3. Use split terminals for multiple servers
 
@@ -387,7 +387,7 @@ Run multiple MCP servers for different purposes:
     {
       "label": "Start API Tools",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --port 8001",
+      "command": "uv run server.py",
       "options": {
         "cwd": "${workspaceFolder}/api_tools"
       },
@@ -396,7 +396,7 @@ Run multiple MCP servers for different purposes:
     {
       "label": "Start Data Tools",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --port 8002",
+      "command": "uv run server.py",
       "options": {
         "cwd": "${workspaceFolder}/data_tools"
       },
@@ -405,7 +405,7 @@ Run multiple MCP servers for different purposes:
     {
       "label": "Start Utility Tools",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --port 8003",
+      "command": "uv run server.py",
       "options": {
         "cwd": "${workspaceFolder}/util_tools"
       },
@@ -426,19 +426,19 @@ Handle multiple environments:
     {
       "label": "MCP Server (Dev)",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --env-file .env.dev",
+      "command": "uv run --env-file .env.dev server.py",
       "problemMatcher": []
     },
     {
       "label": "MCP Server (Staging)",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --env-file .env.staging",
+      "command": "uv run --env-file .env.staging server.py",
       "problemMatcher": []
     },
     {
       "label": "MCP Server (Prod)",
       "type": "shell",
-      "command": "python -m arcade_mcp_server --env-file .env.prod",
+      "command": "uv run --env-file .env.prod server.py",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",

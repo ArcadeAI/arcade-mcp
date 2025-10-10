@@ -36,11 +36,18 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         return name.replace(".", "_")
 
     def _to_dto(self, tool: MaterializedTool) -> MCPTool:
+        # Extract requirements and build meta if needed
+        requirements = tool.definition.requirements
+        meta = None
+        if requirements.authorization or requirements.secrets or requirements.metadata:
+            meta = {"requirements": requirements.model_dump()}
+
         return MCPTool(
             name=self._sanitize_name(tool.definition.fully_qualified_name),
             title=f"{tool.definition.toolkit.name}_{tool.definition.name}",
             description=tool.definition.description,
             inputSchema=build_input_schema_from_definition(tool.definition),
+            _meta=meta,
         )
 
     async def load_from_catalog(self, catalog: ToolCatalog) -> None:

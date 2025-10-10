@@ -1,0 +1,175 @@
+{
+  "name": "GetPendingEnterpriseWorkspaces",
+  "fully_qualified_name": "TrelloApi.GetPendingEnterpriseWorkspaces@0.1.0",
+  "description": "Retrieve pending workspaces for an enterprise by ID.\n\nUse this tool to get a list of workspaces that are pending approval for a specific enterprise. It is useful when managing enterprise-level organization and pending requests.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_id",
+        "required": true,
+        "description": "ID of the enterprise for which to retrieve pending workspaces.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "active_since_date",
+        "required": false,
+        "description": "Date in YYYY-MM-DD format to search for active workspaces up to this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date in YYYY-MM-DD format indicating the date to search up to for activeness of workspace"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "activeSince"
+      },
+      {
+        "name": "inactive_until_date",
+        "required": false,
+        "description": "Specify the date (YYYY-MM-DD) to search up to for workspace inactiveness.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date in YYYY-MM-DD format indicating the date to search up to for inactiveness of workspace"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "inactiveSince"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-enterprises-id-pendingOrganizations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/enterprises/{id}/pendingOrganizations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "activeSince",
+        "tool_parameter_name": "active_since_date",
+        "description": "Date in YYYY-MM-DD format indicating the date to search up to for activeness of workspace",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date in YYYY-MM-DD format indicating the date to search up to for activeness of workspace"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "inactiveSince",
+        "tool_parameter_name": "inactive_until_date",
+        "description": "Date in YYYY-MM-DD format indicating the date to search up to for inactiveness of workspace",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date in YYYY-MM-DD format indicating the date to search up to for inactiveness of workspace"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "enterprise_id",
+        "description": "ID of the enterprise to retrieve",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

@@ -24,7 +24,7 @@ For MCP servers running over HTTP:
 
 ```bash
 # Start your MCP server
-python -m arcade_mcp_server --host 0.0.0.0 --port 8000
+uv run server.py
 
 # In another terminal, start the inspector
 mcp-inspector http://localhost:8000/mcp
@@ -36,10 +36,10 @@ For stdio-based servers:
 
 ```bash
 # Start the inspector with your server command
-mcp-inspector "python -m arcade_mcp_server stdio"
+mcp-inspector "uv run server.py stdio"
 
-# With additional arguments
-mcp-inspector "python -m arcade_mcp_server stdio --tool-package github"
+# With additional project directory
+mcp-inspector --cwd /path/to/project "uv run server.py stdio"
 ```
 
 ## Inspector Features
@@ -95,10 +95,10 @@ Pass environment variables to your server:
 
 ```bash
 # Using env command
-env ARCADE_API_KEY=your-key mcp-inspector "python -m arcade_mcp_server stdio"
+env ARCADE_API_KEY=your-key mcp-inspector "uv run server.py stdio"
 
 # Using inspector's env option
-mcp-inspector --env ARCADE_API_KEY=your-key "python -m arcade_mcp_server stdio"
+mcp-inspector --env ARCADE_API_KEY=your-key "uv run server.py stdio"
 ```
 
 ### Working Directory
@@ -106,7 +106,7 @@ mcp-inspector --env ARCADE_API_KEY=your-key "python -m arcade_mcp_server stdio"
 Set the working directory for your server:
 
 ```bash
-mcp-inspector --cwd /path/to/project "python -m arcade_mcp_server stdio"
+mcp-inspector --cwd /path/to/project "uv run server.py stdio"
 ```
 
 ### Debug Mode
@@ -114,20 +114,28 @@ mcp-inspector --cwd /path/to/project "python -m arcade_mcp_server stdio"
 Enable verbose logging:
 
 ```bash
-# Debug the MCP server
-mcp-inspector "python -m arcade_mcp_server stdio --debug"
+# Debug the inspector
+mcp-inspector --debug "uv run server.py stdio"
 
-# Debug the inspector itself
-mcp-inspector --debug "python -m arcade_mcp_server stdio"
+# Server debug logging is configured in your server.py
+# app = MCPApp(name="my_server", version="1.0.0", log_level="DEBUG")
 ```
 
 ## Testing Workflows
 
 ### Tool Development
 
-1. **Start your server with hot reload**:
+1. **Configure your server with hot reload**:
+   ```python
+   # In your server.py
+   if __name__ == "__main__":
+       transport = sys.argv[1] if len(sys.argv) > 1 else "http"
+       app.run(transport=transport, host="127.0.0.1", port=8000, reload=True)
+   ```
+
+   Then run:
    ```bash
-   python -m arcade_mcp_server --reload --debug
+   uv run server.py
    ```
 
 2. **Connect the inspector**:
@@ -213,8 +221,17 @@ def test_tool_via_inspector():
    - Terminal 3: Code editor
 
 2. **Enable All Debugging**:
+   ```python
+   # In server.py
+   app = MCPApp(name="my_server", version="1.0.0", log_level="DEBUG")
+
+   # Run with reload
+   app.run(transport="http", host="127.0.0.1", port=8000, reload=True)
+   ```
+
+   Then run with environment file:
    ```bash
-   python -m arcade_mcp_server --reload --debug --env-file .env.dev
+   uv run server.py
    ```
 
 3. **Save Test Cases**:
@@ -226,7 +243,7 @@ def test_tool_via_inspector():
 
 1. **Test Against Production Config**:
    ```bash
-   mcp-inspector "python -m arcade_mcp_server stdio --env-file .env.prod"
+   mcp-inspector "uv run server.py stdio"
    ```
 
 2. **Verify Security**:
@@ -298,7 +315,7 @@ def add(
 EOF
 
 # 2. Start inspector
-mcp-inspector "python -m arcade_mcp_server stdio"
+mcp-inspector "uv run server.py stdio"
 
 # 3. Test tools in the web interface
 ```
@@ -338,17 +355,9 @@ export DEBUG=*
 export MCP_DEBUG=true
 
 # 2. Start server with verbose logging
-python -m arcade_mcp_server stdio --debug 2>server.log
+# (configure log_level="DEBUG" in your server.py)
+uv run server.py stdio 2>server.log
 
 # 3. Start inspector with debugging
-mcp-inspector --debug "tail -f server.log" &
-mcp-inspector --debug "python -m arcade_mcp_server stdio --debug"
+mcp-inspector --debug "uv run server.py stdio"
 ```
-
-## Tips and Tricks
-
-1. **Bookmark Tool URLs**: Save frequently tested tools
-2. **Export Test Data**: Save successful requests for documentation
-3. **Use Browser DevTools**: Inspect network requests
-4. **Create Tool Shortcuts**: Bookmark specific tool tests
-5. **Monitor Resources**: Keep an eye on server resources during testing

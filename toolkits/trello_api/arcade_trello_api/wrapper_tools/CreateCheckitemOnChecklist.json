@@ -1,0 +1,303 @@
+{
+  "name": "CreateCheckitemOnChecklist",
+  "fully_qualified_name": "TrelloApi.CreateCheckitemOnChecklist@0.1.0",
+  "description": "Add a checkitem to a specific checklist on Trello.\n\nUse this tool to add a new checkitem to an existing checklist on Trello by providing the checklist ID.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "checkitem_name",
+        "required": true,
+        "description": "The name of the new check item on the checklist. Must be between 1 and 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new check item on the checklist. Should be a string of length 1 to 16384."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The unique identifier of the checklist to which the checkitem will be added. This should be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "checkitem_position",
+        "required": false,
+        "description": "Specify the check item's position in the checklist as 'top', 'bottom', or a positive number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the check item in the checklist. One of: `top`, `bottom`, or a positive number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      },
+      {
+        "name": "checkitem_due_date",
+        "required": false,
+        "description": "Set the due date for the new checkitem. Use the format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A due date for the checkitem"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due"
+      },
+      {
+        "name": "due_reminder_minutes",
+        "required": false,
+        "description": "The number of minutes before the due date at which a reminder should be sent for the checkitem.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A dueReminder for the due date on the checkitem"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dueReminder"
+      },
+      {
+        "name": "member_id",
+        "required": false,
+        "description": "The ID of a member resource to assign the checkitem to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of a member resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMember"
+      },
+      {
+        "name": "is_checkitem_checked",
+        "required": false,
+        "description": "Indicates if the check item is already marked as checked upon creation. Accepts a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the check item is already checked when created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checked"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-checklists-id-checkitems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/checklists/{id}/checkItems",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "checkitem_name",
+        "description": "The name of the new check item on the checklist. Should be a string of length 1 to 16384.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the new check item on the checklist. Should be a string of length 1 to 16384."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pos",
+        "tool_parameter_name": "checkitem_position",
+        "description": "The position of the check item in the checklist. One of: `top`, `bottom`, or a positive number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the check item in the checklist. One of: `top`, `bottom`, or a positive number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checked",
+        "tool_parameter_name": "is_checkitem_checked",
+        "description": "Determines whether the check item is already checked when created.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the check item is already checked when created."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "due",
+        "tool_parameter_name": "checkitem_due_date",
+        "description": "A due date for the checkitem",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A due date for the checkitem"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "dueReminder",
+        "tool_parameter_name": "due_reminder_minutes",
+        "description": "A dueReminder for the due date on the checkitem",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A dueReminder for the due date on the checkitem"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMember",
+        "tool_parameter_name": "member_id",
+        "description": "An ID of a member resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of a member resource."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "checklist_id",
+        "description": "ID of a checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

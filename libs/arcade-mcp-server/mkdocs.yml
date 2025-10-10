@@ -73,6 +73,8 @@ nav:
       - examples/03_context.md
       - examples/04_secrets.md
       - examples/05_logging.md
+      - examples/06_tool_organization.md
+      - examples/07_auth.md
   - Clients:
       - clients/claude.md
       - clients/cursor.md
@@ -80,7 +82,6 @@ nav:
       - clients/inspector.md
   - API Reference:
       - api/mcp_app.md
-      - api/cli.md
       - Server:
           - api/server/server.md
           - api/server/middleware.md
@@ -88,6 +89,7 @@ nav:
           - api/server/errors.md
           - api/server/settings.md
   - Advanced:
+      - advanced/sharing-servers.md
       - advanced/transports.md
 
 extra:

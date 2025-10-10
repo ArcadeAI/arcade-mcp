@@ -1,0 +1,375 @@
+{
+  "name": "UpdateTrelloMember",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloMember@0.1.0",
+  "description": "Update a member's information on Trello.\n\nUse this tool to update details of a Trello member by specifying their ID. This is useful for modifying user information or settings.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_identifier",
+        "required": true,
+        "description": "The ID or username of the Trello member to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "new_member_full_name",
+        "required": false,
+        "description": "New name for the member. It should not begin or end with a space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New name for the member. Cannot begin or end with a space."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fullName"
+      },
+      {
+        "name": "member_initials",
+        "required": false,
+        "description": "New initials for the member, between 1 and 4 characters long.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New initials for the member. 1-4 characters long."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "initials"
+      },
+      {
+        "name": "new_username",
+        "required": false,
+        "description": "New username for the member. Must be unique, at least 3 characters long, only lowercase letters, underscores, and numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New username for the member. At least 3 characters long, only lowercase letters, underscores, and numbers. Must be unique."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "username"
+      },
+      {
+        "name": "member_bio",
+        "required": false,
+        "description": "Biography or description for the member. Allows personalization or additional information about the member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bio"
+      },
+      {
+        "name": "avatar_source_option",
+        "required": false,
+        "description": "Specify the source for the avatar. Options: 'gravatar', 'none', 'upload'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gravatar",
+            "none",
+            "upload"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: `gravatar`, `none`, `upload`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "avatarSource"
+      },
+      {
+        "name": "preferred_locale",
+        "required": false,
+        "description": "Specify the preferred language locale for the member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/locale"
+      },
+      {
+        "name": "update_interval_minutes",
+        "required": false,
+        "description": "Set the interval for summaries in minutes. Use `-1` to disable, `1` for frequent, or `60` for hourly updates.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`-1` for disabled, `1`, or `60`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/minutesBetweenSummaries"
+      },
+      {
+        "name": "enable_color_blind_mode",
+        "required": false,
+        "description": "Enable or disable color blind mode for the member. `true` to enable; `false` to disable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs/colorBlind"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-members-id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/members/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fullName",
+        "tool_parameter_name": "new_member_full_name",
+        "description": "New name for the member. Cannot begin or end with a space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New name for the member. Cannot begin or end with a space."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "initials",
+        "tool_parameter_name": "member_initials",
+        "description": "New initials for the member. 1-4 characters long.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New initials for the member. 1-4 characters long."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "username",
+        "tool_parameter_name": "new_username",
+        "description": "New username for the member. At least 3 characters long, only lowercase letters, underscores, and numbers. Must be unique.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "New username for the member. At least 3 characters long, only lowercase letters, underscores, and numbers. Must be unique."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "bio",
+        "tool_parameter_name": "member_bio",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "avatarSource",
+        "tool_parameter_name": "avatar_source_option",
+        "description": "One of: `gravatar`, `none`, `upload`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gravatar",
+            "none",
+            "upload"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: `gravatar`, `none`, `upload`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/colorBlind",
+        "tool_parameter_name": "enable_color_blind_mode",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/locale",
+        "tool_parameter_name": "preferred_locale",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs/minutesBetweenSummaries",
+        "tool_parameter_name": "update_interval_minutes",
+        "description": "`-1` for disabled, `1`, or `60`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`-1` for disabled, `1`, or `60`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "member_identifier",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

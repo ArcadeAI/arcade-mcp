@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple_server"
+version = "0.1.0"
+description = "MCP Server created with Arcade.dev"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-mcp-server>=1.0.1,<2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "arcade-mcp[all]>=1.0.1,<2.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+# Tell Arcade.dev that this package has Arcade tools
+[project.entry-points.arcade_toolkits]
+toolkit_name = "simple_server"
+
+[tool.setuptools.packages.find]
+include = ["simple_server*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+disallow_untyped_defs = false

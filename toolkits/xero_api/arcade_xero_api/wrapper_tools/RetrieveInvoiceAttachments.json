@@ -1,0 +1,140 @@
+{
+  "name": "RetrieveInvoiceAttachments",
+  "fully_qualified_name": "XeroApi.RetrieveInvoiceAttachments@0.1.0",
+  "description": "Retrieve attachments for a specific invoice or bill.\n\nThis tool is used to obtain attachments related to a particular invoice or purchase bill from Xero. Call this tool when you need to access documents or files attached to a specific invoice.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "required": true,
+        "description": "Unique identifier for the invoice to retrieve attachments from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "InvoiceID"
+      },
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "Xero identifier for the Tenant that owns the invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getInvoiceAttachments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.attachments",
+          "accounting.attachments.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Invoices/{InvoiceID}/Attachments",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "InvoiceID",
+        "tool_parameter_name": "invoice_id",
+        "description": "Unique identifier for an Invoice",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an Invoice"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

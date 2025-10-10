@@ -1,0 +1,187 @@
+{
+  "name": "RetrieveTrelloTokenInfo",
+  "fully_qualified_name": "TrelloApi.RetrieveTrelloTokenInfo@0.1.0",
+  "description": "Retrieve information about a Trello token.\n\nUse this tool to get details about a specific Trello token, which may include access permissions and associated user or application information. Call this when you need to verify or inspect Trello token data.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "trello_token",
+        "required": true,
+        "description": "The Trello token string for which you want to retrieve information. This token identifies the authentication session.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "token"
+      },
+      {
+        "name": "token_info_fields",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of fields (`dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`) to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "identifier",
+            "idMember",
+            "dateCreated",
+            "dateExpires",
+            "permissions"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "include_webhooks",
+        "required": false,
+        "description": "Set to true to include webhooks in the token details.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to include webhooks."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhooks"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-tokens-token'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/tokens/{token}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "token_info_fields",
+        "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "identifier",
+            "idMember",
+            "dateCreated",
+            "dateExpires",
+            "permissions"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "webhooks",
+        "tool_parameter_name": "include_webhooks",
+        "description": "Determines whether to include webhooks.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to include webhooks."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "token",
+        "tool_parameter_name": "trello_token",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

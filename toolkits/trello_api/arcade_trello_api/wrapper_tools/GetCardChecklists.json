@@ -1,0 +1,283 @@
+{
+  "name": "GetCardChecklists",
+  "fully_qualified_name": "TrelloApi.GetCardChecklists@0.1.0",
+  "description": "Retrieve checklists from a specific Trello card.\n\nUse this tool to obtain all checklists associated with a particular card on Trello by providing the card ID.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique ID of the Trello card for which to retrieve the checklists. Required for identifying the specific card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "include_check_items",
+        "required": false,
+        "description": "Specify 'all' to include all checkItems or 'none' to exclude them on the card's checklists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or `none`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkItems"
+      },
+      {
+        "name": "checkitem_fields_selection",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of fields for checklist items: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type",
+            "due",
+            "dueReminder",
+            "idMember"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkItem_fields"
+      },
+      {
+        "name": "include_all_checklists",
+        "required": false,
+        "description": "Specify 'all' to retrieve all checklists or 'none' for none.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or `none`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "card_info_fields",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of: 'idBoard, idCard, name, pos' for card fields to return.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-cards-id-checklists'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{id}/checklists",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "checkItems",
+        "tool_parameter_name": "include_check_items",
+        "description": "`all` or `none`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or `none`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checkItem_fields",
+        "tool_parameter_name": "checkitem_fields_selection",
+        "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type",
+            "due",
+            "dueReminder",
+            "idMember"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "include_all_checklists",
+        "description": "`all` or `none`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or `none`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "card_info_fields",
+        "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 [project]
 name = "arcade-serve"
-version = "2.2.0rc2"
+version = "3.0.0"
 description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
 readme = "README.md"
 license = {text = "MIT"}
@@ -8,7 +8,7 @@ authors = [
     {name = "Arcade", email = "dev@arcade.dev"},
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-core>=2.5.0rc2,<3.0.0",
+    "arcade-core>=3.0.0,<4.0.0",
     "fastapi>=0.115.3",
     "uvicorn>=0.30.0",
     "watchfiles>=1.0.5",

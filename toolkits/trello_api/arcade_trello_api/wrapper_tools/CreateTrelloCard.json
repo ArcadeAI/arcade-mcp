@@ -1,0 +1,689 @@
+{
+  "name": "CreateTrelloCard",
+  "fully_qualified_name": "TrelloApi.CreateTrelloCard@0.1.0",
+  "description": "Create a new card in Trello.\n\nUse this tool to create a new card on a Trello board. This is useful when you need to organize tasks or information by adding cards to your Trello workflow.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_id_for_card",
+        "required": true,
+        "description": "The ID of the list where the new card will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the list the card should be created in"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idList"
+      },
+      {
+        "name": "card_name",
+        "required": false,
+        "description": "The title or name of the card to be created in Trello.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "card_description",
+        "required": false,
+        "description": "A detailed text description for the Trello card. This helps in adding more context or information about the card's purpose or content.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description for the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "desc"
+      },
+      {
+        "name": "card_position",
+        "required": false,
+        "description": "Position of the new card. Use 'top', 'bottom', or a specific float value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the new card. `top`, `bottom`, or a positive float"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      },
+      {
+        "name": "card_due_date",
+        "required": false,
+        "description": "The due date for the Trello card, formatted as a string. Use ISO 8601 format (YYYY-MM-DD) for consistency.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A due date for the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due"
+      },
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "The start date of the card in YYYY-MM-DD format, or `null` if not applicable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date of a card, or `null`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start"
+      },
+      {
+        "name": "member_ids_to_add",
+        "required": false,
+        "description": "A list of Trello member IDs to add to the card.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "Comma-separated list of member IDs to add to the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMembers"
+      },
+      {
+        "name": "label_ids",
+        "required": false,
+        "description": "List of label IDs to add to the card. Provide IDs as strings in a list format.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "Comma-separated list of label IDs to add to the card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idLabels"
+      },
+      {
+        "name": "attachment_url",
+        "required": false,
+        "description": "A URL starting with `http://` or `https://` to be attached to the card upon creation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL starting with `http://` or `https://`. The URL will be attached to the card upon creation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "urlSource"
+      },
+      {
+        "name": "attachment_file_path",
+        "required": false,
+        "description": "The local file path to be attached to the Trello card. This file will be uploaded when the card is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fileSource"
+      },
+      {
+        "name": "attachment_mime_type",
+        "required": false,
+        "description": "The MIME type of the attachment for the Trello card. Maximum length is 256 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mimeType of the attachment. Max length 256"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mimeType"
+      },
+      {
+        "name": "copy_card_source_id",
+        "required": false,
+        "description": "The ID of a card to copy properties from into the new card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a card to copy into the new card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idCardSource"
+      },
+      {
+        "name": "copy_properties_from_source",
+        "required": false,
+        "description": "Specify properties to copy if using `idCardSource`. Use `all` or a comma-separated list of: `attachments,checklists,customFields,comments,due,start,labels,members,stickers`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "attachments",
+            "checklists",
+            "comments",
+            "customFields",
+            "due",
+            "start",
+            "labels",
+            "members",
+            "start",
+            "stickers"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If using `idCardSource` you can specify which properties to copy over. `all` or comma-separated list of: `attachments,checklists,customFields,comments,due,start,labels,members,start,stickers`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "keepFromSource"
+      },
+      {
+        "name": "map_view_address",
+        "required": false,
+        "description": "The address for use with the Map View in Trello. This can enhance location-based features.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address"
+      },
+      {
+        "name": "location_name",
+        "required": false,
+        "description": "The name of the location for use with the Map View in Trello.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "locationName"
+      },
+      {
+        "name": "map_coordinates",
+        "required": false,
+        "description": "Coordinates for the Map View in the format latitude,longitude.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View. Should take the form latitude,longitude"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "coordinates"
+      },
+      {
+        "name": "card_display_role",
+        "required": false,
+        "description": "Specifies how the card should be displayed. Options: `separator` for visual separation, `board` for linking to a Trello board, `mirror` for linking to a Trello card, and `link` for a general URL link.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "separator",
+            "board",
+            "mirror",
+            "link"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "For displaying cards in different ways based on the card name. Board cards must have a name that is a link to a Trello board. Mirror cards must have a name that is a link to a Trello card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cardRole"
+      },
+      {
+        "name": "card_completion_status",
+        "required": false,
+        "description": "Indicate if the card's status is complete. True means the card is complete, and false means it is incomplete.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the status of the card is complete"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dueComplete"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-cards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "card_name",
+        "description": "The name for the card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "desc",
+        "tool_parameter_name": "card_description",
+        "description": "The description for the card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description for the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pos",
+        "tool_parameter_name": "card_position",
+        "description": "The position of the new card. `top`, `bottom`, or a positive float",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the new card. `top`, `bottom`, or a positive float"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "due",
+        "tool_parameter_name": "card_due_date",
+        "description": "A due date for the card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A due date for the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "start",
+        "tool_parameter_name": "start_date",
+        "description": "The start date of a card, or `null`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date of a card, or `null`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "dueComplete",
+        "tool_parameter_name": "card_completion_status",
+        "description": "Whether the status of the card is complete",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the status of the card is complete"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idList",
+        "tool_parameter_name": "list_id_for_card",
+        "description": "The ID of the list the card should be created in",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the list the card should be created in"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMembers",
+        "tool_parameter_name": "member_ids_to_add",
+        "description": "Comma-separated list of member IDs to add to the card",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "Comma-separated list of member IDs to add to the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idLabels",
+        "tool_parameter_name": "label_ids",
+        "description": "Comma-separated list of label IDs to add to the card",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "Comma-separated list of label IDs to add to the card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "urlSource",
+        "tool_parameter_name": "attachment_url",
+        "description": "A URL starting with `http://` or `https://`. The URL will be attached to the card upon creation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A URL starting with `http://` or `https://`. The URL will be attached to the card upon creation."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fileSource",
+        "tool_parameter_name": "attachment_file_path",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "mimeType",
+        "tool_parameter_name": "attachment_mime_type",
+        "description": "The mimeType of the attachment. Max length 256",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mimeType of the attachment. Max length 256"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idCardSource",
+        "tool_parameter_name": "copy_card_source_id",
+        "description": "The ID of a card to copy into the new card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a card to copy into the new card"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "keepFromSource",
+        "tool_parameter_name": "copy_properties_from_source",
+        "description": "If using `idCardSource` you can specify which properties to copy over. `all` or comma-separated list of: `attachments,checklists,customFields,comments,due,start,labels,members,start,stickers`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "attachments",
+            "checklists",
+            "comments",
+            "customFields",
+            "due",
+            "start",
+            "labels",
+            "members",
+            "start",
+            "stickers"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If using `idCardSource` you can specify which properties to copy over. `all` or comma-separated list of: `attachments,checklists,customFields,comments,due,start,labels,members,start,stickers`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "address",
+        "tool_parameter_name": "map_view_address",
+        "description": "For use with/by the Map View",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "locationName",
+        "tool_parameter_name": "location_name",
+        "description": "For use with/by the Map View",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "coordinates",
+        "tool_parameter_name": "map_coordinates",
+        "description": "For use with/by the Map View. Should take the form latitude,longitude",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "For use with/by the Map View. Should take the form latitude,longitude"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cardRole",
+        "tool_parameter_name": "card_display_role",
+        "description": "For displaying cards in different ways based on the card name. Board cards must have a name that is a link to a Trello board. Mirror cards must have a name that is a link to a Trello card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "separator",
+            "board",
+            "mirror",
+            "link"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "For displaying cards in different ways based on the card name. Board cards must have a name that is a link to a Trello board. Mirror cards must have a name that is a link to a Trello card."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

@@ -15,7 +15,6 @@ from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
 
 import idna
-import typer
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
 from arcade_core.discovery import (
@@ -80,6 +79,23 @@ class Provider(str, Enum):
     OPENAI = "openai"
 
 
+class CLIError(Exception):
+    """Custom exception for CLI errors that preserves error messages for tracking.
+
+    Never use this exception directly. Use handle_cli_error utility function instead.
+    """
+
+    def __init__(self, message: str, original_error: Exception | None = None) -> None:
+        self.message = message
+        self.original_error = original_error
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        if self.original_error:
+            return f"{self.message}: {self.original_error!s}"
+        return self.message
+
+
 def handle_cli_error(
     message: str,
     error: Exception | None = None,
@@ -95,7 +111,7 @@ def handle_cli_error(
         console.print(f"❌ {message}", style="bold red")
 
     if should_exit:
-        raise typer.Exit(code=1)
+        raise CLIError(message, error)
 
 
 def create_cli_catalog(
@@ -114,14 +130,12 @@ def create_cli_catalog(
             try:  # try without prefix
                 toolkits = [Toolkit.from_package(toolkit)]
             except ToolkitLoadError as e:
-                console.print(f"❌ {e}", style="bold red")
-                typer.Exit(code=1)
+                handle_cli_error(f"{e}")
     else:
         toolkits = Toolkit.find_all_arcade_toolkits()
 
     if not toolkits:
-        console.print("❌ No toolkits found or specified", style="bold red")
-        typer.Exit(code=1)
+        handle_cli_error("No toolkits found or specified")
 
     catalog = ToolCatalog()
     for loaded_toolkit in toolkits:
@@ -417,18 +431,12 @@ def validate_and_get_config(
         handle_cli_error("Not logged in", e, debug=False)
 
     if validate_api and (not config.api or not config.api.key):
-        console.print(
-            "❌ API configuration not found or key is missing. Please run `arcade login`.",
-            style="bold red",
+        handle_cli_error(
+            "API configuration not found or key is missing. Please run `arcade login`."
         )
-        raise typer.Exit(code=1)
 
     if validate_user and (not config.user or not config.user.email):
-        console.print(
-            "❌ User email not found in configuration. Please run `arcade login`.",
-            style="bold red",
-        )
-        raise typer.Exit(code=1)
+        handle_cli_error("User email not found in configuration. Please run `arcade login`.")
 
     return config
 
@@ -966,12 +974,7 @@ def require_dependency(
     try:
         importlib.import_module(package_name.replace("-", "_"))
     except ImportError:
-        console.print(
-            f"❌ The '{package_name}' package is required to run the '{command_name}' command but is not installed.",
-            style="bold red",
+        handle_cli_error(
+            f"The '{package_name}' package is required to run the '{command_name}' command but is not installed. "
+            f"To install it, run the following command: {install_command}"
         )
-        console.print(
-            f"To install it, run the following command:\n* [green]{install_command}[/green]",
-            style="bold",
-        )
-        raise typer.Exit(code=1)

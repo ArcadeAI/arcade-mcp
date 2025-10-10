@@ -1,0 +1,175 @@
+{
+  "name": "CreateTrelloList",
+  "fully_qualified_name": "TrelloApi.CreateTrelloList@0.1.0",
+  "description": "Create a new list on a Trello board.\n\nThis tool is used to create a new list on a specified Trello board. It should be called when you need to organize tasks or categories by adding a new list to an existing board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_name",
+        "required": true,
+        "description": "The name of the list to be created, ranging from 1 to 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the list to be created. 1 to 16384 characters long."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier for the Trello board where the list will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "list_position",
+        "required": false,
+        "description": "Defines the position of the new list on the board. Accepts 'top', 'bottom', or a specific positive number for custom ordering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines the position of the list. Valid values: `top`, `bottom`, or a positive number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-boards-id-lists'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/lists",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "list_name",
+        "description": "The name of the list to be created. 1 to 16384 characters long.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the list to be created. 1 to 16384 characters long."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pos",
+        "tool_parameter_name": "list_position",
+        "description": "Determines the position of the list. Valid values: `top`, `bottom`, or a positive number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines the position of the list. Valid values: `top`, `bottom`, or a positive number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the board",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

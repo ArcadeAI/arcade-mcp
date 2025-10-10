@@ -19,15 +19,15 @@ try:
     ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
-    ARCADE_MCP_MIN_VERSION = "1.0.0rc2"  # Default version if unable to fetch
-    ARCADE_MCP_MAX_VERSION = "4.0.0"
+    ARCADE_MCP_MIN_VERSION = "1.1.0"  # Default version if unable to fetch
+    ARCADE_MCP_MAX_VERSION = "2.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.6.0rc2"
-ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.2.0rc2"
-ARCADE_SERVE_MAX_VERSION = "3.0.0"
-ARCADE_MCP_SERVER_MIN_VERSION = "1.0.0rc2"
-ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
+ARCADE_TDK_MIN_VERSION = "3.0.0"
+ARCADE_TDK_MAX_VERSION = "4.0.0"
+ARCADE_SERVE_MIN_VERSION = "3.0.0"
+ARCADE_SERVE_MAX_VERSION = "4.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "1.1.1"
+ARCADE_MCP_SERVER_MAX_VERSION = "2.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -243,15 +243,15 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
     # Check for illegal characters in the toolkit name
     if re.match(r"^[a-z0-9_]+$", toolkit_name):
         if (toolkit_directory / toolkit_name).exists():
-            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
-            exit(1)
+            raise FileExistsError(
+                f"Server with name '{toolkit_name}' already exists at '{toolkit_directory / toolkit_name}'"
+            )
     else:
-        console.print(
-            "[red]Toolkit name contains illegal characters. "
+        raise ValueError(
+            f"Server name '{toolkit_name}' contains illegal characters. "
             "Only lowercase alphanumeric characters and underscores are allowed. "
-            "Please try again.[/red]"
+            "Please try again."
         )
-        exit(1)
 
     context = {
         "toolkit_name": toolkit_name,

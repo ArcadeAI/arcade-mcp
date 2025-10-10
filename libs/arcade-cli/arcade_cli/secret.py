@@ -6,8 +6,8 @@ from rich.table import Table
 from arcade_cli.constants import (
     PROD_ENGINE_HOST,
 )
+from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    OrderCommands,
     compute_base_url,
     validate_and_get_config,
 )
@@ -15,8 +15,8 @@ from arcade_cli.utils import (
 console = Console()
 
 
-app = typer.Typer(
-    cls=OrderCommands,
+app = TrackedTyper(
+    cls=TrackedTyperGroup,
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=False,

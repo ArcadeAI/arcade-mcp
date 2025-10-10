@@ -1,0 +1,235 @@
+{
+  "name": "GetAgedPayablesReportByContact",
+  "fully_qualified_name": "XeroApi.GetAgedPayablesReportByContact@0.1.0",
+  "description": "Retrieve aged payables report by contact.\n\nUse this tool to get a report on aged payables categorized by contact. It provides insights into outstanding payables over time.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "contact_identifier",
+        "required": true,
+        "description": "Unique identifier for the contact to retrieve the aged payables report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Contact"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contactId"
+      },
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "Xero identifier for the Tenant. Required to specify which tenant's data is being accessed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "report_date",
+        "required": false,
+        "description": "The specific date for the Aged Payables By Contact report in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of the Aged Payables By Contact report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "report_from_date",
+        "required": false,
+        "description": "Specify the start date for filtering the report, in YYYY-MM-DD format (e.g. 2021-02-01).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the from date of the report e.g. 2021-02-01"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fromDate"
+      },
+      {
+        "name": "report_end_date",
+        "required": false,
+        "description": "Filter the report by specifying the end date, formatted as YYYY-MM-DD (e.g., 2021-02-28).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the to date of the report e.g. 2021-02-28"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "toDate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportAgedPayablesByContact'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.reports.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Reports/AgedPayablesByContact",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "contactId",
+        "tool_parameter_name": "contact_identifier",
+        "description": "Unique identifier for a Contact",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Contact"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "report_date",
+        "description": "The date of the Aged Payables By Contact report",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of the Aged Payables By Contact report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fromDate",
+        "tool_parameter_name": "report_from_date",
+        "description": "filter by the from date of the report e.g. 2021-02-01",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the from date of the report e.g. 2021-02-01"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "toDate",
+        "tool_parameter_name": "report_end_date",
+        "description": "filter by the to date of the report e.g. 2021-02-28",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "filter by the to date of the report e.g. 2021-02-28"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

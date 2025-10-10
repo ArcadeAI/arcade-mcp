@@ -1,0 +1,204 @@
+{
+  "name": "RetrieveAccountAttachmentByFilename",
+  "fully_qualified_name": "XeroApi.RetrieveAccountAttachmentByFilename@0.1.0",
+  "description": "Retrieve an attachment for a specific account by filename.\n\nThis tool retrieves an attachment file from a specific account in Xero using the filename. It should be called when a user needs to access a specific account's attachment by providing the account ID and filename.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "account_id",
+        "required": true,
+        "description": "Unique identifier for the Account object in Xero.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Account object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "AccountID"
+      },
+      {
+        "name": "attachment_file_name",
+        "required": true,
+        "description": "The name of the attachment to retrieve for a specific account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the attachment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "FileName"
+      },
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The unique Xero identifier for the Tenant. Required to access the specific tenant's attachments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "mime_type_of_attachment",
+        "required": true,
+        "description": "The MIME type of the attachment file to retrieve, such as image/jpg or application/pdf.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contentType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getAccountAttachmentByFileName'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.attachments",
+          "accounting.attachments.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Accounts/{AccountID}/Attachments/{FileName}",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "AccountID",
+        "tool_parameter_name": "account_id",
+        "description": "Unique identifier for Account object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Account object"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "FileName",
+        "tool_parameter_name": "attachment_file_name",
+        "description": "Name of the attachment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the attachment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "contentType",
+        "tool_parameter_name": "mime_type_of_attachment",
+        "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

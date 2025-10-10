@@ -1,0 +1,139 @@
+{
+  "name": "RetrieveExecutiveSummaryReport",
+  "fully_qualified_name": "XeroApi.RetrieveExecutiveSummaryReport@0.1.0",
+  "description": "Retrieve an executive summary report for financial insights.\n\nUse this tool to get an executive summary report, which provides financial insights and key metrics for business decision-making.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "The Xero identifier for the tenant. Required to specify which tenant's data should be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "report_date",
+        "required": false,
+        "description": "The date for the Bank Summary report in the format YYYY-MM-DD (e.g., 2018-03-31).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date for the Bank Summary report e.g. 2018-03-31"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getReportExecutiveSummary'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.reports.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Reports/ExecutiveSummary",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "date",
+        "tool_parameter_name": "report_date",
+        "description": "The date for the Bank Summary report e.g. 2018-03-31",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date for the Bank Summary report e.g. 2018-03-31"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

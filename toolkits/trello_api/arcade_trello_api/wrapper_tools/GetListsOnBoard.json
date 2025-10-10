@@ -1,0 +1,259 @@
+{
+  "name": "GetListsOnBoard",
+  "fully_qualified_name": "TrelloApi.GetListsOnBoard@0.1.0",
+  "description": "Retrieve all lists from a specified Trello board.\n\nUse this tool to get information about all the lists on a specific Trello board by providing the board ID.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier of the Trello board to fetch its lists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "card_filter",
+        "required": false,
+        "description": "Specify the filter to apply to cards on the list. Options are: 'all', 'closed', 'none', 'open'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to apply to Cards."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cards"
+      },
+      {
+        "name": "card_fields_to_retrieve",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of card fields to retrieve from the board lists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of card [fields](/cloud/trello/guides/rest-api/object-definitions/#card-object)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_fields"
+      },
+      {
+        "name": "list_filter",
+        "required": false,
+        "description": "Specify a filter to apply to lists: `all`, `closed`, `none`, or `open`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to apply to Lists"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "list_fields",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of list fields to retrieve from the Trello board. Use 'all' to access every field available.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of list [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-boards-id-lists'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/lists",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cards",
+        "tool_parameter_name": "card_filter",
+        "description": "Filter to apply to Cards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to apply to Cards."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_fields",
+        "tool_parameter_name": "card_fields_to_retrieve",
+        "description": "`all` or a comma-separated list of card [fields](/cloud/trello/guides/rest-api/object-definitions/#card-object)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of card [fields](/cloud/trello/guides/rest-api/object-definitions/#card-object)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "list_filter",
+        "description": "Filter to apply to Lists",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to apply to Lists"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "list_fields",
+        "description": "`all` or a comma-separated list of list [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of list [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the board",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

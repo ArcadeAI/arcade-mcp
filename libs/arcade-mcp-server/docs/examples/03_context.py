@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 03_context.py - Using Context with namespaced runtime APIs
 
@@ -6,23 +6,29 @@ This example shows how tools can access runtime features through
 Context (provided at runtime by the TDK wrapper), including logging,
 secrets, and progress reporting.
 
-To run (auto-discovery):
-    python -m arcade_mcp_server
-
-For Claude Desktop (stdio transport):
-    python -m arcade_mcp_server stdio
+To run:
+    uv run 03_context.py           # HTTP transport (default)
+    uv run 03_context.py stdio     # stdio transport for Claude Desktop
 
 Set environment variables for secrets:
     export API_KEY="your-secret-key"
     export DATABASE_URL="postgresql://localhost/mydb"
 """
 
+import sys
 from typing import Annotated, Any
 
-from arcade_mcp_server import Context, tool
+from arcade_mcp_server import Context, MCPApp
+
+# Create the MCP application
+app = MCPApp(
+    name="context_example",
+    version="1.0.0",
+    instructions="Example server demonstrating Context usage",
+)
 
 
-@tool
+@app.tool
 async def secure_api_call(
     context: Context,
     endpoint: Annotated[str, "API endpoint to call"],
@@ -44,7 +50,8 @@ async def secure_api_call(
     return f"Successfully called {endpoint} with API key: {api_key[:4]}..."
 
 
-@tool(requires_secrets=["DATABASE_URL"])
+# Don't forget to add the secret to the .env file or export it as an environment variable
+@app.tool(requires_secrets=["DATABASE_URL"])
 async def database_info(
     context: Context, table_name: Annotated[str | None, "Specific table to check"] = None
 ) -> Annotated[str, "Database connection info"]:
@@ -71,7 +78,7 @@ async def database_info(
         return f"{user_info}\nDatabase: {db_url}"
 
 
-@tool
+@app.tool
 async def debug_context(
     context: Context,
     show_secrets: Annotated[bool, "Whether to show secret keys (not values)"] = False,
@@ -92,7 +99,7 @@ async def debug_context(
     return info
 
 
-@tool
+@app.tool
 async def process_with_progress(
     context: Context,
     items: Annotated[list[str], "Items to process"],
@@ -136,3 +143,13 @@ async def process_with_progress(
 # - context.get_secret(key): Retrieve a secret value (raises if missing)
 # - context.log.<level>(msg): Send log messages to the client (debug/info/warning/error)
 # - context.progress.report(progress, total=None, message=None): Progress updates
+
+if __name__ == "__main__":
+    # Check if stdio transport was requested
+    transport = "stdio" if len(sys.argv) > 1 and sys.argv[1] == "stdio" else "http"
+
+    print(f"Starting {app.name} v{app.version}")
+    print(f"Transport: {transport}")
+
+    # Run the server
+    app.run(transport=transport, host="127.0.0.1", port=8000)

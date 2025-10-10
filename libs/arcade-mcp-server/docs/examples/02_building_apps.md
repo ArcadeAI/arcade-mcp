@@ -31,13 +31,37 @@ app = MCPApp(
 
 ### 2. Adding Tools
 
-Use the `@app.tool` decorator to add tools:
+#### Method 1: Direct Tool Definition
+Use the `@app.tool` decorator to define tools directly:
 ```python
 @app.tool
 def my_tool(param: Annotated[str, "Description"]) -> str:
     """Tool description."""
     return f"Result: {param}"
 ```
+
+#### Method 2: Importing Tools from Files
+Import tools from other files and add them explicitly:
+```python
+from my_tools import calculate, process_data
+
+# Add imported tools to the app
+app.add_tool(calculate)
+app.add_tool(process_data)
+```
+
+#### Method 3: Importing from Packages
+Import tools from Arcade packages:
+```python
+from arcade_gmail.tools import list_emails
+
+# Add package tools to the app
+app.add_tool(list_emails)
+```
+
+This approach gives you explicit control over which tools are loaded and allows for modular organization.
+
+**For a comprehensive example of tool organization, see [06_tool_organization.md](06_tool_organization.md).**
 
 ### 3. Running the Server
 
