@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 from typing import Annotated, Any
 
 from arcade_tdk import ToolContext, tool
@@ -12,12 +13,13 @@ from .utils import (
     _serialize_document,
 )
 
-# class UserStatus(str, Enum):
-#     """User status enumeration."""
 
-#     ACTIVE = "active"
-#     INACTIVE = "inactive"
-#     BANNED = "banned"
+class UserStatus(str, Enum):
+    """User status enumeration."""
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    BANNED = "banned"
 
 
 @tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
@@ -307,61 +309,61 @@ async def aggregate_documents(
         ) from e
 
 
-# @tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
-# async def update_user_status(
-#     context: ToolContext,
-#     database_name: Annotated[str, "The database name containing the users collection"],
-#     collection_name: Annotated[str, "The collection name containing user documents"],
-#     user_id: Annotated[str, "The _id of the user to update"],
-#     status: Annotated[UserStatus, "The new status for the user"],
-# ) -> dict[str, Any]:
-#     """
-#     [CUSTOM TOOL]
-#     Update the status of a user in the MongoDB collection.
+@tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
+async def update_user_status(
+    context: ToolContext,
+    database_name: Annotated[str, "The database name containing the users collection"],
+    collection_name: Annotated[str, "The collection name containing user documents"],
+    user_id: Annotated[str, "The _id of the user to update"],
+    status: Annotated[UserStatus, "The new status for the user"],
+) -> dict[str, Any]:
+    """
+    [CUSTOM TOOL]
+    Update the status of a user in the MongoDB collection.
 
-#     This tool updates a user document by setting the status field to the specified value.
-#     The status must be one of: active, inactive, or banned.
+    This tool updates a user document by setting the status field to the specified value.
+    The status must be one of: active, inactive, or banned.
 
-#     Returns information about the update operation including the number of documents modified.
-#     """
+    Returns information about the update operation including the number of documents modified.
+    """
 
-#     try:
-#         async with await DatabaseEngine.get_database(
-#             context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-#         ) as db:
-#             collection = db[collection_name]
+    try:
+        async with await DatabaseEngine.get_database(
+            context.get_secret("MONGODB_CONNECTION_STRING"), database_name
+        ) as db:
+            collection = db[collection_name]
 
-#             # cast the user_id to int if it looks like an integer
-#             if isinstance(user_id, str) and user_id.isdigit():
-#                 user_id = int(user_id)
+            # cast the user_id to int if it looks like an integer
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
 
-#             result = await collection.update_one(
-#                 {"_id": user_id}, {"$set": {"status": status.value}}
-#             )
+            result = await collection.update_one(
+                {"_id": user_id}, {"$set": {"status": status.value}}
+            )
 
-#             print(result)
+            print(result)
 
-#             if result.matched_count == 0:
-#                 return {
-#                     "success": False,
-#                     "message": f"No user found with _id: {user_id}",
-#                     "matched_count": 0,
-#                     "modified_count": 0,
-#                 }
+            if result.matched_count == 0:
+                return {
+                    "success": False,
+                    "message": f"No user found with _id: {user_id}",
+                    "matched_count": 0,
+                    "modified_count": 0,
+                }
 
-#             return {
-#                 "success": True,
-#                 "message": f"User status updated to '{status.value}'",
-#                 "user_id": user_id,
-#                 "new_status": status.value,
-#                 "matched_count": result.matched_count,
-#                 "modified_count": result.modified_count,
-#             }
+            return {
+                "success": True,
+                "message": f"User status updated to '{status.value}'",
+                "user_id": user_id,
+                "new_status": status.value,
+                "matched_count": result.matched_count,
+                "modified_count": result.modified_count,
+            }
 
-#     except Exception as e:
-#         raise RetryableToolError(
-#             f"Failed to update user status: {e}",
-#             developer_message=f"Update operation failed with parameters: database_name={database_name}, collection_name={collection_name}, user_id={user_id}, status={status}.",
-#             additional_prompt_content="Check the database name, collection name, and user ID, then try again.",
-#             retry_after_ms=10,
-#         ) from e
+    except Exception as e:
+        raise RetryableToolError(
+            f"Failed to update user status: {e}",
+            developer_message=f"Update operation failed with parameters: database_name={database_name}, collection_name={collection_name}, user_id={user_id}, status={status}.",
+            additional_prompt_content="Check the database name, collection name, and user ID, then try again.",
+            retry_after_ms=10,
+        ) from e
