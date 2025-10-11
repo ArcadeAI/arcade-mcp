@@ -103,7 +103,6 @@ class MCPApp:
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
-        # Create MCPSettings with server metadata
         self._mcp_settings = MCPSettings(
             server=ServerSettings(
                 name=self.name,

@@ -58,6 +58,126 @@ class TestMCPServer:
         assert server2.title == "Custom Title"
         assert server2.instructions == "Custom instructions"
 
+    def test_server_initialization_with_settings_defaults(self, tool_catalog):
+        """Test server initialization uses settings when parameters not provided."""
+        from arcade_mcp_server.settings import MCPSettings, ServerSettings
+
+        settings = MCPSettings(
+            server=ServerSettings(
+                name="SettingsName",
+                version="2.0.0",
+                title="SettingsTitle",
+                instructions="Settings instructions",
+            )
+        )
+
+        # Initialize without name/version - should use settings
+        server = MCPServer(catalog=tool_catalog, settings=settings)
+
+        assert server.name == "SettingsName"
+        assert server.version == "2.0.0"
+        assert server.title == "SettingsTitle"
+        assert server.instructions == "Settings instructions"
+
+    def test_server_initialization_parameters_override_settings(self, tool_catalog):
+        """Test server initialization parameters override settings."""
+        from arcade_mcp_server.settings import MCPSettings, ServerSettings
+
+        settings = MCPSettings(
+            server=ServerSettings(
+                name="SettingsName",
+                version="2.0.0",
+                title="SettingsTitle",
+                instructions="Settings instructions",
+            )
+        )
+
+        # Initialize with explicit parameters (should override settings)
+        server = MCPServer(
+            catalog=tool_catalog,
+            name="ParamName",
+            version="3.0.0",
+            title="ParamTitle",
+            instructions="Param instructions",
+            settings=settings,
+        )
+
+        assert server.name == "ParamName"
+        assert server.version == "3.0.0"
+        assert server.title == "ParamTitle"
+        assert server.instructions == "Param instructions"
+
+    def test_server_initialization_title_fallback_logic(self, tool_catalog):
+        """Test server initialization title fallback logic."""
+        from arcade_mcp_server.settings import MCPSettings, ServerSettings
+
+        # Test 1: Title parameter provided (should be used)
+        server1 = MCPServer(
+            catalog=tool_catalog,
+            name="TestServer",
+            title="ExplicitTitle",
+        )
+        assert server1.title == "ExplicitTitle"
+
+        # Test 2: No title parameter but settings has non-default title
+        settings2 = MCPSettings(
+            server=ServerSettings(
+                name="SettingsServer",
+                title="CustomSettingsTitle",
+            )
+        )
+        server2 = MCPServer(catalog=tool_catalog, settings=settings2)
+        assert server2.title == "CustomSettingsTitle"
+
+        # Test 3: No title parameter, settings has default title (should use name)
+        settings3 = MCPSettings(
+            server=ServerSettings(
+                name="SettingsServer",
+                title="ArcadeMCP",  # Default value
+            )
+        )
+        server3 = MCPServer(catalog=tool_catalog, settings=settings3)
+        assert server3.title == "SettingsServer"
+
+        # Test 4: No title parameter, no settings title (should use name)
+        settings4 = MCPSettings(
+            server=ServerSettings(
+                name="SettingsServer",
+                title=None,
+            )
+        )
+        server4 = MCPServer(catalog=tool_catalog, settings=settings4)
+        assert server4.title == "SettingsServer"
+
+    def test_server_initialization_instructions_fallback(self, tool_catalog):
+        """Test server initialization instructions fallback logic."""
+        from arcade_mcp_server.settings import MCPSettings, ServerSettings
+
+        # Test 1: Instructions parameter provided (should be used)
+        server1 = MCPServer(
+            catalog=tool_catalog,
+            instructions="Explicit instructions",
+        )
+        assert server1.instructions == "Explicit instructions"
+
+        # Test 2: No instructions parameter (should use settings)
+        settings2 = MCPSettings(
+            server=ServerSettings(
+                instructions="Settings instructions",
+            )
+        )
+        server2 = MCPServer(catalog=tool_catalog, settings=settings2)
+        assert server2.instructions == "Settings instructions"
+
+        # Test 3: No instructions parameter, no settings (should use default)
+        settings3 = MCPSettings(
+            server=ServerSettings(
+                instructions=None,
+            )
+        )
+        server3 = MCPServer(catalog=tool_catalog, settings=settings3)
+        assert "available tools" in server3.instructions.lower()
+
     def test_handler_registration(self, tool_catalog):
         """Test that all required handlers are registered."""
         server = MCPServer(catalog=tool_catalog)
