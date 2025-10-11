@@ -25,16 +25,3 @@ mypy: ## Run mypy
 .PHONY: test
 test: ## Run tests
 	uv run pytest --cov=arcade_mcp_server --cov-report=term-missing ../tests/arcade_mcp_server
-
-.PHONY: docs
-docs: ## Build docs
-	uv run mkdocs build
-	uv run mkdocs serve
-
-.PHONY: docs-serve
-docs-serve: ## Serve docs locally
-	uv run mkdocs serve
-
-.PHONY: docs-build
-docs-build: ## Build docs
-	uv run mkdocs build
