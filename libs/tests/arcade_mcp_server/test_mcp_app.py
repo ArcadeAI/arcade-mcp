@@ -17,6 +17,46 @@ class TestMCPApp:
         """Create an MCP app."""
         return MCPApp(name="TestMCPApp", version="1.0.0")
 
+    def test_mcp_app_initialization(self):
+        """Test MCPApp initialization creates proper settings."""
+        app = MCPApp(
+            name="TestApp",
+            version="1.5.0",
+            title="Test Title",
+            instructions="Test instructions",
+        )
+
+        assert app.name == "TestApp"
+        assert app.version == "1.5.0"
+        assert app.title == "Test Title"
+        assert app.instructions == "Test instructions"
+
+        assert app._mcp_settings is not None
+        assert app._mcp_settings.server.name == "TestApp"
+        assert app._mcp_settings.server.version == "1.5.0"
+        assert app._mcp_settings.server.title == "Test Title"
+        assert app._mcp_settings.server.instructions == "Test instructions"
+
+    def test_mcp_app_initialization_defaults(self):
+        """Test MCPApp initialization with default values."""
+        app = MCPApp()
+
+        assert app.name == "ArcadeMCP"
+        assert app.version == "0.1.0"
+
+        assert app._mcp_settings.server.name == "ArcadeMCP"
+        assert app._mcp_settings.server.version == "0.1.0"
+
+    def test_mcp_app_initialization_partial_values(self):
+        """Test MCPApp initialization with partial values."""
+        app = MCPApp(name="PartialApp")
+
+        assert app.name == "PartialApp"
+        assert app.version == "0.1.0"  # Default value
+
+        assert app._mcp_settings.server.name == "PartialApp"
+        assert app._mcp_settings.server.version == "0.1.0"
+
     def test_add_tool(self, mcp_app: MCPApp):
         """Test adding a tool to the MCP app."""
 

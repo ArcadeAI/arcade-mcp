@@ -79,7 +79,7 @@ class ServerSettings(BaseSettings):
         description="Server version",
     )
     title: str | None = Field(
-        default="Arcade MCP",
+        default="ArcadeMCP",
         description="Server title for display",
     )
     instructions: str | None = Field(

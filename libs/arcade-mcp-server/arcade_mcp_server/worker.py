@@ -115,6 +115,7 @@ def create_arcade_mcp(
             await logger.complete()
             logger.debug("Server lifespan shutdown complete.")
 
+    # Use settings for FastAPI app metadata
     app = FastAPI(
         title=(mcp_settings.server.title or mcp_settings.server.name),
         description=(mcp_settings.server.instructions or ""),
@@ -122,7 +123,6 @@ def create_arcade_mcp(
         docs_url="/docs" if not mcp_settings.arcade.auth_disabled else None,
         redoc_url="/redoc" if not mcp_settings.arcade.auth_disabled else None,
         lifespan=lifespan,
-        **kwargs,
     )
     otel_handler.instrument_app(app)
     app.add_middleware(AddTrailingSlashToPathMiddleware)
@@ -221,6 +221,8 @@ def create_arcade_mcp_factory() -> FastAPI:
     show_packages = os.environ.get("ARCADE_MCP_SHOW_PACKAGES", "false").lower() == "true"
     server_name = os.environ.get("ARCADE_MCP_SERVER_NAME")
     server_version = os.environ.get("ARCADE_MCP_SERVER_VERSION")
+    server_title = os.environ.get("ARCADE_MCP_SERVER_TITLE")
+    server_instructions = os.environ.get("ARCADE_MCP_SERVER_INSTRUCTIONS")
 
     # Rediscover tools since there have been changes
     try:
@@ -244,19 +246,24 @@ def create_arcade_mcp_factory() -> FastAPI:
     if otel_enable:
         logger.info("OpenTelemetry is enabled")
 
-    # Build kwargs for server creation
-    kwargs = {}
-    if server_name:
-        kwargs["name"] = server_name
-    if server_version:
-        kwargs["version"] = server_version
+    # Build settings with server metadata from env vars
+    from arcade_mcp_server.settings import ServerSettings
+
+    mcp_settings = MCPSettings.from_env()
+    if server_name or server_version or server_title or server_instructions:
+        # Override server settings if any were provided via env vars
+        mcp_settings.server = ServerSettings(
+            name=server_name or mcp_settings.server.name,
+            version=server_version or mcp_settings.server.version,
+            title=server_title or mcp_settings.server.title,
+            instructions=server_instructions or mcp_settings.server.instructions,
+        )
 
     return create_arcade_mcp(
         catalog=catalog,
-        mcp_settings=None,
+        mcp_settings=mcp_settings,
         debug=debug,
         otel_enable=otel_enable,
-        **kwargs,
     )
 
 
@@ -270,6 +277,7 @@ def run_arcade_mcp(
     tool_package: str | None = None,
     discover_installed: bool = False,
     show_packages: bool = False,
+    mcp_settings: MCPSettings | None = None,
     **kwargs: Any,
 ) -> None:
     """
@@ -287,10 +295,13 @@ def run_arcade_mcp(
             os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
         os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
         os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
-        if kwargs.get("name"):
-            os.environ["ARCADE_MCP_SERVER_NAME"] = kwargs["name"]
-        if kwargs.get("version"):
-            os.environ["ARCADE_MCP_SERVER_VERSION"] = kwargs["version"]
+        if mcp_settings:
+            os.environ["ARCADE_MCP_SERVER_NAME"] = mcp_settings.server.name
+            os.environ["ARCADE_MCP_SERVER_VERSION"] = mcp_settings.server.version
+            if mcp_settings.server.title:
+                os.environ["ARCADE_MCP_SERVER_TITLE"] = mcp_settings.server.title
+            if mcp_settings.server.instructions:
+                os.environ["ARCADE_MCP_SERVER_INSTRUCTIONS"] = mcp_settings.server.instructions
 
         # import string is required for reload mode
         app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
@@ -307,6 +318,7 @@ def run_arcade_mcp(
     else:
         app = create_arcade_mcp(
             catalog=catalog,
+            mcp_settings=mcp_settings,
             debug=debug,
             otel_enable=otel_enable,
             **kwargs,
