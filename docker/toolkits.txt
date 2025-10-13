@@ -1,5 +1,6 @@
 arcade-box-api
 arcade-calendly-api
+arcade-miro-api
 arcade-slack-api
 arcade-stripe-api
 arcade-squareup-api
