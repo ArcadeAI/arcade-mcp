@@ -156,9 +156,7 @@ class MCPServer:
             self.title = self.name
 
         self.instructions = (
-            instructions
-            if instructions
-            else (self.settings.server.instructions or self._default_instructions())
+            instructions or self.settings.server.instructions or self._default_instructions()
         )
 
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
