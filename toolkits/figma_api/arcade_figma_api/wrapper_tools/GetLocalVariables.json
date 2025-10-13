@@ -1,0 +1,106 @@
+{
+  "name": "GetLocalVariables",
+  "fully_qualified_name": "FigmaApi.GetLocalVariables@0.1.0",
+  "description": "Retrieve local and remote variables from a Figma file.\n\nThis tool allows you to retrieve local variables created in a Figma file and remote variables used in it, available for Enterprise orgs. It provides details such as variableId and their associated collections.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_key_or_branch_key",
+        "required": true,
+        "description": "Specify the file key or branch key to retrieve variables from the Figma file. Use `GET /v1/files/:key` with `branch_data` query param to obtain the branch key if needed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getLocalVariables'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_variables:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/files/{file_key}/variables/local",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "file_key",
+        "tool_parameter_name": "file_key_or_branch_key",
+        "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

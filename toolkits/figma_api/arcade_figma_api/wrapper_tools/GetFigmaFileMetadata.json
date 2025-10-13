@@ -1,0 +1,107 @@
+{
+  "name": "GetFigmaFileMetadata",
+  "fully_qualified_name": "FigmaApi.GetFigmaFileMetadata@0.1.0",
+  "description": "Retrieve metadata for a specific Figma file.\n\nCall this tool to obtain metadata for a Figma file using its unique file key. Useful for retrieving details such as version, creator, and other metadata related to a Figma file.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "figma_file_key",
+        "required": true,
+        "description": "The unique file or branch key to get metadata for. Use this to specify which Figma file's metadata to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getFileMeta'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_metadata:read",
+          "files:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/files/{file_key}/meta",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "file_key",
+        "tool_parameter_name": "figma_file_key",
+        "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

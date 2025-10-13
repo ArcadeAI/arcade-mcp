@@ -1,14 +1,11 @@
 ### Worker 1
 [[worker]]
 [worker.config]
-id = "worker-1"
+id = "worker-test"
 enabled = true
 timeout = 10
 retries = 3
-secret = "test-secret"
-
-[worker.pypi_source]
-packages = ["arcade-slack", "arcade-x", "arcade-github"]
+secret = "test-secret11"
 
 [worker.local_source]
-packages = ["./toolkits/spotify"]
+packages = ["./toolkits/complex_tools"]
