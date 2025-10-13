@@ -1,0 +1,249 @@
+{
+  "name": "GetSampleWebhookData",
+  "fully_qualified_name": "CalendlyApi.GetSampleWebhookData@0.1.0",
+  "description": "Retrieve sample webhook data for testing purposes.\n\nUse this tool to access sample data for testing your Calendly webhook subscription.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_type",
+        "required": true,
+        "description": "Specifies the type of event for which you want to retrieve sample webhook data. Options include 'invitee.created', 'invitee.canceled', 'invitee_no_show.created', 'invitee_no_show.deleted', and 'routing_form_submission.created'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "invitee.created",
+            "invitee.canceled",
+            "invitee_no_show.created",
+            "invitee_no_show.deleted",
+            "routing_form_submission.created"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event"
+      },
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique identifier of the organization in Calendly for which you want to retrieve sample webhook data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "scope",
+        "required": true,
+        "description": "Defines the scope of the webhook data to fetch: 'user', 'organization', or 'group'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user",
+            "organization",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "user_identifier",
+        "required": false,
+        "description": "The unique identifier for the Calendly user whose webhook data is being tested. Provide a valid user ID or username.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "event_group_identifier",
+        "required": false,
+        "description": "Specify the group identifier to test webhook data for a specific group. This helps categorize or organize the webhook data samples.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-sample-webhook-data'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/sample_webhook_data",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "event",
+        "tool_parameter_name": "event_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "invitee.created",
+            "invitee.canceled",
+            "invitee_no_show.created",
+            "invitee_no_show.deleted",
+            "routing_form_submission.created"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "user_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "scope",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user",
+            "organization",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group",
+        "tool_parameter_name": "event_group_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

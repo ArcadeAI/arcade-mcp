@@ -1,0 +1,203 @@
+{
+  "name": "GetFinancialJournals",
+  "fully_qualified_name": "XeroApi.GetFinancialJournals@0.1.0",
+  "description": "Retrieve financial journal entries from Xero.\n\nUse this tool to access financial journal entries recorded in Xero. It should be called when detailed accounting journal information is needed for financial analysis or record-keeping.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tenant_identifier",
+        "required": true,
+        "description": "The unique Xero identifier for the tenant. Required to specify which tenant's journals are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "journal_number_offset",
+        "required": false,
+        "description": "Specify the journal number offset. Journals with a number greater than this will be returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset by a specified journal number. e.g. journals with a JournalNumber greater than the offset will be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "modified_since_timestamp",
+        "required": false,
+        "description": "Return records created or modified since this timestamp. Use a string format like 'YYYY-MM-DDTHH:MM:SSZ'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "If-Modified-Since"
+      },
+      {
+        "name": "retrieve_cash_basis_journals",
+        "required": false,
+        "description": "Set to true to retrieve journals on a cash basis. Defaults to false for accrual basis.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to retrieve journals on a cash basis. Journals are returned on an accrual basis by default."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "paymentsOnly"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getJournals'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.journals.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Journals",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "offset",
+        "tool_parameter_name": "journal_number_offset",
+        "description": "Offset by a specified journal number. e.g. journals with a JournalNumber greater than the offset will be returned",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset by a specified journal number. e.g. journals with a JournalNumber greater than the offset will be returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "paymentsOnly",
+        "tool_parameter_name": "retrieve_cash_basis_journals",
+        "description": "Filter to retrieve journals on a cash basis. Journals are returned on an accrual basis by default.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to retrieve journals on a cash basis. Journals are returned on an accrual basis by default."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "If-Modified-Since",
+        "tool_parameter_name": "modified_since_timestamp",
+        "description": "Only records created or modified since this timestamp will be returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

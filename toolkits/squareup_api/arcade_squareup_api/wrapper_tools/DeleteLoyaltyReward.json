@@ -1,0 +1,105 @@
+{
+  "name": "DeleteLoyaltyReward",
+  "fully_qualified_name": "SquareupApi.DeleteLoyaltyReward@0.1.0",
+  "description": "Delete a loyalty reward and restore loyalty points.\n\nUse this tool to delete a loyalty reward, which restores loyalty points to the account. It also updates the associated order by removing the reward and related discounts if an order ID was specified. The reward cannot be deleted if it has been redeemed.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "reward_id",
+        "required": true,
+        "description": "The ID of the loyalty reward to delete. This is required to identify which reward to remove and restore points for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reward_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteLoyaltyReward'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/rewards/{reward_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "reward_id",
+        "tool_parameter_name": "reward_id",
+        "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty reward](entity:LoyaltyReward) to delete."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

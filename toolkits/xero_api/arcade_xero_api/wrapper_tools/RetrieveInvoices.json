@@ -1,0 +1,556 @@
+{
+  "name": "RetrieveInvoices",
+  "fully_qualified_name": "XeroApi.RetrieveInvoices@0.1.0",
+  "description": "Retrieve sales invoices or purchase bills from Xero.\n\nUse this tool to retrieve detailed information about sales invoices or purchase bills from Xero.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "xero_tenant_id",
+        "required": true,
+        "description": "Unique identifier for a Xero tenant to retrieve invoices specific to that tenant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "filter_by_condition",
+        "required": false,
+        "description": "Filter using a condition expression defined on any element, similar to a SQL WHERE clause.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an any element"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "where"
+      },
+      {
+        "name": "order_by",
+        "required": false,
+        "description": "Specify the criteria for ordering invoices, such as date or amount.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "invoice_ids",
+        "required": false,
+        "description": "Comma-separated list of Invoice IDs to filter results.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of InvoicesIDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "IDs"
+      },
+      {
+        "name": "filter_by_invoice_numbers",
+        "required": false,
+        "description": "Filter results by providing a list of invoice numbers. Each item should be a string representing one invoice number.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of InvoiceNumbers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "InvoiceNumbers"
+      },
+      {
+        "name": "filter_contact_ids",
+        "required": false,
+        "description": "Comma-separated list of ContactIDs to filter invoices.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of ContactIDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ContactIDs"
+      },
+      {
+        "name": "filter_by_statuses",
+        "required": false,
+        "description": "Filter invoices by a list of statuses for improved response times. Use explicit parameters instead of OR conditions.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list Statuses. For faster response times we recommend using these explicit parameters instead of passing OR conditions into the Where filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Statuses"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number to retrieve. Up to 100 invoices per page can be returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 invoices will be returned in a single API call with line items shown for each invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "unit_decimal_places",
+        "required": false,
+        "description": "Specify the number of decimal places for unit amounts, e.g., 4 for four decimal places.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unitdp"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of invoice records to retrieve per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to retrieve per page"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pageSize"
+      },
+      {
+        "name": "search_term",
+        "required": false,
+        "description": "A case-insensitive search parameter for fields like InvoiceNumber and Reference.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "searchTerm"
+      },
+      {
+        "name": "modified_since_timestamp",
+        "required": false,
+        "description": "Return only records created or modified since this timestamp. Use the format 'YYYY-MM-DDTHH:MM:SS'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "If-Modified-Since"
+      },
+      {
+        "name": "include_archived_invoices",
+        "required": false,
+        "description": "Set to true to include invoices with a status of ARCHIVED in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "includeArchived"
+      },
+      {
+        "name": "filter_by_created_by_my_app",
+        "required": false,
+        "description": "Set to true to retrieve only invoices created by your app.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true you'll only retrieve Invoices created by your app"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createdByMyApp"
+      },
+      {
+        "name": "retrieve_summary_only",
+        "required": false,
+        "description": "Set to true to retrieve a smaller, lightweight version of the response for quicker API calls, excluding computation-heavy fields.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "summaryOnly"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getInvoices'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.transactions.read",
+          "accounting.transactions"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/Invoices",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "where",
+        "tool_parameter_name": "filter_by_condition",
+        "description": "Filter by an any element",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by an any element"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "order_by",
+        "description": "Order by an any element",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order by an any element"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "IDs",
+        "tool_parameter_name": "invoice_ids",
+        "description": "Filter by a comma-separated list of InvoicesIDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of InvoicesIDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "InvoiceNumbers",
+        "tool_parameter_name": "filter_by_invoice_numbers",
+        "description": "Filter by a comma-separated list of InvoiceNumbers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of InvoiceNumbers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ContactIDs",
+        "tool_parameter_name": "filter_contact_ids",
+        "description": "Filter by a comma-separated list of ContactIDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list of ContactIDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "Statuses",
+        "tool_parameter_name": "filter_by_statuses",
+        "description": "Filter by a comma-separated list Statuses. For faster response times we recommend using these explicit parameters instead of passing OR conditions into the Where filter.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by a comma-separated list Statuses. For faster response times we recommend using these explicit parameters instead of passing OR conditions into the Where filter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "e.g. page=1 \u2013 Up to 100 invoices will be returned in a single API call with line items shown for each invoice",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. page=1 \u2013 Up to 100 invoices will be returned in a single API call with line items shown for each invoice"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "includeArchived",
+        "tool_parameter_name": "include_archived_invoices",
+        "description": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. includeArchived=true - Invoices with a status of ARCHIVED will be included in the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "createdByMyApp",
+        "tool_parameter_name": "filter_by_created_by_my_app",
+        "description": "When set to true you'll only retrieve Invoices created by your app",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "When set to true you'll only retrieve Invoices created by your app"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unitdp",
+        "tool_parameter_name": "unit_decimal_places",
+        "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "e.g. unitdp=4 \u2013 (Unit Decimal Places) You can opt in to use four decimal places for unit amounts"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "summaryOnly",
+        "tool_parameter_name": "retrieve_summary_only",
+        "description": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use summaryOnly=true in GET Contacts and Invoices endpoint to retrieve a smaller version of the response object. This returns only lightweight fields, excluding computation-heavy fields from the response, making the API calls quick and efficient."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pageSize",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to retrieve per page",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to retrieve per page"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "searchTerm",
+        "tool_parameter_name": "search_term",
+        "description": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search parameter that performs a case-insensitive text search across the fields e.g. InvoiceNumber, Reference."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_id",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "If-Modified-Since",
+        "tool_parameter_name": "modified_since_timestamp",
+        "description": "Only records created or modified since this timestamp will be returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only records created or modified since this timestamp will be returned"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

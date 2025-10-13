@@ -1,0 +1,197 @@
+{
+  "name": "ListRoutingFormSubmissions",
+  "fully_qualified_name": "CalendlyApi.ListRoutingFormSubmissions@0.1.0",
+  "description": "Retrieve submissions for a specific routing form.\n\nGet a list of submissions made to a specific routing form in Calendly.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "routing_form_uri",
+        "required": true,
+        "description": "The URI of the routing form to view its submissions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View routing form submissions associated with the routing form's URI."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "form"
+      },
+      {
+        "name": "number_of_rows_to_return",
+        "required": false,
+        "description": "Specify the number of form submission rows to return.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token used for retrieving the next or previous set of routing form submissions based on pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "order_results_by_field",
+        "required": false,
+        "description": "Comma-separated list to order results by {field}:{direction}, e.g., 'created_at:asc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values. Supported fields are: created_at. Sort direction is specified as: asc, desc."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-routing-form-submissions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/routing_form_submissions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "form",
+        "tool_parameter_name": "routing_form_uri",
+        "description": "View routing form submissions associated with the routing form's URI.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "View routing form submissions associated with the routing form's URI."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_rows_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "order_results_by_field",
+        "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values. Supported fields are: created_at. Sort direction is specified as: asc, desc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values. Supported fields are: created_at. Sort direction is specified as: asc, desc."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "name": "GetCreditNoteAttachment",
+  "fully_qualified_name": "XeroApi.GetCreditNoteAttachment@0.1.0",
+  "description": "Retrieve specific attachment from a credit note by ID.\n\nUse this tool to get an attachment from a credit note using the unique attachment ID.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "credit_note_id",
+        "required": true,
+        "description": "Unique identifier for the credit note you want to retrieve an attachment from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Credit Note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "CreditNoteID"
+      },
+      {
+        "name": "attachment_id",
+        "required": true,
+        "description": "Unique identifier for the attachment object to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Attachment object"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "AttachmentID"
+      },
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "Xero identifier for the Tenant. It's required to specify which organization to access.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "attachment_mime_type",
+        "required": true,
+        "description": "The MIME type of the attachment file to retrieve, such as image/jpg or application/pdf.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contentType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getCreditNoteAttachmentById'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.attachments",
+          "accounting.attachments.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/CreditNotes/{CreditNoteID}/Attachments/{AttachmentID}",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "CreditNoteID",
+        "tool_parameter_name": "credit_note_id",
+        "description": "Unique identifier for a Credit Note",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for a Credit Note"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "AttachmentID",
+        "tool_parameter_name": "attachment_id",
+        "description": "Unique identifier for Attachment object",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for Attachment object"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "contentType",
+        "tool_parameter_name": "attachment_mime_type",
+        "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

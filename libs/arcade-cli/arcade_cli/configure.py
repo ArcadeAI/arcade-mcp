@@ -56,6 +56,26 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
     config_path = path or get_claude_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Assume server.py is the entry point for the server
+    server_file = Path.cwd() / "server.py"
+
+    # Find the Python interpreter in the virtual environment
+    venv_python = None
+    # Check for .venv first (uv default)
+    if (Path.cwd() / ".venv").exists():
+        system = platform.system()
+        if system == "Windows":
+            venv_python = Path.cwd() / ".venv" / "Scripts" / "python.exe"
+        else:
+            venv_python = Path.cwd() / ".venv" / "bin" / "python"
+
+    # Fall back to system python if no venv found
+    if not venv_python or not venv_python.exists():
+        console.print("[yellow]Warning: No .venv found, using system python[/yellow]")
+        import sys
+
+        venv_python = Path(sys.executable)
+
     # Load existing config or create new one
     config = {}
     if config_path.exists():
@@ -66,10 +86,10 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
     if "mcpServers" not in config:
         config["mcpServers"] = {}
 
+    # Claude Desktop uses stdio transport
     config["mcpServers"][server_name] = {
-        "command": "python",
-        "args": ["-m", "arcade_mcp_server", "stream"],
-        "url": f"http://localhost:{port}/mcp",
+        "command": str(venv_python),
+        "args": [str(server_file), "stdio"],
     }
 
     # Write updated config
@@ -82,7 +102,8 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
     )
     config_file_path = config_path.as_posix().replace(" ", "\\ ")
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
-    console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
+    console.print(f"   Server file: {server_file}", style="dim")
+    console.print(f"   Python interpreter: {venv_python}", style="dim")
     console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
 
 

@@ -6,6 +6,7 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
@@ -102,7 +103,8 @@ class MCPApp:
         self.server: MCPServer | None = None
 
         self._load_env()
-        self._setup_logging()
+        if not logger._core.handlers:  # type: ignore[attr-defined]
+            self._setup_logging(transport == "stdio")
 
     # Properties (exposed below initializer)
     @property
@@ -127,17 +129,21 @@ class MCPApp:
             load_dotenv(env_path, override=False)
             logger.info(f"Loaded environment from {env_path}")
 
-    def _setup_logging(self) -> None:
+    def _setup_logging(self, stdio_mode: bool = False) -> None:
         logger.remove()
+
+        # In stdio mode, use stderr (stdout is reserved for JSON-RPC)
+        sink = sys.stderr if stdio_mode else sys.stdout
+
         if self.log_level == "DEBUG":
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{line}</cyan> | <level>{message}</level>"
         else:
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
         logger.add(
-            sys.stdout,
+            sink,
             format=format_str,
             level=self.log_level,
-            colorize=True,
+            colorize=(not stdio_mode),
             diagnose=(self.log_level == "DEBUG"),
         )
 
@@ -208,6 +214,11 @@ class MCPApp:
             logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
             sys.exit(1)
 
+        host, port, transport = MCPApp._get_configuration_overrides(host, port, transport)
+
+        # Since the transport could have changed since __init__, we need to setup logging again
+        self._setup_logging(transport == "stdio")
+
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
@@ -226,13 +237,42 @@ class MCPApp:
             asyncio.run(
                 run_stdio_server(
                     catalog=self._catalog,
-                    port=port,
-                    reload=reload,
                     **self.server_kwargs,
                 )
             )
         else:
             raise ServerError(f"Invalid transport: {transport}")
+
+    @staticmethod
+    def _get_configuration_overrides(
+        host: str, port: int, transport: TransportType
+    ) -> tuple[str, int, TransportType]:
+        """Get configuration overrides from environment variables."""
+        if envvar_transport := os.getenv("ARCADE_SERVER_TRANSPORT"):
+            transport = envvar_transport
+            logger.debug(
+                f"Using '{transport}' as transport from ARCADE_SERVER_TRANSPORT environment variable"
+            )
+
+        # host and port are only relevant for HTTP Streamable transport
+        if transport in ["http", "streamable-http", "streamable"]:
+            if envvar_host := os.getenv("ARCADE_SERVER_HOST"):
+                host = envvar_host
+                logger.debug(f"Using '{host}' as host from ARCADE_SERVER_HOST environment variable")
+
+            if envvar_port := os.getenv("ARCADE_SERVER_PORT"):
+                try:
+                    port = int(envvar_port)
+                except ValueError:
+                    logger.warning(
+                        f"Invalid port: '{envvar_port}' from ARCADE_SERVER_PORT environment variable. Using default port {port}"
+                    )
+                else:
+                    logger.debug(
+                        f"Using '{port}' as port from ARCADE_SERVER_PORT environment variable"
+                    )
+
+        return host, port, transport
 
 
 class _ToolsAPI:

@@ -1,0 +1,161 @@
+{
+  "name": "GetActionProperty",
+  "fully_qualified_name": "TrelloApi.GetActionProperty@0.1.0",
+  "description": "Retrieve a specific property of a Trello action.\n\nUse this tool to get a particular property value of a specified action in Trello. It should be called when you need details about a specific aspect of an action.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "action_id",
+        "required": true,
+        "description": "The unique identifier for the Trello action whose property you want to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "action_field",
+        "required": true,
+        "description": "Select a specific property of a Trello action to retrieve. Options include: id, idMemberCreator, data, type, date, limits, display, memberCreator.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "idMemberCreator",
+            "data",
+            "type",
+            "date",
+            "limits",
+            "display",
+            "memberCreator"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "An action field"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-actions-id-field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/actions/{id}/{field}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "action_id",
+        "description": "The ID of the Action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "field",
+        "tool_parameter_name": "action_field",
+        "description": "An action field",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "idMemberCreator",
+            "data",
+            "type",
+            "date",
+            "limits",
+            "display",
+            "memberCreator"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "An action field"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

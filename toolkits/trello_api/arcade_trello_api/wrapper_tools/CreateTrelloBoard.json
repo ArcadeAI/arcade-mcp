@@ -1,0 +1,673 @@
+{
+  "name": "CreateTrelloBoard",
+  "fully_qualified_name": "TrelloApi.CreateTrelloBoard@0.1.0",
+  "description": "Create a new board in Trello.\n\nUse this tool to create a new board on Trello. It should be called when there's a need to organize tasks or projects into a new board structure.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_name",
+        "required": true,
+        "description": "The name of the new Trello board. Must be 1 to 16384 characters long.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the board. 1 to 16384 characters long."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "board_description",
+        "required": false,
+        "description": "A new description for the board, ranging from 0 to 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new description for the board, 0 to 16384 characters long"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "desc"
+      },
+      {
+        "name": "workspace_id_or_name",
+        "required": false,
+        "description": "The ID or name of the Workspace where the board will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or name of the Workspace the board should belong to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrganization"
+      },
+      {
+        "name": "source_board_id",
+        "required": false,
+        "description": "The ID of the board to copy into the new board. If provided, the new board will be a copy of the specified board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a board to copy into the new board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBoardSource"
+      },
+      {
+        "name": "keep_original_cards",
+        "required": false,
+        "description": "Specify if cards from the original board should be retained in the new board. Use 'cards' to keep them or 'none' to exclude them.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "cards",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "To keep cards from the original board pass in the value `cards`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "keepFromSource"
+      },
+      {
+        "name": "enable_power_ups",
+        "required": false,
+        "description": "Specifies which Power-Ups to enable on the new board. Options include: `all`, `calendar`, `cardAging`, `recap`, `voting`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "calendar",
+            "cardAging",
+            "recap",
+            "voting"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "powerUps"
+      },
+      {
+        "name": "board_permission_level",
+        "required": false,
+        "description": "Specifies the permission level of the board. Choose from 'org', 'private', or 'public'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org",
+            "private",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions level of the board. One of: `org`, `private`, `public`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_permissionLevel"
+      },
+      {
+        "name": "set_voting_permissions",
+        "required": false,
+        "description": "Set who can vote on the board. Options: 'disabled', 'members', 'observers', 'org', 'public'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "disabled",
+            "members",
+            "observers",
+            "org",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_voting"
+      },
+      {
+        "name": "comment_permissions",
+        "required": false,
+        "description": "Specifies who can comment on cards on this board. Options: `disabled`, `members`, `observers`, `org`, `public`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "disabled",
+            "members",
+            "observers",
+            "org",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_comments"
+      },
+      {
+        "name": "invitation_permission_level",
+        "required": false,
+        "description": "Specifies who can invite users to join the board. Options: 'members' or 'admins'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "members",
+            "admins"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines what types of members can invite users to join. One of: `admins`, `members`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_invitations"
+      },
+      {
+        "name": "board_background_color",
+        "required": false,
+        "description": "Select a background color for the board. Options are: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`, or a custom background ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "blue",
+            "orange",
+            "green",
+            "red",
+            "purple",
+            "pink",
+            "lime",
+            "sky",
+            "grey"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a custom background or one of: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_background"
+      },
+      {
+        "name": "card_aging_type",
+        "required": false,
+        "description": "Type of card aging for the board. Choose 'pirate' or 'regular'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pirate",
+            "regular"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines the type of card aging that should take place on the board if card aging is enabled. One of: `pirate`, `regular`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_cardAging"
+      },
+      {
+        "name": "use_default_labels",
+        "required": false,
+        "description": "Set to true to use the default set of labels.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to use the default set of labels."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "defaultLabels"
+      },
+      {
+        "name": "add_default_lists",
+        "required": false,
+        "description": "Determines if the default lists (To Do, Doing, Done) should be added to the board. Ignored if `idBoardSource` is provided.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to add the default set of lists to a board (To Do, Doing, Done). It is ignored if `idBoardSource` is provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "defaultLists"
+      },
+      {
+        "name": "allow_self_join",
+        "required": false,
+        "description": "Set to true to allow users to join the board themselves; false requires an invitation.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether users can join the boards themselves or whether they have to be invited."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_selfJoin"
+      },
+      {
+        "name": "enable_card_covers",
+        "required": false,
+        "description": "Set to true to enable card covers on the board.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether card covers are enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prefs_cardCovers"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-boards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "board_name",
+        "description": "The new name for the board. 1 to 16384 characters long.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the board. 1 to 16384 characters long."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "defaultLabels",
+        "tool_parameter_name": "use_default_labels",
+        "description": "Determines whether to use the default set of labels.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to use the default set of labels."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "defaultLists",
+        "tool_parameter_name": "add_default_lists",
+        "description": "Determines whether to add the default set of lists to a board (To Do, Doing, Done). It is ignored if `idBoardSource` is provided.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to add the default set of lists to a board (To Do, Doing, Done). It is ignored if `idBoardSource` is provided."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "desc",
+        "tool_parameter_name": "board_description",
+        "description": "A new description for the board, 0 to 16384 characters long",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A new description for the board, 0 to 16384 characters long"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrganization",
+        "tool_parameter_name": "workspace_id_or_name",
+        "description": "The id or name of the Workspace the board should belong to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id or name of the Workspace the board should belong to."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBoardSource",
+        "tool_parameter_name": "source_board_id",
+        "description": "The id of a board to copy into the new board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a board to copy into the new board."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "keepFromSource",
+        "tool_parameter_name": "keep_original_cards",
+        "description": "To keep cards from the original board pass in the value `cards`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "cards",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "To keep cards from the original board pass in the value `cards`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "powerUps",
+        "tool_parameter_name": "enable_power_ups",
+        "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "calendar",
+            "cardAging",
+            "recap",
+            "voting"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_permissionLevel",
+        "tool_parameter_name": "board_permission_level",
+        "description": "The permissions level of the board. One of: `org`, `private`, `public`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org",
+            "private",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The permissions level of the board. One of: `org`, `private`, `public`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_voting",
+        "tool_parameter_name": "set_voting_permissions",
+        "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "disabled",
+            "members",
+            "observers",
+            "org",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_comments",
+        "tool_parameter_name": "comment_permissions",
+        "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "disabled",
+            "members",
+            "observers",
+            "org",
+            "public"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_invitations",
+        "tool_parameter_name": "invitation_permission_level",
+        "description": "Determines what types of members can invite users to join. One of: `admins`, `members`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "members",
+            "admins"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines what types of members can invite users to join. One of: `admins`, `members`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_selfJoin",
+        "tool_parameter_name": "allow_self_join",
+        "description": "Determines whether users can join the boards themselves or whether they have to be invited.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether users can join the boards themselves or whether they have to be invited."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_cardCovers",
+        "tool_parameter_name": "enable_card_covers",
+        "description": "Determines whether card covers are enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether card covers are enabled."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_background",
+        "tool_parameter_name": "board_background_color",
+        "description": "The id of a custom background or one of: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "blue",
+            "orange",
+            "green",
+            "red",
+            "purple",
+            "pink",
+            "lime",
+            "sky",
+            "grey"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of a custom background or one of: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "prefs_cardAging",
+        "tool_parameter_name": "card_aging_type",
+        "description": "Determines the type of card aging that should take place on the board if card aging is enabled. One of: `pirate`, `regular`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pirate",
+            "regular"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines the type of card aging that should take place on the board if card aging is enabled. One of: `pirate`, `regular`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

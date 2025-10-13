@@ -1,0 +1,137 @@
+{
+  "name": "GetDisputeEvidenceMetadata",
+  "fully_qualified_name": "SquareupApi.GetDisputeEvidenceMetadata@0.1.0",
+  "description": "Retrieve metadata for specified dispute evidence.\n\nCall this tool to obtain metadata of dispute evidence using a given dispute ID and evidence ID. Ensure to maintain a copy of any evidence uploaded as it cannot be downloaded later.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dispute_id",
+        "required": true,
+        "description": "The unique ID of the dispute to retrieve its evidence metadata.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute from which you want to retrieve evidence metadata."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dispute_id"
+      },
+      {
+        "name": "evidence_id",
+        "required": true,
+        "description": "The ID of the evidence you wish to retrieve metadata for. Ensure correct ID is provided to access the specific evidence details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the evidence to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "evidence_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RetrieveDisputeEvidence'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "DISPUTES_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "dispute_id",
+        "tool_parameter_name": "dispute_id",
+        "description": "The ID of the dispute from which you want to retrieve evidence metadata.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the dispute from which you want to retrieve evidence metadata."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "evidence_id",
+        "tool_parameter_name": "evidence_id",
+        "description": "The ID of the evidence to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the evidence to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

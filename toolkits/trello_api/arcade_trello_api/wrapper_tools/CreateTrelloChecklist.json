@@ -1,0 +1,207 @@
+{
+  "name": "CreateTrelloChecklist",
+  "fully_qualified_name": "TrelloApi.CreateTrelloChecklist@0.1.0",
+  "description": "Create a checklist on a Trello card.\n\nUse this tool to create a new checklist on a specified Trello card. This can be useful for organizing tasks and ensuring all steps are accounted for within a card.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The ID of the Trello card where the checklist will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card that the checklist should be added to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idCard"
+      },
+      {
+        "name": "checklist_name",
+        "required": false,
+        "description": "The name of the checklist. Must be between 1 and 16384 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the checklist. Should be a string of length 1 to 16384."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "checklist_position",
+        "required": false,
+        "description": "Specify the position of the checklist on the card: 'top', 'bottom', or a positive number for a specific placement.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the checklist on the card. One of: `top`, `bottom`, or a positive number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      },
+      {
+        "name": "source_checklist_id",
+        "required": false,
+        "description": "The ID of an existing checklist to copy into the new checklist. Use this to duplicate a checklist template or predefined checklist items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a checklist to copy into the new checklist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idChecklistSource"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-checklists'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/checklists",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idCard",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card that the checklist should be added to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card that the checklist should be added to."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "checklist_name",
+        "description": "The name of the checklist. Should be a string of length 1 to 16384.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the checklist. Should be a string of length 1 to 16384."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pos",
+        "tool_parameter_name": "checklist_position",
+        "description": "The position of the checklist on the card. One of: `top`, `bottom`, or a positive number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The position of the checklist on the card. One of: `top`, `bottom`, or a positive number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idChecklistSource",
+        "tool_parameter_name": "source_checklist_id",
+        "description": "The ID of a checklist to copy into the new checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a checklist to copy into the new checklist."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

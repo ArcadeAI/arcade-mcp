@@ -1,0 +1,509 @@
+{
+  "name": "ListAuditRecords",
+  "fully_qualified_name": "PagerdutyApi.ListAuditRecords@0.1.0",
+  "description": "Retrieve the latest audit trail records from Pagerduty.\n\nThis tool fetches audit trail records from Pagerduty, sorted by execution time from newest to oldest. It requires admin, account owner, or global API token access on accounts with the \"Audit Trail\" feature. Use this tool to monitor recent activities by querying these audit records.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "versioning_accept_header",
+        "required": true,
+        "description": "Specify the version of the API you wish to use with the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the media type of the request, use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specify the maximum number of audit records to return in a single request.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "next_cursor_token",
+        "required": false,
+        "description": "Token to request the next set of results in a paginated query. Usually from the `next_cursor` field of the previous request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "The start of the date range for searching audit records. Defaults to now() - 24 hours if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search. If not specified, defaults to `now() - 24 hours` (past 24 hours)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "date_range_end",
+        "required": false,
+        "description": "The end date for the audit record search. Defaults to now if not provided, and must be within 31 days after the `since` date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search. If not specified, defaults to `now()`. May not be more than 31 days after `since`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "filter_by_resource_type",
+        "required": false,
+        "description": "Filter audit records by the specified types of resources, such as users, teams, or services.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "teams",
+            "schedules",
+            "escalation_policies",
+            "services"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Resource type filter for the root_resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "root_resource_types[]"
+      },
+      {
+        "name": "actor_type_filter",
+        "required": false,
+        "description": "Specifies the type of actor to filter records by. Options are 'user_reference', 'api_key_reference', or 'app_reference'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user_reference",
+            "api_key_reference",
+            "app_reference"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Actor type filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actor_type"
+      },
+      {
+        "name": "filter_by_actor_id",
+        "required": false,
+        "description": "Filter audit records by a specific Actor ID. Requires 'actor_type' to be specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Actor Id filter. Must be qualified by providing the `actor_type` param."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actor_id"
+      },
+      {
+        "name": "filter_by_method_type",
+        "required": false,
+        "description": "Filter records by method type. Options are 'browser', 'oauth', 'api_token', 'identity_provider', or 'other'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "browser",
+            "oauth",
+            "api_token",
+            "identity_provider",
+            "other"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Method type filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "method_type"
+      },
+      {
+        "name": "method_truncated_token_filter",
+        "required": false,
+        "description": "Filter records by a specific method truncated token. Requires 'method_type' to be provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Method truncated_token filter. Must be qualified by providing the `method_type` param."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "method_truncated_token"
+      },
+      {
+        "name": "action_filter",
+        "required": false,
+        "description": "Filter audit records by specified action types: 'create', 'update', or 'delete'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Action filter"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actions[]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAuditRecords'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/audit/records",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "next_cursor_token",
+        "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "start_date",
+        "description": "The start of the date range over which you want to search. If not specified, defaults to `now() - 24 hours` (past 24 hours)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search. If not specified, defaults to `now() - 24 hours` (past 24 hours)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "date_range_end",
+        "description": "The end of the date range over which you want to search. If not specified, defaults to `now()`. May not be more than 31 days after `since`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search. If not specified, defaults to `now()`. May not be more than 31 days after `since`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "root_resource_types[]",
+        "tool_parameter_name": "filter_by_resource_type",
+        "description": "Resource type filter for the root_resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "users",
+            "teams",
+            "schedules",
+            "escalation_policies",
+            "services"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Resource type filter for the root_resource."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "actor_type",
+        "tool_parameter_name": "actor_type_filter",
+        "description": "Actor type filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user_reference",
+            "api_key_reference",
+            "app_reference"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Actor type filter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "actor_id",
+        "tool_parameter_name": "filter_by_actor_id",
+        "description": "Actor Id filter. Must be qualified by providing the `actor_type` param.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Actor Id filter. Must be qualified by providing the `actor_type` param."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "method_type",
+        "tool_parameter_name": "filter_by_method_type",
+        "description": "Method type filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "browser",
+            "oauth",
+            "api_token",
+            "identity_provider",
+            "other"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Method type filter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "method_truncated_token",
+        "tool_parameter_name": "method_truncated_token_filter",
+        "description": "Method truncated_token filter. Must be qualified by providing the `method_type` param.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Method truncated_token filter. Must be qualified by providing the `method_type` param."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "actions[]",
+        "tool_parameter_name": "action_filter",
+        "description": "Action filter",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "create",
+            "update",
+            "delete"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Action filter"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

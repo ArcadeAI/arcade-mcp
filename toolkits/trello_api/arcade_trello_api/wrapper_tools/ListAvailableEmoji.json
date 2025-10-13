@@ -1,0 +1,143 @@
+{
+  "name": "ListAvailableEmoji",
+  "fully_qualified_name": "TrelloApi.ListAvailableEmoji@0.1.0",
+  "description": "Retrieve a list of available emojis from Trello.\n\nThis tool is used to call the Trello API to retrieve a list of all available emojis. It should be called when there's a need to access or display the available emoji options within Trello.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "locale",
+        "required": false,
+        "description": "The locale for emoji descriptions and names. Defaults to the logged-in member's locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The locale to return emoji descriptions and names in. Defaults to the logged in member's locale."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "locale"
+      },
+      {
+        "name": "include_spritesheet_urls",
+        "required": false,
+        "description": "Set to true to include spritesheet URLs in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` to return spritesheet URLs in the response"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "spritesheets"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'emoji'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/emoji",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "locale",
+        "tool_parameter_name": "locale",
+        "description": "The locale to return emoji descriptions and names in. Defaults to the logged in member's locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The locale to return emoji descriptions and names in. Defaults to the logged in member's locale."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "spritesheets",
+        "tool_parameter_name": "include_spritesheet_urls",
+        "description": "`true` to return spritesheet URLs in the response",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` to return spritesheet URLs in the response"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}
