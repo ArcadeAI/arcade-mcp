@@ -1,0 +1,10 @@
+[[worker]]
+
+[worker.config]
+id = "demo-worker"
+enabled = true
+timeout = 30
+retries = 3
+secret = "a032e43add782a338e364f170dd3b8e0"
+[worker.local_source]
+packages = [ "./complex_tools",]
