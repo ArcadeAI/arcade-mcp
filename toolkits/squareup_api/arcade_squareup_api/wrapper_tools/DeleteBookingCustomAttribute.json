@@ -1,0 +1,137 @@
+{
+  "name": "DeleteBookingCustomAttribute",
+  "fully_qualified_name": "SquareupApi.DeleteBookingCustomAttribute@0.1.0",
+  "description": "Deletes a custom attribute from a booking.\n\nUse this tool to remove a custom attribute from a specific booking. Appropriate OAuth permissions are required: 'APPOINTMENTS_WRITE' for buyer-level and 'APPOINTMENTS_ALL_WRITE' with 'APPOINTMENTS_WRITE' for seller-level. Seller must be subscribed to Appointments Plus or Premium.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "booking_id",
+        "required": true,
+        "description": "The ID of the target booking from which the custom attribute will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [booking](entity:Booking)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "booking_id"
+      },
+      {
+        "name": "custom_attribute_key",
+        "required": true,
+        "description": "The key of the custom attribute to delete. It must match the key of a custom attribute definition in the Square seller account. Use the qualified key if not the definition owner.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteBookingCustomAttribute'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "booking_id",
+        "tool_parameter_name": "booking_id",
+        "description": "The ID of the target [booking](entity:Booking).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [booking](entity:Booking)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "key",
+        "tool_parameter_name": "custom_attribute_key",
+        "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute to delete. This key must match the `key` of a custom\nattribute definition in the Square seller account. If the requesting application is not the\ndefinition owner, you must use the qualified key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "name": "ListPayoutEntries",
+  "fully_qualified_name": "SquareupApi.ListPayoutEntries@0.1.0",
+  "description": "Retrieve all payout entries for a specific payout.\n\nFetches a list of all payout entries associated with a particular payout ID. Ideal for obtaining detailed payout information from Square.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "payout_id",
+        "required": true,
+        "description": "The unique ID of the payout to retrieve entries for. Essential for identifying the payout for which entries are needed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the payout to retrieve the information for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "payout_id"
+      },
+      {
+        "name": "payout_entries_sort_order",
+        "required": false,
+        "description": "Specifies the order in which payout entries are listed. Use 'DESC' for descending or 'ASC' for ascending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which payout entries are listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Provide this cursor to retrieve the next set of results for the original query. A pagination cursor from a previous call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "Sets the maximum number of results to retrieve per page, up to 100. Defaults to 100 if the value exceeds this limit.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListPayoutEntries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/payouts/{payout_id}/payout-entries",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "sort_order",
+        "tool_parameter_name": "payout_entries_sort_order",
+        "description": "The order in which payout entries are listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which payout entries are listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\nIf request parameters change between requests, subsequent results may contain duplicates or missing records."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\nThe default value of 100 is also the maximum allowed value. If the provided value is\ngreater than 100, it is ignored and the default value is used instead.\nDefault: `100`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "payout_id",
+        "tool_parameter_name": "payout_id",
+        "description": "The ID of the payout to retrieve the information for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the payout to retrieve the information for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

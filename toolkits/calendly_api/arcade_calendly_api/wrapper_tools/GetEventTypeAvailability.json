@@ -1,0 +1,101 @@
+{
+  "name": "GetEventTypeAvailability",
+  "fully_qualified_name": "CalendlyApi.GetEventTypeAvailability@0.1.0",
+  "description": "Fetches availability for a Calendly event type.\n\nUse this tool to retrieve the availability schedule for a specific event type on Calendly. It helps in planning and checking open time slots based on the event type's settings.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "event_type_uri",
+        "required": true,
+        "description": "The URI associated with the specific event type whose availability is being queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URI associated with the event type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "event_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-event-type-availability'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/event_type_availability_schedules",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "event_type",
+        "tool_parameter_name": "event_type_uri",
+        "description": "The URI associated with the event type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URI associated with the event type"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

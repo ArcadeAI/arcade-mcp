@@ -1,0 +1,233 @@
+{
+  "name": "ListGiftCards",
+  "fully_qualified_name": "SquareupApi.ListGiftCards@0.1.0",
+  "description": "Retrieve a list of all gift cards, with optional filters.\n\nCall this tool to obtain a sorted list of gift cards. You can apply filters to narrow down the results. Useful for managing and reviewing available gift cards.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gift_card_type",
+        "required": false,
+        "description": "Specifies the type of gift cards to retrieve. If not provided, all types are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [type](entity:GiftCardType) is provided, the endpoint returns gift cards of the specified type.\nOtherwise, the endpoint returns gift cards of all types."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "gift_card_state",
+        "required": false,
+        "description": "Specifies the state of gift cards to return. Leave empty to get all states.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [state](entity:GiftCardStatus) is provided, the endpoint returns the gift cards in the specified state.\nOtherwise, the endpoint returns the gift cards of all states."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "results_per_page_limit",
+        "required": false,
+        "description": "The number of gift card results per page. Maximum is 200, default is 30.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a limit is provided, the endpoint returns only the specified number of results per page.\nThe maximum value is 200. The default value is 30.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A string used to retrieve the next set of results for pagination from a previous call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results. \nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "customer_id",
+        "required": false,
+        "description": "A unique identifier for a customer to retrieve gift cards linked to them.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a customer ID is provided, the endpoint returns only the gift cards linked to the specified customer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListGiftCards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "GIFTCARDS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/gift-cards",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "gift_card_type",
+        "description": "If a [type](entity:GiftCardType) is provided, the endpoint returns gift cards of the specified type.\nOtherwise, the endpoint returns gift cards of all types.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [type](entity:GiftCardType) is provided, the endpoint returns gift cards of the specified type.\nOtherwise, the endpoint returns gift cards of all types."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "gift_card_state",
+        "description": "If a [state](entity:GiftCardStatus) is provided, the endpoint returns the gift cards in the specified state.\nOtherwise, the endpoint returns the gift cards of all states.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [state](entity:GiftCardStatus) is provided, the endpoint returns the gift cards in the specified state.\nOtherwise, the endpoint returns the gift cards of all states."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page_limit",
+        "description": "If a limit is provided, the endpoint returns only the specified number of results per page.\nThe maximum value is 200. The default value is 30.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a limit is provided, the endpoint returns only the specified number of results per page.\nThe maximum value is 200. The default value is 30.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results. \nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results. \nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "customer_id",
+        "description": "If a customer ID is provided, the endpoint returns only the gift cards linked to the specified customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a customer ID is provided, the endpoint returns only the gift cards linked to the specified customer."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

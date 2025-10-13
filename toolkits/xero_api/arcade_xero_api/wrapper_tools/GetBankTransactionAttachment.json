@@ -1,0 +1,204 @@
+{
+  "name": "GetBankTransactionAttachment",
+  "fully_qualified_name": "XeroApi.GetBankTransactionAttachment@0.1.0",
+  "description": "Retrieve an attachment from a bank transaction by filename.\n\nUse this tool to get a specific attachment from a bank transaction using the filename. Ideal for cases where attachments need to be reviewed or downloaded based on their association with bank transactions.",
+  "toolkit": {
+    "name": "ArcadeXeroApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "bank_transaction_id",
+        "required": true,
+        "description": "Xero generated unique identifier for a bank transaction. Required to retrieve the correct attachment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero generated unique identifier for a bank transaction"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "BankTransactionID"
+      },
+      {
+        "name": "attachment_filename",
+        "required": true,
+        "description": "Name of the attachment to retrieve from the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the attachment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "FileName"
+      },
+      {
+        "name": "xero_tenant_identifier",
+        "required": true,
+        "description": "The unique identifier for the Xero tenant associated with the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "xero-tenant-id"
+      },
+      {
+        "name": "attachment_mime_type",
+        "required": true,
+        "description": "The MIME type of the attachment file to retrieve, such as image/jpg or application/pdf.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contentType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getBankTransactionAttachmentByFileName'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-xero",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "accounting.attachments",
+          "accounting.attachments.read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Xero API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.xero.com/api.xro/2.0/BankTransactions/{BankTransactionID}/Attachments/{FileName}",
+    "http_method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "BankTransactionID",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "Xero generated unique identifier for a bank transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero generated unique identifier for a bank transaction"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "FileName",
+        "tool_parameter_name": "attachment_filename",
+        "description": "Name of the attachment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the attachment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "xero-tenant-id",
+        "tool_parameter_name": "xero_tenant_identifier",
+        "description": "Xero identifier for Tenant",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Xero identifier for Tenant"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "contentType",
+        "tool_parameter_name": "attachment_mime_type",
+        "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mime type of the attachment file you are retrieving i.e image/jpg, application/pdf"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "name": "DeleteDraftInvoice",
+  "fully_qualified_name": "SquareupApi.DeleteDraftInvoice@0.1.0",
+  "description": "Deletes a specified draft invoice.\n\nUse this tool to delete a draft invoice. Once deleted, the associated order status changes to CANCELED. This tool cannot delete published invoices.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_id_to_delete",
+        "required": true,
+        "description": "The ID of the draft invoice to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the invoice to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invoice_id"
+      },
+      {
+        "name": "invoice_version_to_delete",
+        "required": false,
+        "description": "The version number of the draft invoice to delete. Retrieve this using GetInvoice or ListInvoices if unknown.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the [invoice](entity:Invoice) to delete.\nIf you do not know the version, you can call [GetInvoice](api-endpoint:Invoices-GetInvoice) or \n[ListInvoices](api-endpoint:Invoices-ListInvoices)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteInvoice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ORDERS_WRITE",
+          "INVOICES_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/invoices/{invoice_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "version",
+        "tool_parameter_name": "invoice_version_to_delete",
+        "description": "The version of the [invoice](entity:Invoice) to delete.\nIf you do not know the version, you can call [GetInvoice](api-endpoint:Invoices-GetInvoice) or \n[ListInvoices](api-endpoint:Invoices-ListInvoices).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the [invoice](entity:Invoice) to delete.\nIf you do not know the version, you can call [GetInvoice](api-endpoint:Invoices-GetInvoice) or \n[ListInvoices](api-endpoint:Invoices-ListInvoices)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "invoice_id",
+        "tool_parameter_name": "invoice_id_to_delete",
+        "description": "The ID of the invoice to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the invoice to delete."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

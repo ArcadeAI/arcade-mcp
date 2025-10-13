@@ -1,0 +1,561 @@
+{
+  "name": "FetchPaymentList",
+  "fully_qualified_name": "SquareupApi.FetchPaymentList@0.1.0",
+  "description": "Retrieve a list of payments for an account.\n\nThis tool calls the Squareup API to fetch a list of payments associated with the account making the request. It should be called when you need to access recent payment records. Note that results are eventually consistent, and there may be slight delays in updates.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_time_for_payment_retrieval",
+        "required": false,
+        "description": "The start time for retrieving payments, in RFC 3339 format, using the `created_at` field. Default is current time minus one year.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.\nThe range is determined using the `created_at` field for each Payment.\nInclusive. Default: The current time minus one year."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "begin_time"
+      },
+      {
+        "name": "payment_retrieval_end_time",
+        "required": false,
+        "description": "The end of the time range to retrieve payments, in RFC 3339 format. Defaults to the current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `created_at` field for each Payment.\n\nDefault: The current time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      },
+      {
+        "name": "order_results_by",
+        "required": false,
+        "description": "Specify the order of payment results: 'ASC' for oldest to newest, 'DESC' for newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which results are listed by `ListPaymentsRequest.sort_field`:\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_order"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor from a previous call for fetching the next set of payment results. Use it for pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "limit_results_by_location",
+        "required": false,
+        "description": "Specify the location ID to limit payment results to that location. Defaults to the main seller location if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit results to the location supplied. By default, results are returned\nfor the default (main) location associated with the seller."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "exact_payment_amount",
+        "required": false,
+        "description": "The exact amount of the payment in the total_money field. Provide as an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The exact amount in the `total_money` for a payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "payment_card_last_four_digits",
+        "required": false,
+        "description": "The last four digits of a payment card to filter specific payments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The last four digits of a payment card."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_4"
+      },
+      {
+        "name": "payment_card_brand",
+        "required": false,
+        "description": "The brand of the payment card to filter payments by (e.g., VISA, MasterCard).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The brand of the payment card (for example, VISA)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "card_brand"
+      },
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "Specify the maximum number of payment records to return per page, up to 100. Values over 100 are ignored.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\n\nThe default value of 100 is also the maximum allowed value. If the provided value is \ngreater than 100, it is ignored and the default value is used instead.\n\nDefault: `100`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "offline_payment_start_time",
+        "required": false,
+        "description": "Indicate the start of the time range for retrieving offline payments in RFC 3339 format. Defaults to the current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offline_begin_time"
+      },
+      {
+        "name": "offline_payment_end_time",
+        "required": false,
+        "description": "End time in RFC 3339 format to retrieve offline payments, based on `client_created_at`. Defaults to current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offline_end_time"
+      },
+      {
+        "name": "updated_at_start_time",
+        "required": false,
+        "description": "Start time in RFC 3339 format to retrieve payments using the `updated_at` field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at_begin_time"
+      },
+      {
+        "name": "end_time_for_update_retrieval",
+        "required": false,
+        "description": "The end time in RFC 3339 format to filter payments by the `updated_at` field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at_end_time"
+      },
+      {
+        "name": "sort_results_by_field",
+        "required": false,
+        "description": "Specify the field to sort the payment results by. Options are 'CREATED_AT', 'OFFLINE_CREATED_AT', or 'UPDATED_AT'. Default is 'CREATED_AT'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "CREATED_AT",
+            "OFFLINE_CREATED_AT",
+            "UPDATED_AT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field used to sort results by. The default is `CREATED_AT`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_field"
+      },
+      {
+        "name": "include_offline_payments",
+        "required": false,
+        "description": "Set to true to include payments taken offline. False excludes them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the payment was taken offline or not."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_offline_payment"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListPayments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "PAYMENTS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/payments",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "begin_time",
+        "tool_parameter_name": "start_time_for_payment_retrieval",
+        "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.\nThe range is determined using the `created_at` field for each Payment.\nInclusive. Default: The current time minus one year.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.\nThe range is determined using the `created_at` field for each Payment.\nInclusive. Default: The current time minus one year."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "payment_retrieval_end_time",
+        "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `created_at` field for each Payment.\n\nDefault: The current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `created_at` field for each Payment.\n\nDefault: The current time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_order",
+        "tool_parameter_name": "order_results_by",
+        "description": "The order in which results are listed by `ListPaymentsRequest.sort_field`:\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which results are listed by `ListPaymentsRequest.sort_field`:\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "limit_results_by_location",
+        "description": "Limit results to the location supplied. By default, results are returned\nfor the default (main) location associated with the seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit results to the location supplied. By default, results are returned\nfor the default (main) location associated with the seller."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "exact_payment_amount",
+        "description": "The exact amount in the `total_money` for a payment.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The exact amount in the `total_money` for a payment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_4",
+        "tool_parameter_name": "payment_card_last_four_digits",
+        "description": "The last four digits of a payment card.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The last four digits of a payment card."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "card_brand",
+        "tool_parameter_name": "payment_card_brand",
+        "description": "The brand of the payment card (for example, VISA).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The brand of the payment card (for example, VISA)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\n\nThe default value of 100 is also the maximum allowed value. If the provided value is \ngreater than 100, it is ignored and the default value is used instead.\n\nDefault: `100`",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to be returned in a single page.\nIt is possible to receive fewer results than the specified limit on a given page.\n\nThe default value of 100 is also the maximum allowed value. If the provided value is \ngreater than 100, it is ignored and the default value is used instead.\n\nDefault: `100`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_offline_payment",
+        "tool_parameter_name": "include_offline_payments",
+        "description": "Whether the payment was taken offline or not.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the payment was taken offline or not."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "offline_begin_time",
+        "tool_parameter_name": "offline_payment_start_time",
+        "description": "Indicates the start of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "offline_end_time",
+        "tool_parameter_name": "offline_payment_end_time",
+        "description": "Indicates the end of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range for which to retrieve offline payments, in RFC 3339\nformat for timestamps. The range is determined using the\n`offline_payment_details.client_created_at` field for each Payment. If set, payments without a\nvalue set in `offline_payment_details.client_created_at` will not be returned.\n\nDefault: The current time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at_begin_time",
+        "tool_parameter_name": "updated_at_start_time",
+        "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the start of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at_end_time",
+        "tool_parameter_name": "end_time_for_update_retrieval",
+        "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the end of the time range to retrieve payments for, in RFC 3339 format.  The\nrange is determined using the `updated_at` field for each Payment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_field",
+        "tool_parameter_name": "sort_results_by_field",
+        "description": "The field used to sort results by. The default is `CREATED_AT`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "CREATED_AT",
+            "OFFLINE_CREATED_AT",
+            "UPDATED_AT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field used to sort results by. The default is `CREATED_AT`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

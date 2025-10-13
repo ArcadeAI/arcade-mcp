@@ -1,0 +1,137 @@
+{
+  "name": "RetrieveLocationCustomAttributeDefinition",
+  "fully_qualified_name": "SquareupApi.RetrieveLocationCustomAttributeDefinition@0.1.0",
+  "description": "Retrieve location-related custom attribute definitions.\n\nRetrieves a custom attribute definition for a location from a Square seller account. Applicable when needing details on custom attributes for specific locations. Accessible only if visibility is set accordingly.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_attribute_definition_key",
+        "required": true,
+        "description": "The key of the custom attribute definition to retrieve, requiring a qualified key if not the owner.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to retrieve. If the requesting application\nis not the definition owner, you must use the qualified key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "key"
+      },
+      {
+        "name": "custom_attribute_definition_version",
+        "required": false,
+        "description": "The version of the custom attribute definition for consistent reads. Must be equal to or less than the latest version to avoid errors.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RetrieveLocationCustomAttributeDefinition'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "MERCHANT_PROFILE_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "version",
+        "tool_parameter_name": "custom_attribute_definition_version",
+        "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The current version of the custom attribute definition, which is used for strongly consistent\nreads to guarantee that you receive the most up-to-date data. When included in the request,\nSquare returns the specified version or a higher version if one exists. If the specified version\nis higher than the current version, Square returns a `BAD_REQUEST` error."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "key",
+        "tool_parameter_name": "custom_attribute_definition_key",
+        "description": "The key of the custom attribute definition to retrieve. If the requesting application\nis not the definition owner, you must use the qualified key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The key of the custom attribute definition to retrieve. If the requesting application\nis not the definition owner, you must use the qualified key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

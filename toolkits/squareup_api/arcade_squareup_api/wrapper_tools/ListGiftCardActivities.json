@@ -1,0 +1,329 @@
+{
+  "name": "ListGiftCardActivities",
+  "fully_qualified_name": "SquareupApi.ListGiftCardActivities@0.1.0",
+  "description": "Retrieve and filter gift card activities for a seller.\n\nLists gift card activities from the seller's account. Optionally filter the activities by gift card, region, or within a specific time window.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gift_card_id",
+        "required": false,
+        "description": "Specify a gift card ID to return activities related to that gift card. Leave empty to return all gift card activities for the seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a gift card ID is provided, the endpoint returns activities related \nto the specified gift card. Otherwise, the endpoint returns all gift card activities for \nthe seller."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gift_card_id"
+      },
+      {
+        "name": "activity_type",
+        "required": false,
+        "description": "Filter gift card activities by specifying a particular activity type. If not provided, returns all activity types.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [type](entity:GiftCardActivityType) is provided, the endpoint returns gift card activities of the specified type. \nOtherwise, the endpoint returns all types of gift card activities."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "location_id",
+        "required": false,
+        "description": "Specify the location ID to filter gift card activities for a particular location. Leave empty to return activities for all locations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a location ID is provided, the endpoint returns gift card activities for the specified location. \nOtherwise, the endpoint returns gift card activities for all locations."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "reporting_start_time",
+        "required": false,
+        "description": "The starting timestamp for the reporting period, in RFC 3339 format. Includes this date and time. Defaults to one year prior from now if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the beginning of the reporting period, in RFC 3339 format.\nThis start time is inclusive. The default value is the current time minus one year."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "begin_time"
+      },
+      {
+        "name": "end_time",
+        "required": false,
+        "description": "The inclusive end timestamp for the reporting period in RFC 3339 format. Defaults to current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the end of the reporting period, in RFC 3339 format.\nThis end time is inclusive. The default value is the current time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specify the maximum number of results per page. Default is 50, maximum allowed is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a limit is provided, the endpoint returns the specified number \nof results (or fewer) per page. The maximum value is 100. The default value is 50.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A pagination cursor from a previous call to get the next set of results. If not provided, the first page is returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "activities_sort_order",
+        "required": false,
+        "description": "Defines the order of gift card activities based on creation date. Use 'ASC' for oldest to newest, or 'DESC' for newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which the endpoint returns the activities, based on `created_at`.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_order"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListGiftCardActivities'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "GIFTCARDS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/gift-cards/activities",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "gift_card_id",
+        "tool_parameter_name": "gift_card_id",
+        "description": "If a gift card ID is provided, the endpoint returns activities related \nto the specified gift card. Otherwise, the endpoint returns all gift card activities for \nthe seller.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a gift card ID is provided, the endpoint returns activities related \nto the specified gift card. Otherwise, the endpoint returns all gift card activities for \nthe seller."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "activity_type",
+        "description": "If a [type](entity:GiftCardActivityType) is provided, the endpoint returns gift card activities of the specified type. \nOtherwise, the endpoint returns all types of gift card activities.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a [type](entity:GiftCardActivityType) is provided, the endpoint returns gift card activities of the specified type. \nOtherwise, the endpoint returns all types of gift card activities."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_id",
+        "description": "If a location ID is provided, the endpoint returns gift card activities for the specified location. \nOtherwise, the endpoint returns gift card activities for all locations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a location ID is provided, the endpoint returns gift card activities for the specified location. \nOtherwise, the endpoint returns gift card activities for all locations."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "begin_time",
+        "tool_parameter_name": "reporting_start_time",
+        "description": "The timestamp for the beginning of the reporting period, in RFC 3339 format.\nThis start time is inclusive. The default value is the current time minus one year.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the beginning of the reporting period, in RFC 3339 format.\nThis start time is inclusive. The default value is the current time minus one year."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "end_time",
+        "description": "The timestamp for the end of the reporting period, in RFC 3339 format.\nThis end time is inclusive. The default value is the current time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp for the end of the reporting period, in RFC 3339 format.\nThis end time is inclusive. The default value is the current time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "If a limit is provided, the endpoint returns the specified number \nof results (or fewer) per page. The maximum value is 100. The default value is 50.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If a limit is provided, the endpoint returns the specified number \nof results (or fewer) per page. The maximum value is 100. The default value is 50.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for the original query.\nIf a cursor is not provided, the endpoint returns the first page of the results.\nFor more information, see [Pagination](https://developer.squareup.com/docs/working-with-apis/pagination)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_order",
+        "tool_parameter_name": "activities_sort_order",
+        "description": "The order in which the endpoint returns the activities, based on `created_at`.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order in which the endpoint returns the activities, based on `created_at`.\n- `ASC` - Oldest to newest.\n- `DESC` - Newest to oldest (default)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

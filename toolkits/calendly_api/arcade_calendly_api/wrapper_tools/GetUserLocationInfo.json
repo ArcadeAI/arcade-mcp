@@ -1,0 +1,101 @@
+{
+  "name": "GetUserLocationInfo",
+  "fully_qualified_name": "CalendlyApi.GetUserLocationInfo@0.1.0",
+  "description": "Fetches location information for a specific user.\n\nUse this tool to obtain the configured location details for a specified user. It should be called when you need to know where a user's events or activities are set to take place.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_uri",
+        "required": true,
+        "description": "The URI of the user whose location information is being requested.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URI associated with the user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-user-locations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/locations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "user",
+        "tool_parameter_name": "user_uri",
+        "description": "The URI associated with the user",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URI associated with the user"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

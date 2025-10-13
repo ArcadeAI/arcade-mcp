@@ -1,0 +1,446 @@
+{
+  "name": "FetchIncidentLogs",
+  "fully_qualified_name": "PagerdutyApi.FetchIncidentLogs@0.1.0",
+  "description": "Retrieve all incident log entries from the account.\n\nThis tool retrieves a comprehensive list of all log entries for incidents across the entire account. Use it to access detailed logs of events related to incidents.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_header",
+        "required": true,
+        "description": "The versioning header for API requests. Specify the API version to use.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "response_content_type",
+        "required": true,
+        "description": "Specifies the media type for the response. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "results_per_page",
+        "required": false,
+        "description": "Specify the number of log entry results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Offset value to start the pagination of search results. Used for controlling which set of results are displayed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "render_results_in_time_zone",
+        "required": false,
+        "description": "Specify the time zone for rendering results. Defaults to the account's time zone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_zone"
+      },
+      {
+        "name": "start_date_range",
+        "required": false,
+        "description": "The start date for the range to search incident log entries. Format as 'YYYY-MM-DD'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "end_date_range",
+        "required": false,
+        "description": "Specify the end date for the search date range. This is used to filter log entries up to a specific date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "additional_models_to_include",
+        "required": false,
+        "description": "Array of additional models such as 'incidents', 'services', 'channels', 'teams' to include in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incidents",
+            "services",
+            "channels",
+            "teams"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional Models to include in response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include[]"
+      },
+      {
+        "name": "team_ids",
+        "required": false,
+        "description": "An array of team IDs for filtering log entries by team. Requires 'teams' ability.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_ids[]"
+      },
+      {
+        "name": "include_total_in_response",
+        "required": false,
+        "description": "Set to true to populate the total field in pagination responses, showing the total number of items.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "overview_only",
+        "required": false,
+        "description": "Set to true to return only the most important changes to incidents.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, will return a subset of log entries that show only the most important changes to the incident."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_overview"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listLogEntries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/log_entries",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "results_per_page",
+        "description": "The number of results per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of results per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Offset to start pagination search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset to start pagination search results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "include_total_in_response",
+        "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "time_zone",
+        "tool_parameter_name": "render_results_in_time_zone",
+        "description": "Time zone in which results will be rendered. This will default to the account time zone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Time zone in which results will be rendered. This will default to the account time zone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "start_date_range",
+        "description": "The start of the date range over which you want to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start of the date range over which you want to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "end_date_range",
+        "description": "The end of the date range over which you want to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end of the date range over which you want to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_overview",
+        "tool_parameter_name": "overview_only",
+        "description": "If `true`, will return a subset of log entries that show only the most important changes to the incident.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If `true`, will return a subset of log entries that show only the most important changes to the incident."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include[]",
+        "tool_parameter_name": "additional_models_to_include",
+        "description": "Array of additional Models to include in response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incidents",
+            "services",
+            "channels",
+            "teams"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of additional Models to include in response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_ids[]",
+        "tool_parameter_name": "team_ids",
+        "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "response_content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
