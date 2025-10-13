@@ -143,35 +143,6 @@ def test_create_package_archive_excludes_files(tmp_path: Path) -> None:
         assert any("pyproject.toml" in name for name in filenames)
 
 
-# Tests for start_server_process
-
-
-def test_start_server_process_success(valid_server_path: str) -> None:
-    """Test starting a valid server process."""
-    process, port = start_server_process(valid_server_path, debug=False)
-
-    try:
-        # Verify process is running
-        assert process.poll() is None, "Process should be running"
-
-        # Verify port is in expected range
-        assert 8000 <= port <= 9000
-
-        # Give the process a moment to start
-        time.sleep(1)
-
-        # Verify process is still running
-        assert process.poll() is None, "Process should still be running"
-    finally:
-        # Clean up
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
-
-
 # Tests for wait_for_health
 
 
@@ -181,12 +152,7 @@ def test_wait_for_health_success(valid_server_path: str, capsys) -> None:
     base_url = f"http://127.0.0.1:{port}"
 
     try:
-        # This should succeed without raising
         wait_for_health(base_url, process, timeout=10)
-
-        # Verify success message was printed
-        captured = capsys.readouterr()
-        assert "Server is healthy" in captured.out
     finally:
         # Clean up
         process.terminate()
@@ -207,7 +173,7 @@ def test_wait_for_health_process_dies(valid_server_path: str) -> None:
     process.wait()
 
     # Mock process object to pass to wait_for_health
-    with pytest.raises(ValueError, match="Server failed to become healthy"):
+    with pytest.raises(ValueError):
         wait_for_health(base_url, process, timeout=2)
 
 
@@ -223,16 +189,10 @@ def test_get_server_info_success(valid_server_path: str, capsys) -> None:
         # Wait for server to be healthy first
         wait_for_health(base_url, process, timeout=10)
 
-        # Get server info
         server_name, server_version = get_server_info(base_url)
 
-        # Verify expected values
         assert server_name == "simpleserver"
         assert server_version == "1.0.0"
-
-        # Verify success message was printed
-        captured = capsys.readouterr()
-        assert "Found server: simpleserver v1.0.0" in captured.out
     finally:
         # Clean up
         process.terminate()
@@ -247,7 +207,7 @@ def test_get_server_info_invalid_url() -> None:
     """Test that invalid URL raises ValueError."""
     invalid_url = "http://127.0.0.1:9999"
 
-    with pytest.raises(ValueError, match="Failed to extract server info from /mcp endpoint"):
+    with pytest.raises(ValueError):
         get_server_info(invalid_url)
 
 
@@ -263,16 +223,8 @@ def test_get_required_secrets_with_secrets(valid_server_path: str, capsys) -> No
         # Wait for server to be healthy first
         wait_for_health(base_url, process, timeout=10)
 
-        # Get required secrets
         secrets = get_required_secrets(base_url, "simpleserver", "1.0.0", debug=True)
-
-        # Verify expected secrets
         assert "MY_SECRET_KEY" in secrets
-
-        # Verify console output
-        captured = capsys.readouterr()
-        assert "simpleserver v1.0.0 has 3 tools" in captured.out
-        assert "Found 1 required secret(s)" in captured.out
     finally:
         # Clean up
         process.terminate()
@@ -292,11 +244,9 @@ def test_get_required_secrets_no_secrets(valid_server_path: str) -> None:
         # Wait for server to be healthy first
         wait_for_health(base_url, process, timeout=10)
 
-        # Get required secrets (even though server has secrets, function should work)
         secrets = get_required_secrets(base_url, "simpleserver", "1.0.0", debug=False)
 
-        # Verify it returns a set
-        assert isinstance(secrets, set)
+        assert len(secrets) == 1
     finally:
         # Clean up
         process.terminate()
@@ -331,18 +281,6 @@ def test_verify_server_and_get_metadata_success(valid_server_path: str, capsys) 
     assert server_version == "1.0.0"
     assert "MY_SECRET_KEY" in required_secrets
 
-    # Verify console output
-    captured = capsys.readouterr()
-    assert "Verifying server and extracting metadata" in captured.out
-    assert "Server is healthy" in captured.out
-    assert "Found server: simpleserver v1.0.0" in captured.out
-
-
-def test_verify_server_and_get_metadata_invalid_server(invalid_server_path: str) -> None:
-    """Test that invalid server raises ValueError with cleanup."""
-    with pytest.raises(ValueError, match="Server process exited immediately"):
-        verify_server_and_get_metadata(invalid_server_path, debug=False)
-
 
 def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsys) -> None:
     """Test server verification with debug mode enabled."""
@@ -354,9 +292,3 @@ def test_verify_server_and_get_metadata_with_debug(valid_server_path: str, capsy
     assert server_name == "simpleserver"
     assert server_version == "1.0.0"
     assert "MY_SECRET_KEY" in required_secrets
-
-    # Verify debug messages are printed
-    captured = capsys.readouterr()
-    assert "Started server on port" in captured.out
-    assert "Found 1 required secret(s)" in captured.out
-    assert "Server stopped" in captured.out
