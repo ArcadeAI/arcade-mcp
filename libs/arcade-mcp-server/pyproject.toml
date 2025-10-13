@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade-mcp-server"
-version = "1.2.1"
+version = "1.2.2"
 description = "Model Context Protocol (MCP) server framework for Arcade.dev"
 readme = "README.md"
 authors = [{ name = "Arcade.dev" }]
@@ -28,6 +28,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.30.0",
+    "watchfiles>=0.18.0", # included with uvicorn, but listed to be explicit
     "sse-starlette>=2.0.0",
     "starlette>=0.37.0",
     "anyio>=4.0.0",

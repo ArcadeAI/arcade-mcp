@@ -22,7 +22,6 @@ from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
-from arcade_mcp_server.worker import run_arcade_mcp
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -229,17 +228,17 @@ class MCPApp:
         # Since the transport could have changed since __init__, we need to setup logging again
         self._setup_logging(transport == "stdio")
 
+        if os.getenv("ARCADE_MCP_CHILD_PROCESS") == "1":
+            # parent watcher has already been setup
+            reload = False
+
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
-            run_arcade_mcp(
-                catalog=self._catalog,
-                host=host,
-                port=port,
-                reload=reload,
-                mcp_settings=self._mcp_settings,
-                **self.server_kwargs,
-            )
+            if reload:
+                self._run_with_reload(host, port)
+            else:
+                self._create_and_run_server(host, port)
         elif transport == "stdio":
             import asyncio
 
@@ -254,6 +253,92 @@ class MCPApp:
             )
         else:
             raise ServerError(f"Invalid transport: {transport}")
+
+    def _run_with_reload(self, host: str, port: int) -> None:
+        """
+        Run with file watching for auto-reload.
+
+        This method runs as the parent process that watches for file changes
+        and spawns/restarts child processes to run the actual server.
+        """
+        import subprocess
+
+        from watchfiles import watch
+
+        env_file_path = Path.cwd() / ".env"
+
+        def start_server_process() -> subprocess.Popen:
+            """Start a child process running the server."""
+            env = os.environ.copy()
+            env["ARCADE_MCP_CHILD_PROCESS"] = "1"
+
+            return subprocess.Popen(
+                [sys.executable, *sys.argv],
+                env=env,
+            )
+
+        def shutdown_server_process(process: subprocess.Popen, reason: str = "reload") -> None:
+            """Shutdown server process gracefully with fallback to force kill."""
+            logger.info(f"Shutting down server for {reason}...")
+            process.terminate()
+
+            try:
+                process.wait(timeout=5)
+                logger.info("Server shut down gracefully")
+            except subprocess.TimeoutExpired:
+                logger.warning(
+                    "Server did not shut down within 5 seconds (likely due to active client connections). "
+                    "Force killing server process..."
+                )
+                process.kill()
+                process.wait()
+                logger.info("Server force killed")
+
+        logger.info("Starting file watcher for auto-reload")
+        process = start_server_process()
+
+        try:
+
+            def watch_filter(change, path: str) -> bool:
+                return path.endswith(".py") or (Path(path) == env_file_path)
+
+            for changes in watch(".", watch_filter=watch_filter):
+                logger.info(f"Detected changes in {len(changes)} file(s), restarting server...")
+                shutdown_server_process(process, reason="reload")
+                process = start_server_process()
+        except KeyboardInterrupt:
+            logger.info("Received shutdown signal")
+            shutdown_server_process(process, reason="shutdown")
+            logger.info("File watcher stopped")
+
+    def _create_and_run_server(self, host: str, port: int) -> None:
+        """
+        Create and run the server directly without reload.
+
+        This is used when reload=False or when running as a child process.
+        """
+        from arcade_mcp_server.worker import create_arcade_mcp
+
+        debug = self.log_level == "DEBUG"
+        log_level = "debug" if debug else "info"
+
+        app = create_arcade_mcp(
+            catalog=self._catalog,
+            mcp_settings=self._mcp_settings,
+            debug=debug,
+            **self.server_kwargs,
+        )
+
+        import uvicorn
+
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level=log_level,
+            reload=False,  # MCPApp handles its own reload via parent/child process pattern
+            lifespan="on",
+        )
 
     @staticmethod
     def _get_configuration_overrides(
