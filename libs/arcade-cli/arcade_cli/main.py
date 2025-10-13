@@ -8,7 +8,6 @@ import webbrowser
 from pathlib import Path
 from typing import Optional
 
-import httpx
 import typer
 from arcadepy import Arcade
 from rich.console import Console
@@ -23,7 +22,6 @@ from arcade_cli.constants import (
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcade_cli.deployment import Deployment
 from arcade_cli.display import (
     display_eval_results,
 )
@@ -531,117 +529,13 @@ def configure(
         handle_cli_error(f"Failed to configure {client}", e, debug)
 
 
-@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run", hidden=True)
+@cli.command(name="deploy", help="Deploy MCP servers to Arcade", rich_help_panel="Run")
 def deploy(
-    deployment_file: str = typer.Option(
-        "worker.toml",
-        "--deployment-file",
-        "-d",
-        help="The deployment file to deploy.",
-    ),
-    cloud_host: str = typer.Option(
-        PROD_CLOUD_HOST,
-        "--cloud-host",
-        "-c",
-        help="The Arcade Cloud host to deploy to.",
-        hidden=True,
-    ),
-    cloud_port: Optional[int] = typer.Option(
-        None,
-        "--cloud-port",
-        "-cp",
-        help="The port of the Arcade Cloud host.",
-        hidden=True,
-    ),
-    host: str = typer.Option(
-        PROD_ENGINE_HOST,
-        "--host",
-        "-h",
-        help="The Arcade Engine host to register the server to.",
-    ),
-    port: Optional[int] = typer.Option(
-        None,
-        "--port",
-        "-p",
-        help="The port of the Arcade Engine host.",
-    ),
-    force_tls: bool = typer.Option(
-        False,
-        "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
-    ),
-    force_no_tls: bool = typer.Option(
-        False,
-        "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
-    ),
-    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
-) -> None:
-    """
-    Deploy a server to Arcade Cloud.
-    """
-
-    config = validate_and_get_config()
-    engine_url = compute_base_url(force_tls, force_no_tls, host, port)
-    engine_client = Arcade(api_key=config.api.key, base_url=engine_url)
-    cloud_url = compute_base_url(force_tls, force_no_tls, cloud_host, cloud_port)
-    cloud_client = httpx.Client(
-        base_url=cloud_url, headers={"Authorization": f"Bearer {config.api.key}"}
-    )
-
-    # Fetch deployment configuration
-    try:
-        deployment = Deployment.from_toml(Path(deployment_file))
-    except Exception as e:
-        handle_cli_error("Failed to parse deployment file", e, debug)
-
-    with console.status(f"Deploying {len(deployment.worker)} servers"):
-        for worker in deployment.worker:
-            console.log(f"Deploying '{worker.config.id}...'", style="dim")
-            try:
-                # Discover and upload secrets
-                required_secret_keys = worker.get_required_secrets()
-                for secret_key in required_secret_keys:
-                    secret_value = os.getenv(secret_key)
-                    if not secret_value:
-                        console.log(
-                            f"⚠️ Secret '{secret_key}' not found in environment, skipping.",
-                            style="yellow",
-                        )
-                        continue
-                    try:
-                        secret._upsert_secret_to_engine(
-                            engine_url, config.api.key, secret_key, secret_value
-                        )
-                    except Exception as e:
-                        handle_cli_error(
-                            f"Failed to upload secret '{secret_key}'", e, debug, should_exit=False
-                        )
-                    else:
-                        console.log(
-                            f"✅ Secret '{secret_key}' uploaded successfully",
-                            style="dim green",
-                        )
-
-                # Attempt to deploy worker
-                worker.request().execute(cloud_client, engine_client)
-                console.log(
-                    f"✅ Server '{worker.config.id}' deployed successfully.",
-                    style="dim",
-                )
-            except Exception as e:
-                handle_cli_error(f"Failed to deploy server '{worker.config.id}'", e, debug)
-
-
-@cli.command(
-    name="deploy-server", help="Deploy MCP servers to Arcade Engine", rich_help_panel="Run"
-)
-def deploy_server(
     entrypoint: str = typer.Option(
-        "./server.py",
+        "server.py",
         "--entrypoint",
         "-e",
-        help="Path to the Python file that contains the MCPApp instance (relative to project root)",
+        help="Relative path to the Python file that runs the MCPApp instance (relative to project root)",
     ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
@@ -679,10 +573,10 @@ def deploy_server(
 
     Examples:
         cd my_mcp_server/
-        arcade deploy-server
-        arcade deploy-server --entrypoint src/server.py
+        arcade deploy
+        arcade deploy --entrypoint src/server.py
     """
-    from arcade_cli.deploy_server import deploy_server_logic
+    from arcade_cli.deploy import deploy_server_logic
 
     try:
         deploy_server_logic(
