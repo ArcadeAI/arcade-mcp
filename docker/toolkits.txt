@@ -1,3 +1,4 @@
+arcade-airtable-api
 arcade-box-api
 arcade-calendly-api
 arcade-miro-api
