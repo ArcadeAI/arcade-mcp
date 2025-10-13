@@ -39,7 +39,7 @@ from arcade_mcp_server.middleware import (
     MiddlewareContext,
 )
 from arcade_mcp_server.session import InitializationState, NotificationManager, ServerSession
-from arcade_mcp_server.settings import MCPSettings
+from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import (
     LATEST_PROTOCOL_VERSION,
     BlobResourceContents,
@@ -109,8 +109,8 @@ class MCPServer:
         self,
         catalog: ToolCatalog,
         *,
-        name: str = "ArcadeMCP",
-        version: str = "0.1.0",
+        name: str | None = None,
+        version: str | None = None,
         title: str | None = None,
         instructions: str | None = None,
         settings: MCPSettings | None = None,
@@ -136,17 +136,29 @@ class MCPServer:
             arcade_api_key: Arcade API key (overrides settings)
             arcade_api_url: Arcade API URL (overrides settings)
         """
-        self.name = name or self.__class__.__name__
         self._started = False
         self._lock = asyncio.Lock()
 
-        # Server identity
-        self.version = version
-        self.title = title or name
-        self.instructions = instructions or self._default_instructions()
-
-        # Settings
+        # Settings (load first so we can use values from it)
         self.settings = settings or MCPSettings.from_env()
+
+        # Server info
+        self.name = name if name else self.settings.server.name
+        self.version = version if version else self.settings.server.version
+        if title:
+            self.title = title
+        elif (
+            self.settings.server.title
+            and self.settings.server.title != ServerSettings.model_fields["title"].default
+        ):
+            self.title = self.settings.server.title
+        else:
+            self.title = self.name
+
+        self.instructions = (
+            instructions or self.settings.server.instructions or self._default_instructions()
+        )
+
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
         # Initialize Arcade client
