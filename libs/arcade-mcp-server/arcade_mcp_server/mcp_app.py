@@ -299,7 +299,7 @@ class MCPApp:
 
         try:
 
-            def watch_filter(change, path: str) -> bool:
+            def watch_filter(change: Any, path: str) -> bool:
                 return path.endswith(".py") or (Path(path) == env_file_path)
 
             for changes in watch(".", watch_filter=watch_filter):
