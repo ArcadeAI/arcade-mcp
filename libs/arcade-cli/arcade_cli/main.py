@@ -8,6 +8,7 @@ import webbrowser
 from pathlib import Path
 from typing import Optional
 
+import click
 import typer
 from arcadepy import Arcade
 from rich.console import Console
@@ -529,13 +530,55 @@ def configure(
         handle_cli_error(f"Failed to configure {client}", e, debug)
 
 
-@cli.command(name="deploy", help="Deploy MCP servers to Arcade", rich_help_panel="Run")
+@cli.command(
+    name="deploy",
+    help="Deploy MCP servers to Arcade",
+    rich_help_panel="Run",
+)
 def deploy(
     entrypoint: str = typer.Option(
         "server.py",
         "--entrypoint",
         "-e",
-        help="Relative path to the Python file that runs the MCPApp instance (relative to project root)",
+        help="Relative path to the Python file that runs the MCPApp instance (relative to project root). This file must execute the `run()` method on your `MCPApp` instance when invoked directly.",
+    ),
+    skip_validate: bool = typer.Option(
+        False,
+        "--skip-validate",
+        "--yolo",
+        help="Skip running the server locally for health/metadata checks. "
+        "When set, you must provide `--server-name` and `--server-version`. "
+        "Secret handling is controlled by `--secrets`.",
+        rich_help_panel="Advanced",
+    ),
+    server_name: Optional[str] = typer.Option(
+        None,
+        "--server-name",
+        "-n",
+        help="Explicit server name to use when `--skip-validate` is set. Only used when `--skip-validate` is set.",
+        rich_help_panel="Advanced",
+    ),
+    server_version: Optional[str] = typer.Option(
+        None,
+        "--server-version",
+        "-v",
+        help="Explicit server version to use when `--skip-validate` is set. Only used when `--skip-validate` is set.",
+        rich_help_panel="Advanced",
+    ),
+    secrets: str = typer.Option(
+        "auto",
+        "--secrets",
+        "-s",
+        help=(
+            "How to upsert secrets before deploy:\n"
+            "  `auto` (default): During validation, discover required secret KEYS and upsert only those. "
+            "If `--skip-validate` is set, `auto` becomes `skip`.\n"
+            "  `all`: Upsert every key/value pair from your server's .env file regardless of what the server needs.\n"
+            "  `skip`: Do not upsert any secrets (assumes they are already present in Arcade)."
+        ),
+        show_choices=True,
+        rich_help_panel="Advanced",
+        click_type=click.Choice(["auto", "all", "skip"], case_sensitive=False),
     ),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
@@ -575,12 +618,25 @@ def deploy(
         cd my_mcp_server/
         arcade deploy
         arcade deploy --entrypoint src/server.py
+        arcade deploy --skip-validate --server-name my_server_name --server-version 1.0.0
     """
     from arcade_cli.deploy import deploy_server_logic
+
+    if skip_validate and not (server_name and server_version):
+        handle_cli_error(
+            "When --skip-validate is set, you must provide --server-name and --server-version.",
+            should_exit=True,
+        )
+    if skip_validate and secrets == "auto":
+        secrets = "skip"
 
     try:
         deploy_server_logic(
             entrypoint=entrypoint,
+            skip_validate=skip_validate,
+            server_name=server_name,
+            server_version=server_version,
+            secrets=secrets,
             host=host,
             port=port,
             force_tls=force_tls,

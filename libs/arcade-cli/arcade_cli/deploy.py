@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from rich.console import Console
 
+from arcade_cli.secret import load_env_file
 from arcade_cli.utils import compute_base_url, validate_and_get_config
 
 console = Console()
@@ -465,6 +466,10 @@ def deploy_server_to_engine(
 
 def deploy_server_logic(
     entrypoint: str,
+    skip_validate: bool,
+    server_name: str | None,
+    server_version: str | None,
+    secrets: str,
     host: str,
     port: int | None,
     force_tls: bool,
@@ -475,7 +480,12 @@ def deploy_server_logic(
     Main logic for deploying an MCP server to Arcade Engine.
 
     Args:
-        entrypoint: Path to the entrypoint file containing MCPApp
+        entrypoint: Path (relative to project root) to the entrypoint file that runs the MCPApp instance.
+                    This file must execute the `run()` method on your `MCPApp` instance when invoked directly.
+        skip_validate: Skip running the server locally for health/metadata checks.
+        server_name: Explicit server name to use when --skip-validate is set.
+        server_version: Explicit server version to use when --skip-validate is set.
+        secrets: How to upsert secrets before deploy.
         host: Arcade Engine host
         port: Arcade Engine port (optional)
         force_tls: Force TLS connection
@@ -509,24 +519,59 @@ def deploy_server_logic(
     else:
         console.print(f"⚠️  No .env file found at {env_path}", style="yellow")
 
-    # Step 4: Verify server and extract metadata
-    console.print("\nVerifying server and extracting metadata...", style="dim")
-    try:
-        server_name, server_version, required_secrets = verify_server_and_get_metadata(
-            entrypoint, debug=debug
-        )
-    except Exception as e:
-        raise ValueError(
-            f"Server verification failed: {e}\n"
-            "Please ensure your server starts correctly before deploying."
-        ) from e
+    # Step 4: Verify server and extract metadata (or skip if --skip-validate)
+    required_secrets_from_validation: set[str] = set()
 
-    # Step 5: Upsert secrets to engine
-    if required_secrets:
+    if skip_validate:
+        console.print("\n⚠️  Skipping server validation (--skip-validate set)", style="yellow")
+        # Use the provided server_name and server_version
+        # These are guaranteed to be set due to validation in main.py
+        if server_name is None:
+            raise ValueError("server_name must be provided when skip_validate is True")
+        if server_version is None:
+            raise ValueError("server_version must be provided when skip_validate is True")
+        console.print(f"✓ Using server name: {server_name}", style="green")
+        console.print(f"✓ Using server version: {server_version}", style="green")
+    else:
         console.print(
-            f"\nUploading {len(required_secrets)} required secret(s) to Arcade...", style="dim"
+            "\nValidating server is healthy and extracting metadata before deploying...",
+            style="dim",
         )
-        upsert_secrets_to_engine(engine_url, config.api.key, required_secrets, debug)
+        try:
+            server_name, server_version, required_secrets_from_validation = (
+                verify_server_and_get_metadata(entrypoint, debug=debug)
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Server verification failed: {e}\n"
+                "Please ensure your server starts correctly before deploying."
+            ) from e
+
+    # Step 5: Determine which secrets to upsert based on --secrets flag
+    secrets_to_upsert: set[str] = set()
+
+    if secrets == "skip":
+        console.print("\n⚠️  Skipping secret upload (--secrets skip)", style="yellow")
+    elif secrets == "all":
+        console.print("\nUploading ALL secrets from .env file...", style="dim")
+        secrets_to_upsert = set(load_env_file(str(env_path)).keys())
+        if secrets_to_upsert:
+            console.print(f"✓ Found {len(secrets_to_upsert)} secret(s) in .env file", style="green")
+            upsert_secrets_to_engine(engine_url, config.api.key, secrets_to_upsert, debug)
+        else:
+            console.print("⚠️  No secrets found in .env file", style="yellow")
+    elif secrets == "auto":
+        # Only upload required secrets discovered during validation
+        if required_secrets_from_validation:
+            console.print(
+                f"\nUploading {len(required_secrets_from_validation)} required secret(s) to Arcade...",
+                style="dim",
+            )
+            upsert_secrets_to_engine(
+                engine_url, config.api.key, required_secrets_from_validation, debug
+            )
+        else:
+            console.print("\n✓ No required secrets found", style="green")
 
     # Step 6: Create tar.gz archive of current directory
     console.print("\nCreating deployment package...", style="dim")
