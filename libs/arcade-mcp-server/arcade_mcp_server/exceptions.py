@@ -4,11 +4,27 @@ MCP Exception Hierarchy
 Provides domain-specific exceptions for better error handling and debugging.
 """
 
-from arcade_core.errors import ToolRuntimeError  # Re-export for convenience
+from arcade_core.errors import (
+    ContextRequiredToolError,
+    ErrorKind,
+    FatalToolError,
+    RetryableToolError,
+    ToolExecutionError,
+    ToolRuntimeError,
+    UpstreamError,
+    UpstreamRateLimitError,
+)
 
 __all__ = [
     # Re-exports
+    "ErrorKind",
+    "FatalToolError",
+    "RetryableToolError",
+    "ToolExecutionError",
     "ToolRuntimeError",
+    "UpstreamError",
+    "UpstreamRateLimitError",
+    "ContextRequiredToolError",
     # Base exceptions
     "MCPError",
     "MCPRuntimeError",
