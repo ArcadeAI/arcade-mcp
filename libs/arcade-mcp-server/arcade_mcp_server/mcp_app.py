@@ -6,22 +6,27 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 
 from __future__ import annotations
 
+import asyncio
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
+import uvicorn
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
 from dotenv import load_dotenv
 from loguru import logger
+from watchfiles import watch
 
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
+from arcade_mcp_server.worker import create_arcade_mcp
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -240,8 +245,6 @@ class MCPApp:
             else:
                 self._create_and_run_server(host, port)
         elif transport == "stdio":
-            import asyncio
-
             from arcade_mcp_server.__main__ import run_stdio_server
 
             asyncio.run(
@@ -261,10 +264,6 @@ class MCPApp:
         This method runs as the parent process that watches for file changes
         and spawns/restarts child processes to run the actual server.
         """
-        import subprocess
-
-        from watchfiles import watch
-
         env_file_path = Path.cwd() / ".env"
 
         def start_server_process() -> subprocess.Popen:
@@ -317,8 +316,6 @@ class MCPApp:
 
         This is used when reload=False or when running as a child process.
         """
-        from arcade_mcp_server.worker import create_arcade_mcp
-
         debug = self.log_level == "DEBUG"
         log_level = "debug" if debug else "info"
 
@@ -328,8 +325,6 @@ class MCPApp:
             debug=debug,
             **self.server_kwargs,
         )
-
-        import uvicorn
 
         uvicorn.run(
             app,
