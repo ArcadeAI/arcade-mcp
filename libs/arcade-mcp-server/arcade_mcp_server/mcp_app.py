@@ -224,7 +224,9 @@ class MCPApp:
             logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
             sys.exit(1)
 
-        host, port, transport = MCPApp._get_configuration_overrides(host, port, transport)
+        host, port, transport, reload = MCPApp._get_configuration_overrides(
+            host, port, transport, reload
+        )
 
         # Since the transport could have changed since __init__, we need to setup logging again
         self._setup_logging(transport == "stdio")
@@ -257,8 +259,8 @@ class MCPApp:
 
     @staticmethod
     def _get_configuration_overrides(
-        host: str, port: int, transport: TransportType
-    ) -> tuple[str, int, TransportType]:
+        host: str, port: int, transport: TransportType, reload: bool
+    ) -> tuple[str, int, TransportType, bool]:
         """Get configuration overrides from environment variables."""
         if envvar_transport := os.getenv("ARCADE_SERVER_TRANSPORT"):
             transport = envvar_transport
@@ -284,7 +286,18 @@ class MCPApp:
                         f"Using '{port}' as port from ARCADE_SERVER_PORT environment variable"
                     )
 
-        return host, port, transport
+            if envvar_reload := os.getenv("ARCADE_SERVER_RELOAD"):
+                if envvar_reload.lower() not in ["0", "1"]:
+                    logger.warning(
+                        f"Invalid reload: '{envvar_reload}' from ARCADE_SERVER_RELOAD environment variable. Using default reload {reload}"
+                    )
+                else:
+                    reload = bool(int(envvar_reload))
+                    logger.debug(
+                        f"Using '{reload}' as reload from ARCADE_SERVER_RELOAD environment variable"
+                    )
+
+        return host, port, transport, reload
 
 
 class _ToolsAPI:

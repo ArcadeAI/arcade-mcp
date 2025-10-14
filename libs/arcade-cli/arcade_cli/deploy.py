@@ -169,9 +169,6 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
         env=env,
     )
 
-    if debug:
-        console.print(f"  Started server on port {port}", style="dim")
-
     # Check for immediate failure on start up
     time.sleep(0.5)
     if process.poll() is not None:
@@ -261,7 +258,8 @@ def get_server_info(base_url: str) -> tuple[str, str]:
         server_name = mcp_data["result"]["serverInfo"]["name"]
         server_version = mcp_data["result"]["serverInfo"]["version"]
 
-        console.print(f"✓ Found server: {server_name} v{server_version}", style="green")
+        console.print(f"✓ Found server name: {server_name}", style="green")
+        console.print(f"✓ Found server version: {server_version}", style="green")
 
     except Exception as e:
         raise ValueError(f"Failed to extract server info from /mcp endpoint: {e}") from e
@@ -306,12 +304,7 @@ def get_required_secrets(
                     if secret.get("key"):
                         required_secrets.add(secret["key"])
 
-        console.print(f"{server_name} v{server_version} has {len(tools_data)} tools", style="dim")
-        if debug:
-            if required_secrets:
-                console.print(f"  Found {len(required_secrets)} required secret(s)", style="dim")
-            else:
-                console.print("  No secrets required", style="dim")
+        console.print(f"✓ Found {len(tools_data)} tools", style="green")
 
     except Exception as e:
         raise ValueError(f"Failed to extract tool secrets from /worker/tools endpoint: {e}") from e
@@ -343,15 +336,17 @@ def verify_server_and_get_metadata(
     Raises:
         ValueError: If the server fails to start or metadata extraction fails
     """
-    console.print("\nVerifying server and extracting metadata...", style="dim")
-
     process, port = start_server_process(entrypoint, debug)
+    console.print(f"✓ Server started on port {port}", style="green")
     base_url = f"http://127.0.0.1:{port}"
 
     try:
         wait_for_health(base_url, process)
+
         server_name, server_version = get_server_info(base_url)
+
         required_secrets = get_required_secrets(base_url, server_name, server_version, debug)
+        console.print(f"✓ Found {len(required_secrets)} required secret(s)", style="green")
 
         return server_name, server_version, required_secrets
 
@@ -365,7 +360,7 @@ def verify_server_and_get_metadata(
             process.wait()
 
         if debug:
-            console.print("  Server stopped", style="dim")
+            console.print("✓ Server stopped", style="green")
 
 
 def upsert_secrets_to_engine(
@@ -383,27 +378,19 @@ def upsert_secrets_to_engine(
     if not secrets:
         return
 
-    console.print(f"\nRequired secrets: {', '.join(sorted(secrets))}", style="dim")
-
     client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
 
     for secret_key in sorted(secrets):
         secret_value = os.getenv(secret_key)
 
-        if debug:
-            if secret_value:
-                console.print(
-                    f"  Found secret '{secret_key}' in environment (value ends with ...{secret_value[-4:]})",
-                    style="dim",
-                )
-            else:
-                console.print(
-                    f"  Secret '{secret_key}' not found in environment", style="dim yellow"
-                )
-
-        if not secret_value:
+        if secret_value:
             console.print(
-                f"⚠️  Secret '{secret_key}' not found in environment, skipping.",
+                f"✓ Uploading '{secret_key}' with value ending in ...{secret_value[-4:]}",
+                style="green",
+            )
+        else:
+            console.print(
+                f"⚠️  Secret '{secret_key}' not found in environment, skipping upload.",
                 style="yellow",
             )
             continue
@@ -416,7 +403,7 @@ def upsert_secrets_to_engine(
                 timeout=30,
             )
             response.raise_for_status()
-            console.print(f"✓ Secret '{secret_key}' uploaded", style="dim green")
+            console.print(f"✓ Secret '{secret_key}' uploaded", style="green")
         except httpx.HTTPStatusError as e:
             error_msg = f"Failed to upload secret '{secret_key}': HTTP {e.response.status_code}"
             if debug:
@@ -496,27 +483,34 @@ def deploy_server_logic(
         debug: Show debug information
     """
     # Step 1: Validate user is logged in
+    console.print("\nValidating user is logged in...", style="dim")
     config = validate_and_get_config()
     engine_url = compute_base_url(force_tls, force_no_tls, host, port)
+    console.print(f"✓ {config.user.email} is logged in", style="green")
 
     # Step 2: Validate pyproject.toml exists in current directory
+    console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
     current_dir = Path.cwd()
     pyproject_path = current_dir / "pyproject.toml"
 
     if not pyproject_path.exists():
         raise FileNotFoundError(
-            f"pyproject.toml not found in current directory: {current_dir}\n"
+            f"pyproject.toml not found at {pyproject_path}\n"
             "Please run this command from the root of your MCP server package."
         )
+    console.print(f"✓ pyproject.toml found at {pyproject_path}", style="green")
 
     # Step 3: Load .env file from current directory if it exists
+    console.print("\nLoading .env file from current directory if it exists...", style="dim")
     env_path = current_dir / ".env"
     if env_path.exists():
         load_dotenv(env_path, override=False)
-        if debug:
-            console.print(f"  Loaded environment from {env_path}", style="dim")
+        console.print(f"✓ Loaded environment from {env_path}", style="green")
+    else:
+        console.print(f"⚠️  No .env file found at {env_path}", style="yellow")
 
     # Step 4: Verify server and extract metadata
+    console.print("\nVerifying server and extracting metadata...", style="dim")
     try:
         server_name, server_version, required_secrets = verify_server_and_get_metadata(
             entrypoint, debug=debug
@@ -529,10 +523,10 @@ def deploy_server_logic(
 
     # Step 5: Upsert secrets to engine
     if required_secrets:
-        console.print(f"\nDiscovered {len(required_secrets)} required secret(s)", style="dim")
+        console.print(
+            f"\nUploading {len(required_secrets)} required secret(s) to Arcade...", style="dim"
+        )
         upsert_secrets_to_engine(engine_url, config.api.key, required_secrets, debug)
-    else:
-        console.print("\nNo secrets required", style="dim")
 
     # Step 6: Create tar.gz archive of current directory
     console.print("\nCreating deployment package...", style="dim")
@@ -572,11 +566,21 @@ def deploy_server_logic(
     console.print(
         f"✓ Server '{server_name}' v{server_version} deployed successfully", style="bold green"
     )
+
+    deployment_id = response.get("id", "N/A")
+    deployment_uri = response.get("http", {}).get("uri", "N/A")
+    deployment_secret = response.get("http", {}).get("secret", "N/A").get("value", "N/A")
+
+    console.print("\n[bold]Deployment Details:[/bold]")
+    console.print(f"  • Server ID: [cyan]{deployment_id}[/cyan]")
+    console.print(f"  • Server URI: [cyan]{deployment_uri}[/cyan]")
+    console.print(f"  • Server Secret: [cyan]{deployment_secret}[/cyan]")
+    console.print("\n[yellow]⚠ Note:[/yellow] Your server is now starting up...", style="bold")
     console.print(
-        "\nView your deployed servers in the Arcade Dashboard: https://api.arcade.dev/dashboard/",
-        style="dim",
+        "\n  This process may take a few minutes. Your server will be available at the URI above once ready."
     )
 
-    if debug and response:
-        console.print("\nDeployment response:", style="dim")
-        console.print(response)
+    console.print(
+        "\nView and manage your servers: [link]https://api.arcade.dev/dashboard/[/link]",
+        style="dim",
+    )
