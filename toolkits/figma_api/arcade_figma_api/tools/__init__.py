@@ -59,7 +59,7 @@ async def make_request(
                 method=method,
                 params=params,
                 headers=headers,
-                data=data,
+                json=data,
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
