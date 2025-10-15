@@ -1,4 +1,4 @@
-"""Arcade Starter Tools for cursor_agents
+"""Arcade Starter Tools for Cursor_Agents
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
@@ -85,7 +85,11 @@ async def list_background_agents(
         url="https://api.cursor.com/v0/agents",
         method="GET",
         params=remove_none_values({"limit": agent_limit, "cursor": pagination_cursor}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -109,7 +113,11 @@ async def get_agent_status(
         url="https://api.cursor.com/v0/agents/{id}".format(id=background_agent_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -132,7 +140,11 @@ async def delete_background_agent(
         url="https://api.cursor.com/v0/agents/{id}".format(id=background_agent_id),  # noqa: UP032
         method="DELETE",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -155,7 +167,11 @@ async def get_agent_conversation_history(
         url="https://api.cursor.com/v0/agents/{id}/conversation".format(id=background_agent_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -175,7 +191,11 @@ async def retrieve_api_user_info(
         url="https://api.cursor.com/v0/me",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -195,7 +215,11 @@ async def list_recommended_models(
         url="https://api.cursor.com/v0/models",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
@@ -215,7 +239,11 @@ async def list_github_repositories(
         url="https://api.cursor.com/v0/repositories",
         method="GET",
         params=remove_none_values({}),
-        headers=remove_none_values({"Authorization": context.get_secret("CURSOR_AGENTS_API_KEY")}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("CURSOR_AGENTS_API_KEY")
+            )
+        }),
         data=remove_none_values({}),
     )
     try:
