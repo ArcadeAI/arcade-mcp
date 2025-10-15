@@ -15,8 +15,9 @@ from typing import Any
 
 import httpx
 import yaml
-from arcade_cli.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
-from arcade_cli.usage.constants import (
+
+from arcade_core.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_core.usage.constants import (
     KEY_ANON_ID,
     KEY_LINKED_PRINCIPAL_ID,
     TIMEOUT_ARCADE_API,

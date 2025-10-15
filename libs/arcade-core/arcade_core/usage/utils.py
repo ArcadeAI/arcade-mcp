@@ -1,6 +1,6 @@
 import os
 
-from arcade_cli.usage.constants import ARCADE_USAGE_TRACKING
+from arcade_core.usage.constants import ARCADE_USAGE_TRACKING
 
 
 def is_tracking_enabled() -> bool:

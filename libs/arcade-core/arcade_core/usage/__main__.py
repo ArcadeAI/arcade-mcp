@@ -1,6 +1,6 @@
 """Entry point for detached usage tracking subprocess.
 
-This module is invoked as `python -m arcade_cli.usage` and expects
+This module is invoked as `python -m arcade_core.usage` and expects
 event data to be passed via the ARCADE_USAGE_EVENT_DATA environment variable.
 """
 
@@ -8,14 +8,15 @@ import json
 import os
 import threading
 
-from arcade_cli.usage.constants import (
+from posthog import Posthog
+
+from arcade_core.usage.constants import (
     ARCADE_USAGE_EVENT_DATA,
     MAX_RETRIES_POSTHOG,
     PROP_PROCESS_PERSON_PROFILE,
     TIMEOUT_POSTHOG_CAPTURE,
     TIMEOUT_SUBPROCESS_EXIT,
 )
-from posthog import Posthog
 
 
 def _timeout_exit() -> None:
