@@ -217,7 +217,7 @@ class ToolCatalog(BaseModel):
             toolkit_name = toolkit_or_name
 
         if not toolkit_name:
-            raise ValueError("A toolkit name or toolkit must be provided.")
+            raise ValueError("A server name or server must be provided.")
 
         definition = ToolCatalog.create_tool_definition(
             tool_func,
@@ -230,7 +230,7 @@ class ToolCatalog(BaseModel):
 
         if fully_qualified_name in self._tools:
             raise ToolkitLoadError(
-                f"Tool '{definition.name}' in toolkit '{toolkit_name}' already exists in the catalog."
+                f"Tool '{definition.name}' in server '{toolkit_name}' already exists in the catalog."
             )
 
         if str(fully_qualified_name).lower() in self._disabled_tools:
@@ -238,7 +238,7 @@ class ToolCatalog(BaseModel):
             return
 
         if str(toolkit_name).lower() in self._disabled_toolkits:
-            logger.info(f"Toolkit '{toolkit_name!s}' is disabled and will not be cataloged.")
+            logger.info(f"Server '{toolkit_name!s}' is disabled and will not be cataloged.")
             return
 
         self._tools[fully_qualified_name] = MaterializedTool(
@@ -267,7 +267,7 @@ class ToolCatalog(BaseModel):
         """
 
         if str(toolkit).lower() in self._disabled_toolkits:
-            logger.info(f"Toolkit '{toolkit.name!s}' is disabled and will not be cataloged.")
+            logger.info(f"Server '{toolkit.name!s}' is disabled and will not be cataloged.")
             return
 
         for module_name, tool_names in toolkit.tools.items():
