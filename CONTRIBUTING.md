@@ -135,5 +135,5 @@ Before you submit a pull request, check that it meets these guidelines:
 
 2. If the pull request adds functionality, the [docs](https://github.com/ArcadeAI/docs) should be updated.
 
-3. If making contributions to multiple toolkits (i.e. Google and Slack, etc.), submit a separate pull request for each.
+3. If making contributions to multiple servers (i.e. Google and Slack, etc.), submit a separate pull request for each.
    This helps us segregate the changes during the review process making it more efficient.

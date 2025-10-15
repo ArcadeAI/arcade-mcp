@@ -512,6 +512,6 @@ def test_add_toolkit_with_duplicate_tool():
             catalog.add_toolkit(test_toolkit)
 
         # Check that the error message contains the expected substring
-        assert "Tool 'ValidTool' in toolkit 'test_toolkit' already exists in the catalog." in str(
+        assert "Tool 'ValidTool' in server 'test_toolkit' already exists in the catalog." in str(
             exc_info.value
         )

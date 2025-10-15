@@ -1,0 +1,301 @@
+{
+  "name": "GetWebhookSubscriptions",
+  "fully_qualified_name": "CalendlyApi.GetWebhookSubscriptions@0.1.0",
+  "description": "Retrieve webhook subscriptions for an organization or user.\n\nThis tool fetches a list of webhook subscriptions associated with a specified organization or user. Use it to manage or review existing webhook connections.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "Specify the organization that owns the subscriptions. This field is mandatory.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The given organization that owns the subscriptions being returned. This field is always required."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "filter_by_scope",
+        "required": true,
+        "description": "Filter the subscriptions by organization, user, or group. Expected values are 'organization', 'user', or 'group'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization",
+            "user",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the list by organization, user, or group"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "user_filter",
+        "required": false,
+        "description": "Filter results by user. Required if scope is set to `user`. Provide the user ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by user. This parameter is only required if the `scope` parameter is set to `user`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "filter_by_group",
+        "required": false,
+        "description": "Filter results by group if the `scope` is set to `group`. Provide the group identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by group. This parameter is only required if the `scope` parameter is set to `group`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "The token used to navigate to the next or previous part of the collection results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "number_of_rows_to_return",
+        "required": false,
+        "description": "Specify the number of webhook subscription rows to return.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the sort order for the results using a comma-separated list of field:direction pairs (e.g., 'created_at:asc'). Currently, only 'created_at' is supported, with directions 'asc' for ascending and 'desc' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: created_at.\nSort direction is specified as: asc, desc."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-webhook-subscriptions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/webhook_subscriptions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_identifier",
+        "description": "The given organization that owns the subscriptions being returned. This field is always required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The given organization that owns the subscriptions being returned. This field is always required."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "user_filter",
+        "description": "Indicates if the results should be filtered by user. This parameter is only required if the `scope` parameter is set to `user`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by user. This parameter is only required if the `scope` parameter is set to `user`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group",
+        "tool_parameter_name": "filter_by_group",
+        "description": "Indicates if the results should be filtered by group. This parameter is only required if the `scope` parameter is set to `group`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by group. This parameter is only required if the `scope` parameter is set to `group`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_rows_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: created_at.\nSort direction is specified as: asc, desc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: created_at.\nSort direction is specified as: asc, desc."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "filter_by_scope",
+        "description": "Filter the list by organization, user, or group",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "organization",
+            "user",
+            "group"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the list by organization, user, or group"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

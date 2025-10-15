@@ -1,0 +1,229 @@
+{
+  "name": "GetOutgoingCommunications",
+  "fully_qualified_name": "CalendlyApi.GetOutgoingCommunications@0.1.0",
+  "description": "Retrieve outgoing SMS and email communications.\n\nUse this tool to access a list of outgoing SMS and email communications. Requires an Enterprise subscription.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_uri",
+        "required": true,
+        "description": "URI to identify the organization for which to return outgoing communications.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return outgoing communications from the organization associated with this URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "number_of_records",
+        "required": false,
+        "description": "Specify the number of outgoing communication records to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "filter_communications_after",
+        "required": false,
+        "description": "Include outgoing communications created after this UTC time. Format: \"YYYY-MM-DDTHH:MM:SS.sssZ\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include outgoing communications that were created after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "min_created_at"
+      },
+      {
+        "name": "end_date_time_utc",
+        "required": false,
+        "description": "Include outgoing communications created before this UTC time. Format: \"2020-01-02T03:04:05.678Z\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include outgoing communications that were created prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_created_at"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token used to retrieve the next set of outgoing communication records.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-outgoing-communications'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/outgoing_communications",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_uri",
+        "description": "Return outgoing communications from the organization associated with this URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return outgoing communications from the organization associated with this URI"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_records",
+        "description": "The number of records to return",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "min_created_at",
+        "tool_parameter_name": "filter_communications_after",
+        "description": "Include outgoing communications that were created after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include outgoing communications that were created after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "max_created_at",
+        "tool_parameter_name": "end_date_time_utc",
+        "description": "Include outgoing communications that were created prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include outgoing communications that were created prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

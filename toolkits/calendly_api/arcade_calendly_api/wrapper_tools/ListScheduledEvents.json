@@ -1,0 +1,395 @@
+{
+  "name": "ListScheduledEvents",
+  "fully_qualified_name": "CalendlyApi.ListScheduledEvents@0.1.0",
+  "description": "Retrieve a list of scheduled events from Calendly.\n\nThis tool retrieves a list of scheduled events for a specified user, group, or organization in Calendly. Use it to view events you have access to, based on your role and privileges.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_uri",
+        "required": false,
+        "description": "The URI identifying the user to retrieve scheduled events for. This can be used alone for personal events or with `organization` for specific user events within an organization. Requires appropriate privileges.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the user associated with this URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "organization_uri",
+        "required": false,
+        "description": "Returns events scheduled with the specified organization's URI. Requires admin or owner privilege.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the organization associated with this URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "invitee_email",
+        "required": false,
+        "description": "Email address to filter events scheduled with the invitee. Use to retrieve events specific to an invitee.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the invitee associated with this email address"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invitee_email"
+      },
+      {
+        "name": "event_status",
+        "required": false,
+        "description": "Specifies whether to retrieve events that are 'active' or 'canceled'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "canceled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the scheduled event is `active` or `canceled`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "order_results_by",
+        "required": false,
+        "description": "Specify the field and direction to order results (e.g., 'start_time:asc'). Supported field: start_time; Directions: asc, desc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: start_time.\nSort direction is specified as: asc, desc."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "start_time_after",
+        "required": false,
+        "description": "Include events with start times after this specified UTC time (e.g., \"2020-01-02T03:04:05.678123Z\").",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include events with start times after this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "min_start_time"
+      },
+      {
+        "name": "max_start_time",
+        "required": false,
+        "description": "Include events with start times prior to this UTC time. Format: \"2020-01-02T03:04:05.678123Z\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include events with start times prior to this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_start_time"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token used for paginating results, allowing access to the next or previous portion of the event collection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "number_of_events_to_return",
+        "required": false,
+        "description": "Specifies the number of events to be returned in the query result.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "group_uri",
+        "required": false,
+        "description": "URI of the group to retrieve scheduled events for. Requires appropriate admin privileges.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the group associated with this URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-scheduled-events'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/scheduled_events",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "user",
+        "tool_parameter_name": "user_uri",
+        "description": "Return events that are scheduled with the user associated with this URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the user associated with this URI"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_uri",
+        "description": "Return events that are scheduled with the organization associated with this URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the organization associated with this URI"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "invitee_email",
+        "tool_parameter_name": "invitee_email",
+        "description": "Return events that are scheduled with the invitee associated with this email address",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the invitee associated with this email address"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "event_status",
+        "description": "Whether the scheduled event is `active` or `canceled`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "active",
+            "canceled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the scheduled event is `active` or `canceled`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "order_results_by",
+        "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: start_time.\nSort direction is specified as: asc, desc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. Accepts comma-separated list of {field}:{direction} values.\nSupported fields are: start_time.\nSort direction is specified as: asc, desc."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "min_start_time",
+        "tool_parameter_name": "start_time_after",
+        "description": "Include events with start times after this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include events with start times after this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "max_start_time",
+        "tool_parameter_name": "max_start_time",
+        "description": "Include events with start times prior to this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include events with start times prior to this time (sample time format: \"2020-01-02T03:04:05.678123Z\"). This time should use the UTC timezone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_events_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group",
+        "tool_parameter_name": "group_uri",
+        "description": "Return events that are scheduled with the group associated with this URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return events that are scheduled with the group associated with this URI"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

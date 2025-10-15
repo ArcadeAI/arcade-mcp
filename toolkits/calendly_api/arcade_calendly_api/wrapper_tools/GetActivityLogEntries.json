@@ -1,0 +1,389 @@
+{
+  "name": "GetActivityLogEntries",
+  "fully_qualified_name": "CalendlyApi.GetActivityLogEntries@0.1.0",
+  "description": "Retrieve a list of activity log entries.\n\nUse this tool to get a list of activity log entries from Calendly. This endpoint requires an Enterprise subscription.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_uri",
+        "required": true,
+        "description": "The URI of the organization for which to return activity log entries.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return activity log entries from the organization associated with this URI"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      },
+      {
+        "name": "filter_by_search_term",
+        "required": false,
+        "description": "Specify terms to filter log entries. Use operators like |, +, \" \", -, (), *. Eg: \"email@website.com\" or (term1 + term2).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters entries based on the search term.\n\nSupported operators:\n  - `|` - to allow filtering by one term or another. Example: `this | that`\n  - `+` - to allow filtering by one term and another. Example: `this + that`\n  - `\"` - to allow filtering by an exact search term. Example: `\"email@website.com\"`\n  - `-` - to omit specific terms from results. Example: `Added -User`\n  - `()` - to allow specifying precedence during a search. Example: `(this + that) OR (person + place)`\n  - `*` - to allow prefix searching. Example `*@other-website.com`\n"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_term"
+      },
+      {
+        "name": "actor_uris",
+        "required": false,
+        "description": "An array of URIs for users whose entries should be returned. Include multiple URIs for multiple users.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return entries from the user(s) associated with the provided URIs"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "actor"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Order results by the specified field and direction using {field}:{direction} format. Example: 'date:asc'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. List of {field}:{direction} values."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "include_entries_after_time",
+        "required": false,
+        "description": "Include entries that occurred after this specified UTC time (e.g., \"2020-01-02T03:04:05.678Z\").",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include entries that occurred after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "min_occurred_at"
+      },
+      {
+        "name": "end_time_utc",
+        "required": false,
+        "description": "Specify entries occurring before this UTC time (e.g., '2020-01-02T03:04:05.678Z').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include entries that occurred prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_occurred_at"
+      },
+      {
+        "name": "next_page_token",
+        "required": false,
+        "description": "Provide the token to retrieve the subsequent portion of the activity log collection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "number_of_rows_to_return",
+        "required": false,
+        "description": "Specifies the number of activity log entries to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "entry_categories",
+        "required": false,
+        "description": "Specify categories of activity log entries to retrieve.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The categories of the entries"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "namespace"
+      },
+      {
+        "name": "filter_by_actions",
+        "required": false,
+        "description": "A list of actions to filter activity log entries. Provide actions associated with the entries.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The action(s) associated with the entries"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "action"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-activity-log-entries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/activity_log_entries",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization",
+        "tool_parameter_name": "organization_uri",
+        "description": "Return activity log entries from the organization associated with this URI",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return activity log entries from the organization associated with this URI"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_term",
+        "tool_parameter_name": "filter_by_search_term",
+        "description": "Filters entries based on the search term.\n\nSupported operators:\n  - `|` - to allow filtering by one term or another. Example: `this | that`\n  - `+` - to allow filtering by one term and another. Example: `this + that`\n  - `\"` - to allow filtering by an exact search term. Example: `\"email@website.com\"`\n  - `-` - to omit specific terms from results. Example: `Added -User`\n  - `()` - to allow specifying precedence during a search. Example: `(this + that) OR (person + place)`\n  - `*` - to allow prefix searching. Example `*@other-website.com`\n",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters entries based on the search term.\n\nSupported operators:\n  - `|` - to allow filtering by one term or another. Example: `this | that`\n  - `+` - to allow filtering by one term and another. Example: `this + that`\n  - `\"` - to allow filtering by an exact search term. Example: `\"email@website.com\"`\n  - `-` - to omit specific terms from results. Example: `Added -User`\n  - `()` - to allow specifying precedence during a search. Example: `(this + that) OR (person + place)`\n  - `*` - to allow prefix searching. Example `*@other-website.com`\n"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "actor",
+        "tool_parameter_name": "actor_uris",
+        "description": "Return entries from the user(s) associated with the provided URIs",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return entries from the user(s) associated with the provided URIs"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Order results by the specified field and direction. List of {field}:{direction} values.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the specified field and direction. List of {field}:{direction} values."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "min_occurred_at",
+        "tool_parameter_name": "include_entries_after_time",
+        "description": "Include entries that occurred after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include entries that occurred after this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "max_occurred_at",
+        "tool_parameter_name": "end_time_utc",
+        "description": "Include entries that occurred prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include entries that occurred prior to this time (sample time format: \"2020-01-02T03:04:05.678Z\"). This time should use the UTC timezone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "next_page_token",
+        "description": "The token to pass to get the next portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "count",
+        "tool_parameter_name": "number_of_rows_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "namespace",
+        "tool_parameter_name": "entry_categories",
+        "description": "The categories of the entries",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The categories of the entries"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "action",
+        "tool_parameter_name": "filter_by_actions",
+        "description": "The action(s) associated with the entries",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The action(s) associated with the entries"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
