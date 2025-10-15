@@ -115,7 +115,9 @@
     },
     "url": "https://api.figma.com/v2/webhooks",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "context",

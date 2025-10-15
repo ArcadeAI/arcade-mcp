@@ -48,7 +48,7 @@ async def make_request(
     method: str,
     params: dict[str, Any] | None = None,
     headers: dict[str, Any] | None = None,
-    data: dict[str, Any] | None = None,
+    data: str | None = None,
     max_retries: int = 3,
 ) -> httpx.Response:
     """Make an HTTP request with retry logic for 5xx server errors."""
@@ -59,7 +59,7 @@ async def make_request(
                 method=method,
                 params=params,
                 headers=headers,
-                json=data,
+                data=data,
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
@@ -154,6 +154,7 @@ async def fetch_figma_file(
     """Retrieve a Figma file as a JSON object using its file key.
 
     Use this tool to fetch a Figma document as JSON, identified by a file key. The returned data includes the document structure and metadata about components."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}".format(file_key=file_key),  # noqa: UP032
         method="GET",
@@ -166,11 +167,12 @@ async def fetch_figma_file(
             "branch_data": include_branch_metadata,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -206,6 +208,7 @@ async def get_figma_file_nodes(
     """Retrieve nodes and metadata from a Figma file.
 
     Use this tool to get detailed information about specific nodes in a Figma file, including metadata like name, last modified date, thumbnail URL, editor type, version, and link access permissions. Also retrieves document structure, component mappings, and styles. Useful for accessing and analyzing Figma design elements."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/nodes".format(file_key=figma_file_key),  # noqa: UP032
         method="GET",
@@ -217,11 +220,12 @@ async def get_figma_file_nodes(
             "plugin_data": include_plugin_data,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -279,6 +283,7 @@ async def render_figma_images(
     """Fetch rendered images from Figma files by node IDs.
 
     Use this tool to render and retrieve images from a Figma file by specifying node IDs. The tool returns a mapping of node IDs to URLs of the rendered images. Note: Some entries may be null if rendering fails for certain nodes. Images expire after 30 days."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/images/{file_key}".format(file_key=figma_file_key),  # noqa: UP032
         method="GET",
@@ -295,11 +300,12 @@ async def render_figma_images(
             "use_absolute_bounds": use_full_dimensions_without_cropping,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -318,16 +324,18 @@ async def fetch_image_fill_links(
     """Retrieve download links for images in a Figma document.
 
     Use this tool to get download links for all images present in the image fills of a Figma document. These links allow access to images users have added to their design files. The URLs will expire after about 14 days and can be found using image references."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/images".format(file_key=file_or_branch_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -346,16 +354,18 @@ async def get_file_metadata(
     """Retrieve metadata for a specified Figma file.
 
     This tool is used to obtain metadata information from a specific Figma file by providing the file key. It can be called when users need to access details about a Figma file, such as its name, creator, and other properties."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/meta".format(file_key=file_identifier),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -374,16 +384,18 @@ async def figma_get_team_projects(
     """Fetch all projects within a specified Figma team.
 
     This tool retrieves a list of projects for a specified team in Figma, visible to the authenticated user."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/projects".format(team_id=team_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -405,6 +417,7 @@ async def get_figma_project_files(
     """Retrieve all files from a specific Figma project.
 
     This tool fetches a list of all files within the specified Figma project. Use it when you need to access or manage project files stored in Figma."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/projects/{project_id}/files".format(  # noqa: UP032
             project_id=project_identifier
@@ -412,11 +425,12 @@ async def get_figma_project_files(
         method="GET",
         params=remove_none_values({"branch_data": include_branch_metadata}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -446,6 +460,7 @@ async def fetch_file_version_history(
     """Fetch the version history of a Figma file.
 
     Use this tool to obtain the version history of a specific Figma file, enabling the analysis of its changes over time. This can be useful for reviewing past edits or rendering specific versions."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/versions".format(file_key=target_file_key),  # noqa: UP032
         method="GET",
@@ -455,11 +470,12 @@ async def fetch_file_version_history(
             "after": after_version_id,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -481,6 +497,7 @@ async def get_figma_file_comments(
     """Retrieve comments from a Figma file.
 
     Use this tool to get a list of comments left on a specific Figma file. It is useful for accessing feedback or discussions related to file elements."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments".format(  # noqa: UP032
             file_key=figma_file_or_branch_key
@@ -488,11 +505,12 @@ async def get_figma_file_comments(
         method="GET",
         params=remove_none_values({"as_md": return_comments_as_markdown}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -626,11 +644,12 @@ async def add_comment_to_figma_file(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -653,6 +672,7 @@ async def delete_figma_comment(
     """Delete your comment from a Figma file.
 
     Use this tool to delete a specific comment you made on a Figma file. Only the original commenter can delete their comments."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}".format(  # noqa: UP032
             file_key=figma_file_key, comment_id=comment_identifier
@@ -660,11 +680,12 @@ async def delete_figma_comment(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -687,6 +708,7 @@ async def fetch_comment_reactions(
     """Retrieve reactions from a specific comment in Figma.
 
     Use this tool to obtain a list of reactions left on a specific comment in a Figma file. This can help track engagement or feedback on comments."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions".format(  # noqa: UP032
             file_key=file_or_branch_key, comment_id=comment_id
@@ -694,11 +716,12 @@ async def fetch_comment_reactions(
         method="GET",
         params=remove_none_values({"cursor": pagination_cursor}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -853,11 +876,12 @@ async def add_figma_comment_reaction(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -883,6 +907,7 @@ async def delete_my_comment_reaction(
     """Deletes your specific comment reaction in Figma.
 
     This tool allows users to delete a reaction they added to a comment in a Figma file. It can only be used if the reaction was made by the person attempting to delete it."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions".format(  # noqa: UP032
             file_key=file_or_branch_key, comment_id=comment_id
@@ -890,11 +915,12 @@ async def delete_my_comment_reaction(
         method="DELETE",
         params=remove_none_values({"emoji": reaction_emoji}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -909,16 +935,18 @@ async def get_user_information(
     """Retrieve information for the authenticated Figma user.
 
     Use this tool to obtain the profile information of the user currently authenticated in the Figma service."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/me",
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -949,6 +977,7 @@ async def get_team_components(
     """Retrieve published components from a team's Figma library.
 
     Use this tool to get a list of components that have been published within a specified team's library in Figma."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/components".format(team_id=team_id),  # noqa: UP032
         method="GET",
@@ -958,11 +987,12 @@ async def get_team_components(
             "before": cursor_before,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -978,16 +1008,18 @@ async def get_figma_file_components(
     """Retrieve published components from a Figma file library.
 
     Use this tool to obtain a list of all published components within a specific Figma file, allowing for design asset management or analysis."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/components".format(file_key=file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1005,16 +1037,18 @@ async def get_figma_component_metadata(
     """Retrieve metadata for a Figma component by key.
 
     Use this tool to obtain detailed metadata about a specific Figma component using its key."""
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/components/{key}".format(key=component_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1044,6 +1078,7 @@ async def get_team_component_sets(
     """Fetch published component sets from a Figma team library.
 
     This tool retrieves a paginated list of component sets that have been published within a specified team library in Figma. It should be used when you need to access or explore available component sets in a particular Figma team."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/component_sets".format(team_id=team_id),  # noqa: UP032
         method="GET",
@@ -1053,11 +1088,12 @@ async def get_team_component_sets(
             "before": cursor_before_id,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1076,6 +1112,7 @@ async def get_published_component_sets(
     """Retrieve published component sets from a Figma file.
 
     Call this tool to get a list of published component sets within a specified Figma file library. Useful for accessing design components efficiently."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/component_sets".format(  # noqa: UP032
             file_key=main_file_key
@@ -1083,11 +1120,12 @@ async def get_published_component_sets(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1105,16 +1143,18 @@ async def get_figma_component_set(
     """Retrieve metadata for a Figma component set using its key.
 
     Use this tool to obtain detailed metadata about a published component set in Figma by providing its unique key identifier."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/component_sets/{key}".format(key=component_set_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1144,6 +1184,7 @@ async def get_team_styles(
     """Retrieve a list of published styles from a team's library in Figma.
 
     This tool retrieves a paginated list of styles that have been published within a specified team's library in Figma. It should be called when you need access to design styles, such as colors or text styles, that a team has made available in their library."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/styles".format(team_id=team_id),  # noqa: UP032
         method="GET",
@@ -1153,11 +1194,12 @@ async def get_team_styles(
             "before": cursor_before_id,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1173,16 +1215,18 @@ async def get_published_styles_from_file(
     """Retrieve published styles from a Figma file library.
 
     Use this tool to get a list of published styles within a specific Figma file library. Useful when you need to analyze or display the styles used in a Figma file."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/styles".format(file_key=main_file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1198,16 +1242,18 @@ async def get_style_metadata(
     """Retrieve Figma style metadata by key.
 
     Use this tool to get detailed metadata about a specific style in Figma using its unique key. Useful for accessing style information for design analysis or integration."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/styles/{key}".format(key=style_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1237,6 +1283,7 @@ async def get_figma_webhooks(
     """Retrieve a list of webhooks from Figma.
 
     Call this tool to get a list of webhooks available in your Figma context or plan. This can be used to manage and view all the webhooks you have access to, with results provided in a paginated format."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v2/webhooks",
         method="GET",
@@ -1247,11 +1294,12 @@ async def get_figma_webhooks(
             "cursor": pagination_cursor,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1365,11 +1413,12 @@ async def create_figma_webhook(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -1385,16 +1434,18 @@ async def get_figma_webhook(
     """Retrieve a Figma webhook by its ID.
 
     Use this tool to obtain detailed information about a specific Figma webhook by providing its unique ID."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}".format(webhook_id=webhook_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1528,11 +1579,12 @@ async def update_figma_webhook(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -1551,6 +1603,7 @@ async def delete_figma_webhook(
     """Delete a specified webhook in Figma.
 
     Use this tool to delete a specified webhook in Figma. This action is irreversible and should be called when a webhook is no longer needed."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}".format(  # noqa: UP032
             webhook_id=webhook_id_to_delete
@@ -1558,11 +1611,12 @@ async def delete_figma_webhook(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1580,6 +1634,7 @@ async def get_recent_webhook_requests(
     """Retrieve recent webhook requests from the last week.
 
     Use this tool to gather webhook requests sent within the last week for debugging purposes."""
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}/requests".format(  # noqa: UP032
             webhook_id=webhook_subscription_id
@@ -1587,11 +1642,12 @@ async def get_recent_webhook_requests(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1610,6 +1666,7 @@ async def retrieve_figma_local_variables(
     """Retrieve local and remote variables from a Figma file.
 
     Use this tool to get a list of local variables created in a Figma file and any remote variables utilized, identified by their `subscribed_id`. This tool is available to full members of Enterprise organizations. It's useful for examining mode values and understanding variable usage within a file."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/variables/local".format(  # noqa: UP032
             file_key=file_or_branch_key
@@ -1617,11 +1674,12 @@ async def retrieve_figma_local_variables(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1640,6 +1698,7 @@ async def get_published_variables(
     """Retrieve published variables from a Figma file.
 
     Call this tool to get a list of variables that are published from a specified Figma file. The response includes variable and collection details along with `subscribed_id`. Ideal for users needing information on published variables from a file within an Enterprise organization."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/variables/published".format(  # noqa: UP032
             file_key=main_file_key
@@ -1647,11 +1706,12 @@ async def get_published_variables(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1783,11 +1843,12 @@ async def manage_figma_variables(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -1810,16 +1871,18 @@ async def get_dev_resources(
     """Retrieve development resources from a Figma file.
 
     Use this tool to gather development resources from a specific Figma file using the file key."""
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/dev_resources".format(file_key=file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({"node_ids": target_node_ids}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1935,11 +1998,12 @@ async def create_bulk_dev_resources(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -2057,11 +2121,12 @@ async def bulk_update_figma_dev_resources(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=request_data,
+        data=json.dumps(request_data),
     )
     try:
         return {"response_json": response.json()}
@@ -2082,6 +2147,7 @@ async def delete_dev_resource(
     """Delete a dev resource from a Figma file.
 
     Call this tool to delete a specific developer resource from a Figma file using the file key and resource ID."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/dev_resources/{dev_resource_id}".format(  # noqa: UP032
             file_key=target_file_key, dev_resource_id=dev_resource_id
@@ -2089,11 +2155,12 @@ async def delete_dev_resource(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2129,6 +2196,7 @@ async def get_library_analytics_component_actions(
     """Get analytics for library component actions.
 
     Retrieve detailed data on library component actions in Figma, broken down by the specified dimension. This tool is used to gain insights into how components in a Figma library are being utilized."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/component/actions".format(  # noqa: UP032
             file_key=library_file_key
@@ -2141,11 +2209,12 @@ async def get_library_analytics_component_actions(
             "end_date": latest_inclusion_date,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2173,6 +2242,7 @@ async def fetch_component_usage_data(
     """Fetch library analytics component usage data by dimension.
 
     This tool retrieves a list of library analytics component usage data, providing insights into how components are used, broken down by the specified dimension."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/component/usages".format(  # noqa: UP032
             file_key=library_file_key
@@ -2180,11 +2250,12 @@ async def fetch_component_usage_data(
         method="GET",
         params=remove_none_values({"cursor": data_page_cursor, "group_by": group_by_dimension}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2217,6 +2288,7 @@ async def get_library_style_actions(
     """Retrieve library style analytics actions data by dimension.
 
     Use this tool to obtain detailed actions data for styles in a Figma library, categorized by the specified dimension. Ideal for analyzing how styles are used or modified."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/actions".format(  # noqa: UP032
             file_key=library_file_key
@@ -2229,11 +2301,12 @@ async def get_library_style_actions(
             "end_date": end_date,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2259,6 +2332,7 @@ async def get_library_style_usage_data(
     """Retrieve style usage data from Figma library analytics.
 
     This tool returns library analytics style usage data from Figma, broken down by the requested dimension. It should be used to analyze style usage within a specific Figma library file."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/usages".format(  # noqa: UP032
             file_key=library_file_key
@@ -2266,11 +2340,12 @@ async def get_library_style_usage_data(
         method="GET",
         params=remove_none_values({"cursor": pagination_cursor, "group_by": group_by_dimension}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2305,6 +2380,7 @@ async def fetch_library_analytics_variable_actions(
     """Retrieve library analytics variable actions data from Figma.
 
     Call this tool to obtain a breakdown of library analytics variable actions data from Figma based on a specific dimension."""  # noqa: E501
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/variable/actions".format(  # noqa: UP032
             file_key=library_file_key
@@ -2317,11 +2393,12 @@ async def fetch_library_analytics_variable_actions(
             "end_date": end_date,
         }),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2346,6 +2423,7 @@ async def get_library_analytics_variable_usages(
     """Retrieve analytics on library variable usage.
 
     Fetches a breakdown of library analytics variable usage data by the specified dimension."""
+    request_data = remove_none_values({})
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/variable/usages".format(  # noqa: UP032
             file_key=library_file_key
@@ -2353,11 +2431,12 @@ async def get_library_analytics_variable_usages(
         method="GET",
         params=remove_none_values({"cursor": page_cursor, "group_by": group_by_dimension}),
         headers=remove_none_values({
+            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
-            )
+            ),
         }),
-        data=remove_none_values({}),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}

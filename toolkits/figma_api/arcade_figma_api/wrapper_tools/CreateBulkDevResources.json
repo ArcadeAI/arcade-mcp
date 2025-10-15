@@ -112,7 +112,9 @@
     },
     "url": "https://api.figma.com/v1/dev_resources",
     "http_method": "POST",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "requestBody",

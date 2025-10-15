@@ -103,7 +103,9 @@
     },
     "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/component/usages",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "cursor",

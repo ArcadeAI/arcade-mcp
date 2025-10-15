@@ -70,7 +70,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/variables/local",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "file_key",

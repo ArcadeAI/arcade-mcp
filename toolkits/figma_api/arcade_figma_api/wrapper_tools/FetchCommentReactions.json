@@ -58,7 +58,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'getCommentReactions'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -74,7 +78,9 @@
       "provider_type": "oauth2",
       "id": null,
       "oauth2": {
-        "scopes": ["file_comments:read"]
+        "scopes": [
+          "file_comments:read"
+        ]
       }
     },
     "secrets": null,
@@ -94,7 +100,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "cursor",

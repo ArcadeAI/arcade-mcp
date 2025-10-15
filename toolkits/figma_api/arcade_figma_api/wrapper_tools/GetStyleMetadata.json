@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'getStyle'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -44,7 +48,9 @@
       "provider_type": "oauth2",
       "id": null,
       "oauth2": {
-        "scopes": ["library_assets:read"]
+        "scopes": [
+          "library_assets:read"
+        ]
       }
     },
     "secrets": null,
@@ -64,7 +70,9 @@
     },
     "url": "https://api.figma.com/v1/styles/{key}",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "key",

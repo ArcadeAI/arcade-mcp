@@ -110,7 +110,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/comments",
     "http_method": "POST",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "file_key",

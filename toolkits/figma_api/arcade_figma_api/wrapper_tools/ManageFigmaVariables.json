@@ -143,7 +143,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/variables",
     "http_method": "POST",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "file_key",

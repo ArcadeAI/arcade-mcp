@@ -85,7 +85,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/dev_resources/{dev_resource_id}",
     "http_method": "DELETE",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "file_key",

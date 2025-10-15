@@ -137,7 +137,9 @@
     },
     "url": "https://api.figma.com/v2/webhooks/{webhook_id}",
     "http_method": "PUT",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "webhook_id",

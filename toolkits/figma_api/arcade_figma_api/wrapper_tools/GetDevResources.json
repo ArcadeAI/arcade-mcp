@@ -85,7 +85,9 @@
     },
     "url": "https://api.figma.com/v1/files/{file_key}/dev_resources",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [
       {
         "name": "node_ids",

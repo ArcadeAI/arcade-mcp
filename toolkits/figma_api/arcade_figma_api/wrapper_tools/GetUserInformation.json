@@ -12,7 +12,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'getMe'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -28,7 +32,9 @@
       "provider_type": "oauth2",
       "id": null,
       "oauth2": {
-        "scopes": ["current_user:read"]
+        "scopes": [
+          "current_user:read"
+        ]
       }
     },
     "secrets": null,
@@ -48,7 +54,9 @@
     },
     "url": "https://api.figma.com/v1/me",
     "http_method": "GET",
-    "headers": {},
+    "headers": {
+      "Content-Type": "application/json"
+    },
     "parameters": [],
     "documentation_urls": [],
     "secrets": [
