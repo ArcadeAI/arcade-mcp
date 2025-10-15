@@ -40,7 +40,7 @@ class ToolManager(ComponentManager[Key, ManagedTool]):
         requirements = tool.definition.requirements
         meta = None
         if requirements.authorization or requirements.secrets or requirements.metadata:
-            meta = {"requirements": requirements.model_dump()}
+            meta = {"arcade_requirements": requirements.model_dump(exclude_none=True)}
 
         return MCPTool(
             name=self._sanitize_name(tool.definition.fully_qualified_name),

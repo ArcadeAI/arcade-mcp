@@ -69,7 +69,7 @@ check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
 		done
 
 .PHONY: test
-test: ## Test the code with pytest
+test: install ## Test the code with pytest
 	@echo "🚀 Testing libs: Running pytest"
 	@uv run pytest -W ignore -v libs/tests --cov=libs --cov-config=pyproject.toml --cov-report=xml
 
