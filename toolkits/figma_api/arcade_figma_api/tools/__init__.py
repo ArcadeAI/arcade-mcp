@@ -123,7 +123,7 @@ def validate_json_against_schema(
         return False, f"Validation error: {e!s}"
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read"]))
 async def fetch_figma_file(
     context: ToolContext,
     file_key: Annotated[str, "The unique key of the Figma file or branch to retrieve as JSON."],
@@ -178,7 +178,7 @@ async def fetch_figma_file(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read"]))
 async def get_figma_file_nodes(
     context: ToolContext,
     node_ids_to_retrieve: Annotated[
@@ -229,7 +229,7 @@ async def get_figma_file_nodes(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read"]))
 async def render_figma_images(
     context: ToolContext,
     node_ids_to_render: Annotated[
@@ -307,7 +307,7 @@ async def render_figma_images(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read"]))
 async def fetch_image_fill_links(
     context: ToolContext,
     file_or_branch_key: Annotated[
@@ -335,7 +335,7 @@ async def fetch_image_fill_links(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_metadata:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_metadata:read"]))
 async def get_file_metadata(
     context: ToolContext,
     file_identifier: Annotated[
@@ -363,7 +363,7 @@ async def get_file_metadata(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read"]))
 async def figma_get_team_projects(
     context: ToolContext,
     team_id: Annotated[
@@ -391,7 +391,7 @@ async def figma_get_team_projects(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read"]))
 async def get_figma_project_files(
     context: ToolContext,
     project_identifier: Annotated[
@@ -424,7 +424,7 @@ async def get_figma_project_files(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_versions:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_versions:read"]))
 async def fetch_file_version_history(
     context: ToolContext,
     target_file_key: Annotated[
@@ -467,7 +467,7 @@ async def fetch_file_version_history(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read"]))
 async def get_figma_file_comments(
     context: ToolContext,
     figma_file_or_branch_key: Annotated[
@@ -672,7 +672,7 @@ async def delete_figma_comment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read"]))
 async def fetch_comment_reactions(
     context: ToolContext,
     file_or_branch_key: Annotated[
@@ -902,7 +902,7 @@ async def delete_my_comment_reaction(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["current_user:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["current_user:read"]))
 async def get_user_information(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getMe'."]:
@@ -926,7 +926,7 @@ async def get_user_information(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read"]))
 async def get_team_components(
     context: ToolContext,
     team_id: Annotated[
@@ -970,7 +970,7 @@ async def get_team_components(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_content:read"]))
 async def get_figma_file_components(
     context: ToolContext,
     file_key: Annotated[str, "Main file key to list components from. Must not be a branch key."],
@@ -995,7 +995,7 @@ async def get_figma_file_components(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read"]))
 async def get_figma_component_metadata(
     context: ToolContext,
     component_key: Annotated[
@@ -1022,7 +1022,7 @@ async def get_figma_component_metadata(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read"]))
 async def get_team_component_sets(
     context: ToolContext,
     team_id: Annotated[
@@ -1065,7 +1065,7 @@ async def get_team_component_sets(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_content:read"]))
 async def get_published_component_sets(
     context: ToolContext,
     main_file_key: Annotated[
@@ -1095,7 +1095,7 @@ async def get_published_component_sets(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read"]))
 async def get_figma_component_set(
     context: ToolContext,
     component_set_key: Annotated[
@@ -1122,7 +1122,7 @@ async def get_figma_component_set(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read"]))
 async def get_team_styles(
     context: ToolContext,
     team_id: Annotated[
@@ -1165,7 +1165,7 @@ async def get_team_styles(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_content:read"]))
 async def get_published_styles_from_file(
     context: ToolContext,
     main_file_key: Annotated[str, "Main file key to list styles from. Must not be a branch key."],
@@ -1190,7 +1190,7 @@ async def get_published_styles_from_file(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read"]))
 async def get_style_metadata(
     context: ToolContext,
     style_key: Annotated[str, "The unique identifier of the Figma style to retrieve metadata for."],
@@ -1377,7 +1377,7 @@ async def create_figma_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read"]))
 async def get_figma_webhook(
     context: ToolContext,
     webhook_id: Annotated[str, "Unique identifier of the Figma webhook to retrieve."],
@@ -1570,7 +1570,7 @@ async def delete_figma_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read", "files:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read"]))
 async def get_recent_webhook_requests(
     context: ToolContext,
     webhook_subscription_id: Annotated[
