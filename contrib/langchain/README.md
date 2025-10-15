@@ -20,7 +20,7 @@
 
 <p align="center">
     <a href="https://docs.arcade.dev" target="_blank">Arcade Documentation</a> •
-    <a href="https://docs.arcade.dev/toolkits" target="_blank">Toolkits</a> •
+    <a href="https://docs.arcade.dev/mcp-servers" target="_blank">Servers</a> •
     <a href="https://github.com/ArcadeAI/arcade-py" target="_blank">Python Client</a> •
     <a href="https://github.com/ArcadeAI/arcade-js" target="_blank">JavaScript Client</a>
 </p>

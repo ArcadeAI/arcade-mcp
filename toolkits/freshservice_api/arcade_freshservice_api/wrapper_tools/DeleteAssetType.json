@@ -1,0 +1,112 @@
+{
+  "name": "DeleteAssetType",
+  "fully_qualified_name": "FreshserviceApi.DeleteAssetType@0.1.0",
+  "description": "Delete an existing asset type in Freshservice.\n\nUse this tool to delete a specific asset type by providing its ID. This is useful for managing and updating the asset database by removing obsolete or incorrect asset types.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "asset_type_id",
+        "required": true,
+        "description": "The unique integer ID of the asset type to be deleted. This ID identifies which asset type should be removed from the Freshservice database.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "asset_type_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-asset-type'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      },
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "asset_type_id",
+        "tool_parameter_name": "asset_type_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

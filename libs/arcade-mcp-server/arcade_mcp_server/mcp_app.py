@@ -20,6 +20,7 @@ from loguru import logger
 
 from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.server import MCPServer
+from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
 from arcade_mcp_server.worker import run_arcade_mcp
 
@@ -59,7 +60,7 @@ class MCPApp:
     def __init__(
         self,
         name: str = "ArcadeMCP",
-        version: str = "1.0.0dev",
+        version: str = "0.1.0",
         title: str | None = None,
         instructions: str | None = None,
         log_level: str = "INFO",
@@ -101,6 +102,15 @@ class MCPApp:
 
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
+
+        self._mcp_settings = MCPSettings(
+            server=ServerSettings(
+                name=self.name,
+                version=self.version,
+                title=self.title,
+                instructions=self.instructions,
+            )
+        )
 
         self._load_env()
         if not logger._core.handlers:  # type: ignore[attr-defined]
@@ -227,6 +237,7 @@ class MCPApp:
                 host=host,
                 port=port,
                 reload=reload,
+                mcp_settings=self._mcp_settings,
                 **self.server_kwargs,
             )
         elif transport == "stdio":
@@ -237,6 +248,7 @@ class MCPApp:
             asyncio.run(
                 run_stdio_server(
                     catalog=self._catalog,
+                    settings=self._mcp_settings,
                     **self.server_kwargs,
                 )
             )

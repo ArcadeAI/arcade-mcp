@@ -10,7 +10,7 @@
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,
-      "cwd": "${workspaceFolder}/toolkits/<your_server_name>"
+      "cwd": "${workspaceFolder}"
     },
     {
       "name": "Debug `arcade login`",
