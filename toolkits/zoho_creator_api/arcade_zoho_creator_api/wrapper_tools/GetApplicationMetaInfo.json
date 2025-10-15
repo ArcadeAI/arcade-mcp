@@ -1,0 +1,80 @@
+{
+  "name": "GetApplicationMetaInfo",
+  "fully_qualified_name": "ZohoCreatorApi.GetApplicationMetaInfo@0.1.0",
+  "description": "Fetches meta information of accessible applications.\n\nUse this tool to retrieve the meta information of all applications you have access to in Zoho.",
+  "toolkit": {
+    "name": "ArcadeZohoCreatorApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": []
+  },
+  "output": {
+    "description": "Response from the API endpoint ''.",
+    "available_modes": ["value", "error", "null"],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": ["ZohoCreator.dashboard.READ"]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/creator/v2/meta/applications",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
