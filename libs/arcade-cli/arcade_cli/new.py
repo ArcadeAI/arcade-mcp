@@ -154,17 +154,17 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     # Check for illegal characters in the toolkit name
     if re.match(r"^[a-z0-9_]+$", toolkit_name):
         if (toolkit_directory / toolkit_name).exists():
-            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
+            console.print(f"[red]Server '{toolkit_name}' already exists.[/red]")
             exit(1)
     else:
         console.print(
-            "[red]Toolkit name contains illegal characters. "
+            "[red]Server name contains illegal characters. "
             "Only lowercase alphanumeric characters and underscores are allowed. "
             "Please try again.[/red]"
         )
         exit(1)
 
-    toolkit_description = ask_question("Describe what your toolkit will do (optional)", default="")
+    toolkit_description = ask_question("Describe what your server will do (optional)", default="")
     toolkit_author_name = ask_question("Your GitHub username (optional)", default="")
     while True:
         toolkit_author_email = ask_question("Your email (optional)", default="")
@@ -183,7 +183,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     is_community_toolkit = False
     if cwd.name == "toolkits" and cwd.parent.name == "arcade-mcp":
         prompt = (
-            "Is your toolkit a community contribution (to be merged into "
+            "Is your server a community contribution (to be merged into "
             "\x1b]8;;https://github.com/ArcadeAI/arcade-mcp\x1b\\ArcadeAI/arcade-mcp\x1b]8;;\x1b\\ repo)?"
         )
         is_community_toolkit = ask_yes_no_question(prompt, default=True)
@@ -272,7 +272,7 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
         console.print(
-            f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
+            f"[green]Server '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
         )
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)

@@ -10,7 +10,7 @@ Arcade CLI provides a comprehensive command-line interface for the Arcade platfo
 - **Tool Development**: Create, test, and manage Arcade tools
 - **Worker Deployment**: Deploy and manage Arcade workers
 - **Interactive Chat**: Test tools in an interactive environment
-- **Project Templates**: Generate new toolkit projects
+- **Project Templates**: Generate new server projects
 
 ## Installation
 ```bash
