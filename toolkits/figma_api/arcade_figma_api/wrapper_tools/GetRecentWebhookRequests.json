@@ -1,7 +1,7 @@
 {
-  "name": "GetLocalVariables",
-  "fully_qualified_name": "FigmaApi.GetLocalVariables@0.1.0",
-  "description": "Retrieve local and remote variables from a Figma file.\n\nThis tool allows you to retrieve local variables created in a Figma file and remote variables used in it, available for Enterprise orgs. It provides details such as variableId and their associated collections.",
+  "name": "GetRecentWebhookRequests",
+  "fully_qualified_name": "FigmaApi.GetRecentWebhookRequests@0.1.0",
+  "description": "Retrieve recent webhook requests from the last week.\n\nUse this tool to gather webhook requests sent within the last week for debugging purposes.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,24 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "file_key_or_branch_key",
+        "name": "webhook_subscription_id",
         "required": true,
-        "description": "Specify the file key or branch key to retrieve variables from the Figma file. Use `GET /v1/files/:key` with `branch_data` query param to obtain the branch key if needed.",
+        "description": "The ID of the webhook subscription for which to retrieve recent events.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "The id of the webhook subscription you want to see events from"
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "file_key"
+        "http_endpoint_parameter_name": "webhook_id"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getLocalVariables'.",
+    "description": "Response from the API endpoint 'getWebhookRequests'.",
     "available_modes": [
       "value",
       "error",
@@ -49,7 +49,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "file_variables:read"
+          "webhooks:read",
+          "files:read"
         ]
       }
     },
@@ -68,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/variables/local",
+    "url": "https://api.figma.com/v2/webhooks/{webhook_id}/requests",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "file_key",
-        "tool_parameter_name": "file_key_or_branch_key",
-        "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "name": "webhook_id",
+        "tool_parameter_name": "webhook_subscription_id",
+        "description": "The id of the webhook subscription you want to see events from",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "The id of the webhook subscription you want to see events from"
         },
         "accepted_as": "path",
         "required": true,
@@ -101,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

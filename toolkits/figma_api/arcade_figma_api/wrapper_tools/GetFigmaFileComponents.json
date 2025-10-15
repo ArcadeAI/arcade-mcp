@@ -1,7 +1,7 @@
 {
   "name": "GetFigmaFileComponents",
   "fully_qualified_name": "FigmaApi.GetFigmaFileComponents@0.1.0",
-  "description": "Retrieve a list of published components from a Figma file.\n\nUse this tool to access all the published components within a specific Figma file library.",
+  "description": "Retrieve published components from a Figma file library.\n\nUse this tool to obtain a list of all published components within a specific Figma file, allowing for design asset management or analysis.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "main_file_key",
+        "name": "file_key",
         "required": true,
-        "description": "The key of the main Figma file to list components from. It must not be a branch key.",
+        "description": "Main file key to list components from. Must not be a branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,7 +75,7 @@
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "main_file_key",
+        "tool_parameter_name": "file_key",
         "description": "File to list components from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
         "value_schema": {
           "val_type": "string",
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

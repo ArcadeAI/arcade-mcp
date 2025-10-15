@@ -1,7 +1,7 @@
 {
-  "name": "GetPublishedFileStyles",
-  "fully_qualified_name": "FigmaApi.GetPublishedFileStyles@0.1.0",
-  "description": "Retrieve published styles from a Figma file.\n\nThis tool fetches a list of published styles within a specified Figma file library, allowing users to access style information for design consistency and reuse.",
+  "name": "GetFileMetadata",
+  "fully_qualified_name": "FigmaApi.GetFileMetadata@0.1.0",
+  "description": "Retrieve metadata for a specified Figma file.\n\nThis tool is used to obtain metadata information from a specific Figma file by providing the file key. It can be called when users need to access details about a Figma file, such as its name, creator, and other properties.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,16 +10,16 @@
   "input": {
     "parameters": [
       {
-        "name": "main_file_key",
+        "name": "file_identifier",
         "required": true,
-        "description": "Main file key to list styles from in Figma. This should not be a branch key.",
+        "description": "File or branch key to get metadata for. Use the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
+          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "file_key"
@@ -27,7 +27,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getFileStyles'.",
+    "description": "Response from the API endpoint 'getFileMeta'.",
     "available_modes": [
       "value",
       "error",
@@ -49,8 +49,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "library_content:read"
+          "file_metadata:read",
+          "files:read"
         ]
       }
     },
@@ -69,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/styles",
+    "url": "https://api.figma.com/v1/files/{file_key}/meta",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "main_file_key",
-        "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
+        "tool_parameter_name": "file_identifier",
+        "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
+          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

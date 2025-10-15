@@ -1,7 +1,7 @@
 {
-  "name": "GetImageFillLinks",
-  "fully_qualified_name": "FigmaApi.GetImageFillLinks@0.1.0",
-  "description": "Retrieve download links for images in Figma document fills.\n\nThis tool retrieves URLs for all images present in the image fills of a Figma document. Use this when you need to download images that users have supplied by dragging them into Figma. The URLs provided will expire after up to 14 days.",
+  "name": "GetPublishedStylesFromFile",
+  "fully_qualified_name": "FigmaApi.GetPublishedStylesFromFile@0.1.0",
+  "description": "Retrieve published styles from a Figma file library.\n\nUse this tool to get a list of published styles within a specific Figma file library. Useful when you need to analyze or display the styles used in a Figma file.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,16 +10,16 @@
   "input": {
     "parameters": [
       {
-        "name": "file_key_or_branch_key",
+        "name": "main_file_key",
         "required": true,
-        "description": "The key representing a Figma file or branch to retrieve image URLs from. Obtain from `GET /v1/files/:key` with `branch_data`.",
+        "description": "Main file key to list styles from. Must not be a branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "file_key"
@@ -27,7 +27,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getImageFills'.",
+    "description": "Response from the API endpoint 'getFileStyles'.",
     "available_modes": [
       "value",
       "error",
@@ -50,7 +50,7 @@
       "oauth2": {
         "scopes": [
           "files:read",
-          "file_content:read"
+          "library_content:read"
         ]
       }
     },
@@ -69,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/images",
+    "url": "https://api.figma.com/v1/files/{file_key}/styles",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "file_key_or_branch_key",
-        "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "tool_parameter_name": "main_file_key",
+        "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to list styles from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

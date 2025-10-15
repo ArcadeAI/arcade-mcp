@@ -1,7 +1,7 @@
 {
-  "name": "FetchFileVersions",
-  "fully_qualified_name": "FigmaApi.FetchFileVersions@0.1.0",
-  "description": "Fetches the version history of a Figma file.\n\nUse this tool to obtain the version history of a specific Figma file, which shows the file's progression over time. This is useful for reviewing changes or for rendering specific versions using another endpoint.",
+  "name": "FetchFileVersionHistory",
+  "fully_qualified_name": "FigmaApi.FetchFileVersionHistory@0.1.0",
+  "description": "Fetch the version history of a Figma file.\n\nUse this tool to obtain the version history of a specific Figma file, enabling the analysis of its changes over time. This can be useful for reviewing past edits or rendering specific versions.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "file_key_identifier",
+        "name": "target_file_key",
         "required": true,
-        "description": "Specify the file or branch key to retrieve version history. Obtain branch keys via `GET /v1/files/:key` with `branch_data`.",
+        "description": "The key of the file or branch to fetch version history for. Use this to specify the Figma file whose version history you need.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "items_per_page",
+        "name": "number_of_items_per_page",
         "required": false,
-        "description": "The number of items to return per page. Defaults to 30 if not specified.",
+        "description": "Specify the number of items to return per page. Defaults to 30 if not provided.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page_size"
       },
       {
-        "name": "version_id_before",
+        "name": "get_versions_before_id",
         "required": false,
-        "description": "A version ID to fetch versions preceding this ID. Used for pagination.",
+        "description": "A version ID to get versions before it in the history. Used for pagination.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "before"
       },
       {
-        "name": "get_versions_after_id",
+        "name": "after_version_id",
         "required": false,
-        "description": "A version ID to get versions after it for pagination purposes in the version history.",
+        "description": "Version ID to fetch subsequent versions. Used for pagination. Omit if not paginating.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -94,8 +94,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "file_versions:read"
+          "file_versions:read",
+          "files:read"
         ]
       }
     },
@@ -120,7 +120,7 @@
     "parameters": [
       {
         "name": "page_size",
-        "tool_parameter_name": "items_per_page",
+        "tool_parameter_name": "number_of_items_per_page",
         "description": "The number of items returned in a page of the response. If not included, `page_size` is `30`.",
         "value_schema": {
           "val_type": "number",
@@ -138,7 +138,7 @@
       },
       {
         "name": "before",
-        "tool_parameter_name": "version_id_before",
+        "tool_parameter_name": "get_versions_before_id",
         "description": "A version ID for one of the versions in the history. Gets versions before this ID. Used for paginating. If the response is not paginated, this link returns the same data in the current response.",
         "value_schema": {
           "val_type": "number",
@@ -156,7 +156,7 @@
       },
       {
         "name": "after",
-        "tool_parameter_name": "get_versions_after_id",
+        "tool_parameter_name": "after_version_id",
         "description": "A version ID for one of the versions in the history. Gets versions after this ID. Used for paginating. If the response is not paginated, this property is not included.",
         "value_schema": {
           "val_type": "number",
@@ -174,7 +174,7 @@
       },
       {
         "name": "file_key",
-        "tool_parameter_name": "file_key_identifier",
+        "tool_parameter_name": "target_file_key",
         "description": "File to get version history from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
@@ -201,6 +201,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "GetTeamComponentSets",
   "fully_qualified_name": "FigmaApi.GetTeamComponentSets@0.1.0",
-  "description": "Retrieve published component sets from a Figma team library.\n\nUse this tool to obtain a paginated list of component sets that are published within a Figma team's library. Call this tool when you need details about the component sets available to a specific team.",
+  "description": "Fetch published component sets from a Figma team library.\n\nThis tool retrieves a paginated list of component sets that have been published within a specified team library in Figma. It should be used when you need to access or explore available component sets in a particular Figma team.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The unique identifier for the team whose component sets are to be listed.",
+        "description": "The unique identifier for the team from which to list component sets.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "number_of_items_per_page",
         "required": false,
-        "description": "Specify the number of component sets to return per page. Default is 30.",
+        "description": "Specify the number of items to return per page in the results. Defaults to 30.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page_size"
       },
       {
-        "name": "start_after_id",
+        "name": "start_after_cursor",
         "required": false,
-        "description": "Cursor to start retrieving component sets after this ID. Used for pagination. Exclusive with start_before_id.",
+        "description": "Cursor indicating the starting point for retrieving component sets, exclusive with `end_before_cursor`. This cursor is an internally tracked integer not corresponding to any IDs.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "after"
       },
       {
-        "name": "start_before_id",
+        "name": "cursor_before_id",
         "required": false,
-        "description": "Cursor indicating the ID before which to start retrieving component sets. Cannot be used with 'after'.",
+        "description": "Cursor ID indicating the point before which to retrieve component sets. It must be exclusive with the 'after' cursor.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -94,8 +94,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "team_library_content:read"
+          "team_library_content:read",
+          "files:read"
         ]
       }
     },
@@ -138,7 +138,7 @@
       },
       {
         "name": "after",
-        "tool_parameter_name": "start_after_id",
+        "tool_parameter_name": "start_after_cursor",
         "description": "Cursor indicating which id after which to start retrieving component sets for. Exclusive with before. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -156,7 +156,7 @@
       },
       {
         "name": "before",
-        "tool_parameter_name": "start_before_id",
+        "tool_parameter_name": "cursor_before_id",
         "description": "Cursor indicating which id before which to start retrieving component sets for. Exclusive with after. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -201,6 +201,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

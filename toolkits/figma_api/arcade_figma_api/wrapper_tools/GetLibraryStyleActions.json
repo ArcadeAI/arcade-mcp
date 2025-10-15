@@ -1,7 +1,7 @@
 {
-  "name": "GetLibraryVariableUsages",
-  "fully_qualified_name": "FigmaApi.GetLibraryVariableUsages@0.1.0",
-  "description": "Retrieve library analytics variable usage data.\n\nUse this tool to get detailed analytics on how variables in a Figma library are being used. It breaks down the data by specified dimensions, helping analyze library performance and usage trends.",
+  "name": "GetLibraryStyleActions",
+  "fully_qualified_name": "FigmaApi.GetLibraryStyleActions@0.1.0",
+  "description": "Retrieve library style analytics actions data by dimension.\n\nUse this tool to obtain detailed actions data for styles in a Figma library, categorized by the specified dimension. Ideal for analyzing how styles are used or modified.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,13 +12,13 @@
       {
         "name": "group_by_dimension",
         "required": true,
-        "description": "Specify the dimension ('variable' or 'file') to group analytics data by.",
+        "description": "Specify the dimension ('style' or 'team') to group the returned analytics data by.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "variable",
-            "file"
+            "style",
+            "team"
           ],
           "properties": null,
           "inner_properties": null,
@@ -30,7 +30,7 @@
       {
         "name": "library_file_key",
         "required": true,
-        "description": "The unique file key of the Figma library to fetch analytics data for.",
+        "description": "The unique file key of the Figma library to retrieve analytics data for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,9 +43,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "data_page_cursor",
+        "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor for the specific page of data to fetch. Obtainable from a previous API call.",
+        "description": "A cursor to indicate which page of data to fetch. Obtain this from a prior API call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -56,11 +56,41 @@
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "earliest_week_start_date",
+        "required": false,
+        "description": "ISO 8601 date string (YYYY-MM-DD) for the earliest week to include. Dates round back to the nearest week start. Defaults to one year prior.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Dates are rounded back to the nearest start of a week. Defaults to one year prior."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "end_date",
+        "required": false,
+        "description": "ISO 8601 date string (YYYY-MM-DD) for the latest week to include, rounded to the week's end. Defaults to the latest computed week if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getLibraryAnalyticsVariableUsages'.",
+    "description": "Response from the API endpoint 'getLibraryAnalyticsStyleActions'.",
     "available_modes": [
       "value",
       "error",
@@ -101,13 +131,13 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/variable/usages",
+    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/style/actions",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
         "name": "cursor",
-        "tool_parameter_name": "data_page_cursor",
+        "tool_parameter_name": "pagination_cursor",
         "description": "Cursor indicating what page of data to fetch. Obtained from prior API call.",
         "value_schema": {
           "val_type": "string",
@@ -131,8 +161,8 @@
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "variable",
-            "file"
+            "style",
+            "team"
           ],
           "properties": null,
           "inner_properties": null,
@@ -140,6 +170,42 @@
         },
         "accepted_as": "query",
         "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_date",
+        "tool_parameter_name": "earliest_week_start_date",
+        "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Dates are rounded back to the nearest start of a week. Defaults to one year prior.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Dates are rounded back to the nearest start of a week. Defaults to one year prior."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "end_date",
+        "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week."
+        },
+        "accepted_as": "query",
+        "required": false,
         "deprecated": false,
         "default": null,
         "documentation_urls": []
@@ -173,6 +239,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "FetchProjectFiles",
-  "fully_qualified_name": "FigmaApi.FetchProjectFiles@0.1.0",
-  "description": "Fetches all files within a given Figma project.\n\nUse this tool to retrieve a complete list of files contained in a specified Figma project. It should be called when you need to gather information about the files present in a project.",
+  "name": "GetFigmaProjectFiles",
+  "fully_qualified_name": "FigmaApi.GetFigmaProjectFiles@0.1.0",
+  "description": "Retrieve all files from a specific Figma project.\n\nThis tool fetches a list of all files within the specified Figma project. Use it when you need to access or manage project files stored in Figma.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "project_identifier",
         "required": true,
-        "description": "The unique ID of the Figma project from which to list files.",
+        "description": "The unique string ID of the Figma project from which to list files.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "include_branch_metadata",
         "required": false,
-        "description": "Include branch metadata in the response for each main file with a branch inside the project. Set to True to enable.",
+        "description": "Include branch metadata for each main file with a branch in the project. Set to true to receive this data, otherwise false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -135,6 +135,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

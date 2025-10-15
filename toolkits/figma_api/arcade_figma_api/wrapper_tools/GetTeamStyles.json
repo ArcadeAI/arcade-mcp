@@ -1,7 +1,7 @@
 {
   "name": "GetTeamStyles",
   "fully_qualified_name": "FigmaApi.GetTeamStyles@0.1.0",
-  "description": "Retrieve a list of published team styles from Figma.\n\nThis tool retrieves a paginated list of styles published within a Figma team library. Use this to access and view styles that have been shared within a specific team.",
+  "description": "Retrieve a list of published styles from a team's library in Figma.\n\nThis tool retrieves a paginated list of styles that have been published within a specified team's library in Figma. It should be called when you need access to design styles, such as colors or text styles, that a team has made available in their library.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "team_id",
         "required": true,
-        "description": "The unique identifier of the Figma team from which to list styles.",
+        "description": "The unique identifier of the team from which to retrieve published styles.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "number_of_items",
+        "name": "items_per_page",
         "required": false,
-        "description": "The number of items to return in a paginated list of results. Defaults to 30.",
+        "description": "Specify the number of styles to return per page. Defaults to 30 if not provided.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page_size"
       },
       {
-        "name": "styles_cursor_after",
+        "name": "start_after_cursor",
         "required": false,
-        "description": "Cursor indicating which id after which to start retrieving styles. Used for pagination. Exclusive with styles_cursor_before.",
+        "description": "Cursor to start retrieving styles after a specific ID. Cannot be used with before. Internally tracked integer.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "after"
       },
       {
-        "name": "start_retrieving_before_cursor",
+        "name": "cursor_before_id",
         "required": false,
-        "description": "Cursor indicating which ID to start retrieving styles before. Cannot be used with 'start_retrieving_after_cursor'.",
+        "description": "Cursor for retrieving styles before a specific ID. Use this to paginate backwards. Exclusive with after.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -94,8 +94,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "team_library_content:read"
+          "team_library_content:read",
+          "files:read"
         ]
       }
     },
@@ -120,7 +120,7 @@
     "parameters": [
       {
         "name": "page_size",
-        "tool_parameter_name": "number_of_items",
+        "tool_parameter_name": "items_per_page",
         "description": "Number of items to return in a paged list of results. Defaults to 30.",
         "value_schema": {
           "val_type": "number",
@@ -138,7 +138,7 @@
       },
       {
         "name": "after",
-        "tool_parameter_name": "styles_cursor_after",
+        "tool_parameter_name": "start_after_cursor",
         "description": "Cursor indicating which id after which to start retrieving styles for. Exclusive with before. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -156,7 +156,7 @@
       },
       {
         "name": "before",
-        "tool_parameter_name": "start_retrieving_before_cursor",
+        "tool_parameter_name": "cursor_before_id",
         "description": "Cursor indicating which id before which to start retrieving styles for. Exclusive with after. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -201,6 +201,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

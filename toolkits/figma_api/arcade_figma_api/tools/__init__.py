@@ -8,11 +8,17 @@ BE OVERWRITTEN BY THE TRANSPILER.
 """
 
 import asyncio
+import json
+from enum import Enum
 from typing import Annotated, Any
 
 import httpx
+import jsonschema
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError
+
+from .request_body_schemas import REQUEST_BODY_SCHEMAS
 
 # Retry configuration
 INITIAL_RETRY_DELAY = 0.5  # seconds
@@ -24,6 +30,13 @@ HTTP_CLIENT = httpx.AsyncClient(
     http2=True,
     follow_redirects=True,
 )
+
+
+class ToolMode(str, Enum):
+    """Mode for tools with complex request bodies."""
+
+    GET_REQUEST_SCHEMA = "get_request_schema"
+    EXECUTE = "execute"
 
 
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
@@ -57,7 +70,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -67,46 +80,87 @@ async def make_request(
     raise httpx.RequestError("Max retries exceeded")  # noqa: TRY003
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_content:read"]))
-async def retrieve_figma_file(
+def validate_json_against_schema(
+    json_data: dict[str, Any], schema: dict[str, Any]
+) -> tuple[bool, str | None]:
+    """Validate JSON data against an OpenAPI/JSON Schema.
+
+    This provides full JSON Schema Draft 7 validation including:
+    - Required fields, types, enums
+    - Pattern validation (regex)
+    - Format validation (email, uuid, date-time, etc.)
+    - Min/max length and values
+    - oneOf, anyOf, allOf
+    - And all other JSON Schema features
+
+    Args:
+        json_data: The JSON data to validate
+        schema: The JSON Schema to validate against
+
+    Returns:
+        Tuple of (is_valid, error_messages). If valid, error_messages is None.
+        If invalid, error_messages contains all validation errors.
+    """
+    try:
+        validator = jsonschema.Draft7Validator(
+            schema, format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER
+        )
+        # Collect ALL validation errors
+        errors = list(validator.iter_errors(json_data))
+        if errors:
+            # Format all errors with their paths
+            error_messages = []
+            for error in errors:
+                error_path = ".".join(str(p) for p in error.path) if error.path else "root"
+                error_messages.append(f"{error.message} at {error_path}")
+            # Join all errors with newlines
+            return False, "\n".join(error_messages)
+        else:
+            return True, None
+    except jsonschema.SchemaError as e:
+        return False, f"Invalid schema: {e.message}"
+    except Exception as e:
+        return False, f"Validation error: {e!s}"
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+async def fetch_figma_file(
     context: ToolContext,
-    figma_file_key: Annotated[
-        str, "Unique key for the Figma file or branch to retrieve JSON data from."
-    ],
-    specific_version_id: Annotated[
+    file_key: Annotated[str, "The unique key of the Figma file or branch to retrieve as JSON."],
+    version_id: Annotated[
         str | None,
-        "Specify a version ID to retrieve a particular version of the Figma file. Leave blank for the current version.",  # noqa: E501
+        "Specify the version ID to retrieve a specific version of the file. Default is the current version.",  # noqa: E501
     ] = None,
-    node_ids: Annotated[
+    node_ids_of_interest: Annotated[
         str | None,
-        "Comma-separated list of node IDs to fetch specific parts of the document. It returns nodes, their children, and paths.",  # noqa: E501
+        "Comma-separated list of node IDs to retrieve specific parts of the Figma document.",
     ] = None,
-    document_depth: Annotated[
+    traversal_depth: Annotated[
         float | None,
-        "Positive integer representing how deep into the Figma document tree to traverse. For example, setting this to 1 returns only Pages, setting it to 2 returns Pages and all top level objects on each page. Omitting this parameter returns all nodes.",  # noqa: E501
+        "Positive integer indicating the depth in the document tree to retrieve. For example, 1 returns only Pages; 2 returns Pages and top-level objects.",  # noqa: E501
     ] = None,
     export_vector_data: Annotated[
-        str | None, 'Set this to "paths" if you want to include vector data in the export.'
+        str | None, 'Set to "paths" to include vector data in the response.'
     ] = None,
     include_plugin_data: Annotated[
         str | None,
-        'Specify plugin IDs or "shared" to include their data in the `pluginData` and `sharedPluginData` fields of the response.',  # noqa: E501
+        "Comma separated list of plugin IDs and/or 'shared'. Includes plugin data in the result.",
     ] = None,
     include_branch_metadata: Annotated[
         bool | None,
-        "Set to true to include branch metadata for the requested file. If the file is a branch, the main file's key will be included. If the file has branches, their metadata will also be included. Defaults to false.",  # noqa: E501
+        "Set to true to include metadata about branches related to the file. If false, branch information will not be returned.",  # noqa: E501
     ] = False,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFile'."]:
-    """Retrieve Figma file document and components by file key.
+    """Retrieve a Figma file as a JSON object using its file key.
 
-    This tool fetches the document and component metadata from a specified Figma file using its unique file key. Call this tool to get detailed JSON data about a Figma document and its components."""  # noqa: E501
+    Use this tool to fetch a Figma document as JSON, identified by a file key. The returned data includes the document structure and metadata about components."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}".format(file_key=figma_file_key),  # noqa: UP032
+        url="https://api.figma.com/v1/files/{file_key}".format(file_key=file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({
-            "version": specific_version_id,
-            "ids": node_ids,
-            "depth": document_depth,
+            "version": version_id,
+            "ids": node_ids_of_interest,
+            "depth": traversal_depth,
             "geometry": export_vector_data,
             "plugin_data": include_plugin_data,
             "branch_data": include_branch_metadata,
@@ -124,43 +178,43 @@ async def retrieve_figma_file(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
 async def get_figma_file_nodes(
     context: ToolContext,
-    node_ids: Annotated[
-        str, "A comma-separated list of node IDs to retrieve and convert from the Figma file."
+    node_ids_to_retrieve: Annotated[
+        str, "A comma-separated list of Figma node IDs to retrieve as JSON."
     ],
-    file_key: Annotated[
-        str,
-        "The key for the Figma file to export JSON data from. It can be a file key or branch key.",
+    figma_file_key: Annotated[
+        str, "The file or branch key from which to export JSON data in Figma."
     ],
-    version_id: Annotated[
-        str | None, "Specify a version ID to retrieve. If omitted, the current version is returned."
+    specific_version_id: Annotated[
+        str | None,
+        "Specify a version ID to retrieve a particular version of the Figma file. If omitted, the current version is retrieved.",  # noqa: E501
     ] = None,
     node_tree_depth: Annotated[
         float | None,
-        "Positive integer representing how deep into the node tree to traverse starting from the desired node. Setting this to 1 returns only direct children.",  # noqa: E501
+        "Positive integer indicating how deep into the node tree to traverse from the starting node. A value of 1 returns only immediate children. Leaving it unset returns all nodes.",  # noqa: E501
     ] = None,
     export_vector_data: Annotated[
-        str | None, 'Set this to "paths" to export vector data from the Figma nodes.'
+        str | None, 'Set to "paths" to include vector data in the response.'
     ] = None,
-    plugins_to_include: Annotated[
+    include_plugin_data: Annotated[
         str | None,
-        "A comma-separated list of plugin IDs and/or 'shared' to include their data in the result.",
+        "Comma-separated plugin IDs and/or 'shared' to include plugin-related data in results.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileNodes'."]:
-    """Retrieve nodes from a specified Figma file by IDs.
+    """Retrieve nodes and metadata from a Figma file.
 
-    Call this tool to get detailed information about specific nodes within a Figma file using the file key and node IDs. The response includes metadata such as name, last modified date, thumbnail URL, editor type, version, and link access permissions. It also provides component and style mappings."""  # noqa: E501
+    Use this tool to get detailed information about specific nodes in a Figma file, including metadata like name, last modified date, thumbnail URL, editor type, version, and link access permissions. Also retrieves document structure, component mappings, and styles. Useful for accessing and analyzing Figma design elements."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/nodes".format(file_key=file_key),  # noqa: UP032
+        url="https://api.figma.com/v1/files/{file_key}/nodes".format(file_key=figma_file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({
-            "ids": node_ids,
-            "version": version_id,
+            "ids": node_ids_to_retrieve,
+            "version": specific_version_id,
             "depth": node_tree_depth,
             "geometry": export_vector_data,
-            "plugin_data": plugins_to_include,
+            "plugin_data": include_plugin_data,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -175,70 +229,70 @@ async def get_figma_file_nodes(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_content:read"]))
-async def render_images_from_figma_file(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+async def render_figma_images(
     context: ToolContext,
     node_ids_to_render: Annotated[
-        str, "A comma-separated list of Figma node IDs that you want to render into images."
+        str, "A comma-separated list of node IDs for images to be rendered."
     ],
     figma_file_key: Annotated[
         str,
-        "File key or branch key to export images from in Figma. Use `GET /v1/files/:key` with `branch_data` to obtain the branch key.",  # noqa: E501
+        "The key for the Figma file or branch to export images from. Use with the `branch_data` query parameter to obtain branch key if needed.",  # noqa: E501
     ],
-    file_version_id: Annotated[
+    version_id: Annotated[
         str | None,
-        "Specify a version ID to get a particular version of the Figma file. Leave blank to get the current version.",  # noqa: E501
+        "Specify a version ID to retrieve a particular version of a Figma file. If omitted, will use the current version.",  # noqa: E501
     ] = None,
-    image_scaling_factor: Annotated[
+    image_scale_factor: Annotated[
         float | None,
-        "A number between 0.01 and 4 to specify the scaling factor for the rendered image.",
+        "A number between 0.01 and 4, representing the image scaling factor for rendering.",
     ] = None,
     image_output_format: Annotated[
         str | None,
-        "Specify the format for the image output. Acceptable formats are: jpg, png, svg, pdf.",
+        "Specify the image format for the output. Options are 'jpg', 'png', 'svg', or 'pdf'.",
     ] = "png",
     render_text_as_outlines: Annotated[
         bool | None,
-        "Set to true to render text as outlines in SVGs, ensuring consistent visual appearance. Set to false to render text as selectable.",  # noqa: E501
+        "Determines if text elements are rendered as outlines in SVGs. Set `true` for visual consistency; `false` for selectable text.",  # noqa: E501
     ] = True,
     include_svg_id_attributes: Annotated[
         bool | None,
-        "Include ID attributes for all SVG elements, adding the layer name to each element's ID.",
+        "Include id attributes for all SVG elements. Adds the layer name to the 'id' attribute.",
     ] = False,
-    include_node_id_in_svg: Annotated[
+    include_node_id_in_svg_elements: Annotated[
         bool | None,
-        "Whether to include node ID attributes for all SVG elements. Adds the node ID to a `data-node-id` attribute in SVG.",  # noqa: E501
+        "Set to true to include node ID attributes for all SVG elements, adding the node ID to a `data-node-id` attribute.",  # noqa: E501
     ] = False,
-    simplify_svg_strokes: Annotated[
+    svg_stroke_simplification_enabled: Annotated[
         bool | None,
-        "Set to true to simplify inside/outside strokes in SVGs. Uses stroke attributes instead of `<mask>` if possible.",  # noqa: E501
+        "Set to true to simplify inside/outside strokes in SVG using stroke attributes instead of `<mask>`.",  # noqa: E501
     ] = True,
     exclude_overlapping_content: Annotated[
         bool | None,
-        "Set to true to exclude content that overlaps the node from rendering. False may increase processing time.",  # noqa: E501
+        "Set to true to exclude overlapping content from rendering. Set to false to include overlaps, which may increase processing time.",  # noqa: E501
     ] = True,
-    use_absolute_node_bounds: Annotated[
+    use_full_dimensions_without_cropping: Annotated[
         bool | None,
-        "Set to true to use the full dimensions of the node without cropping, useful for exporting text nodes fully.",  # noqa: E501
+        "Export using full node dimensions, ignoring cropping and empty space. Ensures text nodes are fully visible.",  # noqa: E501
     ] = False,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getImages'."]:
-    """Render images from a Figma file using node IDs.
+    """Fetch rendered images from Figma files by node IDs.
 
-    Use this tool to render images from a specific Figma file by providing node IDs. It returns a map linking node IDs to their respective rendered image URLs. The images will expire after 30 days and may include null values if rendering fails."""  # noqa: E501
+    Use this tool to render and retrieve images from a Figma file by specifying node IDs. The tool returns a mapping of node IDs to URLs of the rendered images. Note: Some entries may be null if rendering fails for certain nodes. Images expire after 30 days."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/images/{file_key}".format(file_key=figma_file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({
             "ids": node_ids_to_render,
-            "version": file_version_id,
-            "scale": image_scaling_factor,
+            "version": version_id,
+            "scale": image_scale_factor,
             "format": image_output_format,
             "svg_outline_text": render_text_as_outlines,
             "svg_include_id": include_svg_id_attributes,
-            "svg_include_node_id": include_node_id_in_svg,
-            "svg_simplify_stroke": simplify_svg_strokes,
+            "svg_include_node_id": include_node_id_in_svg_elements,
+            "svg_simplify_stroke": svg_stroke_simplification_enabled,
             "contents_only": exclude_overlapping_content,
-            "use_absolute_bounds": use_absolute_node_bounds,
+            "use_absolute_bounds": use_full_dimensions_without_cropping,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -253,21 +307,19 @@ async def render_images_from_figma_file(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_content:read"]))
-async def get_image_fill_links(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_content:read", "files:read"]))
+async def fetch_image_fill_links(
     context: ToolContext,
-    file_key_or_branch_key: Annotated[
+    file_or_branch_key: Annotated[
         str,
-        "The key representing a Figma file or branch to retrieve image URLs from. Obtain from `GET /v1/files/:key` with `branch_data`.",  # noqa: E501
+        "The file or branch key from which to retrieve image URLs. Use `GET /v1/files/:key` to get the branch key if needed.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getImageFills'."]:
-    """Retrieve download links for images in Figma document fills.
+    """Retrieve download links for images in a Figma document.
 
-    This tool retrieves URLs for all images present in the image fills of a Figma document. Use this when you need to download images that users have supplied by dragging them into Figma. The URLs provided will expire after up to 14 days."""  # noqa: E501
+    Use this tool to get download links for all images present in the image fills of a Figma document. These links allow access to images users have added to their design files. The URLs will expire after about 14 days and can be found using image references."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/images".format(  # noqa: UP032
-            file_key=file_key_or_branch_key
-        ),
+        url="https://api.figma.com/v1/files/{file_key}/images".format(file_key=file_or_branch_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -284,18 +336,18 @@ async def get_image_fill_links(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_metadata:read", "files:read"]))
-async def get_figma_file_metadata(
+async def get_file_metadata(
     context: ToolContext,
-    figma_file_key: Annotated[
+    file_identifier: Annotated[
         str,
-        "The unique file or branch key to get metadata for. Use this to specify which Figma file's metadata to retrieve.",  # noqa: E501
+        "File or branch key to get metadata for. Use the `branch_data` query param to get the branch key.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileMeta'."]:
-    """Retrieve metadata for a specific Figma file.
+    """Retrieve metadata for a specified Figma file.
 
-    Call this tool to obtain metadata for a Figma file using its unique file key. Useful for retrieving details such as version, creator, and other metadata related to a Figma file."""  # noqa: E501
+    This tool is used to obtain metadata information from a specific Figma file by providing the file key. It can be called when users need to access details about a Figma file, such as its name, creator, and other properties."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/meta".format(file_key=figma_file_key),  # noqa: UP032
+        url="https://api.figma.com/v1/files/{file_key}/meta".format(file_key=file_identifier),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -312,16 +364,16 @@ async def get_figma_file_metadata(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read", "files:read"]))
-async def fetch_team_projects(
+async def figma_get_team_projects(
     context: ToolContext,
     team_id: Annotated[
         str,
-        "The ID of the Figma team from which to list projects. This ID is found in the team URL.",
+        "The unique ID of the Figma team to list projects from. This is required to specify which team's projects to retrieve.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTeamProjects'."]:
-    """Retrieve all projects for a specified Figma team.
+    """Fetch all projects within a specified Figma team.
 
-    Use this tool to get a list of all projects within a specified Figma team. It returns projects that are visible to the authenticated user or the owner of the developer token. Ensure you have the team ID, which can be found in the team URL."""  # noqa: E501
+    This tool retrieves a list of projects for a specified team in Figma, visible to the authenticated user."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/projects".format(team_id=team_id),  # noqa: UP032
         method="GET",
@@ -340,19 +392,19 @@ async def fetch_team_projects(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["projects:read", "files:read"]))
-async def fetch_project_files(
+async def get_figma_project_files(
     context: ToolContext,
     project_identifier: Annotated[
-        str, "The unique ID of the Figma project from which to list files."
+        str, "The unique string ID of the Figma project from which to list files."
     ],
     include_branch_metadata: Annotated[
         bool | None,
-        "Include branch metadata in the response for each main file with a branch inside the project. Set to True to enable.",  # noqa: E501
+        "Include branch metadata for each main file with a branch in the project. Set to true to receive this data, otherwise false.",  # noqa: E501
     ] = False,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getProjectFiles'."]:
-    """Fetches all files within a given Figma project.
+    """Retrieve all files from a specific Figma project.
 
-    Use this tool to retrieve a complete list of files contained in a specified Figma project. It should be called when you need to gather information about the files present in a project."""  # noqa: E501
+    This tool fetches a list of all files within the specified Figma project. Use it when you need to access or manage project files stored in Figma."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/projects/{project_id}/files".format(  # noqa: UP032
             project_id=project_identifier
@@ -372,36 +424,35 @@ async def fetch_project_files(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_versions:read"]))
-async def fetch_file_versions(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_versions:read", "files:read"]))
+async def fetch_file_version_history(
     context: ToolContext,
-    file_key_identifier: Annotated[
+    target_file_key: Annotated[
         str,
-        "Specify the file or branch key to retrieve version history. Obtain branch keys via `GET /v1/files/:key` with `branch_data`.",  # noqa: E501
+        "The key of the file or branch to fetch version history for. Use this to specify the Figma file whose version history you need.",  # noqa: E501
     ],
-    items_per_page: Annotated[
-        float | None, "The number of items to return per page. Defaults to 30 if not specified."
-    ] = None,
-    version_id_before: Annotated[
-        float | None, "A version ID to fetch versions preceding this ID. Used for pagination."
-    ] = None,
-    get_versions_after_id: Annotated[
+    number_of_items_per_page: Annotated[
         float | None,
-        "A version ID to get versions after it for pagination purposes in the version history.",
+        "Specify the number of items to return per page. Defaults to 30 if not provided.",
+    ] = None,
+    get_versions_before_id: Annotated[
+        float | None, "A version ID to get versions before it in the history. Used for pagination."
+    ] = None,
+    after_version_id: Annotated[
+        float | None,
+        "Version ID to fetch subsequent versions. Used for pagination. Omit if not paginating.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileVersions'."]:
-    """Fetches the version history of a Figma file.
+    """Fetch the version history of a Figma file.
 
-    Use this tool to obtain the version history of a specific Figma file, which shows the file's progression over time. This is useful for reviewing changes or for rendering specific versions using another endpoint."""  # noqa: E501
+    Use this tool to obtain the version history of a specific Figma file, enabling the analysis of its changes over time. This can be useful for reviewing past edits or rendering specific versions."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/versions".format(  # noqa: UP032
-            file_key=file_key_identifier
-        ),
+        url="https://api.figma.com/v1/files/{file_key}/versions".format(file_key=target_file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({
-            "page_size": items_per_page,
-            "before": version_id_before,
-            "after": get_versions_after_id,
+            "page_size": number_of_items_per_page,
+            "before": get_versions_before_id,
+            "after": after_version_id,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -416,23 +467,24 @@ async def fetch_file_versions(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_comments:read"]))
-async def retrieve_figma_comments(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read", "files:read"]))
+async def get_figma_file_comments(
     context: ToolContext,
-    file_identifier: Annotated[
+    figma_file_or_branch_key: Annotated[
         str,
-        "The key or branch key of the Figma file to retrieve comments from. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",  # noqa: E501
+        "Specify the file or branch key to retrieve comments from. Use the `GET /v1/files/:key` endpoint with `branch_data` query param for branch keys.",  # noqa: E501
     ],
     return_comments_as_markdown: Annotated[
-        bool | None,
-        "Return comments in markdown format if set to true; otherwise, return in plain text.",
+        bool | None, "Set to true to return comments as markdown equivalents when applicable."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getComments'."]:
     """Retrieve comments from a Figma file.
 
-    Use this tool to get all comments left on a specified Figma file. It helps in tracking feedback and discussions related to the file."""  # noqa: E501
+    Use this tool to get a list of comments left on a specific Figma file. It is useful for accessing feedback or discussions related to file elements."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/comments".format(file_key=file_identifier),  # noqa: UP032
+        url="https://api.figma.com/v1/files/{file_key}/comments".format(  # noqa: UP032
+            file_key=figma_file_or_branch_key
+        ),
         method="GET",
         params=remove_none_values({"as_md": return_comments_as_markdown}),
         headers=remove_none_values({
@@ -449,23 +501,161 @@ async def retrieve_figma_comments(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:write"]))
+async def add_comment_to_figma_file(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    figma_file_key: Annotated[
+        str | None,
+        "File or branch key for the Figma file where the comment will be added. Retrieve this using `GET /v1/files/:key` with the `branch_data` query param for branch keys.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'postComment'."]:
+    """Posts a new comment on a Figma file.
+
+    Use this tool to post a new comment on a specified file in Figma, identified by file_key.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS[
+                "ADDCOMMENTTOFIGMAFILE_REQUEST_BODY_SCHEMA"
+            ],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required path parameter: figma_file_key
+    if not figma_file_key:
+        raise RetryableToolError(
+            message="Invalid or missing figma_file_key parameter",
+            developer_message=f"Path parameter "
+            f"'figma_file_key' validation failed. "
+            f"Received: {figma_file_key}",
+            additional_prompt_content=(
+                "The 'figma_file_key' parameter is required when "
+                "executing this operation. "
+                "Please call this tool again with a valid "
+                "figma_file_key value."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["ADDCOMMENTTOFIGMAFILE_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["ADDCOMMENTTOFIGMAFILE_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["ADDCOMMENTTOFIGMAFILE_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['ADDCOMMENTTOFIGMAFILE_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v1/files/{file_key}/comments".format(file_key=figma_file_key),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:write"]))
 async def delete_figma_comment(
     context: ToolContext,
-    file_or_branch_key: Annotated[
+    figma_file_key: Annotated[
         str,
-        "The unique key of the file or branch from which to delete the comment. Use `GET /v1/files/:key` with `branch_data` parameter to obtain the branch key.",  # noqa: E501
+        "The file or branch key from which to delete the comment. Use `GET /v1/files/:key` with `branch_data` to obtain the branch key.",  # noqa: E501
     ],
-    comment_id_to_delete: Annotated[
+    comment_identifier: Annotated[
         str,
-        "The ID of the comment you wish to delete. Only the author of the comment can perform this action.",  # noqa: E501
+        "The ID of the comment you wish to delete from the Figma file. Only the original commenter can perform this action.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteComment'."]:
-    """Delete a specific comment in Figma.
+    """Delete your comment from a Figma file.
 
-    Use this tool to delete a comment in Figma. Only the comment's author is permitted to delete it. Call this tool when a user requests to remove their comment."""  # noqa: E501
+    Use this tool to delete a specific comment you made on a Figma file. Only the original commenter can delete their comments."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}".format(  # noqa: UP032
-            file_key=file_or_branch_key, comment_id=comment_id_to_delete
+            file_key=figma_file_key, comment_id=comment_identifier
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -482,26 +672,24 @@ async def delete_figma_comment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "file_comments:read"]))
-async def get_comment_reactions(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:read", "files:read"]))
+async def fetch_comment_reactions(
     context: ToolContext,
-    file_identifier: Annotated[
-        str,
-        "File or branch key to retrieve comment reactions from. Use `GET /v1/files/:key` with `branch_data` query to get the branch key.",  # noqa: E501
+    file_or_branch_key: Annotated[
+        str, "The key for the file or branch to retrieve the comment reactions from in Figma."
     ],
-    comment_id: Annotated[
-        str, "ID of the comment to retrieve reactions from within the Figma file."
-    ],
+    comment_id: Annotated[str, "ID of the comment from which to retrieve reactions."],
     pagination_cursor: Annotated[
-        str | None, "Cursor for pagination, retrieved from the response of the previous call."
+        str | None,
+        "Cursor for pagination. Use the cursor from the previous call's response to retrieve the next set of reactions.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getCommentReactions'."]:
-    """Retrieve reactions for a specific comment in Figma.
+    """Retrieve reactions from a specific comment in Figma.
 
-    Call this tool to get a list of reactions left on a specified comment within a Figma file. Useful for tracking user engagement or feedback on specific comments."""  # noqa: E501
+    Use this tool to obtain a list of reactions left on a specific comment in a Figma file. This can help track engagement or feedback on comments."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions".format(  # noqa: UP032
-            file_key=file_identifier, comment_id=comment_id
+            file_key=file_or_branch_key, comment_id=comment_id
         ),
         method="GET",
         params=remove_none_values({"cursor": pagination_cursor}),
@@ -519,27 +707,185 @@ async def get_comment_reactions(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:write"]))
-async def delete_comment_reaction(
+async def add_figma_comment_reaction(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    file_or_branch_key: Annotated[
+        str | None,
+        "Key of the file or branch where the comment reaction should be posted. Can be obtained via the Figma API.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    comment_id: Annotated[
+        str | None,
+        "The unique identifier of the comment you want to react to in a Figma file.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'postCommentReaction'."]:
+    """Add a reaction to a comment on a Figma file.
+
+    Use this tool to post a new reaction to an existing comment on a Figma file. It should be called when you want to react to a specific comment in a Figma project.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS[
+                "ADDFIGMACOMMENTREACTION_REQUEST_BODY_SCHEMA"
+            ],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required path parameter: file_or_branch_key
+    if not file_or_branch_key:
+        raise RetryableToolError(
+            message="Invalid or missing file_or_branch_key parameter",
+            developer_message=f"Path parameter "
+            f"'file_or_branch_key' validation failed. "
+            f"Received: {file_or_branch_key}",
+            additional_prompt_content=(
+                "The 'file_or_branch_key' parameter is required when "
+                "executing this operation. "
+                "Please call this tool again with a valid "
+                "file_or_branch_key value."
+            ),
+        )
+
+    # Validate required path parameter: comment_id
+    if not comment_id:
+        raise RetryableToolError(
+            message="Invalid or missing comment_id parameter",
+            developer_message=f"Path parameter "
+            f"'comment_id' validation failed. "
+            f"Received: {comment_id}",
+            additional_prompt_content=(
+                "The 'comment_id' parameter is required when "
+                "executing this operation. "
+                "Please call this tool again with a valid "
+                "comment_id value."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["ADDFIGMACOMMENTREACTION_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["ADDFIGMACOMMENTREACTION_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["ADDFIGMACOMMENTREACTION_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['ADDFIGMACOMMENTREACTION_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions".format(  # noqa: UP032
+            file_key=file_or_branch_key, comment_id=comment_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_comments:write"]))
+async def delete_my_comment_reaction(
     context: ToolContext,
     reaction_emoji: Annotated[
         str,
-        "The specific emoji reaction to delete from the comment. Must match the original emoji used.",  # noqa: E501
+        "The emoji associated with the reaction to be deleted. Only the emoji used for the reaction you added can be deleted.",  # noqa: E501
     ],
-    file_key_or_branch_key: Annotated[
+    file_or_branch_key: Annotated[
         str,
-        "Provide the file or branch key to delete the comment reaction from. Use `GET /v1/files/:key` with the `branch_data` query param to obtain the branch key.",  # noqa: E501
+        "Key of the Figma file or branch where the reaction should be deleted. Use `GET /v1/files/:key` with the `branch_data` query param to obtain the branch key if needed.",  # noqa: E501
     ],
     comment_id: Annotated[
-        str,
-        "ID of the comment from which the reaction will be deleted. The reaction can only be removed by the person who added it.",  # noqa: E501
+        str, "The ID of the comment from which you want to delete your reaction."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteCommentReaction'."]:
-    """Delete a specific comment reaction you added.
+    """Deletes your specific comment reaction in Figma.
 
-    Use this tool to delete a reaction you added to a comment. It can only be used by the person who originally made the reaction."""  # noqa: E501
+    This tool allows users to delete a reaction they added to a comment in a Figma file. It can only be used if the reaction was made by the person attempting to delete it."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions".format(  # noqa: UP032
-            file_key=file_key_or_branch_key, comment_id=comment_id
+            file_key=file_or_branch_key, comment_id=comment_id
         ),
         method="DELETE",
         params=remove_none_values({"emoji": reaction_emoji}),
@@ -556,13 +902,13 @@ async def delete_comment_reaction(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "current_user:read"]))
-async def get_user_info(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["current_user:read", "files:read"]))
+async def get_user_information(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getMe'."]:
     """Retrieve information for the authenticated Figma user.
 
-    Call this tool to get details about the authenticated user's profile in Figma."""
+    Use this tool to obtain the profile information of the user currently authenticated in the Figma service."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/me",
         method="GET",
@@ -580,36 +926,36 @@ async def get_user_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "team_library_content:read"]))
-async def retrieve_team_components(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
+async def get_team_components(
     context: ToolContext,
-    team_identifier: Annotated[
+    team_id: Annotated[
         str,
-        "The unique identifier for the team from which to list components. Required to specify the team's library.",  # noqa: E501
+        "The unique identifier of the team whose components you want to retrieve. This ID is necessary to specify the source team library in Figma.",  # noqa: E501
     ],
-    number_of_items_to_return: Annotated[
+    number_of_items_per_page: Annotated[
         float | None,
-        "Number of items to return in the paginated response. Defaults to 30. Maximum of 1000.",
+        "Specify the number of components to return in one page. Defaults to 30, maximum is 1000.",
     ] = 30,
-    retrieve_after_cursor: Annotated[
+    cursor_after_id: Annotated[
         float | None,
-        "The cursor indicating the ID after which to start retrieving components. This is exclusive with the 'before' parameter.",  # noqa: E501
+        "Cursor indicating which ID to start retrieving components after. Cannot be used with 'before'.",  # noqa: E501
     ] = None,
-    cursor_before_id: Annotated[
+    cursor_before: Annotated[
         float | None,
-        "An integer cursor indicating the id before which to start retrieving components. This is exclusive with `cursor_after_id`.",  # noqa: E501
+        "Cursor to retrieve components starting before a specific id. Exclusive with 'cursor_after'.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTeamComponents'."]:
-    """Retrieve a list of published components in a team library.
+    """Retrieve published components from a team's Figma library.
 
-    Call this tool to obtain a paginated list of components that have been published within a specific team's library on Figma."""  # noqa: E501
+    Use this tool to get a list of components that have been published within a specified team's library in Figma."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/teams/{team_id}/components".format(team_id=team_identifier),  # noqa: UP032
+        url="https://api.figma.com/v1/teams/{team_id}/components".format(team_id=team_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({
-            "page_size": number_of_items_to_return,
-            "after": retrieve_after_cursor,
-            "before": cursor_before_id,
+            "page_size": number_of_items_per_page,
+            "after": cursor_after_id,
+            "before": cursor_before,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -627,15 +973,13 @@ async def retrieve_team_components(
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
 async def get_figma_file_components(
     context: ToolContext,
-    main_file_key: Annotated[
-        str, "The key of the main Figma file to list components from. It must not be a branch key."
-    ],
+    file_key: Annotated[str, "Main file key to list components from. Must not be a branch key."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileComponents'."]:
-    """Retrieve a list of published components from a Figma file.
+    """Retrieve published components from a Figma file library.
 
-    Use this tool to access all the published components within a specific Figma file library."""
+    Use this tool to obtain a list of all published components within a specific Figma file, allowing for design asset management or analysis."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/components".format(file_key=main_file_key),  # noqa: UP032
+        url="https://api.figma.com/v1/files/{file_key}/components".format(file_key=file_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -651,8 +995,8 @@ async def get_figma_file_components(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_assets:read"]))
-async def get_component_metadata(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+async def get_figma_component_metadata(
     context: ToolContext,
     component_key: Annotated[
         str, "The unique identifier of the Figma component to retrieve metadata for."
@@ -660,7 +1004,7 @@ async def get_component_metadata(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getComponent'."]:
     """Retrieve metadata for a Figma component by key.
 
-    Use this tool to obtain detailed metadata about a specific component in Figma by providing its unique key."""  # noqa: E501
+    Use this tool to obtain detailed metadata about a specific Figma component using its key."""
     response = await make_request(
         url="https://api.figma.com/v1/components/{key}".format(key=component_key),  # noqa: UP032
         method="GET",
@@ -678,34 +1022,35 @@ async def get_component_metadata(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "team_library_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
 async def get_team_component_sets(
     context: ToolContext,
     team_id: Annotated[
-        str, "The unique identifier for the team whose component sets are to be listed."
+        str, "The unique identifier for the team from which to list component sets."
     ],
     number_of_items_per_page: Annotated[
-        float | None, "Specify the number of component sets to return per page. Default is 30."
+        float | None,
+        "Specify the number of items to return per page in the results. Defaults to 30.",
     ] = 30,
-    start_after_id: Annotated[
+    start_after_cursor: Annotated[
         float | None,
-        "Cursor to start retrieving component sets after this ID. Used for pagination. Exclusive with start_before_id.",  # noqa: E501
+        "Cursor indicating the starting point for retrieving component sets, exclusive with `end_before_cursor`. This cursor is an internally tracked integer not corresponding to any IDs.",  # noqa: E501
     ] = None,
-    start_before_id: Annotated[
+    cursor_before_id: Annotated[
         float | None,
-        "Cursor indicating the ID before which to start retrieving component sets. Cannot be used with 'after'.",  # noqa: E501
+        "Cursor ID indicating the point before which to retrieve component sets. It must be exclusive with the 'after' cursor.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTeamComponentSets'."]:
-    """Retrieve published component sets from a Figma team library.
+    """Fetch published component sets from a Figma team library.
 
-    Use this tool to obtain a paginated list of component sets that are published within a Figma team's library. Call this tool when you need details about the component sets available to a specific team."""  # noqa: E501
+    This tool retrieves a paginated list of component sets that have been published within a specified team library in Figma. It should be used when you need to access or explore available component sets in a particular Figma team."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/component_sets".format(team_id=team_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({
             "page_size": number_of_items_per_page,
-            "after": start_after_id,
-            "before": start_before_id,
+            "after": start_after_cursor,
+            "before": cursor_before_id,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -723,16 +1068,17 @@ async def get_team_component_sets(
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
 async def get_published_component_sets(
     context: ToolContext,
-    figma_file_key: Annotated[
-        str, "Main file key to list component sets from. Ensure it's not a branch key."
+    main_file_key: Annotated[
+        str,
+        "The main file key of the Figma file to list component sets from. Must not be a branch key.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileComponentSets'."]:
     """Retrieve published component sets from a Figma file.
 
-    Use this tool to obtain a list of component sets that have been published within a specific Figma file library."""  # noqa: E501
+    Call this tool to get a list of published component sets within a specified Figma file library. Useful for accessing design components efficiently."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/component_sets".format(  # noqa: UP032
-            file_key=figma_file_key
+            file_key=main_file_key
         ),
         method="GET",
         params=remove_none_values({}),
@@ -749,18 +1095,18 @@ async def get_published_component_sets(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_assets:read"]))
-async def get_published_component_metadata(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+async def get_figma_component_set(
     context: ToolContext,
-    component_set_id: Annotated[
-        str, "The unique identifier of the Figma component set to retrieve metadata for."
+    component_set_key: Annotated[
+        str, "The unique key identifier for the Figma component set to retrieve metadata."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getComponentSet'."]:
-    """Retrieve metadata for a published Figma component set.
+    """Retrieve metadata for a Figma component set using its key.
 
-    Use this tool to obtain metadata for a published component set by providing its unique key. This is helpful for designers and developers looking to integrate component details from Figma into their workflow."""  # noqa: E501
+    Use this tool to obtain detailed metadata about a published component set in Figma by providing its unique key identifier."""  # noqa: E501
     response = await make_request(
-        url="https://api.figma.com/v1/component_sets/{key}".format(key=component_set_id),  # noqa: UP032
+        url="https://api.figma.com/v1/component_sets/{key}".format(key=component_set_key),  # noqa: UP032
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({
@@ -776,33 +1122,35 @@ async def get_published_component_metadata(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "team_library_content:read"]))
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["team_library_content:read", "files:read"]))
 async def get_team_styles(
     context: ToolContext,
-    team_id: Annotated[str, "The unique identifier of the Figma team from which to list styles."],
-    number_of_items: Annotated[
+    team_id: Annotated[
+        str, "The unique identifier of the team from which to retrieve published styles."
+    ],
+    items_per_page: Annotated[
         float | None,
-        "The number of items to return in a paginated list of results. Defaults to 30.",
+        "Specify the number of styles to return per page. Defaults to 30 if not provided.",
     ] = 30,
-    styles_cursor_after: Annotated[
+    start_after_cursor: Annotated[
         float | None,
-        "Cursor indicating which id after which to start retrieving styles. Used for pagination. Exclusive with styles_cursor_before.",  # noqa: E501
+        "Cursor to start retrieving styles after a specific ID. Cannot be used with before. Internally tracked integer.",  # noqa: E501
     ] = None,
-    start_retrieving_before_cursor: Annotated[
+    cursor_before_id: Annotated[
         float | None,
-        "Cursor indicating which ID to start retrieving styles before. Cannot be used with 'start_retrieving_after_cursor'.",  # noqa: E501
+        "Cursor for retrieving styles before a specific ID. Use this to paginate backwards. Exclusive with after.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getTeamStyles'."]:
-    """Retrieve a list of published team styles from Figma.
+    """Retrieve a list of published styles from a team's library in Figma.
 
-    This tool retrieves a paginated list of styles published within a Figma team library. Use this to access and view styles that have been shared within a specific team."""  # noqa: E501
+    This tool retrieves a paginated list of styles that have been published within a specified team's library in Figma. It should be called when you need access to design styles, such as colors or text styles, that a team has made available in their library."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/teams/{team_id}/styles".format(team_id=team_id),  # noqa: UP032
         method="GET",
         params=remove_none_values({
-            "page_size": number_of_items,
-            "after": styles_cursor_after,
-            "before": start_retrieving_before_cursor,
+            "page_size": items_per_page,
+            "after": start_after_cursor,
+            "before": cursor_before_id,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -818,15 +1166,13 @@ async def get_team_styles(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_content:read"]))
-async def get_published_file_styles(
+async def get_published_styles_from_file(
     context: ToolContext,
-    main_file_key: Annotated[
-        str, "Main file key to list styles from in Figma. This should not be a branch key."
-    ],
+    main_file_key: Annotated[str, "Main file key to list styles from. Must not be a branch key."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getFileStyles'."]:
-    """Retrieve published styles from a Figma file.
+    """Retrieve published styles from a Figma file library.
 
-    This tool fetches a list of published styles within a specified Figma file library, allowing users to access style information for design consistency and reuse."""  # noqa: E501
+    Use this tool to get a list of published styles within a specific Figma file library. Useful when you need to analyze or display the styles used in a Figma file."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/styles".format(file_key=main_file_key),  # noqa: UP032
         method="GET",
@@ -844,14 +1190,14 @@ async def get_published_file_styles(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "library_assets:read"]))
-async def get_figma_style_metadata(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_assets:read", "files:read"]))
+async def get_style_metadata(
     context: ToolContext,
     style_key: Annotated[str, "The unique identifier of the Figma style to retrieve metadata for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getStyle'."]:
-    """Retrieve metadata of a Figma style using its key.
+    """Retrieve Figma style metadata by key.
 
-    Call this tool to obtain detailed information about a specific style in Figma by providing its unique key."""  # noqa: E501
+    Use this tool to get detailed metadata about a specific style in Figma using its unique key. Useful for accessing style information for design analysis or integration."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/styles/{key}".format(key=style_key),  # noqa: UP032
         method="GET",
@@ -873,31 +1219,31 @@ async def get_figma_style_metadata(
 async def get_figma_webhooks(
     context: ToolContext,
     webhook_context: Annotated[
-        str | None, "Specifies the context for the webhooks: 'team', 'project', or 'file'."
+        str | None, "Specify the context for the webhooks. Accepts 'team', 'project', or 'file'."
     ] = None,
     context_identifier: Annotated[
         str | None,
-        "The ID of the context to retrieve webhooks for. Cannot be used with plan_identifier.",
+        "The ID of the context to fetch attached webhooks. Cannot be used with plan_api_id.",
     ] = None,
-    plan_id: Annotated[
+    plan_id_for_webhooks: Annotated[
         str | None,
-        "The ID of your plan to retrieve all webhooks for accessible contexts. Use if not specifying context or context_id. Enables pagination.",  # noqa: E501
+        "The ID of your plan for retrieving webhooks across all accessible contexts. Cannot be used with context or context_id.",  # noqa: E501
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "Cursor for pagination when using plan_api_id. Ignored if using context or context_id. Use next_page or prev_page from previous response.",  # noqa: E501
+        "Cursor for pagination when using plan_api_id. Provide next_page or prev_page from previous response to navigate pages.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWebhooks'."]:
-    """Retrieve a list of Figma webhooks.
+    """Retrieve a list of webhooks from Figma.
 
-    Use this tool to get a list of webhooks from Figma. It returns webhooks based on the specified context or plan, with pagination support."""  # noqa: E501
+    Call this tool to get a list of webhooks available in your Figma context or plan. This can be used to manage and view all the webhooks you have access to, with results provided in a paginated format."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v2/webhooks",
         method="GET",
         params=remove_none_values({
             "context": webhook_context,
             "context_id": context_identifier,
-            "plan_api_id": plan_id,
+            "plan_api_id": plan_id_for_webhooks,
             "cursor": pagination_cursor,
         }),
         headers=remove_none_values({
@@ -913,17 +1259,132 @@ async def get_figma_webhooks(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "webhooks:read"]))
-async def get_webhook_by_id(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:write"]))
+async def create_figma_webhook(
     context: ToolContext,
-    webhook_id: Annotated[
-        str,
-        "ID of the webhook to retrieve. This ID is required to fetch the specific webhook details.",
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWebhook'."]:
-    """Retrieve webhook information by ID.
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'postWebhook'."]:
+    """Create a new webhook for Figma events.
 
-    Use this tool to get detailed information about a specific webhook using its ID."""
+    This tool creates a webhook in Figma that triggers an event to a specified endpoint. It sends a PING event by default, unless set to PAUSED, and can be reactivated later.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["CREATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["CREATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["CREATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['CREATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v2/webhooks",
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read", "files:read"]))
+async def get_figma_webhook(
+    context: ToolContext,
+    webhook_id: Annotated[str, "Unique identifier of the Figma webhook to retrieve."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWebhook'."]:
+    """Retrieve a Figma webhook by its ID.
+
+    Use this tool to obtain detailed information about a specific Figma webhook by providing its unique ID."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}".format(webhook_id=webhook_id),  # noqa: UP032
         method="GET",
@@ -942,16 +1403,154 @@ async def get_webhook_by_id(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:write"]))
+async def update_figma_webhook(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    webhook_id_to_update: Annotated[
+        str | None,
+        "Provide the ID of the Figma webhook you want to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'putWebhook'."]:
+    """Update a Figma webhook by its ID.
+
+    Use this tool to update the settings or parameters of an existing webhook in Figma by specifying the webhook ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required path parameter: webhook_id_to_update
+    if not webhook_id_to_update:
+        raise RetryableToolError(
+            message="Invalid or missing webhook_id_to_update parameter",
+            developer_message=f"Path parameter "
+            f"'webhook_id_to_update' validation failed. "
+            f"Received: {webhook_id_to_update}",
+            additional_prompt_content=(
+                "The 'webhook_id_to_update' parameter is required when "
+                "executing this operation. "
+                "Please call this tool again with a valid "
+                "webhook_id_to_update value."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["UPDATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["UPDATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["UPDATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['UPDATEFIGMAWEBHOOK_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v2/webhooks/{webhook_id}".format(  # noqa: UP032
+            webhook_id=webhook_id_to_update
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:write"]))
 async def delete_figma_webhook(
     context: ToolContext,
     webhook_id_to_delete: Annotated[
         str,
-        "The ID of the Figma webhook you wish to delete. Ensure correctness as this action is irreversible.",  # noqa: E501
+        "The unique identifier of the webhook you wish to delete. This ID is required for the deletion operation.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteWebhook'."]:
-    """Delete a specified Figma webhook permanently.
+    """Delete a specified webhook in Figma.
 
-    Use this tool to permanently delete a specific webhook from Figma. Ensure that you intend to remove the webhook as this action cannot be undone."""  # noqa: E501
+    Use this tool to delete a specified webhook in Figma. This action is irreversible and should be called when a webhook is no longer needed."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}".format(  # noqa: UP032
             webhook_id=webhook_id_to_delete
@@ -971,16 +1570,16 @@ async def delete_figma_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["files:read", "webhooks:read"]))
-async def retrieve_recent_webhook_requests(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["webhooks:read", "files:read"]))
+async def get_recent_webhook_requests(
     context: ToolContext,
     webhook_subscription_id: Annotated[
-        str, "The ID of the webhook subscription to retrieve events from for the past week."
+        str, "The ID of the webhook subscription for which to retrieve recent events."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getWebhookRequests'."]:
-    """Retrieve recent webhook requests for debugging.
+    """Retrieve recent webhook requests from the last week.
 
-    Use this tool to obtain all webhook requests sent in the last week, which can aid in debugging issues related to webhooks."""  # noqa: E501
+    Use this tool to gather webhook requests sent within the last week for debugging purposes."""
     response = await make_request(
         url="https://api.figma.com/v2/webhooks/{webhook_id}/requests".format(  # noqa: UP032
             webhook_id=webhook_subscription_id
@@ -1001,19 +1600,19 @@ async def retrieve_recent_webhook_requests(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_variables:read"]))
-async def get_local_variables(
+async def retrieve_figma_local_variables(
     context: ToolContext,
-    file_key_or_branch_key: Annotated[
+    file_or_branch_key: Annotated[
         str,
-        "Specify the file key or branch key to retrieve variables from the Figma file. Use `GET /v1/files/:key` with `branch_data` query param to obtain the branch key if needed.",  # noqa: E501
+        "The key for the file or branch to retrieve variables from in Figma. If a branch, use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getLocalVariables'."]:
     """Retrieve local and remote variables from a Figma file.
 
-    This tool allows you to retrieve local variables created in a Figma file and remote variables used in it, available for Enterprise orgs. It provides details such as variableId and their associated collections."""  # noqa: E501
+    Use this tool to get a list of local variables created in a Figma file and any remote variables utilized, identified by their `subscribed_id`. This tool is available to full members of Enterprise organizations. It's useful for examining mode values and understanding variable usage within a file."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/variables/local".format(  # noqa: UP032
-            file_key=file_key_or_branch_key
+            file_key=file_or_branch_key
         ),
         method="GET",
         params=remove_none_values({}),
@@ -1031,15 +1630,16 @@ async def get_local_variables(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_variables:read"]))
-async def get_published_figma_variables(
+async def get_published_variables(
     context: ToolContext,
     main_file_key: Annotated[
-        str, "The main file key to fetch published variables from. Branch keys are not supported."
+        str,
+        "The key of the Figma file to retrieve published variables from. Only use the main file key, not a branch key.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getPublishedVariables'."]:
     """Retrieve published variables from a Figma file.
 
-    Use this tool to access the variables that are published from a specified Figma file. It's available for full members of Enterprise organizations. The response includes specific IDs and omits modes for variable collections."""  # noqa: E501
+    Call this tool to get a list of variables that are published from a specified Figma file. The response includes variable and collection details along with `subscribed_id`. Ideal for users needing information on published variables from a file within an Enterprise organization."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/variables/published".format(  # noqa: UP032
             file_key=main_file_key
@@ -1059,27 +1659,161 @@ async def get_published_figma_variables(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_dev_resources:read"]))
-async def get_file_dev_resources(
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_variables:write"]))
+async def manage_figma_variables(
     context: ToolContext,
-    main_file_key: Annotated[
-        str,
-        "Specify the main file key to fetch development resources from. This should not be a branch key.",  # noqa: E501
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-    specific_node_ids: Annotated[
+    file_identifier: Annotated[
         str | None,
-        "Comma-separated list of node IDs to filter specific dev resources. If not specified, all resources are returned.",  # noqa: E501
+        "Specifies the Figma file or branch key to modify variables. Retrieve branch key using `GET /v1/files/:key` with `branch_data` parameter.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'postVariables'."]:
+    """Manage and organize Figma variable collections in bulk.
+
+    This tool allows you to create, update, and delete variable collections, modes, and variables within Figma files for Enterprise members with Editor seats. Use it to handle variable operations in bulk, including setting mode values and managing temporary IDs. Ideal for organizing complex Figma projects efficiently.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["MANAGEFIGMAVARIABLES_REQUEST_BODY_SCHEMA"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required path parameter: file_identifier
+    if not file_identifier:
+        raise RetryableToolError(
+            message="Invalid or missing file_identifier parameter",
+            developer_message=f"Path parameter "
+            f"'file_identifier' validation failed. "
+            f"Received: {file_identifier}",
+            additional_prompt_content=(
+                "The 'file_identifier' parameter is required when "
+                "executing this operation. "
+                "Please call this tool again with a valid "
+                "file_identifier value."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["MANAGEFIGMAVARIABLES_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["MANAGEFIGMAVARIABLES_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["MANAGEFIGMAVARIABLES_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['MANAGEFIGMAVARIABLES_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v1/files/{file_key}/variables".format(file_key=file_identifier),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_dev_resources:read"]))
+async def get_dev_resources(
+    context: ToolContext,
+    file_key: Annotated[
+        str,
+        "The main file key for fetching development resources from a Figma file. Ensure it is not a branch key.",  # noqa: E501
+    ],
+    target_node_ids: Annotated[
+        str | None,
+        "Comma separated list of node IDs to filter dev resources. If left blank, returns resources for all nodes.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getDevResources'."]:
     """Retrieve development resources from a Figma file.
 
-    Call this tool to get the development resources from a specified Figma file using the file key."""  # noqa: E501
+    Use this tool to gather development resources from a specific Figma file using the file key."""
     response = await make_request(
-        url="https://api.figma.com/v1/files/{file_key}/dev_resources".format(  # noqa: UP032
-            file_key=main_file_key
-        ),
+        url="https://api.figma.com/v1/files/{file_key}/dev_resources".format(file_key=file_key),  # noqa: UP032
         method="GET",
-        params=remove_none_values({"node_ids": specific_node_ids}),
+        params=remove_none_values({"node_ids": target_node_ids}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -1094,21 +1828,263 @@ async def get_file_dev_resources(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_dev_resources:write"]))
+async def create_bulk_dev_resources(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'postDevResources'."]:
+    """Bulk create developer resources in multiple Figma files.
+
+    Use this tool to create multiple developer resources across different Figma files. Successfully created resources will be listed in the response, while any errors will also be provided, indicating issues such as non-existent file keys or duplicate URLs.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS[
+                "CREATEBULKDEVRESOURCES_REQUEST_BODY_SCHEMA"
+            ],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["CREATEBULKDEVRESOURCES_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["CREATEBULKDEVRESOURCES_REQUEST_BODY_SCHEMA"], indent=2
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["CREATEBULKDEVRESOURCES_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['CREATEBULKDEVRESOURCES_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v1/dev_resources",
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_dev_resources:write"]))
+async def bulk_update_figma_dev_resources(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'putDevResources'."]:
+    """Update multiple Figma dev resources in bulk.
+
+    This tool updates developer resources across multiple Figma files. It should be called when you need to apply changes to several resources at once. The response will include arrays indicating which resources were successfully updated and which encountered errors.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS[
+                "BULKUPDATEFIGMADEVRESOURCES_REQUEST_BODY_SCHEMA"
+            ],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["BULKUPDATEFIGMADEVRESOURCES_REQUEST_BODY_SCHEMA"],
+                    indent=2,
+                )
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n"
+                + json.dumps(
+                    REQUEST_BODY_SCHEMAS["BULKUPDATEFIGMADEVRESOURCES_REQUEST_BODY_SCHEMA"],
+                    indent=2,
+                )
+            ),
+        ) from e
+
+    # Validate against schema
+    is_valid, validation_error = validate_json_against_schema(
+        request_data, REQUEST_BODY_SCHEMAS["BULKUPDATEFIGMADEVRESOURCES_REQUEST_BODY_SCHEMA"]
+    )
+    if not is_valid:
+        raise RetryableToolError(
+            message=f"Request body validation failed: {validation_error}",
+            developer_message=f"Schema validation error: {validation_error}",
+            additional_prompt_content=(
+                f"The request body does not match the required schema. "
+                f"Errors:\n{validation_error}\n\n"
+                "Please fix the validation errors above and call this tool "
+                "again in execute mode with the corrected JSON.\n\n"
+                "Required schema:\n\n"
+                f"{json.dumps(REQUEST_BODY_SCHEMAS['BULKUPDATEFIGMADEVRESOURCES_REQUEST_BODY_SCHEMA'], indent=2)}"  # noqa: E501
+            ),
+        )
+
+    # Make the actual API request
+    response = await make_request(
+        url="https://api.figma.com/v1/dev_resources",
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=request_data,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["file_dev_resources:write"]))
 async def delete_dev_resource(
     context: ToolContext,
-    file_key: Annotated[
-        str, "The main file key from which to delete the dev resource (not a branch key)."
+    target_file_key: Annotated[
+        str, "The main file key from which to delete the dev resource. Must not be a branch key."
     ],
     dev_resource_id: Annotated[
-        str, "The ID of the development resource to delete from the Figma file."
+        str, "The ID of the developer resource to delete from the Figma file."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deleteDevResource'."]:
-    """Delete a development resource from a Figma file.
+    """Delete a dev resource from a Figma file.
 
-    Use this tool to delete a specified development resource from a Figma file, identified by file key and resource ID."""  # noqa: E501
+    Call this tool to delete a specific developer resource from a Figma file using the file key and resource ID."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/files/{file_key}/dev_resources/{dev_resource_id}".format(  # noqa: UP032
-            file_key=file_key, dev_resource_id=dev_resource_id
+            file_key=target_file_key, dev_resource_id=dev_resource_id
         ),
         method="DELETE",
         params=remove_none_values({}),
@@ -1129,40 +2105,40 @@ async def delete_dev_resource(
 async def get_library_analytics_component_actions(
     context: ToolContext,
     group_by_dimension: Annotated[
-        str, "Dimension to group analytics data by, such as 'component' or 'team'."
+        str,
+        "Specify the dimension to group the analytics data by. Options are 'component' or 'team'.",
     ],
     library_file_key: Annotated[
-        str,
-        "File key of the library to fetch analytics data for. It identifies the specific library whose data should be retrieved.",  # noqa: E501
+        str, "The unique file key for the Figma library to retrieve analytics data from."
     ],
-    pagination_cursor: Annotated[
+    data_page_cursor: Annotated[
         str | None,
-        "Cursor indicating the page of data to fetch, obtained from a previous API call.",
+        "Cursor indicating the specific page of data to fetch, obtained from a previous API call.",
     ] = None,
-    earliest_week_date: Annotated[
+    earliest_start_date: Annotated[
         str | None,
-        "ISO 8601 date string (YYYY-MM-DD) representing the earliest week to include. Dates are adjusted to the start of a week, defaulting to one year prior if not specified.",  # noqa: E501
+        "ISO 8601 date string (YYYY-MM-DD) for the earliest week to include. Rounded back to the start of a week. Defaults to one year prior.",  # noqa: E501
     ] = None,
-    latest_week_end_date: Annotated[
+    latest_inclusion_date: Annotated[
         str | None,
-        "ISO 8601 date string (YYYY-MM-DD) representing the latest week to include in the data. Rounds forward to the nearest week's end. Defaults to the latest computed week.",  # noqa: E501
+        "ISO 8601 date string (YYYY-MM-DD) of the latest week to include, rounded forward to the nearest week's end. Defaults to the latest computed week.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsComponentActions'."
 ]:
-    """Retrieve library analytics component actions data.
+    """Get analytics for library component actions.
 
-    Fetches a list of analytics component actions for a specified library, broken down by the requested dimension."""  # noqa: E501
+    Retrieve detailed data on library component actions in Figma, broken down by the specified dimension. This tool is used to gain insights into how components in a Figma library are being utilized."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/component/actions".format(  # noqa: UP032
             file_key=library_file_key
         ),
         method="GET",
         params=remove_none_values({
-            "cursor": pagination_cursor,
+            "cursor": data_page_cursor,
             "group_by": group_by_dimension,
-            "start_date": earliest_week_date,
-            "end_date": latest_week_end_date,
+            "start_date": earliest_start_date,
+            "end_date": latest_inclusion_date,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -1178,24 +2154,113 @@ async def get_library_analytics_component_actions(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
-async def fetch_library_component_usages(
+async def fetch_component_usage_data(
     context: ToolContext,
     group_by_dimension: Annotated[
-        str, "The dimension to group analytics data by, either 'component' or 'file'."
+        str,
+        "A dimension to group the returned analytics data. Choose between 'component' or 'file'.",
     ],
-    library_file_key: Annotated[str, "File key of the library whose analytics data is needed."],
-    pagination_cursor: Annotated[
-        str | None,
-        "Cursor for pagination, indicating which page of data to fetch. It should be obtained from a prior API call response.",  # noqa: E501
+    library_file_key: Annotated[
+        str,
+        "The file key of the library to fetch analytics data for. Required for specifying the target library.",  # noqa: E501
+    ],
+    data_page_cursor: Annotated[
+        str | None, "Cursor indicating which page of data to fetch, obtained from a prior API call."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsComponentUsages'."
 ]:
-    """Fetch library component usage analytics.
+    """Fetch library analytics component usage data by dimension.
 
-    This tool retrieves analytics data on library component usage, categorized by the specified dimension. Useful for understanding how components are being used across designs."""  # noqa: E501
+    This tool retrieves a list of library analytics component usage data, providing insights into how components are used, broken down by the specified dimension."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/component/usages".format(  # noqa: UP032
+            file_key=library_file_key
+        ),
+        method="GET",
+        params=remove_none_values({"cursor": data_page_cursor, "group_by": group_by_dimension}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
+async def get_library_style_actions(
+    context: ToolContext,
+    group_by_dimension: Annotated[
+        str, "Specify the dimension ('style' or 'team') to group the returned analytics data by."
+    ],
+    library_file_key: Annotated[
+        str, "The unique file key of the Figma library to retrieve analytics data for."
+    ],
+    pagination_cursor: Annotated[
+        str | None,
+        "A cursor to indicate which page of data to fetch. Obtain this from a prior API call.",
+    ] = None,
+    earliest_week_start_date: Annotated[
+        str | None,
+        "ISO 8601 date string (YYYY-MM-DD) for the earliest week to include. Dates round back to the nearest week start. Defaults to one year prior.",  # noqa: E501
+    ] = None,
+    end_date: Annotated[
+        str | None,
+        "ISO 8601 date string (YYYY-MM-DD) for the latest week to include, rounded to the week's end. Defaults to the latest computed week if not specified.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsStyleActions'."]:
+    """Retrieve library style analytics actions data by dimension.
+
+    Use this tool to obtain detailed actions data for styles in a Figma library, categorized by the specified dimension. Ideal for analyzing how styles are used or modified."""  # noqa: E501
+    response = await make_request(
+        url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/actions".format(  # noqa: UP032
+            file_key=library_file_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "group_by": group_by_dimension,
+            "start_date": earliest_week_start_date,
+            "end_date": end_date,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
+async def get_library_style_usage_data(
+    context: ToolContext,
+    group_by_dimension: Annotated[
+        str, "Dimension to group the returned analytics data by. Options are 'style' or 'file'."
+    ],
+    library_file_key: Annotated[
+        str,
+        "The file key of the Figma library to fetch analytics data for. This is required to specify the source library.",  # noqa: E501
+    ],
+    pagination_cursor: Annotated[
+        str | None,
+        "Cursor indicating which page of data to fetch, obtained from a previous API call.",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsStyleUsages'."]:
+    """Retrieve style usage data from Figma library analytics.
+
+    This tool returns library analytics style usage data from Figma, broken down by the requested dimension. It should be used to analyze style usage within a specific Figma library file."""  # noqa: E501
+    response = await make_request(
+        url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/usages".format(  # noqa: UP032
             file_key=library_file_key
         ),
         method="GET",
@@ -1214,121 +2279,32 @@ async def fetch_library_component_usages(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
-async def fetch_library_style_actions(
+async def fetch_library_analytics_variable_actions(
     context: ToolContext,
-    group_analytics_by_dimension: Annotated[
-        str, "Specifies the dimension to group returned analytics data by. Use 'style' or 'team'."
+    group_by_dimension: Annotated[
+        str, "A dimension to group the returned analytics data by. Options: 'variable', 'team'."
     ],
     library_file_key: Annotated[
-        str, "The unique file key of the library for which to fetch analytics data."
-    ],
-    pagination_cursor: Annotated[
-        str | None,
-        "A cursor to indicate the page of data to fetch. Must be obtained from the previous API call.",  # noqa: E501
-    ] = None,
-    start_date: Annotated[
-        str | None,
-        "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Rounded to the start of the nearest week. Defaults to one year prior if not specified.",  # noqa: E501
-    ] = None,
-    latest_week_included: Annotated[
-        str | None,
-        "ISO 8601 date string (YYYY-MM-DD) for the latest week to include, rounded forward to week end. Defaults to latest computed week.",  # noqa: E501
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsStyleActions'."]:
-    """Retrieve library style action analytics data.
-
-    Use this tool to get detailed analytics on style actions from a Figma library, broken down by specified dimensions."""  # noqa: E501
-    response = await make_request(
-        url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/actions".format(  # noqa: UP032
-            file_key=library_file_key
-        ),
-        method="GET",
-        params=remove_none_values({
-            "cursor": pagination_cursor,
-            "group_by": group_analytics_by_dimension,
-            "start_date": start_date,
-            "end_date": latest_week_included,
-        }),
-        headers=remove_none_values({
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
-            )
-        }),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
-async def get_library_style_usage(
-    context: ToolContext,
-    group_analytics_by_dimension: Annotated[
-        str,
-        "Specifies the dimension to group the returned analytics data by. Valid options are 'style' or 'file'.",  # noqa: E501
-    ],
-    library_file_key: Annotated[
-        str, "The unique file key of the library to retrieve analytics data."
-    ],
-    data_page_cursor: Annotated[
-        str | None,
-        "Cursor to specify which page of data to fetch. This should be obtained from a prior API call.",  # noqa: E501
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsStyleUsages'."]:
-    """Retrieve library style usage analytics data.
-
-    Use this tool to obtain analytics on how styles are used within a specified library, broken down by the requested dimension."""  # noqa: E501
-    response = await make_request(
-        url="https://api.figma.com/v1/analytics/libraries/{file_key}/style/usages".format(  # noqa: UP032
-            file_key=library_file_key
-        ),
-        method="GET",
-        params=remove_none_values({
-            "cursor": data_page_cursor,
-            "group_by": group_analytics_by_dimension,
-        }),
-        headers=remove_none_values({
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
-            )
-        }),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
-async def fetch_library_analytics_actions(
-    context: ToolContext,
-    group_data_by_dimension: Annotated[
-        str, "Specify the dimension to group analytics data by. Options are 'variable' or 'team'."
-    ],
-    library_file_key: Annotated[
-        str, "The file key of the library to retrieve analytics data from."
+        str, "The file key of the library for which to fetch analytics data."
     ],
     page_cursor: Annotated[
         str | None,
-        "Cursor for indicating the specific page of data to fetch, obtained from a prior API call.",
+        "Cursor to indicate which page of data to fetch, obtained from a previous API call.",
     ] = None,
-    earliest_week_to_include: Annotated[
+    earliest_week_start_date: Annotated[
         str | None,
-        "ISO 8601 date string (YYYY-MM-DD) for the earliest week. Rounded back to the nearest week start. Defaults to one year prior.",  # noqa: E501
+        "ISO 8601 date string (YYYY-MM-DD) representing the earliest week to include. Rounded back to the nearest week's start. Defaults to one year prior.",  # noqa: E501
     ] = None,
     end_date: Annotated[
         str | None,
-        "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week.",  # noqa: E501
+        "ISO 8601 date string (YYYY-MM-DD) for the latest week to include. Defaults to the latest computed week.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsVariableActions'."
 ]:
-    """Retrieve library analytics variable actions data by dimension.
+    """Retrieve library analytics variable actions data from Figma.
 
-    Provides analytics on library variable actions, segmented by specified dimensions, for informed decision-making and analysis."""  # noqa: E501
+    Call this tool to obtain a breakdown of library analytics variable actions data from Figma based on a specific dimension."""  # noqa: E501
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/variable/actions".format(  # noqa: UP032
             file_key=library_file_key
@@ -1336,8 +2312,8 @@ async def fetch_library_analytics_actions(
         method="GET",
         params=remove_none_values({
             "cursor": page_cursor,
-            "group_by": group_data_by_dimension,
-            "start_date": earliest_week_to_include,
+            "group_by": group_by_dimension,
+            "start_date": earliest_week_start_date,
             "end_date": end_date,
         }),
         headers=remove_none_values({
@@ -1354,30 +2330,28 @@ async def fetch_library_analytics_actions(
 
 
 @tool(requires_auth=OAuth2(id="arcade-figma", scopes=["library_analytics:read"]))
-async def get_library_variable_usages(
+async def get_library_analytics_variable_usages(
     context: ToolContext,
     group_by_dimension: Annotated[
-        str, "Specify the dimension ('variable' or 'file') to group analytics data by."
+        str, "Specifies the dimension ('variable' or 'file') for grouping library analytics data."
     ],
-    library_file_key: Annotated[
-        str, "The unique file key of the Figma library to fetch analytics data for."
-    ],
-    data_page_cursor: Annotated[
+    library_file_key: Annotated[str, "The unique key of the library to fetch analytics data from."],
+    page_cursor: Annotated[
         str | None,
-        "Cursor for the specific page of data to fetch. Obtainable from a previous API call.",
+        "A token to fetch the specific page of results, received from a previous API call.",
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'getLibraryAnalyticsVariableUsages'."
 ]:
-    """Retrieve library analytics variable usage data.
+    """Retrieve analytics on library variable usage.
 
-    Use this tool to get detailed analytics on how variables in a Figma library are being used. It breaks down the data by specified dimensions, helping analyze library performance and usage trends."""  # noqa: E501
+    Fetches a breakdown of library analytics variable usage data by the specified dimension."""
     response = await make_request(
         url="https://api.figma.com/v1/analytics/libraries/{file_key}/variable/usages".format(  # noqa: UP032
             file_key=library_file_key
         ),
         method="GET",
-        params=remove_none_values({"cursor": data_page_cursor, "group_by": group_by_dimension}),
+        params=remove_none_values({"cursor": page_cursor, "group_by": group_by_dimension}),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()

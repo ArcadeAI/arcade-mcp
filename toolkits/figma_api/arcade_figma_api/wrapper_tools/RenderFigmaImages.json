@@ -1,7 +1,7 @@
 {
-  "name": "RenderImagesFromFigmaFile",
-  "fully_qualified_name": "FigmaApi.RenderImagesFromFigmaFile@0.1.0",
-  "description": "Render images from a Figma file using node IDs.\n\nUse this tool to render images from a specific Figma file by providing node IDs. It returns a map linking node IDs to their respective rendered image URLs. The images will expire after 30 days and may include null values if rendering fails.",
+  "name": "RenderFigmaImages",
+  "fully_qualified_name": "FigmaApi.RenderFigmaImages@0.1.0",
+  "description": "Fetch rendered images from Figma files by node IDs.\n\nUse this tool to render and retrieve images from a Figma file by specifying node IDs. The tool returns a mapping of node IDs to URLs of the rendered images. Note: Some entries may be null if rendering fails for certain nodes. Images expire after 30 days.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "node_ids_to_render",
         "required": true,
-        "description": "A comma-separated list of Figma node IDs that you want to render into images.",
+        "description": "A comma-separated list of node IDs for images to be rendered.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "figma_file_key",
         "required": true,
-        "description": "File key or branch key to export images from in Figma. Use `GET /v1/files/:key` with `branch_data` to obtain the branch key.",
+        "description": "The key for the Figma file or branch to export images from. Use with the `branch_data` query parameter to obtain branch key if needed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "file_version_id",
+        "name": "version_id",
         "required": false,
-        "description": "Specify a version ID to get a particular version of the Figma file. Leave blank to get the current version.",
+        "description": "Specify a version ID to retrieve a particular version of a Figma file. If omitted, will use the current version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "version"
       },
       {
-        "name": "image_scaling_factor",
+        "name": "image_scale_factor",
         "required": false,
-        "description": "A number between 0.01 and 4 to specify the scaling factor for the rendered image.",
+        "description": "A number between 0.01 and 4, representing the image scaling factor for rendering.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "image_output_format",
         "required": false,
-        "description": "Specify the format for the image output. Acceptable formats are: jpg, png, svg, pdf.",
+        "description": "Specify the image format for the output. Options are 'jpg', 'png', 'svg', or 'pdf'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -92,7 +92,7 @@
       {
         "name": "render_text_as_outlines",
         "required": false,
-        "description": "Set to true to render text as outlines in SVGs, ensuring consistent visual appearance. Set to false to render text as selectable.",
+        "description": "Determines if text elements are rendered as outlines in SVGs. Set `true` for visual consistency; `false` for selectable text.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -107,7 +107,7 @@
       {
         "name": "include_svg_id_attributes",
         "required": false,
-        "description": "Include ID attributes for all SVG elements, adding the layer name to each element's ID.",
+        "description": "Include id attributes for all SVG elements. Adds the layer name to the 'id' attribute.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -120,9 +120,9 @@
         "http_endpoint_parameter_name": "svg_include_id"
       },
       {
-        "name": "include_node_id_in_svg",
+        "name": "include_node_id_in_svg_elements",
         "required": false,
-        "description": "Whether to include node ID attributes for all SVG elements. Adds the node ID to a `data-node-id` attribute in SVG.",
+        "description": "Set to true to include node ID attributes for all SVG elements, adding the node ID to a `data-node-id` attribute.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -135,9 +135,9 @@
         "http_endpoint_parameter_name": "svg_include_node_id"
       },
       {
-        "name": "simplify_svg_strokes",
+        "name": "svg_stroke_simplification_enabled",
         "required": false,
-        "description": "Set to true to simplify inside/outside strokes in SVGs. Uses stroke attributes instead of `<mask>` if possible.",
+        "description": "Set to true to simplify inside/outside strokes in SVG using stroke attributes instead of `<mask>`.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -152,7 +152,7 @@
       {
         "name": "exclude_overlapping_content",
         "required": false,
-        "description": "Set to true to exclude content that overlaps the node from rendering. False may increase processing time.",
+        "description": "Set to true to exclude overlapping content from rendering. Set to false to include overlaps, which may increase processing time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -165,9 +165,9 @@
         "http_endpoint_parameter_name": "contents_only"
       },
       {
-        "name": "use_absolute_node_bounds",
+        "name": "use_full_dimensions_without_cropping",
         "required": false,
-        "description": "Set to true to use the full dimensions of the node without cropping, useful for exporting text nodes fully.",
+        "description": "Export using full node dimensions, ignoring cropping and empty space. Ensures text nodes are fully visible.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -204,8 +204,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "file_content:read"
+          "file_content:read",
+          "files:read"
         ]
       }
     },
@@ -248,7 +248,7 @@
       },
       {
         "name": "version",
-        "tool_parameter_name": "file_version_id",
+        "tool_parameter_name": "version_id",
         "description": "A specific version ID to get. Omitting this will get the current version of the file.",
         "value_schema": {
           "val_type": "string",
@@ -266,7 +266,7 @@
       },
       {
         "name": "scale",
-        "tool_parameter_name": "image_scaling_factor",
+        "tool_parameter_name": "image_scale_factor",
         "description": "A number between 0.01 and 4, the image scaling factor.",
         "value_schema": {
           "val_type": "number",
@@ -343,7 +343,7 @@
       },
       {
         "name": "svg_include_node_id",
-        "tool_parameter_name": "include_node_id_in_svg",
+        "tool_parameter_name": "include_node_id_in_svg_elements",
         "description": "Whether to include node id attributes for all SVG elements. Adds the node id to a `data-node-id` attribute of an svg element.",
         "value_schema": {
           "val_type": "boolean",
@@ -361,7 +361,7 @@
       },
       {
         "name": "svg_simplify_stroke",
-        "tool_parameter_name": "simplify_svg_strokes",
+        "tool_parameter_name": "svg_stroke_simplification_enabled",
         "description": "Whether to simplify inside/outside strokes and use stroke attribute if possible instead of `<mask>`.",
         "value_schema": {
           "val_type": "boolean",
@@ -397,7 +397,7 @@
       },
       {
         "name": "use_absolute_bounds",
-        "tool_parameter_name": "use_absolute_node_bounds",
+        "tool_parameter_name": "use_full_dimensions_without_cropping",
         "description": "Use the full dimensions of the node regardless of whether or not it is cropped or the space around it is empty. Use this to export text nodes without cropping.",
         "value_schema": {
           "val_type": "boolean",
@@ -442,6 +442,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

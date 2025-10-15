@@ -1,7 +1,7 @@
 {
-  "name": "GetComponentMetadata",
-  "fully_qualified_name": "FigmaApi.GetComponentMetadata@0.1.0",
-  "description": "Retrieve metadata for a Figma component by key.\n\nUse this tool to obtain detailed metadata about a specific component in Figma by providing its unique key.",
+  "name": "GetPublishedVariables",
+  "fully_qualified_name": "FigmaApi.GetPublishedVariables@0.1.0",
+  "description": "Retrieve published variables from a Figma file.\n\nCall this tool to get a list of variables that are published from a specified Figma file. The response includes variable and collection details along with `subscribed_id`. Ideal for users needing information on published variables from a file within an Enterprise organization.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,24 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "component_key",
+        "name": "main_file_key",
         "required": true,
-        "description": "The unique identifier of the Figma component to retrieve metadata for.",
+        "description": "The key of the Figma file to retrieve published variables from. Only use the main file key, not a branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier of the component."
+          "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "key"
+        "http_endpoint_parameter_name": "file_key"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getComponent'.",
+    "description": "Response from the API endpoint 'getPublishedVariables'.",
     "available_modes": [
       "value",
       "error",
@@ -49,8 +49,7 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "library_assets:read"
+          "file_variables:read"
         ]
       }
     },
@@ -69,21 +68,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/components/{key}",
+    "url": "https://api.figma.com/v1/files/{file_key}/variables/published",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "key",
-        "tool_parameter_name": "component_key",
-        "description": "The unique identifier of the component.",
+        "name": "file_key",
+        "tool_parameter_name": "main_file_key",
+        "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier of the component."
+          "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

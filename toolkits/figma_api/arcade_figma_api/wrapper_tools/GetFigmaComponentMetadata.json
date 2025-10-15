@@ -1,7 +1,7 @@
 {
-  "name": "FetchTeamProjects",
-  "fully_qualified_name": "FigmaApi.FetchTeamProjects@0.1.0",
-  "description": "Retrieve all projects for a specified Figma team.\n\nUse this tool to get a list of all projects within a specified Figma team. It returns projects that are visible to the authenticated user or the owner of the developer token. Ensure you have the team ID, which can be found in the team URL.",
+  "name": "GetFigmaComponentMetadata",
+  "fully_qualified_name": "FigmaApi.GetFigmaComponentMetadata@0.1.0",
+  "description": "Retrieve metadata for a Figma component by key.\n\nUse this tool to obtain detailed metadata about a specific Figma component using its key.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,24 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "team_id",
+        "name": "component_key",
         "required": true,
-        "description": "The ID of the Figma team from which to list projects. This ID is found in the team URL.",
+        "description": "The unique identifier of the Figma component to retrieve metadata for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of the team to list projects from"
+          "description": "The unique identifier of the component."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "team_id"
+        "http_endpoint_parameter_name": "key"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getTeamProjects'.",
+    "description": "Response from the API endpoint 'getComponent'.",
     "available_modes": [
       "value",
       "error",
@@ -49,7 +49,7 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "projects:read",
+          "library_assets:read",
           "files:read"
         ]
       }
@@ -69,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/teams/{team_id}/projects",
+    "url": "https://api.figma.com/v1/components/{key}",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "team_id",
-        "tool_parameter_name": "team_id",
-        "description": "ID of the team to list projects from",
+        "name": "key",
+        "tool_parameter_name": "component_key",
+        "description": "The unique identifier of the component.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of the team to list projects from"
+          "description": "The unique identifier of the component."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

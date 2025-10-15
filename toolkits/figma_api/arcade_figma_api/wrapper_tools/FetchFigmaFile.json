@@ -1,7 +1,7 @@
 {
-  "name": "RetrieveFigmaFile",
-  "fully_qualified_name": "FigmaApi.RetrieveFigmaFile@0.1.0",
-  "description": "Retrieve Figma file document and components by file key.\n\nThis tool fetches the document and component metadata from a specified Figma file using its unique file key. Call this tool to get detailed JSON data about a Figma document and its components.",
+  "name": "FetchFigmaFile",
+  "fully_qualified_name": "FigmaApi.FetchFigmaFile@0.1.0",
+  "description": "Retrieve a Figma file as a JSON object using its file key.\n\nUse this tool to fetch a Figma document as JSON, identified by a file key. The returned data includes the document structure and metadata about components.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "figma_file_key",
+        "name": "file_key",
         "required": true,
-        "description": "Unique key for the Figma file or branch to retrieve JSON data from.",
+        "description": "The unique key of the Figma file or branch to retrieve as JSON.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "specific_version_id",
+        "name": "version_id",
         "required": false,
-        "description": "Specify a version ID to retrieve a particular version of the Figma file. Leave blank for the current version.",
+        "description": "Specify the version ID to retrieve a specific version of the file. Default is the current version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "version"
       },
       {
-        "name": "node_ids",
+        "name": "node_ids_of_interest",
         "required": false,
-        "description": "Comma-separated list of node IDs to fetch specific parts of the document. It returns nodes, their children, and paths.",
+        "description": "Comma-separated list of node IDs to retrieve specific parts of the Figma document.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "ids"
       },
       {
-        "name": "document_depth",
+        "name": "traversal_depth",
         "required": false,
-        "description": "Positive integer representing how deep into the Figma document tree to traverse. For example, setting this to 1 returns only Pages, setting it to 2 returns Pages and all top level objects on each page. Omitting this parameter returns all nodes.",
+        "description": "Positive integer indicating the depth in the document tree to retrieve. For example, 1 returns only Pages; 2 returns Pages and top-level objects.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "export_vector_data",
         "required": false,
-        "description": "Set this to \"paths\" if you want to include vector data in the export.",
+        "description": "Set to \"paths\" to include vector data in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,7 +87,7 @@
       {
         "name": "include_plugin_data",
         "required": false,
-        "description": "Specify plugin IDs or \"shared\" to include their data in the `pluginData` and `sharedPluginData` fields of the response.",
+        "description": "Comma separated list of plugin IDs and/or 'shared'. Includes plugin data in the result.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "include_branch_metadata",
         "required": false,
-        "description": "Set to true to include branch metadata for the requested file. If the file is a branch, the main file's key will be included. If the file has branches, their metadata will also be included. Defaults to false.",
+        "description": "Set to true to include metadata about branches related to the file. If false, branch information will not be returned.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -139,8 +139,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "file_content:read"
+          "file_content:read",
+          "files:read"
         ]
       }
     },
@@ -165,7 +165,7 @@
     "parameters": [
       {
         "name": "version",
-        "tool_parameter_name": "specific_version_id",
+        "tool_parameter_name": "version_id",
         "description": "A specific version ID to get. Omitting this will get the current version of the file.",
         "value_schema": {
           "val_type": "string",
@@ -183,7 +183,7 @@
       },
       {
         "name": "ids",
-        "tool_parameter_name": "node_ids",
+        "tool_parameter_name": "node_ids_of_interest",
         "description": "Comma separated list of nodes that you care about in the document. If specified, only a subset of the document will be returned corresponding to the nodes listed, their children, and everything between the root node and the listed nodes.\n\nNote: There may be other nodes included in the returned JSON that are outside the ancestor chains of the desired nodes. The response may also include dependencies of anything in the nodes' subtrees. For example, if a node subtree contains an instance of a local component that lives elsewhere in that file, that component and its ancestor chain will also be included.\n\nFor historical reasons, top-level canvas nodes are always returned, regardless of whether they are listed in the `ids` parameter. This quirk may be removed in a future version of the API.",
         "value_schema": {
           "val_type": "string",
@@ -201,7 +201,7 @@
       },
       {
         "name": "depth",
-        "tool_parameter_name": "document_depth",
+        "tool_parameter_name": "traversal_depth",
         "description": "Positive integer representing how deep into the document tree to traverse. For example, setting this to 1 returns only Pages, setting it to 2 returns Pages and all top level objects on each page. Not setting this parameter returns all nodes.",
         "value_schema": {
           "val_type": "number",
@@ -273,7 +273,7 @@
       },
       {
         "name": "file_key",
-        "tool_parameter_name": "figma_file_key",
+        "tool_parameter_name": "file_key",
         "description": "File to export JSON from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
@@ -300,6 +300,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

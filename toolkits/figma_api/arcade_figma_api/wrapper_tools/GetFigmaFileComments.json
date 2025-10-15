@@ -1,7 +1,7 @@
 {
-  "name": "GetFileDevResources",
-  "fully_qualified_name": "FigmaApi.GetFileDevResources@0.1.0",
-  "description": "Retrieve development resources from a Figma file.\n\nCall this tool to get the development resources from a specified Figma file using the file key.",
+  "name": "GetFigmaFileComments",
+  "fully_qualified_name": "FigmaApi.GetFigmaFileComments@0.1.0",
+  "description": "Retrieve comments from a Figma file.\n\nUse this tool to get a list of comments left on a specific Figma file. It is useful for accessing feedback or discussions related to file elements.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,39 +10,39 @@
   "input": {
     "parameters": [
       {
-        "name": "main_file_key",
+        "name": "figma_file_or_branch_key",
         "required": true,
-        "description": "Specify the main file key to fetch development resources from. This should not be a branch key.",
+        "description": "Specify the file or branch key to retrieve comments from. Use the `GET /v1/files/:key` endpoint with `branch_data` query param for branch keys.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The file to get the dev resources from. This must be a main file key, not a branch key."
+          "description": "File to get comments from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "specific_node_ids",
+        "name": "return_comments_as_markdown",
         "required": false,
-        "description": "Comma-separated list of node IDs to filter specific dev resources. If not specified, all resources are returned.",
+        "description": "Set to true to return comments as markdown equivalents when applicable.",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "boolean",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Comma separated list of nodes that you care about in the document. If specified, only dev resources attached to these nodes will be returned. If not specified, all dev resources in the file will be returned."
+          "description": "If enabled, will return comments as their markdown equivalents when applicable."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "node_ids"
+        "http_endpoint_parameter_name": "as_md"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getDevResources'.",
+    "description": "Response from the API endpoint 'getComments'.",
     "available_modes": [
       "value",
       "error",
@@ -64,7 +64,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "file_dev_resources:read"
+          "file_comments:read",
+          "files:read"
         ]
       }
     },
@@ -83,21 +84,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/dev_resources",
+    "url": "https://api.figma.com/v1/files/{file_key}/comments",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "node_ids",
-        "tool_parameter_name": "specific_node_ids",
-        "description": "Comma separated list of nodes that you care about in the document. If specified, only dev resources attached to these nodes will be returned. If not specified, all dev resources in the file will be returned.",
+        "name": "as_md",
+        "tool_parameter_name": "return_comments_as_markdown",
+        "description": "If enabled, will return comments as their markdown equivalents when applicable.",
         "value_schema": {
-          "val_type": "string",
+          "val_type": "boolean",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Comma separated list of nodes that you care about in the document. If specified, only dev resources attached to these nodes will be returned. If not specified, all dev resources in the file will be returned."
+          "description": "If enabled, will return comments as their markdown equivalents when applicable."
         },
         "accepted_as": "query",
         "required": false,
@@ -107,15 +108,15 @@
       },
       {
         "name": "file_key",
-        "tool_parameter_name": "main_file_key",
-        "description": "The file to get the dev resources from. This must be a main file key, not a branch key.",
+        "tool_parameter_name": "figma_file_or_branch_key",
+        "description": "File to get comments from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The file to get the dev resources from. This must be a main file key, not a branch key."
+          "description": "File to get comments from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "accepted_as": "path",
         "required": true,
@@ -134,6 +135,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

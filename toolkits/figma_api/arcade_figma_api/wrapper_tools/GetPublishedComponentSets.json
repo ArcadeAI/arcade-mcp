@@ -1,7 +1,7 @@
 {
   "name": "GetPublishedComponentSets",
   "fully_qualified_name": "FigmaApi.GetPublishedComponentSets@0.1.0",
-  "description": "Retrieve published component sets from a Figma file.\n\nUse this tool to obtain a list of component sets that have been published within a specific Figma file library.",
+  "description": "Retrieve published component sets from a Figma file.\n\nCall this tool to get a list of published component sets within a specified Figma file library. Useful for accessing design components efficiently.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "figma_file_key",
+        "name": "main_file_key",
         "required": true,
-        "description": "Main file key to list component sets from. Ensure it's not a branch key.",
+        "description": "The main file key of the Figma file to list component sets from. Must not be a branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -75,7 +75,7 @@
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "figma_file_key",
+        "tool_parameter_name": "main_file_key",
         "description": "File to list component sets from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
         "value_schema": {
           "val_type": "string",
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

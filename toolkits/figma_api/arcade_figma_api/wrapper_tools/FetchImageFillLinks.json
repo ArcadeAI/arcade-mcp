@@ -1,7 +1,7 @@
 {
-  "name": "GetFigmaFileMetadata",
-  "fully_qualified_name": "FigmaApi.GetFigmaFileMetadata@0.1.0",
-  "description": "Retrieve metadata for a specific Figma file.\n\nCall this tool to obtain metadata for a Figma file using its unique file key. Useful for retrieving details such as version, creator, and other metadata related to a Figma file.",
+  "name": "FetchImageFillLinks",
+  "fully_qualified_name": "FigmaApi.FetchImageFillLinks@0.1.0",
+  "description": "Retrieve download links for images in a Figma document.\n\nUse this tool to get download links for all images present in the image fills of a Figma document. These links allow access to images users have added to their design files. The URLs will expire after about 14 days and can be found using image references.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,16 +10,16 @@
   "input": {
     "parameters": [
       {
-        "name": "figma_file_key",
+        "name": "file_or_branch_key",
         "required": true,
-        "description": "The unique file or branch key to get metadata for. Use this to specify which Figma file's metadata to retrieve.",
+        "description": "The file or branch key from which to retrieve image URLs. Use `GET /v1/files/:key` to get the branch key if needed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "file_key"
@@ -27,7 +27,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getFileMeta'.",
+    "description": "Response from the API endpoint 'getImageFills'.",
     "available_modes": [
       "value",
       "error",
@@ -49,7 +49,7 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "file_metadata:read",
+          "file_content:read",
           "files:read"
         ]
       }
@@ -69,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/meta",
+    "url": "https://api.figma.com/v1/files/{file_key}/images",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "figma_file_key",
-        "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "tool_parameter_name": "file_or_branch_key",
+        "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get metadata for. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to get image URLs from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

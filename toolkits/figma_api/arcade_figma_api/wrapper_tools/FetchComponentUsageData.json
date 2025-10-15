@@ -1,7 +1,7 @@
 {
-  "name": "GetLibraryStyleUsage",
-  "fully_qualified_name": "FigmaApi.GetLibraryStyleUsage@0.1.0",
-  "description": "Retrieve library style usage analytics data.\n\nUse this tool to obtain analytics on how styles are used within a specified library, broken down by the requested dimension.",
+  "name": "FetchComponentUsageData",
+  "fully_qualified_name": "FigmaApi.FetchComponentUsageData@0.1.0",
+  "description": "Fetch library analytics component usage data by dimension.\n\nThis tool retrieves a list of library analytics component usage data, providing insights into how components are used, broken down by the specified dimension.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,14 +10,14 @@
   "input": {
     "parameters": [
       {
-        "name": "group_analytics_by_dimension",
+        "name": "group_by_dimension",
         "required": true,
-        "description": "Specifies the dimension to group the returned analytics data by. Valid options are 'style' or 'file'.",
+        "description": "A dimension to group the returned analytics data. Choose between 'component' or 'file'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "style",
+            "component",
             "file"
           ],
           "properties": null,
@@ -30,7 +30,7 @@
       {
         "name": "library_file_key",
         "required": true,
-        "description": "The unique file key of the library to retrieve analytics data.",
+        "description": "The file key of the library to fetch analytics data for. Required for specifying the target library.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -45,7 +45,7 @@
       {
         "name": "data_page_cursor",
         "required": false,
-        "description": "Cursor to specify which page of data to fetch. This should be obtained from a prior API call.",
+        "description": "Cursor indicating which page of data to fetch, obtained from a prior API call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -60,7 +60,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getLibraryAnalyticsStyleUsages'.",
+    "description": "Response from the API endpoint 'getLibraryAnalyticsComponentUsages'.",
     "available_modes": [
       "value",
       "error",
@@ -101,7 +101,7 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/style/usages",
+    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/component/usages",
     "http_method": "GET",
     "headers": {},
     "parameters": [
@@ -125,13 +125,13 @@
       },
       {
         "name": "group_by",
-        "tool_parameter_name": "group_analytics_by_dimension",
+        "tool_parameter_name": "group_by_dimension",
         "description": "A dimension to group returned analytics data by.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "style",
+            "component",
             "file"
           ],
           "properties": null,
@@ -173,6 +173,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

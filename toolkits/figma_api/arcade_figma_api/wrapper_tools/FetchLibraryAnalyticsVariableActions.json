@@ -1,7 +1,7 @@
 {
-  "name": "FetchLibraryStyleActions",
-  "fully_qualified_name": "FigmaApi.FetchLibraryStyleActions@0.1.0",
-  "description": "Retrieve library style action analytics data.\n\nUse this tool to get detailed analytics on style actions from a Figma library, broken down by specified dimensions.",
+  "name": "FetchLibraryAnalyticsVariableActions",
+  "fully_qualified_name": "FigmaApi.FetchLibraryAnalyticsVariableActions@0.1.0",
+  "description": "Retrieve library analytics variable actions data from Figma.\n\nCall this tool to obtain a breakdown of library analytics variable actions data from Figma based on a specific dimension.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,14 +10,14 @@
   "input": {
     "parameters": [
       {
-        "name": "group_analytics_by_dimension",
+        "name": "group_by_dimension",
         "required": true,
-        "description": "Specifies the dimension to group returned analytics data by. Use 'style' or 'team'.",
+        "description": "A dimension to group the returned analytics data by. Options: 'variable', 'team'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "style",
+            "variable",
             "team"
           ],
           "properties": null,
@@ -30,7 +30,7 @@
       {
         "name": "library_file_key",
         "required": true,
-        "description": "The unique file key of the library for which to fetch analytics data.",
+        "description": "The file key of the library for which to fetch analytics data.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,9 +43,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "pagination_cursor",
+        "name": "page_cursor",
         "required": false,
-        "description": "A cursor to indicate the page of data to fetch. Must be obtained from the previous API call.",
+        "description": "Cursor to indicate which page of data to fetch, obtained from a previous API call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -58,9 +58,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "start_date",
+        "name": "earliest_week_start_date",
         "required": false,
-        "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Rounded to the start of the nearest week. Defaults to one year prior if not specified.",
+        "description": "ISO 8601 date string (YYYY-MM-DD) representing the earliest week to include. Rounded back to the nearest week's start. Defaults to one year prior.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -73,9 +73,9 @@
         "http_endpoint_parameter_name": "start_date"
       },
       {
-        "name": "latest_week_included",
+        "name": "end_date",
         "required": false,
-        "description": "ISO 8601 date string (YYYY-MM-DD) for the latest week to include, rounded forward to week end. Defaults to latest computed week.",
+        "description": "ISO 8601 date string (YYYY-MM-DD) for the latest week to include. Defaults to the latest computed week.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -90,7 +90,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getLibraryAnalyticsStyleActions'.",
+    "description": "Response from the API endpoint 'getLibraryAnalyticsVariableActions'.",
     "available_modes": [
       "value",
       "error",
@@ -131,13 +131,13 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/style/actions",
+    "url": "https://api.figma.com/v1/analytics/libraries/{file_key}/variable/actions",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
         "name": "cursor",
-        "tool_parameter_name": "pagination_cursor",
+        "tool_parameter_name": "page_cursor",
         "description": "Cursor indicating what page of data to fetch. Obtained from prior API call.",
         "value_schema": {
           "val_type": "string",
@@ -155,13 +155,13 @@
       },
       {
         "name": "group_by",
-        "tool_parameter_name": "group_analytics_by_dimension",
+        "tool_parameter_name": "group_by_dimension",
         "description": "A dimension to group returned analytics data by.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": [
-            "style",
+            "variable",
             "team"
           ],
           "properties": null,
@@ -176,7 +176,7 @@
       },
       {
         "name": "start_date",
-        "tool_parameter_name": "start_date",
+        "tool_parameter_name": "earliest_week_start_date",
         "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Dates are rounded back to the nearest start of a week. Defaults to one year prior.",
         "value_schema": {
           "val_type": "string",
@@ -194,7 +194,7 @@
       },
       {
         "name": "end_date",
-        "tool_parameter_name": "latest_week_included",
+        "tool_parameter_name": "end_date",
         "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week.",
         "value_schema": {
           "val_type": "string",
@@ -239,6 +239,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

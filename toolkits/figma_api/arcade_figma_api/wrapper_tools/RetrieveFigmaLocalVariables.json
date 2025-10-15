@@ -1,7 +1,7 @@
 {
-  "name": "GetFigmaStyleMetadata",
-  "fully_qualified_name": "FigmaApi.GetFigmaStyleMetadata@0.1.0",
-  "description": "Retrieve metadata of a Figma style using its key.\n\nCall this tool to obtain detailed information about a specific style in Figma by providing its unique key.",
+  "name": "RetrieveFigmaLocalVariables",
+  "fully_qualified_name": "FigmaApi.RetrieveFigmaLocalVariables@0.1.0",
+  "description": "Retrieve local and remote variables from a Figma file.\n\nUse this tool to get a list of local variables created in a Figma file and any remote variables utilized, identified by their `subscribed_id`. This tool is available to full members of Enterprise organizations. It's useful for examining mode values and understanding variable usage within a file.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,24 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "style_key",
+        "name": "file_or_branch_key",
         "required": true,
-        "description": "The unique identifier of the Figma style to retrieve metadata for.",
+        "description": "The key for the file or branch to retrieve variables from in Figma. If a branch, use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier of the style."
+          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "key"
+        "http_endpoint_parameter_name": "file_key"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getStyle'.",
+    "description": "Response from the API endpoint 'getLocalVariables'.",
     "available_modes": [
       "value",
       "error",
@@ -49,8 +49,7 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "library_assets:read"
+          "file_variables:read"
         ]
       }
     },
@@ -69,21 +68,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/styles/{key}",
+    "url": "https://api.figma.com/v1/files/{file_key}/variables/local",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "key",
-        "tool_parameter_name": "style_key",
-        "description": "The unique identifier of the style.",
+        "name": "file_key",
+        "tool_parameter_name": "file_or_branch_key",
+        "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier of the style."
+          "description": "File to get variables from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "accepted_as": "path",
         "required": true,
@@ -102,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

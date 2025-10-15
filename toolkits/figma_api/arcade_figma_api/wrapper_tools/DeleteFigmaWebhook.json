@@ -1,7 +1,7 @@
 {
   "name": "DeleteFigmaWebhook",
   "fully_qualified_name": "FigmaApi.DeleteFigmaWebhook@0.1.0",
-  "description": "Delete a specified Figma webhook permanently.\n\nUse this tool to permanently delete a specific webhook from Figma. Ensure that you intend to remove the webhook as this action cannot be undone.",
+  "description": "Delete a specified webhook in Figma.\n\nUse this tool to delete a specified webhook in Figma. This action is irreversible and should be called when a webhook is no longer needed.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "webhook_id_to_delete",
         "required": true,
-        "description": "The ID of the Figma webhook you wish to delete. Ensure correctness as this action is irreversible.",
+        "description": "The unique identifier of the webhook you wish to delete. This ID is required for the deletion operation.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -101,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

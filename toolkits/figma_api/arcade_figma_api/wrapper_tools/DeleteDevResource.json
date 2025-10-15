@@ -1,7 +1,7 @@
 {
   "name": "DeleteDevResource",
   "fully_qualified_name": "FigmaApi.DeleteDevResource@0.1.0",
-  "description": "Delete a development resource from a Figma file.\n\nUse this tool to delete a specified development resource from a Figma file, identified by file key and resource ID.",
+  "description": "Delete a dev resource from a Figma file.\n\nCall this tool to delete a specific developer resource from a Figma file using the file key and resource ID.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "file_key",
+        "name": "target_file_key",
         "required": true,
-        "description": "The main file key from which to delete the dev resource (not a branch key).",
+        "description": "The main file key from which to delete the dev resource. Must not be a branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "dev_resource_id",
         "required": true,
-        "description": "The ID of the development resource to delete from the Figma file.",
+        "description": "The ID of the developer resource to delete from the Figma file.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "file_key",
+        "tool_parameter_name": "target_file_key",
         "description": "The file to delete the dev resource from. This must be a main file key, not a branch key.",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

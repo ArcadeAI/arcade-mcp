@@ -1,7 +1,7 @@
 {
-  "name": "GetPublishedComponentMetadata",
-  "fully_qualified_name": "FigmaApi.GetPublishedComponentMetadata@0.1.0",
-  "description": "Retrieve metadata for a published Figma component set.\n\nUse this tool to obtain metadata for a published component set by providing its unique key. This is helpful for designers and developers looking to integrate component details from Figma into their workflow.",
+  "name": "GetFigmaComponentSet",
+  "fully_qualified_name": "FigmaApi.GetFigmaComponentSet@0.1.0",
+  "description": "Retrieve metadata for a Figma component set using its key.\n\nUse this tool to obtain detailed metadata about a published component set in Figma by providing its unique key identifier.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "component_set_id",
+        "name": "component_set_key",
         "required": true,
-        "description": "The unique identifier of the Figma component set to retrieve metadata for.",
+        "description": "The unique key identifier for the Figma component set to retrieve metadata.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -49,8 +49,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "library_assets:read"
+          "library_assets:read",
+          "files:read"
         ]
       }
     },
@@ -75,7 +75,7 @@
     "parameters": [
       {
         "name": "key",
-        "tool_parameter_name": "component_set_id",
+        "tool_parameter_name": "component_set_key",
         "description": "The unique identifier of the component set.",
         "value_schema": {
           "val_type": "string",
@@ -102,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "GetPublishedFigmaVariables",
-  "fully_qualified_name": "FigmaApi.GetPublishedFigmaVariables@0.1.0",
-  "description": "Retrieve published variables from a Figma file.\n\nUse this tool to access the variables that are published from a specified Figma file. It's available for full members of Enterprise organizations. The response includes specific IDs and omits modes for variable collections.",
+  "name": "GetStyleMetadata",
+  "fully_qualified_name": "FigmaApi.GetStyleMetadata@0.1.0",
+  "description": "Retrieve Figma style metadata by key.\n\nUse this tool to get detailed metadata about a specific style in Figma using its unique key. Useful for accessing style information for design analysis or integration.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,24 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "main_file_key",
+        "name": "style_key",
         "required": true,
-        "description": "The main file key to fetch published variables from. Branch keys are not supported.",
+        "description": "The unique identifier of the Figma style to retrieve metadata for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
+          "description": "The unique identifier of the style."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "file_key"
+        "http_endpoint_parameter_name": "key"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'getPublishedVariables'.",
+    "description": "Response from the API endpoint 'getStyle'.",
     "available_modes": [
       "value",
       "error",
@@ -49,7 +49,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "file_variables:read"
+          "library_assets:read",
+          "files:read"
         ]
       }
     },
@@ -68,21 +69,21 @@
       "version": "1.1.0",
       "description": ""
     },
-    "url": "https://api.figma.com/v1/files/{file_key}/variables/published",
+    "url": "https://api.figma.com/v1/styles/{key}",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "file_key",
-        "tool_parameter_name": "main_file_key",
-        "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches.",
+        "name": "key",
+        "tool_parameter_name": "style_key",
+        "description": "The unique identifier of the style.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to get variables from. This must be a main file key, not a branch key, as it is not possible to publish from branches."
+          "description": "The unique identifier of the style."
         },
         "accepted_as": "path",
         "required": true,
@@ -101,6 +102,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

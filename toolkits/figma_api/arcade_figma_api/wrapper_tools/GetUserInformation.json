@@ -1,7 +1,7 @@
 {
-  "name": "GetUserInfo",
-  "fully_qualified_name": "FigmaApi.GetUserInfo@0.1.0",
-  "description": "Retrieve information for the authenticated Figma user.\n\nCall this tool to get details about the authenticated user's profile in Figma.",
+  "name": "GetUserInformation",
+  "fully_qualified_name": "FigmaApi.GetUserInformation@0.1.0",
+  "description": "Retrieve information for the authenticated Figma user.\n\nUse this tool to obtain the profile information of the user currently authenticated in the Figma service.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -33,8 +33,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "current_user:read"
+          "current_user:read",
+          "files:read"
         ]
       }
     },
@@ -67,6 +67,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

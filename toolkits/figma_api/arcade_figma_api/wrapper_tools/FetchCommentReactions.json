@@ -1,7 +1,7 @@
 {
-  "name": "DeleteCommentReaction",
-  "fully_qualified_name": "FigmaApi.DeleteCommentReaction@0.1.0",
-  "description": "Delete a specific comment reaction you added.\n\nUse this tool to delete a reaction you added to a comment. It can only be used by the person who originally made the reaction.",
+  "name": "FetchCommentReactions",
+  "fully_qualified_name": "FigmaApi.FetchCommentReactions@0.1.0",
+  "description": "Retrieve reactions from a specific comment in Figma.\n\nUse this tool to obtain a list of reactions left on a specific comment in a Figma file. This can help track engagement or feedback on comments.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,31 +10,16 @@
   "input": {
     "parameters": [
       {
-        "name": "reaction_emoji",
+        "name": "file_or_branch_key",
         "required": true,
-        "description": "The specific emoji reaction to delete from the comment. Must match the original emoji used.",
+        "description": "The key for the file or branch to retrieve the comment reactions from in Figma.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": ""
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "emoji"
-      },
-      {
-        "name": "file_key_or_branch_key",
-        "required": true,
-        "description": "Provide the file or branch key to delete the comment reaction from. Use `GET /v1/files/:key` with the `branch_data` query param to obtain the branch key.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "File to delete comment reaction from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to get comment containing reactions from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "file_key"
@@ -42,22 +27,37 @@
       {
         "name": "comment_id",
         "required": true,
-        "description": "ID of the comment from which the reaction will be deleted. The reaction can only be removed by the person who added it.",
+        "description": "ID of the comment from which to retrieve reactions.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of comment to delete reaction from."
+          "description": "ID of comment to get reactions from."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "comment_id"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for pagination. Use the cursor from the previous call's response to retrieve the next set of reactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cursor for pagination, retrieved from the response of the previous call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'deleteCommentReaction'.",
+    "description": "Response from the API endpoint 'getCommentReactions'.",
     "available_modes": [
       "value",
       "error",
@@ -79,7 +79,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "file_comments:write"
+          "file_comments:read",
+          "files:read"
         ]
       }
     },
@@ -99,38 +100,38 @@
       "description": ""
     },
     "url": "https://api.figma.com/v1/files/{file_key}/comments/{comment_id}/reactions",
-    "http_method": "DELETE",
+    "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "emoji",
-        "tool_parameter_name": "reaction_emoji",
-        "description": "",
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Cursor for pagination, retrieved from the response of the previous call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": ""
+          "description": "Cursor for pagination, retrieved from the response of the previous call."
         },
         "accepted_as": "query",
-        "required": true,
+        "required": false,
         "deprecated": false,
         "default": null,
         "documentation_urls": []
       },
       {
         "name": "file_key",
-        "tool_parameter_name": "file_key_or_branch_key",
-        "description": "File to delete comment reaction from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "tool_parameter_name": "file_or_branch_key",
+        "description": "File to get comment containing reactions from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "File to delete comment reaction from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+          "description": "File to get comment containing reactions from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
         },
         "accepted_as": "path",
         "required": true,
@@ -141,14 +142,14 @@
       {
         "name": "comment_id",
         "tool_parameter_name": "comment_id",
-        "description": "ID of comment to delete reaction from.",
+        "description": "ID of comment to get reactions from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of comment to delete reaction from."
+          "description": "ID of comment to get reactions from."
         },
         "accepted_as": "path",
         "required": true,
@@ -167,6 +168,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

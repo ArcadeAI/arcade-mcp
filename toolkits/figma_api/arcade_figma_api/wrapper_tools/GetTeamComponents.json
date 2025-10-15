@@ -1,7 +1,7 @@
 {
-  "name": "RetrieveTeamComponents",
-  "fully_qualified_name": "FigmaApi.RetrieveTeamComponents@0.1.0",
-  "description": "Retrieve a list of published components in a team library.\n\nCall this tool to obtain a paginated list of components that have been published within a specific team's library on Figma.",
+  "name": "GetTeamComponents",
+  "fully_qualified_name": "FigmaApi.GetTeamComponents@0.1.0",
+  "description": "Retrieve published components from a team's Figma library.\n\nUse this tool to get a list of components that have been published within a specified team's library in Figma.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "team_identifier",
+        "name": "team_id",
         "required": true,
-        "description": "The unique identifier for the team from which to list components. Required to specify the team's library.",
+        "description": "The unique identifier of the team whose components you want to retrieve. This ID is necessary to specify the source team library in Figma.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "team_id"
       },
       {
-        "name": "number_of_items_to_return",
+        "name": "number_of_items_per_page",
         "required": false,
-        "description": "Number of items to return in the paginated response. Defaults to 30. Maximum of 1000.",
+        "description": "Specify the number of components to return in one page. Defaults to 30, maximum is 1000.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page_size"
       },
       {
-        "name": "retrieve_after_cursor",
+        "name": "cursor_after_id",
         "required": false,
-        "description": "The cursor indicating the ID after which to start retrieving components. This is exclusive with the 'before' parameter.",
+        "description": "Cursor indicating which ID to start retrieving components after. Cannot be used with 'before'.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "after"
       },
       {
-        "name": "cursor_before_id",
+        "name": "cursor_before",
         "required": false,
-        "description": "An integer cursor indicating the id before which to start retrieving components. This is exclusive with `cursor_after_id`.",
+        "description": "Cursor to retrieve components starting before a specific id. Exclusive with 'cursor_after'.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -94,8 +94,8 @@
       "id": null,
       "oauth2": {
         "scopes": [
-          "files:read",
-          "team_library_content:read"
+          "team_library_content:read",
+          "files:read"
         ]
       }
     },
@@ -120,7 +120,7 @@
     "parameters": [
       {
         "name": "page_size",
-        "tool_parameter_name": "number_of_items_to_return",
+        "tool_parameter_name": "number_of_items_per_page",
         "description": "Number of items to return in a paged list of results. Defaults to 30. Maximum of 1000.",
         "value_schema": {
           "val_type": "number",
@@ -138,7 +138,7 @@
       },
       {
         "name": "after",
-        "tool_parameter_name": "retrieve_after_cursor",
+        "tool_parameter_name": "cursor_after_id",
         "description": "Cursor indicating which id after which to start retrieving components for. Exclusive with before. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -156,7 +156,7 @@
       },
       {
         "name": "before",
-        "tool_parameter_name": "cursor_before_id",
+        "tool_parameter_name": "cursor_before",
         "description": "Cursor indicating which id before which to start retrieving components for. Exclusive with after. The cursor value is an internally tracked integer that doesn't correspond to any Ids.",
         "value_schema": {
           "val_type": "number",
@@ -174,7 +174,7 @@
       },
       {
         "name": "team_id",
-        "tool_parameter_name": "team_identifier",
+        "tool_parameter_name": "team_id",
         "description": "Id of the team to list components from.",
         "value_schema": {
           "val_type": "string",
@@ -201,6 +201,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

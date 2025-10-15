@@ -1,7 +1,7 @@
 {
   "name": "DeleteFigmaComment",
   "fully_qualified_name": "FigmaApi.DeleteFigmaComment@0.1.0",
-  "description": "Delete a specific comment in Figma.\n\nUse this tool to delete a comment in Figma. Only the comment's author is permitted to delete it. Call this tool when a user requests to remove their comment.",
+  "description": "Delete your comment from a Figma file.\n\nUse this tool to delete a specific comment you made on a Figma file. Only the original commenter can delete their comments.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "file_or_branch_key",
+        "name": "figma_file_key",
         "required": true,
-        "description": "The unique key of the file or branch from which to delete the comment. Use `GET /v1/files/:key` with `branch_data` parameter to obtain the branch key.",
+        "description": "The file or branch key from which to delete the comment. Use `GET /v1/files/:key` with `branch_data` to obtain the branch key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "comment_id_to_delete",
+        "name": "comment_identifier",
         "required": true,
-        "description": "The ID of the comment you wish to delete. Only the author of the comment can perform this action.",
+        "description": "The ID of the comment you wish to delete from the Figma file. Only the original commenter can perform this action.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "file_key",
-        "tool_parameter_name": "file_or_branch_key",
+        "tool_parameter_name": "figma_file_key",
         "description": "File to delete comment from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
         "value_schema": {
           "val_type": "string",
@@ -107,7 +107,7 @@
       },
       {
         "name": "comment_id",
-        "tool_parameter_name": "comment_id_to_delete",
+        "tool_parameter_name": "comment_identifier",
         "description": "Comment id of comment to delete",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

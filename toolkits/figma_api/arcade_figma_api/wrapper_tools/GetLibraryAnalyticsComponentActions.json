@@ -1,7 +1,7 @@
 {
   "name": "GetLibraryAnalyticsComponentActions",
   "fully_qualified_name": "FigmaApi.GetLibraryAnalyticsComponentActions@0.1.0",
-  "description": "Retrieve library analytics component actions data.\n\nFetches a list of analytics component actions for a specified library, broken down by the requested dimension.",
+  "description": "Get analytics for library component actions.\n\nRetrieve detailed data on library component actions in Figma, broken down by the specified dimension. This tool is used to gain insights into how components in a Figma library are being utilized.",
   "toolkit": {
     "name": "ArcadeFigmaApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "group_by_dimension",
         "required": true,
-        "description": "Dimension to group analytics data by, such as 'component' or 'team'.",
+        "description": "Specify the dimension to group the analytics data by. Options are 'component' or 'team'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -30,7 +30,7 @@
       {
         "name": "library_file_key",
         "required": true,
-        "description": "File key of the library to fetch analytics data for. It identifies the specific library whose data should be retrieved.",
+        "description": "The unique file key for the Figma library to retrieve analytics data from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,9 +43,9 @@
         "http_endpoint_parameter_name": "file_key"
       },
       {
-        "name": "pagination_cursor",
+        "name": "data_page_cursor",
         "required": false,
-        "description": "Cursor indicating the page of data to fetch, obtained from a previous API call.",
+        "description": "Cursor indicating the specific page of data to fetch, obtained from a previous API call.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -58,9 +58,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "earliest_week_date",
+        "name": "earliest_start_date",
         "required": false,
-        "description": "ISO 8601 date string (YYYY-MM-DD) representing the earliest week to include. Dates are adjusted to the start of a week, defaulting to one year prior if not specified.",
+        "description": "ISO 8601 date string (YYYY-MM-DD) for the earliest week to include. Rounded back to the start of a week. Defaults to one year prior.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -73,9 +73,9 @@
         "http_endpoint_parameter_name": "start_date"
       },
       {
-        "name": "latest_week_end_date",
+        "name": "latest_inclusion_date",
         "required": false,
-        "description": "ISO 8601 date string (YYYY-MM-DD) representing the latest week to include in the data. Rounds forward to the nearest week's end. Defaults to the latest computed week.",
+        "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include, rounded forward to the nearest week's end. Defaults to the latest computed week.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -137,7 +137,7 @@
     "parameters": [
       {
         "name": "cursor",
-        "tool_parameter_name": "pagination_cursor",
+        "tool_parameter_name": "data_page_cursor",
         "description": "Cursor indicating what page of data to fetch. Obtained from prior API call.",
         "value_schema": {
           "val_type": "string",
@@ -176,7 +176,7 @@
       },
       {
         "name": "start_date",
-        "tool_parameter_name": "earliest_week_date",
+        "tool_parameter_name": "earliest_start_date",
         "description": "ISO 8601 date string (YYYY-MM-DD) of the earliest week to include. Dates are rounded back to the nearest start of a week. Defaults to one year prior.",
         "value_schema": {
           "val_type": "string",
@@ -194,7 +194,7 @@
       },
       {
         "name": "end_date",
-        "tool_parameter_name": "latest_week_end_date",
+        "tool_parameter_name": "latest_inclusion_date",
         "description": "ISO 8601 date string (YYYY-MM-DD) of the latest week to include. Dates are rounded forward to the nearest end of a week. Defaults to the latest computed week.",
         "value_schema": {
           "val_type": "string",
@@ -239,6 +239,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }
