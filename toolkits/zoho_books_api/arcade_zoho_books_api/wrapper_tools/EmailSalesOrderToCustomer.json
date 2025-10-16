@@ -1,0 +1,465 @@
+{
+  "name": "EmailSalesOrderToCustomer",
+  "fully_qualified_name": "ZohoBooksApi.EmailSalesOrderToCustomer@0.1.0",
+  "description": "Email a sales order to a customer.\n\nSend an email containing the sales order to the customer, with optional custom content. If no content is provided, the default email content will be used.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization for which the sales order is being emailed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "sales_order_id",
+        "required": true,
+        "description": "Provide the unique identifier of the sales order to be emailed to the customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_id"
+      },
+      {
+        "name": "sales_order_identifier",
+        "required": true,
+        "description": "Unique identifier of the sales order to be emailed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_id"
+      },
+      {
+        "name": "sales_order_attachments",
+        "required": false,
+        "description": "A list of file paths or URLs for attachments to include with the sales order email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Attachments of the Sales Order"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachments"
+      },
+      {
+        "name": "file_name",
+        "required": false,
+        "description": "Specify the name of the file to be attached to the email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the file."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_name"
+      },
+      {
+        "name": "email_request_body",
+        "required": false,
+        "description": "JSON string containing email details such as from address, recipients, subject, and body for the sales order email.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "from_address_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "From Address of the Email Address"
+            },
+            "send_from_org_email_id": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to trigger the email from the organization's email address."
+            },
+            "to_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients."
+            },
+            "cc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be CC ed."
+            },
+            "bcc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be BCC ed."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the mail."
+            },
+            "documents": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Documents of the Sales Order"
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the invoice"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the mail."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_sales_order_attachment",
+        "required": false,
+        "description": "Specify true to include the sales order attachment in the email, or false to exclude it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the sales order attachment a with the email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "send_attachment"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'email_sales_order'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.salesorders.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/salesorders/{salesorder_id}/email",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_id",
+        "tool_parameter_name": "sales_order_identifier",
+        "description": "ID of the Sales Order",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Sales Order"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachments",
+        "tool_parameter_name": "sales_order_attachments",
+        "description": "Attachments of the Sales Order",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Attachments of the Sales Order"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "send_attachment",
+        "tool_parameter_name": "include_sales_order_attachment",
+        "description": "Send the sales order attachment a with the email.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the sales order attachment a with the email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_name",
+        "tool_parameter_name": "file_name",
+        "description": "Name of the file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the file."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_id",
+        "tool_parameter_name": "sales_order_identifier",
+        "description": "Unique identifier of the sales order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "email_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "from_address_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "From Address of the Email Address"
+            },
+            "send_from_org_email_id": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to trigger the email from the organization's email address."
+            },
+            "to_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients."
+            },
+            "cc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be CC ed."
+            },
+            "bcc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be BCC ed."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the mail."
+            },
+            "documents": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Documents of the Sales Order"
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the invoice"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the mail."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"to_mail_ids\",\n          \"subject\",\n          \"body\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"from_address_id\": {\n            \"description\": \"From Address of the Email Address\",\n            \"type\": \"string\",\n            \"example\": \"johnRoberts@safInstrument.com\"\n          },\n          \"send_from_org_email_id\": {\n            \"description\": \"Boolean to trigger the email from the organization's email address.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"to_mail_ids\": {\n            \"description\": \"Array of email address of the recipients.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"john@safInstruments.com\"\n            ]\n          },\n          \"cc_mail_ids\": {\n            \"description\": \"Array of email address of the recipients to be CC ed.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"smith@safInstruments.com\"\n            ]\n          },\n          \"bcc_mail_ids\": {\n            \"description\": \"Array of email address of the recipients to be BCC ed.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"mark@safInstruments.com\"\n            ]\n          },\n          \"subject\": {\n            \"description\": \"Subject of the mail.\",\n            \"type\": \"string\",\n            \"example\": \"Sales Order from Zillium Inc (Sales Order #: SO-00001)\"\n          },\n          \"documents\": {\n            \"description\": \"Documents of the Sales Order\",\n            \"type\": \"string\",\n            \"format\": \"binary\"\n          },\n          \"invoice_id\": {\n            \"description\": \"ID of the invoice\",\n            \"type\": \"string\",\n            \"example\": 460000000028192\n          },\n          \"body\": {\n            \"description\": \"Body of the mail.\",\n            \"type\": \"string\",\n            \"example\": \"<br>Dear SAF Instruments Inc,&nbsp;<br><br>Thanks for your interest in our services. Please find our sales order attached with this mail.<br><br> An overview of the sales order is available below for your reference: &nbsp;<br><br> ----------------------------------------------------------------------------------------<br> <h2>Sales Order&nbsp;# :&nbsp;SO-00001</h2><br> ----------------------------------------------------------------------------------------<br> <b>&nbsp;Order Date &nbsp; &nbsp;&nbsp;&nbsp;: &nbsp;28 Jul 2014</b><br><b>&nbsp;Amount &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; : &nbsp;&nbsp;$12,400.00</b><br>----------------------------------------------------------------------------------------<br><br><span>Assuring you of our best services at all times.</span><br><br><br>Regards,<br><br>John<br>Zillium Inc<br><br><br>\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,286 @@
+{
+  "name": "FetchVendorPaymentDetails",
+  "fully_qualified_name": "ZohoBooksApi.FetchVendorPaymentDetails@0.1.0",
+  "description": "Retrieve details of a vendor payment by payment ID.\n\nCall this tool to get detailed information about a specific vendor payment using the payment ID.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization to retrieve the vendor payment details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "payment_identifier",
+        "required": true,
+        "description": "Unique identifier for the payment to retrieve its details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "payment_id"
+      },
+      {
+        "name": "include_tax_information",
+        "required": false,
+        "description": "Set to true to fetch tax information for the vendor payment.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if tax information should be fetched"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fetchTaxInfo"
+      },
+      {
+        "name": "fetch_statement_line_info",
+        "required": false,
+        "description": "Set to true to fetch statement line information for the vendor payment.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check is Statement Line Information for Vendor Payment be fetched"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fetchstatementlineinfo"
+      },
+      {
+        "name": "print_payment",
+        "required": false,
+        "description": "Specify true to print the Vendor Payment details.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if Vendor Payment must be printed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "print"
+      },
+      {
+        "name": "is_bill_payment_id",
+        "required": false,
+        "description": "True if the ID is for a Bill Payment, false for a Vendor Payment.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if the ID is Bill Payment or Vendor Payment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_bill_payment_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_vendor_payment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.vendorpayments.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/vendorpayments/{payment_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fetchTaxInfo",
+        "tool_parameter_name": "include_tax_information",
+        "description": "Check if tax information should be fetched",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if tax information should be fetched"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fetchstatementlineinfo",
+        "tool_parameter_name": "fetch_statement_line_info",
+        "description": "Check is Statement Line Information for Vendor Payment be fetched",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check is Statement Line Information for Vendor Payment be fetched"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "print",
+        "tool_parameter_name": "print_payment",
+        "description": "Check if Vendor Payment must be printed.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if Vendor Payment must be printed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_bill_payment_id",
+        "tool_parameter_name": "is_bill_payment_id",
+        "description": "Check if the ID is Bill Payment or Vendor Payment",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if the ID is Bill Payment or Vendor Payment"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "payment_id",
+        "tool_parameter_name": "payment_identifier",
+        "description": "Unique identifier of the payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the payment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,1999 @@
+{
+  "name": "UpdateContactByCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdateContactByCustomField@0.1.0",
+  "description": "Update a contact using a unique custom field value.\n\nThis tool updates or creates a contact in Zoho Books based on a unique custom field value. Use it when you need to modify a contact using a non-duplicate custom field value, or create a new contact if the unique value isn't found and upsert is enabled.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization in Zoho Books. This is required to specify which organization's records to update or create.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "custom_field_api_name",
+        "required": true,
+        "description": "The API name of the unique custom field used to identify the contact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value of the custom field used to identify the contact. Must be a non-duplicate value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "contact_details_payload",
+        "required": false,
+        "description": "A JSON payload containing details for the contact update. Includes fields like contact_name, company_name, payment_terms, and more. This is used to either update the existing contact or create a new one if the X-Upsert option is true.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display name for the contact. It is used for searching and displaying contacts."
+            },
+            "company_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Legal or registered contact's company name. Used for legal documents and formal communications. Max-length [200]."
+            },
+            "payment_terms": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of days allowed for payment after the invoice date."
+            },
+            "payment_terms_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Human-readable label of payment terms displayed on invoices and other transactions. Max-length [200]."
+            },
+            "contact_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines how the contact is treated in the system. Allowed values: <code>customer</code>, <code>vendor</code>."
+            },
+            "customer_sub_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> Additional classification for customers. Allowed values: <code>individual</code>, <code>business</code>."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency assigned to this contact. The currency_id must correspond to a valid currency configuration in the system."
+            },
+            "opening_balances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the business location associated with this opening balance."
+                },
+                "exchange_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency exchange rate used to convert opening balance to organization's base currency."
+                },
+                "opening_balance_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Initial balance amount for the contact at the time of creation."
+                }
+              },
+              "description": null
+            },
+            "credit_limit": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> The maximum credit amount that can be allowed for the customer. Once the customer's outstanding receivables reach this limit, the system will restrict the customer from creating any further transactions."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Pricebook id which is associated with the contact. Max-length [200]."
+            },
+            "contact_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact number associated with the contact for internal tracking and identification purposes. Max-length [200]."
+            },
+            "ignore_auto_number_generation": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the auto generation contact_number is ignored or not for the contact. Allowed values: <code>true</code>, <code>false</code>."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reporting tag"
+                },
+                "tag_option_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reporting tag's option"
+                }
+              },
+              "description": "Filter all your reports based on the tag"
+            },
+            "website": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Official website URL of the contact."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> Unique identifier for the user assigned as the owner of the contact. This field specifies which user in the organization is responsible for managing the business relationship with this contact."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field. It can hold any value from 1 to 10."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                }
+              },
+              "description": null
+            },
+            "billing_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+                },
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 1 address for the contact. Max-length [500]."
+                },
+                "street2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 2 address for the contact. Max-length [255]."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State or province code for the address. Max-length [100]."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City name for the address. Max-length [100]."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State for the address. Max-length [100]."
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Postal or ZIP code for the address. Max-length [50]."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country name for the address. Max-length [100]."
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fax number for the address. Max-length [50]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact phone number associated with the address. Max-length [50]"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address information for the contact."
+            },
+            "shipping_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+                },
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 1 address for the contact. Max-length [500]."
+                },
+                "street2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 2 address for the contact. Max-length [255]."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State or province code for the address. Max-length [100]."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City name for the address. Max-length [100]."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State for the address. Max-length [100]."
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Postal or ZIP code for the address. Max-length [50]."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country name for the address. Max-length [100]."
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fax number for the address. Max-length [50]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact phone number associated with the address. Max-length [50]"
+                }
+              },
+              "inner_properties": null,
+              "description": "Shipping address information for the contact."
+            },
+            "contact_persons": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the contact person. For an existing contact person, pass the <code>contact_person_id</code>."
+                },
+                "salutation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Salutation for the contact. Max-length [25]"
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "First name of the contact person. Max-length [100]."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Last name of the contact person. Max-length [100]."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email address of the contact person for business communications. Max-length [100]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Phone number of the contact person. Max-length [50]."
+                },
+                "mobile": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mobile number of the contact person. Max-length [50]."
+                },
+                "designation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Designation of the contact person within the contact's company. Max-length [100]."
+                },
+                "department": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the contact person within the contact's company. Max-length [50]."
+                },
+                "skype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Skype username of the contact person. Max-length [50]."
+                },
+                "is_primary_contact": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates whether this contact person is the primary contact. Only one per contact. Allowed values: <code>true</code> and <code>false</code>."
+                },
+                "enable_portal": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates whether the contact person should have access to the client portal. Allowed values: <code>true</code> and <code>false</code>."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_sms_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether SMS text messages are allowed for the contact person."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether WhatsApp messaging is allowed for the contact person."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person."
+                }
+              },
+              "description": null
+            },
+            "default_templates": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "invoice_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default invoice template id used for this customer while creating invoice."
+                },
+                "estimate_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default estimate template id used for this customer while creating estimate."
+                },
+                "creditnote_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default credit note template id used for this customer while creating credit note."
+                },
+                "purchaseorder_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default purchase order template id used for this vendor while creating purchase order."
+                },
+                "salesorder_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default sales order template id used for this customer while creating sales order."
+                },
+                "retainerinvoice_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice template id used for this customer while creating retainer invoice."
+                },
+                "paymentthankyou_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment thank you template id used for this contact while sending payment acknowledgment."
+                },
+                "retainerinvoice_paymentthankyou_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice payment thank you template id used for this customer while sending payment acknowledgment for retainer invoices."
+                },
+                "invoice_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default invoice email template id used for this customer while sending invoices."
+                },
+                "estimate_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default estimate email template id used for this customer while sending estimates."
+                },
+                "creditnote_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default credit note email template id used for this customer while sending credit notes."
+                },
+                "purchaseorder_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default purchase order email template id used for this vendor while sending purchase order."
+                },
+                "salesorder_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default sales order email template id used for this customer while sending sales order."
+                },
+                "retainerinvoice_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice email template id used for this contact while sending retainer invoice."
+                },
+                "paymentthankyou_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment thank you email template id used for this contact while sending payment acknowledgment."
+                },
+                "retainerinvoice_paymentthankyou_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice payment thank you email template id used for this customer while sending payment acknowledgment for retainer invoices."
+                },
+                "statement_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default statement template id used for this contact while creating statement."
+                },
+                "payment_remittance_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment remittance email template id used for this contact while sending payment remittances."
+                },
+                "bill_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default bill template id used for this vendor while creating bill."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional comments or notes about the contact."
+            },
+            "vat_reg_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For UK Edition:</b> VAT Registration number of a contact with length should be between 2 and 12 characters.<br/> <b>For Avalara:</b> If you are doing sales in the European Union (EU) then provide VAT Registration Number of your customers here. This is used to calculate VAT for B2B sales, from Avalara."
+            },
+            "tax_reg_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For GCC Edition:</b> 15 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>,<code>gcc_vat_registered</code>,<code>dz_vat_registered</code>.<br/><b>For Mexico Edition:</b> 12 digit Tax Registration number of a contact with Tax treatment as </br> <code>home_country_mexico</code>, <code>border_region_mexico</code>, <code>non_mexico</code>.</br> Consumers generic RFC: <code>XAXX010101000</code>, Overseas generic RFC: <code>XEXX010101000</code>.<br/><b>For Kenya Edition:</b> 11 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code><br/><b>For SouthAfrica Edition:</b> 10 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>"
+            },
+            "country_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For UK Edition:</b> Two letter country code of a contact<br/> <b>For Avalara:</b> Two letter country code for the customer country, if your customer is not in US. Refer [AvaTax Codes for Countries and States][2].<br/> <b>For GCC Editions :</b> Two Letter country code for the GCC Country or the UAE emirate of the contact which will be considered as <b>place of supply</b>.<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax treatment of the contact.<br/>Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>,<code>dz_vat_registered</code> and <code>dz_vat_not_registered</code></br><code>home_country_mexico</code> (A business that is located within MX)</br><code>border_region_mexico</code> (A business that is located in the northern and southern border regions in MX)</br><code>non_mexico</code> (A business that is located outside MX).<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "tax_exemption_certificate_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Exemption Certificate number is issued by the Kenya Revenue Authority (KRA) to organizations or individuals who qualify for tax exemption"
+            },
+            "tax_regime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Regime of the contact.Allowed Values: <code>general_legal_person</code>, <code>legal_entities_non_profit</code>, <code>resident_abroad</code>, <code>production_cooperative_societies</code>, <code>agricultural_livestock</code>, <code>optional_group_of_companies</code>, <code>coordinated</code>, <code>simplified_trust</code>, <code>wages_salaries_income</code>, <code>lease</code>, <code>property_disposal_acquisition</code>, <code>other_income</code>, <code>resident_abroad</code>, <code>divident_income</code>, <code>individual_business_professional</code>, <code>interest_income</code>, <code>income_obtaining_price</code>, <code>no_tax_obligation</code>, <code>tax_incorporation</code>, <code>income_through_technology_platform</code>, <code>simplified_trust</code>."
+            },
+            "legal_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Official legal name of the contact as registered with tax authorities in Mexico."
+            },
+            "is_tds_registered": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the contact is registered for Tax Deducted at Source (TDS) in Mexico."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment of the contact.Allowed Values: <br/><code>uk</code> (A business that is located in the UK.),<br/><code>eu_vat_registered</code> (A business that is reg for VAT and trade goods between Northern Ireland and EU. This node is available only for organizations enabled for NI protocal in VAT Settings.) and<br/><code>overseas</code> (A business that is located outside UK. Pre Brexit, this was split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code> )."
+            },
+            "place_of_contact": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State or union territory code where the contact is located for Indian tax purposes. (This node identifies the place of supply and source of supply when invoices/bills are raised for the customer/vendor respectively. This is not applicable for Overseas contacts)"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15-digit GST identification number of the contact as issued by the Indian tax authorities."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_authority_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display name of the tax authority responsible for the customer's tax jurisdiction."
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax exemption configuration assigned to this contact."
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code identifier for the tax exemption assigned to the contact."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax authority responsible for the customer's tax jurisdiction. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax or tax group assigned to the contact. Available only when <code>is_taxable</code> is <code>true</code>."
+            },
+            "is_taxable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the customer is subject to tax collection. Tax-related fields are only available when this field is set to true. Allowed values: <code>true</code> and <code>false</code>."
+            },
+            "facebook": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Facebook profile URL for the contact. Max-length [100]."
+            },
+            "twitter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "X profile URL for the contact. Max-length [100]."
+            },
+            "track_1099": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to track a contact for 1099 reporting."
+            },
+            "tax_id_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID type of the contact, it can be SSN, ATIN, ITIN or EIN."
+            },
+            "tax_id_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID of the contact."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "create_contact_if_not_found",
+        "required": false,
+        "description": "Set to true to create a new contact if the unique custom field value isn't found.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_contact_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.contacts.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/contacts",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "create_contact_if_not_found",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_details_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display name for the contact. It is used for searching and displaying contacts."
+            },
+            "company_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Legal or registered contact's company name. Used for legal documents and formal communications. Max-length [200]."
+            },
+            "payment_terms": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of days allowed for payment after the invoice date."
+            },
+            "payment_terms_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Human-readable label of payment terms displayed on invoices and other transactions. Max-length [200]."
+            },
+            "contact_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines how the contact is treated in the system. Allowed values: <code>customer</code>, <code>vendor</code>."
+            },
+            "customer_sub_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> Additional classification for customers. Allowed values: <code>individual</code>, <code>business</code>."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency assigned to this contact. The currency_id must correspond to a valid currency configuration in the system."
+            },
+            "opening_balances": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier for the business location associated with this opening balance."
+                },
+                "exchange_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Currency exchange rate used to convert opening balance to organization's base currency."
+                },
+                "opening_balance_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Initial balance amount for the contact at the time of creation."
+                }
+              },
+              "description": null
+            },
+            "credit_limit": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> The maximum credit amount that can be allowed for the customer. Once the customer's outstanding receivables reach this limit, the system will restrict the customer from creating any further transactions."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Pricebook id which is associated with the contact. Max-length [200]."
+            },
+            "contact_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact number associated with the contact for internal tracking and identification purposes. Max-length [200]."
+            },
+            "ignore_auto_number_generation": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the auto generation contact_number is ignored or not for the contact. Allowed values: <code>true</code>, <code>false</code>."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reporting tag"
+                },
+                "tag_option_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reporting tag's option"
+                }
+              },
+              "description": "Filter all your reports based on the tag"
+            },
+            "website": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Official website URL of the contact."
+            },
+            "owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For Customer Only :</b> Unique identifier for the user assigned as the owner of the contact. This field specifies which user in the organization is responsible for managing the business relationship with this contact."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field. It can hold any value from 1 to 10."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                }
+              },
+              "description": null
+            },
+            "billing_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+                },
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 1 address for the contact. Max-length [500]."
+                },
+                "street2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 2 address for the contact. Max-length [255]."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State or province code for the address. Max-length [100]."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City name for the address. Max-length [100]."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State for the address. Max-length [100]."
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Postal or ZIP code for the address. Max-length [50]."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country name for the address. Max-length [100]."
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fax number for the address. Max-length [50]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact phone number associated with the address. Max-length [50]"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address information for the contact."
+            },
+            "shipping_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+                },
+                "address": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 1 address for the contact. Max-length [500]."
+                },
+                "street2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street 2 address for the contact. Max-length [255]."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State or province code for the address. Max-length [100]."
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City name for the address. Max-length [100]."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State for the address. Max-length [100]."
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Postal or ZIP code for the address. Max-length [50]."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country name for the address. Max-length [100]."
+                },
+                "fax": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fax number for the address. Max-length [50]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The contact phone number associated with the address. Max-length [50]"
+                }
+              },
+              "inner_properties": null,
+              "description": "Shipping address information for the contact."
+            },
+            "contact_persons": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the contact person. For an existing contact person, pass the <code>contact_person_id</code>."
+                },
+                "salutation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Salutation for the contact. Max-length [25]"
+                },
+                "first_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "First name of the contact person. Max-length [100]."
+                },
+                "last_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Last name of the contact person. Max-length [100]."
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email address of the contact person for business communications. Max-length [100]."
+                },
+                "phone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Phone number of the contact person. Max-length [50]."
+                },
+                "mobile": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mobile number of the contact person. Max-length [50]."
+                },
+                "designation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Designation of the contact person within the contact's company. Max-length [100]."
+                },
+                "department": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the contact person within the contact's company. Max-length [50]."
+                },
+                "skype": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Skype username of the contact person. Max-length [50]."
+                },
+                "is_primary_contact": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates whether this contact person is the primary contact. Only one per contact. Allowed values: <code>true</code> and <code>false</code>."
+                },
+                "enable_portal": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates whether the contact person should have access to the client portal. Allowed values: <code>true</code> and <code>false</code>."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_sms_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether SMS text messages are allowed for the contact person."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether WhatsApp messaging is allowed for the contact person."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person."
+                }
+              },
+              "description": null
+            },
+            "default_templates": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "invoice_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default invoice template id used for this customer while creating invoice."
+                },
+                "estimate_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default estimate template id used for this customer while creating estimate."
+                },
+                "creditnote_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default credit note template id used for this customer while creating credit note."
+                },
+                "purchaseorder_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default purchase order template id used for this vendor while creating purchase order."
+                },
+                "salesorder_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default sales order template id used for this customer while creating sales order."
+                },
+                "retainerinvoice_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice template id used for this customer while creating retainer invoice."
+                },
+                "paymentthankyou_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment thank you template id used for this contact while sending payment acknowledgment."
+                },
+                "retainerinvoice_paymentthankyou_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice payment thank you template id used for this customer while sending payment acknowledgment for retainer invoices."
+                },
+                "invoice_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default invoice email template id used for this customer while sending invoices."
+                },
+                "estimate_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default estimate email template id used for this customer while sending estimates."
+                },
+                "creditnote_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default credit note email template id used for this customer while sending credit notes."
+                },
+                "purchaseorder_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default purchase order email template id used for this vendor while sending purchase order."
+                },
+                "salesorder_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default sales order email template id used for this customer while sending sales order."
+                },
+                "retainerinvoice_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice email template id used for this contact while sending retainer invoice."
+                },
+                "paymentthankyou_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment thank you email template id used for this contact while sending payment acknowledgment."
+                },
+                "retainerinvoice_paymentthankyou_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default retainer invoice payment thank you email template id used for this customer while sending payment acknowledgment for retainer invoices."
+                },
+                "statement_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default statement template id used for this contact while creating statement."
+                },
+                "payment_remittance_email_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default payment remittance email template id used for this contact while sending payment remittances."
+                },
+                "bill_template_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Default bill template id used for this vendor while creating bill."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional comments or notes about the contact."
+            },
+            "vat_reg_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For UK Edition:</b> VAT Registration number of a contact with length should be between 2 and 12 characters.<br/> <b>For Avalara:</b> If you are doing sales in the European Union (EU) then provide VAT Registration Number of your customers here. This is used to calculate VAT for B2B sales, from Avalara."
+            },
+            "tax_reg_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For GCC Edition:</b> 15 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>,<code>gcc_vat_registered</code>,<code>dz_vat_registered</code>.<br/><b>For Mexico Edition:</b> 12 digit Tax Registration number of a contact with Tax treatment as </br> <code>home_country_mexico</code>, <code>border_region_mexico</code>, <code>non_mexico</code>.</br> Consumers generic RFC: <code>XAXX010101000</code>, Overseas generic RFC: <code>XEXX010101000</code>.<br/><b>For Kenya Edition:</b> 11 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code><br/><b>For SouthAfrica Edition:</b> 10 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>"
+            },
+            "country_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<b>For UK Edition:</b> Two letter country code of a contact<br/> <b>For Avalara:</b> Two letter country code for the customer country, if your customer is not in US. Refer [AvaTax Codes for Countries and States][2].<br/> <b>For GCC Editions :</b> Two Letter country code for the GCC Country or the UAE emirate of the contact which will be considered as <b>place of supply</b>.<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax treatment of the contact.<br/>Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>,<code>dz_vat_registered</code> and <code>dz_vat_not_registered</code></br><code>home_country_mexico</code> (A business that is located within MX)</br><code>border_region_mexico</code> (A business that is located in the northern and southern border regions in MX)</br><code>non_mexico</code> (A business that is located outside MX).<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "tax_exemption_certificate_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Exemption Certificate number is issued by the Kenya Revenue Authority (KRA) to organizations or individuals who qualify for tax exemption"
+            },
+            "tax_regime": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Regime of the contact.Allowed Values: <code>general_legal_person</code>, <code>legal_entities_non_profit</code>, <code>resident_abroad</code>, <code>production_cooperative_societies</code>, <code>agricultural_livestock</code>, <code>optional_group_of_companies</code>, <code>coordinated</code>, <code>simplified_trust</code>, <code>wages_salaries_income</code>, <code>lease</code>, <code>property_disposal_acquisition</code>, <code>other_income</code>, <code>resident_abroad</code>, <code>divident_income</code>, <code>individual_business_professional</code>, <code>interest_income</code>, <code>income_obtaining_price</code>, <code>no_tax_obligation</code>, <code>tax_incorporation</code>, <code>income_through_technology_platform</code>, <code>simplified_trust</code>."
+            },
+            "legal_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Official legal name of the contact as registered with tax authorities in Mexico."
+            },
+            "is_tds_registered": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the contact is registered for Tax Deducted at Source (TDS) in Mexico."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment of the contact.Allowed Values: <br/><code>uk</code> (A business that is located in the UK.),<br/><code>eu_vat_registered</code> (A business that is reg for VAT and trade goods between Northern Ireland and EU. This node is available only for organizations enabled for NI protocal in VAT Settings.) and<br/><code>overseas</code> (A business that is located outside UK. Pre Brexit, this was split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code> )."
+            },
+            "place_of_contact": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State or union territory code where the contact is located for Indian tax purposes. (This node identifies the place of supply and source of supply when invoices/bills are raised for the customer/vendor respectively. This is not applicable for Overseas contacts)"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15-digit GST identification number of the contact as issued by the Indian tax authorities."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_authority_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Display name of the tax authority responsible for the customer's tax jurisdiction."
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax exemption configuration assigned to this contact."
+            },
+            "tax_exemption_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code identifier for the tax exemption assigned to the contact."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax authority responsible for the customer's tax jurisdiction. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the tax or tax group assigned to the contact. Available only when <code>is_taxable</code> is <code>true</code>."
+            },
+            "is_taxable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the customer is subject to tax collection. Tax-related fields are only available when this field is set to true. Allowed values: <code>true</code> and <code>false</code>."
+            },
+            "facebook": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Facebook profile URL for the contact. Max-length [100]."
+            },
+            "twitter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "X profile URL for the contact. Max-length [100]."
+            },
+            "track_1099": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to track a contact for 1099 reporting."
+            },
+            "tax_id_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID type of the contact, it can be SSN, ATIN, ITIN or EIN."
+            },
+            "tax_id_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID of the contact."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"contact_name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"contact_name\": {\n            \"description\": \"Display name for the contact. It is used for searching and displaying contacts.\",\n            \"type\": \"string\",\n            \"example\": \"Bowman and Co\"\n          },\n          \"company_name\": {\n            \"description\": \"Legal or registered contact's company name. Used for legal documents and formal communications. Max-length [200].\",\n            \"type\": \"string\",\n            \"example\": \"Bowman and Co\"\n          },\n          \"payment_terms\": {\n            \"description\": \"Number of days allowed for payment after the invoice date.\",\n            \"type\": \"integer\",\n            \"example\": 15\n          },\n          \"payment_terms_label\": {\n            \"description\": \"Human-readable label of payment terms displayed on invoices and other transactions. Max-length [200].\",\n            \"type\": \"string\",\n            \"example\": \"Net 15\"\n          },\n          \"contact_type\": {\n            \"description\": \"Determines how the contact is treated in the system. Allowed values: <code>customer</code>, <code>vendor</code>.\",\n            \"type\": \"string\",\n            \"example\": \"customer\"\n          },\n          \"customer_sub_type\": {\n            \"description\": \"<b>For Customer Only :</b> Additional classification for customers. Allowed values: <code>individual</code>, <code>business</code>.\",\n            \"type\": \"string\",\n            \"example\": \"business\"\n          },\n          \"currency_id\": {\n            \"description\": \"Unique identifier for the currency assigned to this contact. The currency_id must correspond to a valid currency configuration in the system.\",\n            \"type\": \"string\",\n            \"example\": 460000000000097\n          },\n          \"opening_balances\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"location_id\": {\n                  \"description\": \"Unique identifier for the business location associated with this opening balance.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"exchange_rate\": {\n                  \"description\": \"Currency exchange rate used to convert opening balance to organization's base currency.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 1\n                },\n                \"opening_balance_amount\": {\n                  \"description\": \"Initial balance amount for the contact at the time of creation.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 1200\n                }\n              }\n            }\n          },\n          \"credit_limit\": {\n            \"description\": \"<b>For Customer Only :</b> The maximum credit amount that can be allowed for the customer. Once the customer's outstanding receivables reach this limit, the system will restrict the customer from creating any further transactions.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1000\n          },\n          \"pricebook_id\": {\n            \"description\": \"Pricebook id which is associated with the contact. Max-length [200].\",\n            \"type\": \"string\",\n            \"example\": 460000000000123\n          },\n          \"contact_number\": {\n            \"description\": \"Contact number associated with the contact for internal tracking and identification purposes. Max-length [200].\",\n            \"type\": \"string\",\n            \"example\": \"CNT-001234\"\n          },\n          \"ignore_auto_number_generation\": {\n            \"description\": \"Indicates whether the auto generation contact_number is ignored or not for the contact. Allowed values: <code>true</code>, <code>false</code>.\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"tags\": {\n            \"description\": \"Filter all your reports based on the tag\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the reporting tag\",\n                  \"type\": \"string\",\n                  \"example\": 462000000009070\n                },\n                \"tag_option_id\": {\n                  \"description\": \"ID of the reporting tag's option\",\n                  \"type\": \"string\",\n                  \"example\": 462000000002670\n                }\n              }\n            }\n          },\n          \"website\": {\n            \"description\": \"Official website URL of the contact.\",\n            \"type\": \"string\",\n            \"example\": \"www.bowmanfurniture.com\"\n          },\n          \"owner_id\": {\n            \"description\": \"<b>For Customer Only :</b> Unique identifier for the user assigned as the owner of the contact. This field specifies which user in the organization is responsible for managing the business relationship with this contact.\",\n            \"type\": \"string\",\n            \"example\": 460000000016051\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"Index of the custom field. It can hold any value from 1 to 10.\",\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"value\": {\n                  \"description\": \"Value of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"GBGD078\"\n                },\n                \"label\": {\n                  \"description\": \"Label of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"VAT ID\"\n                }\n              }\n            }\n          },\n          \"billing_address\": {\n            \"description\": \"Billing address information for the contact.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"attention\": {\n                \"description\": \"Attention for proper delivery and routing of business correspondence. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"Mr.John\"\n              },\n              \"address\": {\n                \"description\": \"Street 1 address for the contact. Max-length [500].\",\n                \"type\": \"string\",\n                \"example\": \"4900 Hopyard Rd\"\n              },\n              \"street2\": {\n                \"description\": \"Street 2 address for the contact. Max-length [255].\",\n                \"type\": \"string\",\n                \"example\": \"Suite 310\"\n              },\n              \"state_code\": {\n                \"description\": \"State or province code for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"CA\"\n              },\n              \"city\": {\n                \"description\": \"City name for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"Pleasanton\"\n              },\n              \"state\": {\n                \"description\": \"State for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"CA\"\n              },\n              \"zip\": {\n                \"description\": \"Postal or ZIP code for the address. Max-length [50].\",\n                \"type\": \"string\",\n                \"example\": 94588\n              },\n              \"country\": {\n                \"description\": \"Country name for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              },\n              \"fax\": {\n                \"description\": \"Fax number for the address. Max-length [50].\",\n                \"type\": \"string\",\n                \"example\": \"+1-925-924-9600\"\n              },\n              \"phone\": {\n                \"description\": \"The contact phone number associated with the address. Max-length [50]\",\n                \"type\": \"string\",\n                \"example\": \"+1-925-921-9201\"\n              }\n            }\n          },\n          \"shipping_address\": {\n            \"description\": \"Shipping address information for the contact.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"attention\": {\n                \"description\": \"Attention for proper delivery and routing of business correspondence. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"Mr.John\"\n              },\n              \"address\": {\n                \"description\": \"Street 1 address for the contact. Max-length [500].\",\n                \"type\": \"string\",\n                \"example\": \"4900 Hopyard Rd\"\n              },\n              \"street2\": {\n                \"description\": \"Street 2 address for the contact. Max-length [255].\",\n                \"type\": \"string\",\n                \"example\": \"Suite 310\"\n              },\n              \"state_code\": {\n                \"description\": \"State or province code for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"CA\"\n              },\n              \"city\": {\n                \"description\": \"City name for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"Pleasanton\"\n              },\n              \"state\": {\n                \"description\": \"State for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"CA\"\n              },\n              \"zip\": {\n                \"description\": \"Postal or ZIP code for the address. Max-length [50].\",\n                \"type\": \"string\",\n                \"example\": 94588\n              },\n              \"country\": {\n                \"description\": \"Country name for the address. Max-length [100].\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              },\n              \"fax\": {\n                \"description\": \"Fax number for the address. Max-length [50].\",\n                \"type\": \"string\",\n                \"example\": \"+1-925-924-9600\"\n              },\n              \"phone\": {\n                \"description\": \"The contact phone number associated with the address. Max-length [50]\",\n                \"type\": \"string\",\n                \"example\": \"+1-925-921-9201\"\n              }\n            }\n          },\n          \"contact_persons\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"contact_person_id\": {\n                  \"description\": \"ID of the contact person. For an existing contact person, pass the <code>contact_person_id</code>.\",\n                  \"type\": \"string\",\n                  \"example\": 460000000026051\n                },\n                \"salutation\": {\n                  \"description\": \"Salutation for the contact. Max-length [25]\",\n                  \"type\": \"string\",\n                  \"example\": \"Mr\"\n                },\n                \"first_name\": {\n                  \"description\": \"First name of the contact person. Max-length [100].\",\n                  \"type\": \"string\",\n                  \"example\": \"Will\"\n                },\n                \"last_name\": {\n                  \"description\": \"Last name of the contact person. Max-length [100].\",\n                  \"type\": \"string\",\n                  \"example\": \"Smith\"\n                },\n                \"email\": {\n                  \"description\": \"Email address of the contact person for business communications. Max-length [100].\",\n                  \"type\": \"string\",\n                  \"example\": \"willsmith@bowmanfurniture.com\"\n                },\n                \"phone\": {\n                  \"description\": \"Phone number of the contact person. Max-length [50].\",\n                  \"type\": \"string\",\n                  \"example\": \"+1-925-921-9201\"\n                },\n                \"mobile\": {\n                  \"description\": \"Mobile number of the contact person. Max-length [50].\",\n                  \"type\": \"string\",\n                  \"example\": \"+1-4054439562\"\n                },\n                \"designation\": {\n                  \"description\": \"Designation of the contact person within the contact's company. Max-length [100].\",\n                  \"type\": \"string\",\n                  \"example\": \"Sales Executive\"\n                },\n                \"department\": {\n                  \"description\": \"Department of the contact person within the contact's company. Max-length [50].\",\n                  \"type\": \"string\",\n                  \"example\": \"Sales and Marketing\"\n                },\n                \"skype\": {\n                  \"description\": \"Skype username of the contact person. Max-length [50].\",\n                  \"type\": \"string\",\n                  \"example\": \"Zoho\"\n                },\n                \"is_primary_contact\": {\n                  \"description\": \"Indicates whether this contact person is the primary contact. Only one per contact. Allowed values: <code>true</code> and <code>false</code>.\",\n                  \"type\": \"boolean\",\n                  \"example\": true\n                },\n                \"enable_portal\": {\n                  \"description\": \"Indicates whether the contact person should have access to the client portal. Allowed values: <code>true</code> and <code>false</code>.\",\n                  \"type\": \"boolean\",\n                  \"example\": true\n                },\n                \"communication_preference\": {\n                  \"description\": \"Preferred modes of communication for the contact person.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"is_sms_enabled\": {\n                      \"description\": \"Whether SMS text messages are allowed for the contact person.\",\n                      \"type\": \"boolean\",\n                      \"example\": false,\n                      \"x-node_available_in\": [\n                        \"SMS integration\"\n                      ]\n                    },\n                    \"is_whatsapp_enabled\": {\n                      \"description\": \"Whether WhatsApp messaging is allowed for the contact person.\",\n                      \"type\": \"boolean\",\n                      \"example\": false,\n                      \"x-node_available_in\": [\n                        \"WhatsApp integration\"\n                      ]\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"default_templates\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"invoice_template_id\": {\n                \"description\": \"Default invoice template id used for this customer while creating invoice.\",\n                \"type\": \"string\",\n                \"example\": 460000000052069\n              },\n              \"estimate_template_id\": {\n                \"description\": \"Default estimate template id used for this customer while creating estimate.\",\n                \"type\": \"string\",\n                \"example\": 460000000000179\n              },\n              \"creditnote_template_id\": {\n                \"description\": \"Default credit note template id used for this customer while creating credit note.\",\n                \"type\": \"string\",\n                \"example\": 460000000000211\n              },\n              \"purchaseorder_template_id\": {\n                \"description\": \"Default purchase order template id used for this vendor while creating purchase order.\",\n                \"type\": \"string\",\n                \"example\": 460000000000213\n              },\n              \"salesorder_template_id\": {\n                \"description\": \"Default sales order template id used for this customer while creating sales order.\",\n                \"type\": \"string\",\n                \"example\": 460000000000214\n              },\n              \"retainerinvoice_template_id\": {\n                \"description\": \"Default retainer invoice template id used for this customer while creating retainer invoice.\",\n                \"type\": \"string\",\n                \"example\": 460000000000215\n              },\n              \"paymentthankyou_template_id\": {\n                \"description\": \"Default payment thank you template id used for this contact while sending payment acknowledgment.\",\n                \"type\": \"string\",\n                \"example\": 460000000000216\n              },\n              \"retainerinvoice_paymentthankyou_template_id\": {\n                \"description\": \"Default retainer invoice payment thank you template id used for this customer while sending payment acknowledgment for retainer invoices.\",\n                \"type\": \"string\",\n                \"example\": 460000000000217\n              },\n              \"invoice_email_template_id\": {\n                \"description\": \"Default invoice email template id used for this customer while sending invoices.\",\n                \"type\": \"string\",\n                \"example\": 460000000052071\n              },\n              \"estimate_email_template_id\": {\n                \"description\": \"Default estimate email template id used for this customer while sending estimates.\",\n                \"type\": \"string\",\n                \"example\": 460000000052073\n              },\n              \"creditnote_email_template_id\": {\n                \"description\": \"Default credit note email template id used for this customer while sending credit notes.\",\n                \"type\": \"string\",\n                \"example\": 460000000052075\n              },\n              \"purchaseorder_email_template_id\": {\n                \"description\": \"Default purchase order email template id used for this vendor while sending purchase order.\",\n                \"type\": \"string\",\n                \"example\": 460000000000218\n              },\n              \"salesorder_email_template_id\": {\n                \"description\": \"Default sales order email template id used for this customer while sending sales order.\",\n                \"type\": \"string\",\n                \"example\": 460000000000219\n              },\n              \"retainerinvoice_email_template_id\": {\n                \"description\": \"Default retainer invoice email template id used for this contact while sending retainer invoice.\",\n                \"type\": \"string\",\n                \"example\": 460000000000220\n              },\n              \"paymentthankyou_email_template_id\": {\n                \"description\": \"Default payment thank you email template id used for this contact while sending payment acknowledgment.\",\n                \"type\": \"string\",\n                \"example\": 460000000000221\n              },\n              \"retainerinvoice_paymentthankyou_email_template_id\": {\n                \"description\": \"Default retainer invoice payment thank you email template id used for this customer while sending payment acknowledgment for retainer invoices.\",\n                \"type\": \"string\",\n                \"example\": 460000000000222\n              },\n              \"statement_template_id\": {\n                \"description\": \"Default statement template id used for this contact while creating statement.\",\n                \"type\": \"string\",\n                \"example\": 460000000000101\n              },\n              \"payment_remittance_email_template_id\": {\n                \"description\": \"Default payment remittance email template id used for this contact while sending payment remittances.\",\n                \"type\": \"string\",\n                \"example\": 460000000000102\n              },\n              \"bill_template_id\": {\n                \"description\": \"Default bill template id used for this vendor while creating bill.\",\n                \"type\": \"string\",\n                \"example\": 460000000000103\n              }\n            }\n          },\n          \"notes\": {\n            \"description\": \"Additional comments or notes about the contact.\",\n            \"type\": \"string\",\n            \"example\": \"Payment option : Through check\"\n          },\n          \"vat_reg_no\": {\n            \"description\": \"<b>For UK Edition:</b> VAT Registration number of a contact with length should be between 2 and 12 characters.<br/> <b>For Avalara:</b> If you are doing sales in the European Union (EU) then provide VAT Registration Number of your customers here. This is used to calculate VAT for B2B sales, from Avalara.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_reg_no\": {\n            \"description\": \"<b>For GCC Edition:</b> 15 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>,<code>gcc_vat_registered</code>,<code>dz_vat_registered</code>.<br/><b>For Mexico Edition:</b> 12 digit Tax Registration number of a contact with Tax treatment as </br> <code>home_country_mexico</code>, <code>border_region_mexico</code>, <code>non_mexico</code>.</br> Consumers generic RFC: <code>XAXX010101000</code>, Overseas generic RFC: <code>XEXX010101000</code>.<br/><b>For Kenya Edition:</b> 11 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code><br/><b>For SouthAfrica Edition:</b> 10 digit Tax Registration number of a contact with Tax treatment as <code>vat_registered</code>\",\n            \"type\": \"string\",\n            \"example\": 12345678912345,\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"country_code\": {\n            \"description\": \"<b>For UK Edition:</b> Two letter country code of a contact<br/> <b>For Avalara:</b> Two letter country code for the customer country, if your customer is not in US. Refer [AvaTax Codes for Countries and States][2].<br/> <b>For GCC Editions :</b> Two Letter country code for the GCC Country or the UAE emirate of the contact which will be considered as <b>place of supply</b>.<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"gcc\",\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"Tax treatment of the contact.<br/>Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>,<code>dz_vat_registered</code> and <code>dz_vat_not_registered</code></br><code>home_country_mexico</code> (A business that is located within MX)</br><code>border_region_mexico</code> (A business that is located in the northern and southern border regions in MX)</br><code>non_mexico</code> (A business that is located outside MX).<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_certificate_number\": {\n            \"description\": \"Tax Exemption Certificate number is issued by the Kenya Revenue Authority (KRA) to organizations or individuals who qualify for tax exemption\",\n            \"type\": \"string\",\n            \"example\": \"KRAEXM0043310521\",\n            \"x-node_available_in\": [\n              \"ke\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_regime\": {\n            \"description\": \"Tax Regime of the contact.Allowed Values: <code>general_legal_person</code>, <code>legal_entities_non_profit</code>, <code>resident_abroad</code>, <code>production_cooperative_societies</code>, <code>agricultural_livestock</code>, <code>optional_group_of_companies</code>, <code>coordinated</code>, <code>simplified_trust</code>, <code>wages_salaries_income</code>, <code>lease</code>, <code>property_disposal_acquisition</code>, <code>other_income</code>, <code>resident_abroad</code>, <code>divident_income</code>, <code>individual_business_professional</code>, <code>interest_income</code>, <code>income_obtaining_price</code>, <code>no_tax_obligation</code>, <code>tax_incorporation</code>, <code>income_through_technology_platform</code>, <code>simplified_trust</code>.\",\n            \"type\": \"string\",\n            \"example\": \"general_legal_person\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"legal_name\": {\n            \"description\": \"Official legal name of the contact as registered with tax authorities in Mexico.\",\n            \"type\": \"string\",\n            \"example\": \"ESCUELA KEMPER URGATE\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_tds_registered\": {\n            \"description\": \"Indicates whether the contact is registered for Tax Deducted at Source (TDS) in Mexico.\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"vat_treatment\": {\n            \"description\": \"VAT treatment of the contact.Allowed Values: <br/><code>uk</code> (A business that is located in the UK.),<br/><code>eu_vat_registered</code> (A business that is reg for VAT and trade goods between Northern Ireland and EU. This node is available only for organizations enabled for NI protocal in VAT Settings.) and<br/><code>overseas</code> (A business that is located outside UK. Pre Brexit, this was split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code> ).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"place_of_contact\": {\n            \"description\": \"State or union territory code where the contact is located for Indian tax purposes. (This node identifies the place of supply and source of supply when invoices/bills are raised for the customer/vendor respectively. This is not applicable for Overseas contacts)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15-digit GST identification number of the contact as issued by the Indian tax authorities.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_treatment\": {\n            \"description\": \"Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>.\",\n            \"type\": \"string\",\n            \"example\": \"business_gst\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_authority_name\": {\n            \"description\": \"Display name of the tax authority responsible for the customer's tax jurisdiction.\",\n            \"type\": \"string\"\n          },\n          \"avatax_exempt_no\": {\n            \"description\": \"Exemption certificate number of the customer.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_use_code\": {\n            \"description\": \"Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"Unique identifier for the tax exemption configuration assigned to this contact.\",\n            \"type\": \"string\",\n            \"example\": 11149000000061054,\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\",\n              \"au\",\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_code\": {\n            \"description\": \"Code identifier for the tax exemption assigned to the contact.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\",\n              \"au\",\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_authority_id\": {\n            \"description\": \"Unique identifier for the tax authority responsible for the customer's tax jurisdiction. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority.\",\n            \"type\": \"string\",\n            \"example\": 11149000000061052,\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_id\": {\n            \"description\": \"Unique identifier for the tax or tax group assigned to the contact. Available only when <code>is_taxable</code> is <code>true</code>.\",\n            \"type\": \"string\",\n            \"example\": 11149000000061058,\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_taxable\": {\n            \"description\": \"Indicates whether the customer is subject to tax collection. Tax-related fields are only available when this field is set to true. Allowed values: <code>true</code> and <code>false</code>.\",\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\",\n              \"au\",\n              \"in\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"facebook\": {\n            \"description\": \"Facebook profile URL for the contact. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"zoho\"\n          },\n          \"twitter\": {\n            \"description\": \"X profile URL for the contact. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"zoho\"\n          },\n          \"track_1099\": {\n            \"description\": \"Boolean to track a contact for 1099 reporting.\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_id_type\": {\n            \"description\": \"Tax ID type of the contact, it can be SSN, ATIN, ITIN or EIN.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_id_value\": {\n            \"description\": \"Tax ID of the contact.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

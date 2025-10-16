@@ -1,0 +1,715 @@
+{
+  "name": "ListAllBills",
+  "fully_qualified_name": "ZohoBooksApi.ListAllBills@0.1.0",
+  "description": "Retrieve all bills with pagination support.\n\nThis tool is used to list all bills available in the system, providing pagination information to navigate through large datasets. It should be called whenever there's a need to view or analyze billing details over multiple pages.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization. Required to specify which organization's bills to list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "filter_by_bill_number",
+        "required": false,
+        "description": "Filter bills using the bill number. Use exact matches, prefix with 'bill_number_startswith', or substring with 'bill_number_contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by bill number. Accepts exact matches or use <code>bill_number_startswith</code> for prefix matching and <code>bill_number_contains</code> for substring matching. Useful for finding bills by unique identifier or partial patterns."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bill_number"
+      },
+      {
+        "name": "filter_by_reference_number",
+        "required": false,
+        "description": "Filter bills by reference number. Supports exact matches, prefix matching using `reference_number_startswith`, and substring matching using `reference_number_contains`. Useful for finding bills by external references or vendor invoice numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by reference number. Accepts exact matches or use <code>reference_number_startswith</code> for prefix matching and <code>reference_number_contains</code> for substring matching. Useful for finding bills by external references or vendor invoice numbers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "bill_date_filter",
+        "required": false,
+        "description": "Filter bills by bill date in YYYY-MM-DD format. Use for specific dates, date ranges (date_start/date_end), or relative dates (date_before/date_after).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by bill date in YYYY-MM-DD format. Use <code>date_start</code>/<code>date_end</code> for ranges, <code>date_before</code>/<code>date_after</code> for relative dates. Useful for billing periods and due date management."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Specify the status of bills to filter by. Options include 'paid', 'open', 'overdue', 'void', or 'partially_paid'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by status: <code>paid</code>, <code>open</code>, <code>overdue</code>, <code>void</code>, or <code>partially_paid</code>. Useful for payment status filtering, accounts payable management, and status-specific reporting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_by_description_text",
+        "required": false,
+        "description": "Filter bills using description text. Supports exact matches, prefix matching with 'description_startswith', or substring matching with 'description_contains'. Useful for finding bills by line item descriptions or vendor notes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by description text. Accepts exact matches or use <code>description_startswith</code> for prefix matching and <code>description_contains</code> for substring matching. Useful for finding bills by line item descriptions or vendor notes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "filter_by_vendor_name",
+        "required": false,
+        "description": "Filter bills by vendor name. Use prefix matching with 'vendor_name_startswith' or substring matching with 'vendor_name_contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by vendor name. Use <code>vendor_name_startswith</code> for prefix matching or <code>vendor_name_contains</code> for substring matching. Useful for finding bills from specific suppliers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_name"
+      },
+      {
+        "name": "filter_by_total_amount",
+        "required": false,
+        "description": "Filter bills by total amount using conditions like less than, greater than, etc. Specify conditions using keys like 'total_less_than' or 'total_greater_than'.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by total amount. Use <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, or <code>total_greater_equals</code> for amount-based filtering. Useful for finding bills within specific price ranges or above/below certain thresholds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "filter_by_vendor_id",
+        "required": false,
+        "description": "Unique identifier to filter bills by a specific vendor, retrieving all related bills.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by specific vendor ID. Accepts the unique identifier for a vendor to retrieve all bills associated with that particular supplier or vendor account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_id"
+      },
+      {
+        "name": "filter_by_item_id",
+        "required": false,
+        "description": "Filter bills by a specific item ID. Retrieves all bills containing a particular product or service item based on its unique identifier.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by specific item ID. Retrieves all bills containing a particular product or service item based on its unique identifier."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "recurring_bill_identifier",
+        "required": false,
+        "description": "Filter bills by a specific recurring bill ID to retrieve all bills generated from a recurring template or schedule.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by recurring bill ID. Retrieves all bills generated from a specific recurring bill template or schedule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recurring_bill_id"
+      },
+      {
+        "name": "filter_by_purchase_order_id",
+        "required": false,
+        "description": "Specify the Purchase Order ID to filter bills associated with a specific order. Helps track procurement workflows.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by purchase order ID. Retrieves all bills associated with a specific purchase order for tracking procurement workflows."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "purchaseorder_id"
+      },
+      {
+        "name": "filter_by_last_modified_time",
+        "required": false,
+        "description": "Filter bills by last modification timestamp using ISO 8601 format (YYYY-MM-DDTHH:MM:SS+/-HHMM) to find bills modified at or after a specific time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by last modification timestamp. Accepts ISO 8601 format (YYYY-MM-DDTHH:MM:SS+/-HHMM) to find bills modified at or after a specific time."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "bill_status_filter",
+        "required": false,
+        "description": "Filter bills by status. Options: Status.All, Status.PartiallyPaid, Status.Paid, Status.Overdue, Status.Void, Status.Open.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by status using predefined status constants. Options include <code>Status.All</code>, <code>Status.PartiallyPaid</code>, <code>Status.Paid</code>, <code>Status.Overdue</code>, <code>Status.Void</code>, and <code>Status.Open</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_text",
+        "required": false,
+        "description": "Filter bills using general text across bill number, reference number, and vendor name to find matches. Useful for quick searches.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills using general search text. Searches across bill number, reference number, and vendor name fields to find matching bills. Useful for quick searches when you know part of the bill information."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number for pagination to navigate multiple pages of bills.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the page number for pagination. Use this parameter to navigate through multiple pages of bills when the total number of bills exceeds the per_page limit."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "bills_per_page",
+        "required": false,
+        "description": "Specify the number of bills to retrieve per page. Default is 200, but adjustable for performance needs and rate limits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the number of bills to retrieve per page. The default value is 200, but you can adjust this to optimize performance based on your needs and API rate limits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Specify the column to sort bills by. Available options: vendor_name, bill_number, date, due_date, total, balance, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column to sort bills by. Available options include <code>vendor_name</code>, <code>bill_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code>, and <code>created_time</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "sorting_order",
+        "required": false,
+        "description": "Specify the sort order for bills: 'A' for ascending, 'D' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the sorting order for bills. Use <code>A</code> for ascending order (A-Z, 0-9, earliest to latest) or <code>D</code> for descending order (Z-A, 9-0, latest to earliest)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_order"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_bills'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.bills.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/bills",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "bill_number",
+        "tool_parameter_name": "filter_by_bill_number",
+        "description": "Filter bills by bill number. Accepts exact matches or use <code>bill_number_startswith</code> for prefix matching and <code>bill_number_contains</code> for substring matching. Useful for finding bills by unique identifier or partial patterns.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by bill number. Accepts exact matches or use <code>bill_number_startswith</code> for prefix matching and <code>bill_number_contains</code> for substring matching. Useful for finding bills by unique identifier or partial patterns."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "filter_by_reference_number",
+        "description": "Filter bills by reference number. Accepts exact matches or use <code>reference_number_startswith</code> for prefix matching and <code>reference_number_contains</code> for substring matching. Useful for finding bills by external references or vendor invoice numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by reference number. Accepts exact matches or use <code>reference_number_startswith</code> for prefix matching and <code>reference_number_contains</code> for substring matching. Useful for finding bills by external references or vendor invoice numbers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "bill_date_filter",
+        "description": "Filter bills by bill date in YYYY-MM-DD format. Use <code>date_start</code>/<code>date_end</code> for ranges, <code>date_before</code>/<code>date_after</code> for relative dates. Useful for billing periods and due date management.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by bill date in YYYY-MM-DD format. Use <code>date_start</code>/<code>date_end</code> for ranges, <code>date_before</code>/<code>date_after</code> for relative dates. Useful for billing periods and due date management."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Filter bills by status: <code>paid</code>, <code>open</code>, <code>overdue</code>, <code>void</code>, or <code>partially_paid</code>. Useful for payment status filtering, accounts payable management, and status-specific reporting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by status: <code>paid</code>, <code>open</code>, <code>overdue</code>, <code>void</code>, or <code>partially_paid</code>. Useful for payment status filtering, accounts payable management, and status-specific reporting."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "filter_by_description_text",
+        "description": "Filter bills by description text. Accepts exact matches or use <code>description_startswith</code> for prefix matching and <code>description_contains</code> for substring matching. Useful for finding bills by line item descriptions or vendor notes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by description text. Accepts exact matches or use <code>description_startswith</code> for prefix matching and <code>description_contains</code> for substring matching. Useful for finding bills by line item descriptions or vendor notes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_name",
+        "tool_parameter_name": "filter_by_vendor_name",
+        "description": "Filter bills by vendor name. Use <code>vendor_name_startswith</code> for prefix matching or <code>vendor_name_contains</code> for substring matching. Useful for finding bills from specific suppliers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by vendor name. Use <code>vendor_name_startswith</code> for prefix matching or <code>vendor_name_contains</code> for substring matching. Useful for finding bills from specific suppliers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "filter_by_total_amount",
+        "description": "Filter bills by total amount. Use <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, or <code>total_greater_equals</code> for amount-based filtering. Useful for finding bills within specific price ranges or above/below certain thresholds.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by total amount. Use <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, or <code>total_greater_equals</code> for amount-based filtering. Useful for finding bills within specific price ranges or above/below certain thresholds."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_id",
+        "tool_parameter_name": "filter_by_vendor_id",
+        "description": "Filter bills by specific vendor ID. Accepts the unique identifier for a vendor to retrieve all bills associated with that particular supplier or vendor account.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by specific vendor ID. Accepts the unique identifier for a vendor to retrieve all bills associated with that particular supplier or vendor account."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "filter_by_item_id",
+        "description": "Filter bills by specific item ID. Retrieves all bills containing a particular product or service item based on its unique identifier.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by specific item ID. Retrieves all bills containing a particular product or service item based on its unique identifier."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recurring_bill_id",
+        "tool_parameter_name": "recurring_bill_identifier",
+        "description": "Filter bills by recurring bill ID. Retrieves all bills generated from a specific recurring bill template or schedule.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by recurring bill ID. Retrieves all bills generated from a specific recurring bill template or schedule."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "purchaseorder_id",
+        "tool_parameter_name": "filter_by_purchase_order_id",
+        "description": "Filter bills by purchase order ID. Retrieves all bills associated with a specific purchase order for tracking procurement workflows.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by purchase order ID. Retrieves all bills associated with a specific purchase order for tracking procurement workflows."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "filter_by_last_modified_time",
+        "description": "Filter bills by last modification timestamp. Accepts ISO 8601 format (YYYY-MM-DDTHH:MM:SS+/-HHMM) to find bills modified at or after a specific time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by last modification timestamp. Accepts ISO 8601 format (YYYY-MM-DDTHH:MM:SS+/-HHMM) to find bills modified at or after a specific time."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "bill_status_filter",
+        "description": "Filter bills by status using predefined status constants. Options include <code>Status.All</code>, <code>Status.PartiallyPaid</code>, <code>Status.Paid</code>, <code>Status.Overdue</code>, <code>Status.Void</code>, and <code>Status.Open</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills by status using predefined status constants. Options include <code>Status.All</code>, <code>Status.PartiallyPaid</code>, <code>Status.Paid</code>, <code>Status.Overdue</code>, <code>Status.Void</code>, and <code>Status.Open</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_text",
+        "description": "Filter bills using general search text. Searches across bill number, reference number, and vendor name fields to find matching bills. Useful for quick searches when you know part of the bill information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter bills using general search text. Searches across bill number, reference number, and vendor name fields to find matching bills. Useful for quick searches when you know part of the bill information."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Specify the page number for pagination. Use this parameter to navigate through multiple pages of bills when the total number of bills exceeds the per_page limit.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the page number for pagination. Use this parameter to navigate through multiple pages of bills when the total number of bills exceeds the per_page limit."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "bills_per_page",
+        "description": "Specify the number of bills to retrieve per page. The default value is 200, but you can adjust this to optimize performance based on your needs and API rate limits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the number of bills to retrieve per page. The default value is 200, but you can adjust this to optimize performance based on your needs and API rate limits."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "Specify the column to sort bills by. Available options include <code>vendor_name</code>, <code>bill_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code>, and <code>created_time</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column to sort bills by. Available options include <code>vendor_name</code>, <code>bill_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code>, and <code>created_time</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_order",
+        "tool_parameter_name": "sorting_order",
+        "description": "Specify the sorting order for bills. Use <code>A</code> for ascending order (A-Z, 0-9, earliest to latest) or <code>D</code> for descending order (Z-A, 9-0, latest to earliest).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the sorting order for bills. Use <code>A</code> for ascending order (A-Z, 0-9, earliest to latest) or <code>D</code> for descending order (Z-A, 9-0, latest to earliest)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

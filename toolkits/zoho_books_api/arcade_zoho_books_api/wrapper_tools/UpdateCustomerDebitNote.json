@@ -1,0 +1,646 @@
+{
+  "name": "UpdateCustomerDebitNote",
+  "fully_qualified_name": "ZohoBooksApi.UpdateCustomerDebitNote@0.1.0",
+  "description": "Update an existing customer debit note.\n\nUse this tool to update details of an existing customer debit note in Zoho Books. Remove a line item by omitting it from the line_items list.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Organization ID for the request within Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Organization ID for the request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "debit_note_unique_identifier",
+        "required": true,
+        "description": "Unique identifier for the debit note to be updated in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the debit note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "debit_note_id"
+      },
+      {
+        "name": "debit_note_request_body",
+        "required": false,
+        "description": "JSON object containing details like customer_id, type, currency_id, invoice_number, template_id, date, payment_terms, payment_terms_label, due_date, discount, exchange_rate, location_id, custom_fields, and line_items for updating a customer debit note.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the customer"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "debit_note"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the document. For customer debit notes, this should be debit_note"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency"
+            },
+            "invoice_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Debit note number"
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Template ID"
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Debit note date"
+            },
+            "payment_terms": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment terms in days"
+            },
+            "payment_terms_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment terms label"
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date"
+            },
+            "discount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Discount amount"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate"
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Item ID"
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Product type"
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN or SAC code"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate"
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Quantity"
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Tax ID"
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Item total"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "ignore_auto_number_generation",
+        "required": false,
+        "description": "Set to true to ignore automatic debit note number generation, requiring manual input of the debit note number.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto debit note number generation for this debit note. This mandates the debit note number. Allowed values <code>true</code> and <code>false</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ignore_auto_number_generation"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_customer_debit_note'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/invoices/{debit_note_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "Organization ID for the request",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Organization ID for the request"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "ignore_auto_number_generation",
+        "tool_parameter_name": "ignore_auto_number_generation",
+        "description": "Ignore auto debit note number generation for this debit note. This mandates the debit note number. Allowed values <code>true</code> and <code>false</code>",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto debit note number generation for this debit note. This mandates the debit note number. Allowed values <code>true</code> and <code>false</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "debit_note_id",
+        "tool_parameter_name": "debit_note_unique_identifier",
+        "description": "Unique identifier for the debit note",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for the debit note"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "debit_note_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the customer"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "debit_note"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the document. For customer debit notes, this should be debit_note"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the currency"
+            },
+            "invoice_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Debit note number"
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Template ID"
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Debit note date"
+            },
+            "payment_terms": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment terms in days"
+            },
+            "payment_terms_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment terms label"
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date"
+            },
+            "discount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Discount amount"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate"
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Item ID"
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Product type"
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN or SAC code"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate"
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Quantity"
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit"
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Tax ID"
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Item total"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"customer_id\",\n          \"line_items\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"customer_id\": {\n            \"type\": \"string\",\n            \"description\": \"Unique identifier for the customer\",\n            \"example\": \"982000000567001\"\n          },\n          \"type\": {\n            \"type\": \"string\",\n            \"description\": \"Type of the document. For customer debit notes, this should be debit_note\",\n            \"example\": \"debit_note\",\n            \"enum\": [\n              \"debit_note\"\n            ]\n          },\n          \"currency_id\": {\n            \"type\": \"string\",\n            \"description\": \"Unique identifier for the currency\",\n            \"example\": \"982000000000001\"\n          },\n          \"invoice_number\": {\n            \"type\": \"string\",\n            \"description\": \"Debit note number\",\n            \"example\": \"DN-00001\"\n          },\n          \"template_id\": {\n            \"type\": \"string\",\n            \"description\": \"Template ID\",\n            \"example\": \"982000000000143\"\n          },\n          \"date\": {\n            \"type\": \"string\",\n            \"description\": \"Debit note date\",\n            \"example\": \"2013-11-17\"\n          },\n          \"payment_terms\": {\n            \"type\": \"integer\",\n            \"description\": \"Payment terms in days\",\n            \"example\": 15\n          },\n          \"payment_terms_label\": {\n            \"type\": \"string\",\n            \"description\": \"Payment terms label\",\n            \"example\": \"Net 15\"\n          },\n          \"due_date\": {\n            \"type\": \"string\",\n            \"description\": \"Due date\",\n            \"example\": \"2013-12-02\"\n          },\n          \"discount\": {\n            \"type\": \"number\",\n            \"description\": \"Discount amount\",\n            \"example\": 0\n          },\n          \"exchange_rate\": {\n            \"type\": \"number\",\n            \"description\": \"Exchange rate\",\n            \"example\": 1\n          },\n          \"location_id\": {\n            \"type\": \"string\",\n            \"description\": \"Location ID\",\n            \"example\": \"460000000038080\"\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"line_items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"item_id\"\n              ],\n              \"properties\": {\n                \"item_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"Item ID\",\n                  \"example\": \"982000000030049\"\n                },\n                \"product_type\": {\n                  \"type\": \"string\",\n                  \"description\": \"Product type\",\n                  \"example\": \"goods\"\n                },\n                \"hsn_or_sac\": {\n                  \"type\": \"string\",\n                  \"description\": \"HSN or SAC code\",\n                  \"example\": \"80540\"\n                },\n                \"location_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"Location ID\",\n                  \"example\": \"460000000038080\"\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description\",\n                  \"example\": \"Desktop Units\"\n                },\n                \"rate\": {\n                  \"type\": \"number\",\n                  \"description\": \"Rate\",\n                  \"example\": 20\n                },\n                \"quantity\": {\n                  \"type\": \"number\",\n                  \"description\": \"Quantity\",\n                  \"example\": 2\n                },\n                \"unit\": {\n                  \"type\": \"string\",\n                  \"description\": \"Unit\",\n                  \"example\": \"Nos\"\n                },\n                \"tax_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"Tax ID\",\n                  \"example\": \"982000000567104\"\n                },\n                \"item_total\": {\n                  \"type\": \"number\",\n                  \"description\": \"Item total\",\n                  \"example\": 40\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

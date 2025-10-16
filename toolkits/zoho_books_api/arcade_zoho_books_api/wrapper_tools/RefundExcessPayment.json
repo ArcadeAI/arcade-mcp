@@ -1,0 +1,317 @@
+{
+  "name": "RefundExcessPayment",
+  "fully_qualified_name": "ZohoBooksApi.RefundExcessPayment@0.1.0",
+  "description": "Refund the excess amount paid by a customer.\n\nUse this tool to refund any excess amount received from a customer payment. It is called when there is a need to process a refund for overpaid amounts in customer transactions.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization to process the refund under. Ensure this matches the ID in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "customer_payment_identifier",
+        "required": true,
+        "description": "Unique identifier for the customer's payment to be refunded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the customer payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_payment_id"
+      },
+      {
+        "name": "refund_detail",
+        "required": false,
+        "description": "Details of the refund, including date, amount, refund method, reference number, and descriptions. Encapsulates all necessary information for processing the refund.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which payment is made. Format [yyyy-mm-dd]"
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The method of refund. Max-length [50]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid in the respective payment."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account from which payment is refunded."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the payment."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_customer_payment_refund'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.customerpayments.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_payment_id",
+        "tool_parameter_name": "customer_payment_identifier",
+        "description": "Unique identifier of the customer payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the customer payment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "refund_detail",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which payment is made. Format [yyyy-mm-dd]"
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The method of refund. Max-length [50]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid in the respective payment."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account from which payment is refunded."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the payment."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"date\",\n          \"amount\",\n          \"from_account_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"date\": {\n            \"description\": \"Date on which payment is made. Format [yyyy-mm-dd]\",\n            \"type\": \"string\",\n            \"example\": \"2016-06-05\"\n          },\n          \"refund_mode\": {\n            \"description\": \"The method of refund. Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"cash\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"INV-384\"\n          },\n          \"amount\": {\n            \"description\": \"Amount paid in the respective payment.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 450\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1,\n            \"default\": 1\n          },\n          \"payment_form\": {\n            \"description\": \"Mode of Vendor Payment\",\n            \"type\": \"string\",\n            \"example\": \"cash\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"from_account_id\": {\n            \"description\": \"The account from which payment is refunded.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"description\": {\n            \"description\": \"Description about the payment.\",\n            \"type\": \"string\",\n            \"example\": \"Payment has been added to INV-384\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

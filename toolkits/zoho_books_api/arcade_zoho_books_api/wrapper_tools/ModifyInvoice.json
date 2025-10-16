@@ -1,0 +1,649 @@
+{
+  "name": "ModifyInvoice",
+  "fully_qualified_name": "ZohoBooksApi.ModifyInvoice@0.1.0",
+  "description": "Update an existing invoice in Zoho Books.\n\nThis tool updates the information of an existing retainer invoice in Zoho Books. Use it when you need to modify invoice details.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique ID of the organization within Zoho Books to which the retainer invoice belongs. This is required to ensure the update is applied to the correct entity.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "retainer_invoice_id",
+        "required": true,
+        "description": "Unique identifier of the retainer invoice to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the retainer invoice."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "retainerinvoice_id"
+      },
+      {
+        "name": "invoice_details",
+        "required": false,
+        "description": "A JSON object with details for updating the retainer invoice, including customer_id, reference_number, date, contact_persons_associated, custom_fields, notes, terms, location_id, line_items, payment_options, template_id, place_of_supply, and project_id.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer the retainer invoice has to be created."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The reference number of the retainer invoice. Max-length [100]"
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date of creation of the retainer invoice."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The index of the custom field"
+                },
+                "show_on_pdf": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean value to check if the custom field is to be dispplayed on the pdf."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the custom field."
+                }
+              },
+              "description": "Custom fields for a reatiner invoice."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The notes added below expressing gratitude or for conveying some information."
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The terms added below expressing gratitude or for conveying some information."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the line items. Max-length [2000]"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The order of the line item_order"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate of the line item."
+                }
+              },
+              "description": "Line items of a retainer invoice."
+            },
+            "payment_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "payment_gateways": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "configured": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Boolean check to see if a payment gateway ahs been configured"
+                    },
+                    "additional_field1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>"
+                    },
+                    "gateway_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the payment gateway associated with the retainer invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>"
+                    }
+                  },
+                  "description": "Online payment gateways through which payment can be made."
+                }
+              },
+              "inner_properties": null,
+              "description": "Payment options for the retainer invoice, online payment gateways and bank accounts. Will be displayed in the pdf."
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the pdf template associated with the retainer invoice."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_retainer_invoice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "retainerinvoice_id",
+        "tool_parameter_name": "retainer_invoice_id",
+        "description": "Unique identifier of the retainer invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the retainer invoice."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "invoice_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer the retainer invoice has to be created."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The reference number of the retainer invoice. Max-length [100]"
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date of creation of the retainer invoice."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The index of the custom field"
+                },
+                "show_on_pdf": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Boolean value to check if the custom field is to be dispplayed on the pdf."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The label of the custom field."
+                }
+              },
+              "description": "Custom fields for a reatiner invoice."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The notes added below expressing gratitude or for conveying some information."
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The terms added below expressing gratitude or for conveying some information."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The description of the line items. Max-length [2000]"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The order of the line item_order"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate of the line item."
+                }
+              },
+              "description": "Line items of a retainer invoice."
+            },
+            "payment_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "payment_gateways": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "configured": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Boolean check to see if a payment gateway ahs been configured"
+                    },
+                    "additional_field1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>"
+                    },
+                    "gateway_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the payment gateway associated with the retainer invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>"
+                    }
+                  },
+                  "description": "Online payment gateways through which payment can be made."
+                }
+              },
+              "inner_properties": null,
+              "description": "Payment options for the retainer invoice, online payment gateways and bank accounts. Will be displayed in the pdf."
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the pdf template associated with the retainer invoice."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"customer_id\",\n          \"line_items\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"customer_id\": {\n            \"description\": \"ID of the customer the retainer invoice has to be created.\",\n            \"type\": \"string\",\n            \"example\": 982000000567001\n          },\n          \"reference_number\": {\n            \"description\": \"The reference number of the retainer invoice. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"date\": {\n            \"description\": \"The date of creation of the retainer invoice.\",\n            \"type\": \"string\",\n            \"example\": \"2013-11-17\"\n          },\n          \"contact_persons_associated\": {\n            \"description\": \"Contact Persons associated with the transaction.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"contact_person_id\": {\n                  \"description\": \"Unique ID of the Contact Person.\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": 982000000567003\n                },\n                \"communication_preference\": {\n                  \"description\": \"Preferred modes of communication for the contact person at transaction level.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"is_email_enabled\": {\n                      \"description\": \"Used to check if Email communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"is_whatsapp_enabled\": {\n                      \"description\": \"Used to check if WhatsApp communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true,\n                      \"x-node_available_in\": [\n                        \"WhatsApp integration\"\n                      ]\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"custom_fields\": {\n            \"description\": \"Custom fields for a reatiner invoice.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"The index of the custom field\",\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"show_on_pdf\": {\n                  \"description\": \"Boolean value to check if the custom field is to be dispplayed on the pdf.\",\n                  \"type\": \"boolean\",\n                  \"example\": false\n                },\n                \"value\": {\n                  \"type\": \"string\",\n                  \"example\": \"The value of the custom field\"\n                },\n                \"label\": {\n                  \"description\": \"The label of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"Delivery Date\"\n                }\n              }\n            }\n          },\n          \"notes\": {\n            \"description\": \"The notes added below expressing gratitude or for conveying some information.\",\n            \"type\": \"string\",\n            \"example\": \"Looking forward for your business.\"\n          },\n          \"terms\": {\n            \"description\": \"The terms added below expressing gratitude or for conveying some information.\",\n            \"type\": \"string\",\n            \"example\": \"Terms & Conditions apply\"\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"line_items\": {\n            \"description\": \"Line items of a retainer invoice.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"description\": {\n                  \"description\": \"The description of the line items. Max-length [2000]\",\n                  \"type\": \"string\",\n                  \"example\": \"500GB, USB 2.0 interface 1400 rpm, protective hard case.\"\n                },\n                \"item_order\": {\n                  \"description\": \"The order of the line item_order\",\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"rate\": {\n                  \"description\": \"Rate of the line item.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 120\n                }\n              }\n            }\n          },\n          \"payment_options\": {\n            \"description\": \"Payment options for the retainer invoice, online payment gateways and bank accounts. Will be displayed in the pdf.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"payment_gateways\": {\n                \"description\": \"Online payment gateways through which payment can be made.\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"configured\": {\n                      \"description\": \"Boolean check to see if a payment gateway ahs been configured\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"additional_field1\": {\n                      \"description\": \"Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>\",\n                      \"type\": \"string\",\n                      \"example\": \"standard\"\n                    },\n                    \"gateway_name\": {\n                      \"description\": \"Name of the payment gateway associated with the retainer invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>\",\n                      \"type\": \"string\",\n                      \"example\": \"paypal\"\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"template_id\": {\n            \"description\": \"ID of the pdf template associated with the retainer invoice.\",\n            \"type\": \"string\",\n            \"example\": 982000000000143\n          },\n          \"place_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"project_id\": {\n            \"description\": \"ID of the project\",\n            \"type\": \"string\",\n            \"example\": 982000000567154\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "name": "GetSalesOrderDetails",
+  "fully_qualified_name": "ZohoBooksApi.GetSalesOrderDetails@0.1.0",
+  "description": "Retrieve details of a specific sales order.\n\nThis tool is used to get the details of a sales order from Zoho Books. It should be called when there's a need to look up information about a particular sales order, such as for verification or record-keeping purposes.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization. This ID is used to specify the organization within Zoho Books whose sales order details need to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "sales_order_id",
+        "required": true,
+        "description": "Unique identifier of the sales order required to retrieve its details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_id"
+      },
+      {
+        "name": "output_format",
+        "required": false,
+        "description": "Specifies the format in which to receive the sales order details. Options include: json, csv, xml, xls, xlsx, pdf, jhtml, and html. Default is json.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accept"
+      },
+      {
+        "name": "print_pdf",
+        "required": false,
+        "description": "Set to true to print the exported PDF of the sales order, otherwise false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Print the exported pdf."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "print"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_sales_order'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.salesorders.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/salesorders/{salesorder_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "print",
+        "tool_parameter_name": "print_pdf",
+        "description": "Print the exported pdf.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Print the exported pdf."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accept",
+        "tool_parameter_name": "output_format",
+        "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_id",
+        "tool_parameter_name": "sales_order_id",
+        "description": "Unique identifier of the sales order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

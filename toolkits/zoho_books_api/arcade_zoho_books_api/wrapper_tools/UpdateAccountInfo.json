@@ -1,0 +1,383 @@
+{
+  "name": "UpdateAccountInfo",
+  "fully_qualified_name": "ZohoBooksApi.UpdateAccountInfo@0.1.0",
+  "description": "Updates account information in Zoho Books.\n\nThis tool updates the chart of account details for a specified account in Zoho Books. It should be called when account information needs modification, such as changing account names, codes, or related details.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The ID of the organization for which the account will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "account_identifier",
+        "required": true,
+        "description": "Unique identifier for the account to update in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "account_update_details",
+        "required": false,
+        "description": "JSON object with details for updating the account, including name, type, currency, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the account"
+            },
+            "account_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code Associated with the Account"
+            },
+            "account_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the account. Allowed Values: <code>other_asset</code>, <code>other_current_asset</code>, <code>intangible_asset</code>, <code>right_to_use_asset</code>,<code>financial_asset</code>,<code>contingent_asset</code>,<code>contract_asset</code>,  <code>cash</code>, <code>bank</code>, <code>fixed_asset</code>, <code>other_current_liability</code>, <code>contract_liability</code> , <code>refund_liability</code>, <code>credit_card</code>, <code>long_term_liability</code>, <code>loans_and_borrowing</code> ,<code>lease_liability</code> ,<code>employee_benefit_liability</code> ,<code>contingent_liability</code> ,<code>financial_liability</code> , <code>other_liability</code>, <code>equity</code>, <code>income</code>,<code>finance_income</code> ,<code>other_comprehensive_income</code> , <code>other_income</code>, <code>expense</code>, <code>manufacturing_expense</code> ,<code>impairment_expense</code> ,<code>depreciation_expense</code> ,<code>employee_benefit_expense</code> ,<code>lease_expense</code> ,<code>finance_expense</code> ,<code>tax_expense</code> , <code>cost_of_goods_sold</code>, <code>other_expense</code>, <code>accounts_receivable</code> and <code>accounts_payable</code>."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account currency."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the account"
+            },
+            "show_on_dashboard": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "can_show_in_ze": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "include_in_vat_return": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to include an account in VAT returns."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "parent_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Parent Account"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_chart_of_account'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.accountants.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/chartofaccounts/{account_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_identifier",
+        "description": "Unique identifier of the account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the account."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "account_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the account"
+            },
+            "account_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code Associated with the Account"
+            },
+            "account_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the account. Allowed Values: <code>other_asset</code>, <code>other_current_asset</code>, <code>intangible_asset</code>, <code>right_to_use_asset</code>,<code>financial_asset</code>,<code>contingent_asset</code>,<code>contract_asset</code>,  <code>cash</code>, <code>bank</code>, <code>fixed_asset</code>, <code>other_current_liability</code>, <code>contract_liability</code> , <code>refund_liability</code>, <code>credit_card</code>, <code>long_term_liability</code>, <code>loans_and_borrowing</code> ,<code>lease_liability</code> ,<code>employee_benefit_liability</code> ,<code>contingent_liability</code> ,<code>financial_liability</code> , <code>other_liability</code>, <code>equity</code>, <code>income</code>,<code>finance_income</code> ,<code>other_comprehensive_income</code> , <code>other_income</code>, <code>expense</code>, <code>manufacturing_expense</code> ,<code>impairment_expense</code> ,<code>depreciation_expense</code> ,<code>employee_benefit_expense</code> ,<code>lease_expense</code> ,<code>finance_expense</code> ,<code>tax_expense</code> , <code>cost_of_goods_sold</code>, <code>other_expense</code>, <code>accounts_receivable</code> and <code>accounts_payable</code>."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account currency."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the account"
+            },
+            "show_on_dashboard": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "can_show_in_ze": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "include_in_vat_return": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to include an account in VAT returns."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "parent_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Parent Account"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"account_name\": {\n            \"description\": \"Name of the account\",\n            \"type\": \"string\",\n            \"example\": \"Notes Payable\"\n          },\n          \"account_code\": {\n            \"description\": \"Code Associated with the Account\",\n            \"type\": \"string\"\n          },\n          \"account_type\": {\n            \"description\": \"Type of the account. Allowed Values: <code>other_asset</code>, <code>other_current_asset</code>, <code>intangible_asset</code>, <code>right_to_use_asset</code>,<code>financial_asset</code>,<code>contingent_asset</code>,<code>contract_asset</code>,  <code>cash</code>, <code>bank</code>, <code>fixed_asset</code>, <code>other_current_liability</code>, <code>contract_liability</code> , <code>refund_liability</code>, <code>credit_card</code>, <code>long_term_liability</code>, <code>loans_and_borrowing</code> ,<code>lease_liability</code> ,<code>employee_benefit_liability</code> ,<code>contingent_liability</code> ,<code>financial_liability</code> , <code>other_liability</code>, <code>equity</code>, <code>income</code>,<code>finance_income</code> ,<code>other_comprehensive_income</code> , <code>other_income</code>, <code>expense</code>, <code>manufacturing_expense</code> ,<code>impairment_expense</code> ,<code>depreciation_expense</code> ,<code>employee_benefit_expense</code> ,<code>lease_expense</code> ,<code>finance_expense</code> ,<code>tax_expense</code> , <code>cost_of_goods_sold</code>, <code>other_expense</code>, <code>accounts_receivable</code> and <code>accounts_payable</code>.\",\n            \"type\": \"string\",\n            \"example\": \"long_term_liability\"\n          },\n          \"currency_id\": {\n            \"description\": \"ID of the account currency.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000097\"\n          },\n          \"description\": {\n            \"description\": \"Description of the account\",\n            \"type\": \"string\",\n            \"example\": \"A Liability account which can be paid off in a time period longer than one year.\"\n          },\n          \"show_on_dashboard\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"can_show_in_ze\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"include_in_vat_return\": {\n            \"description\": \"Boolean to include an account in VAT returns.\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"description\": \"ID of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000080163\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"Normal\"\n                }\n              }\n            }\n          },\n          \"parent_account_id\": {\n            \"description\": \"ID of the Parent Account\",\n            \"type\": \"string\",\n            \"example\": \"460000000009097\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

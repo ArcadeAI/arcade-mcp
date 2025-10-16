@@ -1,0 +1,616 @@
+{
+  "name": "ListActiveInventoryItems",
+  "fully_qualified_name": "ZohoBooksApi.ListActiveInventoryItems@0.1.0",
+  "description": "Retrieve a paginated list of all active inventory items.\n\nUse this tool to fetch a list of all active items from the inventory. It provides the data with pagination to manage large sets of items efficiently.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization to fetch items from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "item_name_search",
+        "required": false,
+        "description": "Search for items by name using prefixes 'name_startswith' or 'name_contains'. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by name. Max-length [100]. Variants: <code>name_startswith</code> and <code>name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "description_filter",
+        "required": false,
+        "description": "Search items by description. Use keywords or phrases up to 100 characters. Prefix with 'description_startswith' or 'description_contains' for specific filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by description. Max-length [100]. Variants: <code>description_startswith</code> and <code>description_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "search_by_rate_criteria",
+        "required": false,
+        "description": "Specify rate conditions to filter items. Use format like 'rate_less_than:100'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by rate. Variants: <code>rate_less_than</code>, <code>rate_less_equals</code>, <code>rate_greater_than</code> and <code>rate_greater_equals</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rate"
+      },
+      {
+        "name": "search_by_tax_id",
+        "required": false,
+        "description": "Search for items using the tax ID as a filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by tax id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_id"
+      },
+      {
+        "name": "tax_name_filter",
+        "required": false,
+        "description": "Filter items by their tax name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_name"
+      },
+      {
+        "name": "tax_exemption_identifier",
+        "required": false,
+        "description": "ID for the tax exemption. Required if is_taxable is false.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_exemption_id"
+      },
+      {
+        "name": "associated_account_id",
+        "required": false,
+        "description": "ID of the account to associate the item with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the account to which the item has to be associated with."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "filter_items_by_status",
+        "required": false,
+        "description": "Filter items by status. Allowed values are 'Status.All', 'Status.Active', and 'Status.Inactive'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter items by status. Allowed Values: <code>Status.All</code>, <code>Status.Active</code> and <code>Status.Inactive</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_items_by_text",
+        "required": false,
+        "description": "Search for items by name or description, up to 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by name or description. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_items_by",
+        "required": false,
+        "description": "Specify the attribute to sort items by. Allowed values: 'name', 'rate', 'tax_name'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort items. Allowed Values: <code>name</code>, <code>rate</code> and <code>tax_name</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "sat_item_key_code",
+        "required": false,
+        "description": "SAT Item key code used to filter items. Provide a valid string key code for lookup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "SAT Item key code"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sat_item_key_code"
+      },
+      {
+        "name": "sat_unit_code",
+        "required": false,
+        "description": "SAT Unit code for specific inventory items. Used to search or filter items based on their unit code.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "SAT Unit code"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unitkey_code"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "The page number of active items to retrieve, with a default of 1 if unspecified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of records to fetch per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "is_item_taxable",
+        "required": false,
+        "description": "Boolean indicating if the item is taxable. True means the item is taxable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to track the taxability of the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_taxable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_items'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/items",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "item_name_search",
+        "description": "Search items by name. Max-length [100]. Variants: <code>name_startswith</code> and <code>name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by name. Max-length [100]. Variants: <code>name_startswith</code> and <code>name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "description_filter",
+        "description": "Search items by description. Max-length [100]. Variants: <code>description_startswith</code> and <code>description_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by description. Max-length [100]. Variants: <code>description_startswith</code> and <code>description_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rate",
+        "tool_parameter_name": "search_by_rate_criteria",
+        "description": "Search items by rate. Variants: <code>rate_less_than</code>, <code>rate_less_equals</code>, <code>rate_greater_than</code> and <code>rate_greater_equals</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by rate. Variants: <code>rate_less_than</code>, <code>rate_less_equals</code>, <code>rate_greater_than</code> and <code>rate_greater_equals</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_id",
+        "tool_parameter_name": "search_by_tax_id",
+        "description": "Search items by tax id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by tax id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_name",
+        "tool_parameter_name": "tax_name_filter",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_taxable",
+        "tool_parameter_name": "is_item_taxable",
+        "description": "Boolean to track the taxability of the item.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to track the taxability of the item."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_exemption_id",
+        "tool_parameter_name": "tax_exemption_identifier",
+        "description": "ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "associated_account_id",
+        "description": "ID of the account to which the item has to be associated with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the account to which the item has to be associated with."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_items_by_status",
+        "description": "Filter items by status. Allowed Values: <code>Status.All</code>, <code>Status.Active</code> and <code>Status.Inactive</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter items by status. Allowed Values: <code>Status.All</code>, <code>Status.Active</code> and <code>Status.Inactive</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_items_by_text",
+        "description": "Search items by name or description. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search items by name or description. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_items_by",
+        "description": "Sort items. Allowed Values: <code>name</code>, <code>rate</code> and <code>tax_name</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort items. Allowed Values: <code>name</code>, <code>rate</code> and <code>tax_name</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sat_item_key_code",
+        "tool_parameter_name": "sat_item_key_code",
+        "description": "SAT Item key code",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "SAT Item key code"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "unitkey_code",
+        "tool_parameter_name": "sat_unit_code",
+        "description": "SAT Unit code",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "SAT Unit code"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

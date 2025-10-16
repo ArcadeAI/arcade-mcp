@@ -1,0 +1,682 @@
+{
+  "name": "ListRecurringInvoices",
+  "fully_qualified_name": "ZohoBooksApi.ListRecurringInvoices@0.1.0",
+  "description": "Retrieve details of all recurring invoices.\n\nUse this tool to get detailed information on all recurring invoices. Ideal for managing invoicing schedules and monitoring recurring payments.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier of the organization for which you want to list the recurring invoices. Required for accessing specific organization's data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "recurrence_unique_name",
+        "required": false,
+        "description": "Unique name for the recurring profile, provided by the user. Max-length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique name for the recurring profile given by the user. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recurrence_name"
+      },
+      {
+        "name": "search_by_item_name",
+        "required": false,
+        "description": "Search recurring invoices by item name, using 'item_name_startswith' or 'profileitemname_contains' variants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring invoices by item name. Variants: <code>item_name_startswith</code> and <code>profileitemname_contains</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "item_description_filter",
+        "required": false,
+        "description": "Search for recurring invoices by item description using 'startswith' or 'contains' criteria.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring invoices by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "customer_name",
+        "required": false,
+        "description": "Name of the customer for whom the recurring invoice is raised. Use this to filter invoices by customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the customer to whom the recurring invoice is raised."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "line_item_id",
+        "required": false,
+        "description": "Specify the line item ID for filtering recurring invoices.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The line item id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "line_item_id"
+      },
+      {
+        "name": "item_id",
+        "required": false,
+        "description": "Unique identifier for the item associated with the recurring invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique string generated for the item for which invoice is to be sent."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "tax_identifier",
+        "required": false,
+        "description": "ID of the tax or tax group associated with the recurring invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the tax or tax group associated to the recurring invoice."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_id"
+      },
+      {
+        "name": "invoice_note",
+        "required": false,
+        "description": "A short note for the recurring invoice, providing additional details or context.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short note for the recurring invoice."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notes"
+      },
+      {
+        "name": "recurring_invoice_start_date",
+        "required": false,
+        "description": "The date on which the recurring invoice starts. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date on which the recurring invoice starts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "recurring_invoice_end_date",
+        "required": false,
+        "description": "The date when the recurring invoice expires, formatted as YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date on which the recurring invoice expires."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
+      },
+      {
+        "name": "customer_id",
+        "required": false,
+        "description": "The ID of the customer for whom the recurring invoice is raised. Use this to filter invoices specific to a customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer ID of the customer for whom the recurring invoice is raised."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "recurring_invoice_status",
+        "required": false,
+        "description": "Status of the recurring invoice: 'active', 'stopped', or 'expired'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status of the recurring invoice. This can be <code>active</code>, <code>stopped</code> or <code>expired</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_recurring_invoice_status",
+        "required": false,
+        "description": "Filter recurring invoices by status or payment expected date. Allowed values: Status.All, Status.Active, Status.Stopped, Status.Expired.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter  Recurring invoices by any status or payment expected date.Allowed Values: <code> Status.All</code>, <code>Status.Active</code>, <code> Status.Stopped</code>, <code>Status.Expired</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_text",
+        "required": false,
+        "description": "Search invoices by invoice number, purchase order, or customer name. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number or purchase order or customer name. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Specify the column to sort the recurring invoices by. Leave empty for no sorting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to fetch, with a default value of 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of records to retrieve per page, with a default of 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_recurring_invoices'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/recurringinvoices",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recurrence_name",
+        "tool_parameter_name": "recurrence_unique_name",
+        "description": "Unique name for the recurring profile given by the user. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique name for the recurring profile given by the user. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "search_by_item_name",
+        "description": "Search recurring invoices by item name. Variants: <code>item_name_startswith</code> and <code>profileitemname_contains</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring invoices by item name. Variants: <code>item_name_startswith</code> and <code>profileitemname_contains</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "item_description_filter",
+        "description": "Search recurring invoices by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring invoices by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "customer_name",
+        "description": "Name of the customer to whom the recurring invoice is raised.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the customer to whom the recurring invoice is raised."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "line_item_id",
+        "tool_parameter_name": "line_item_id",
+        "description": "The line item id",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The line item id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "item_id",
+        "description": "Unique string generated for the item for which invoice is to be sent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique string generated for the item for which invoice is to be sent."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_id",
+        "tool_parameter_name": "tax_identifier",
+        "description": "ID of the tax or tax group associated to the recurring invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the tax or tax group associated to the recurring invoice."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notes",
+        "tool_parameter_name": "invoice_note",
+        "description": "A short note for the recurring invoice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short note for the recurring invoice."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_date",
+        "tool_parameter_name": "recurring_invoice_start_date",
+        "description": "The date on which the recurring invoice starts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date on which the recurring invoice starts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "recurring_invoice_end_date",
+        "description": "The date on which the recurring invoice expires.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date on which the recurring invoice expires."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "customer_id",
+        "description": "Customer ID of the customer for whom the recurring invoice is raised.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Customer ID of the customer for whom the recurring invoice is raised."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "recurring_invoice_status",
+        "description": "Status of the recurring invoice. This can be <code>active</code>, <code>stopped</code> or <code>expired</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status of the recurring invoice. This can be <code>active</code>, <code>stopped</code> or <code>expired</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_recurring_invoice_status",
+        "description": "Filter  Recurring invoices by any status or payment expected date.Allowed Values: <code> Status.All</code>, <code>Status.Active</code>, <code> Status.Stopped</code>, <code>Status.Expired</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter  Recurring invoices by any status or payment expected date.Allowed Values: <code> Status.All</code>, <code>Status.Active</code>, <code> Status.Stopped</code>, <code>Status.Expired</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_text",
+        "description": "Search invoices by invoice number or purchase order or customer name. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number or purchase order or customer name. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

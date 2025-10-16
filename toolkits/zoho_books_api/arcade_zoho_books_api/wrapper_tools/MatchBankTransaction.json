@@ -1,0 +1,272 @@
+{
+  "name": "MatchBankTransaction",
+  "fully_qualified_name": "ZohoBooksApi.MatchBankTransaction@0.1.0",
+  "description": "Match an uncategorized bank transaction with an existing one.\n\nUse this tool to match an uncategorized transaction with an existing transaction in Zoho Books, ensuring proper categorization and reconciliation.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Unique identifier for the organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "bank_transaction_id",
+        "required": true,
+        "description": "Unique identifier of the bank transaction to be matched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_id"
+      },
+      {
+        "name": "account_id",
+        "required": false,
+        "description": "The mandatory Account ID for listing transactions to match. This is required to specify the bank account in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mandatory Account id for which transactions are to be listed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "transactions_to_be_matched",
+        "required": false,
+        "description": "A JSON array of transactions to be matched, with each containing a transaction_id and transaction_type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "transactions_to_be_matched": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "transaction_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Transaction"
+                },
+                "transaction_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'match_bank_transaction'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_id",
+        "description": "Mandatory Account id for which transactions are to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mandatory Account id for which transactions are to be listed."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_id",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "Unique identifier of the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "transactions_to_be_matched",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "transactions_to_be_matched": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "transaction_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Transaction"
+                },
+                "transaction_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"transactions_to_be_matched\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"transaction_id\": {\n                  \"description\": \"ID of the Transaction\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000048017\"\n                },\n                \"transaction_type\": {\n                  \"description\": \"Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\\\"#Expenses\\\">Expense</a>, <a href=\\\"#Vendor-Payments\\\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\\\"#Vendor-Credits_Refund_a_vendor_credit\\\">Vendor Credit Refund</a>, <a href=\\\"#Vendor-Payments_Refund_an_excess_vendor_payment\\\">Vendor Payment Refund</a>, <a href=\\\"#Customer-Payments\\\">Customer Advance/Customer Payment</a>, <a href=\\\"#Credit-Notes_Refund_credit_note\\\">Credit Note Refund</a>, <a href=\\\"#Customer-Payments_Refund_an_excess_customer_payment\\\">Payment Refund</a>. Hence, refer them in their repective modules.</div>\",\n                  \"type\": \"string\",\n                  \"example\": \"deposit\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
