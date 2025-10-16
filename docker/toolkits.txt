@@ -1,9 +1,15 @@
 arcade-airtable-api
 arcade-box-api
 arcade-calendly-api
+arcade-cursor-agents-api
+arcade-figma-api
 arcade-freshservice-api
+arcade-linkedin
+arcade-math
 arcade-miro-api
 arcade-slack-api
 arcade-stripe-api
 arcade-squareup-api
 arcade-xero-api
+arcade-zendesk
+arcade-zoho-creator-api

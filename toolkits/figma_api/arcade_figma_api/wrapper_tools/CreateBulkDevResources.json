@@ -1,0 +1,195 @@
+{
+  "name": "CreateBulkDevResources",
+  "fully_qualified_name": "FigmaApi.CreateBulkDevResources@0.1.0",
+  "description": "Bulk create developer resources in multiple Figma files.\n\nUse this tool to create multiple developer resources across different Figma files. Successfully created resources will be listed in the response, while any errors will also be provided, indicating issues such as non-existent file keys or duplicate URLs.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dev_resources_list",
+        "required": true,
+        "description": "A JSON array of dev resources to create, each with a name, URL, file key, and node ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dev_resources": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the dev resource."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL of the dev resource."
+                },
+                "file_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file key where the dev resource belongs."
+                },
+                "node_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The target node to attach the dev resource to."
+                }
+              },
+              "description": "An array of dev resources."
+            }
+          },
+          "inner_properties": null,
+          "description": "A list of dev resources that you want to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postDevResources'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_dev_resources:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/dev_resources",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dev_resources_list",
+        "description": "A list of dev resources that you want to create.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dev_resources": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the dev resource."
+                },
+                "url": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The URL of the dev resource."
+                },
+                "file_key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The file key where the dev resource belongs."
+                },
+                "node_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The target node to attach the dev resource to."
+                }
+              },
+              "description": "An array of dev resources."
+            }
+          },
+          "inner_properties": null,
+          "description": "A list of dev resources that you want to create."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A list of dev resources that you want to create.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"dev_resources\": {\n            \"type\": \"array\",\n            \"description\": \"An array of dev resources.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the dev resource.\"\n                },\n                \"url\": {\n                  \"type\": \"string\",\n                  \"description\": \"The URL of the dev resource.\"\n                },\n                \"file_key\": {\n                  \"type\": \"string\",\n                  \"description\": \"The file key where the dev resource belongs.\"\n                },\n                \"node_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The target node to attach the dev resource to.\"\n                }\n              },\n              \"required\": [\n                \"name\",\n                \"url\",\n                \"file_key\",\n                \"node_id\"\n              ]\n            }\n          }\n        },\n        \"required\": [\n          \"dev_resources\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

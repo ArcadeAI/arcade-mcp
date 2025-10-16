@@ -1,0 +1,248 @@
+{
+  "name": "UpdateFigmaWebhook",
+  "fully_qualified_name": "FigmaApi.UpdateFigmaWebhook@0.1.0",
+  "description": "Update a Figma webhook by its ID.\n\nUse this tool to update the settings or parameters of an existing webhook in Figma by specifying the webhook ID.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_id_to_update",
+        "required": true,
+        "description": "Provide the ID of the Figma webhook you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of webhook to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webhook_id"
+      },
+      {
+        "name": "webhook_update_data",
+        "required": true,
+        "description": "JSON object containing the data for the webhook update, including properties like event type, endpoint, passcode, status, and description.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PING",
+                "FILE_UPDATE",
+                "FILE_VERSION_UPDATE",
+                "FILE_DELETE",
+                "LIBRARY_PUBLISH",
+                "FILE_COMMENT",
+                "DEV_MODE_STATUS_UPDATE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "An enum representing the possible events that a webhook can subscribe to"
+            },
+            "endpoint": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTTP endpoint that will receive a POST request when the event triggers. Max length 2048 characters."
+            },
+            "passcode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "String that will be passed back to your webhook endpoint to verify that it is being called by Figma. Max length 100 characters."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ACTIVE",
+                "PAUSED"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "An enum representing the possible statuses you can set a webhook to:\n- `ACTIVE`: The webhook is healthy and receive all events\n- `PAUSED`: The webhook is paused and will not receive any events"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User provided description or name for the webhook. Max length 150 characters."
+            }
+          },
+          "inner_properties": null,
+          "description": "The webhook to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putWebhook'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webhooks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v2/webhooks/{webhook_id}",
+    "http_method": "PUT",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "webhook_id",
+        "tool_parameter_name": "webhook_id_to_update",
+        "description": "ID of webhook to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of webhook to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "webhook_update_data",
+        "description": "The webhook to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "event_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "PING",
+                "FILE_UPDATE",
+                "FILE_VERSION_UPDATE",
+                "FILE_DELETE",
+                "LIBRARY_PUBLISH",
+                "FILE_COMMENT",
+                "DEV_MODE_STATUS_UPDATE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "An enum representing the possible events that a webhook can subscribe to"
+            },
+            "endpoint": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The HTTP endpoint that will receive a POST request when the event triggers. Max length 2048 characters."
+            },
+            "passcode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "String that will be passed back to your webhook endpoint to verify that it is being called by Figma. Max length 100 characters."
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ACTIVE",
+                "PAUSED"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "An enum representing the possible statuses you can set a webhook to:\n- `ACTIVE`: The webhook is healthy and receive all events\n- `PAUSED`: The webhook is paused and will not receive any events"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "User provided description or name for the webhook. Max length 150 characters."
+            }
+          },
+          "inner_properties": null,
+          "description": "The webhook to update."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The webhook to update.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"event_type\": {\n            \"type\": \"string\",\n            \"description\": \"An enum representing the possible events that a webhook can subscribe to\",\n            \"enum\": [\n              \"PING\",\n              \"FILE_UPDATE\",\n              \"FILE_VERSION_UPDATE\",\n              \"FILE_DELETE\",\n              \"LIBRARY_PUBLISH\",\n              \"FILE_COMMENT\",\n              \"DEV_MODE_STATUS_UPDATE\"\n            ]\n          },\n          \"endpoint\": {\n            \"type\": \"string\",\n            \"description\": \"The HTTP endpoint that will receive a POST request when the event triggers. Max length 2048 characters.\"\n          },\n          \"passcode\": {\n            \"type\": \"string\",\n            \"description\": \"String that will be passed back to your webhook endpoint to verify that it is being called by Figma. Max length 100 characters.\"\n          },\n          \"status\": {\n            \"type\": \"string\",\n            \"description\": \"An enum representing the possible statuses you can set a webhook to:\\n- `ACTIVE`: The webhook is healthy and receive all events\\n- `PAUSED`: The webhook is paused and will not receive any events\",\n            \"enum\": [\n              \"ACTIVE\",\n              \"PAUSED\"\n            ]\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"User provided description or name for the webhook. Max length 150 characters.\"\n          }\n        },\n        \"required\": [\n          \"event_type\",\n          \"team_id\",\n          \"endpoint\",\n          \"passcode\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
