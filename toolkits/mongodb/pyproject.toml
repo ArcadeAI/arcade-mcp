@@ -8,7 +8,7 @@ version = "0.1.1"
 description = "Tools to query and explore a MongoDB database"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.6.0rc2,<3.0.0",
+    "arcade-tdk>=3.0.0,<4.0.0",
     "pymongo>=4.10.1",
     "pydantic>=2.11.7",
     "motor>=3.6.0",

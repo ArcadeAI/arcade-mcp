@@ -8,7 +8,7 @@ version = "0.1.1"
 description = "Tools that enable LLMs to interact directly with the airtable API."
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.0.0,<3.0.0",
+    "arcade-tdk>=3.0.0,<4.0.0",
  "httpx[http2]>=0.27.2,<1.0.0",
 ]
 [[project.authors]]
