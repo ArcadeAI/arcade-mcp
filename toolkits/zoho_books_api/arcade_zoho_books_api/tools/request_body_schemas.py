@@ -3139,7 +3139,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "totals "
                             "(quantity "
-                            "× "
+                            "x "
                             "rate). "
                             "Supports "
                             "decimal "
@@ -4338,7 +4338,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "totals "
                             "(quantity "
-                            "× "
+                            "x "
                             "rate). "
                             "Supports "
                             "decimal "
@@ -5537,7 +5537,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "totals "
                             "(quantity "
-                            "× "
+                            "x "
                             "rate). "
                             "Supports "
                             "decimal "
@@ -13432,12 +13432,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s billing address.",
+                "description": "City of the customer's billing address.",
                 "example": "Pleasanton",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s billing address.",
+                "description": "Country of the customer's billing address.",
                 "example": "USA",
                 "type": "string",
             },
@@ -13447,12 +13447,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s billing address.",
+                "description": "State of the customer's billing address.",
                 "example": "CA",
                 "type": "string",
             },
             "zip": {
-                "description": "Zip code of the customer’s billing address.",
+                "description": "Zip code of the customer's billing address.",
                 "example": 94588,
                 "type": "string",
             },
@@ -13467,12 +13467,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s billing address.",
+                "description": "City of the customer's billing address.",
                 "example": "San Francisco",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s billing address.",
+                "description": "Country of the customer's billing address.",
                 "example": "USA",
                 "type": "string",
             },
@@ -13482,12 +13482,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s billing address.",
+                "description": "State of the customer's billing address.",
                 "example": "CA",
                 "type": "string",
             },
             "zip": {
-                "description": "Zip code of the customer’s billing address.",
+                "description": "Zip code of the customer's billing address.",
                 "example": 94134,
                 "type": "string",
             },
@@ -14796,7 +14796,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "currency_id": {
                 "description": "The ID of the currency in which the "
                 "estimate will be created. Use this to "
-                "specify the customer’s preferred "
+                "specify the customer's preferred "
                 "currency for transactions. Fetch valid "
                 "currency IDs using the Currency API "
                 "(GET /currencies).",
@@ -15976,7 +15976,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "currency_id": {
                 "description": "The ID of the currency in which the "
                 "estimate will be created. Use this to "
-                "specify the customer’s preferred "
+                "specify the customer's preferred "
                 "currency for transactions. Fetch valid "
                 "currency IDs using the Currency API "
                 "(GET /currencies).",
@@ -17156,7 +17156,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "currency_id": {
                 "description": "The ID of the currency in which the "
                 "estimate will be created. Use this to "
-                "specify the customer’s preferred "
+                "specify the customer's preferred "
                 "currency for transactions. Fetch valid "
                 "currency IDs using the Currency API "
                 "(GET /currencies).",
@@ -18269,12 +18269,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s billing address.",
+                "description": "City of the customer's billing address.",
                 "example": "Beijing",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s billing address.",
+                "description": "Country of the customer's billing address.",
                 "example": "China",
                 "type": "string",
             },
@@ -18284,12 +18284,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s billing address.",
+                "description": "State of the customer's billing address.",
                 "example": "Beijing",
                 "type": "string",
             },
             "zip": {
-                "description": "Zip code of the customer’s billing address.",
+                "description": "Zip code of the customer's billing address.",
                 "example": 1000881,
                 "type": "string",
             },
@@ -18304,12 +18304,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s billing address.",
+                "description": "City of the customer's billing address.",
                 "example": "Pleasanton",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s billing address.",
+                "description": "Country of the customer's billing address.",
                 "example": "U.S.A",
                 "type": "string",
             },
@@ -18319,12 +18319,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s billing address.",
+                "description": "State of the customer's billing address.",
                 "example": "CA",
                 "type": "string",
             },
             "zip": {
-                "description": "Zip code of the customer’s billing address.",
+                "description": "Zip code of the customer's billing address.",
                 "example": 94588,
                 "type": "string",
             },
@@ -19892,7 +19892,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "number",
             },
             "depreciation_account_id": {
-                "description": "Enter the account id to track the asset’s depreciation over time.",
+                "description": "Enter the account id to track the asset's depreciation over time.",
                 "example": "3640355000000000367",
                 "type": "string",
             },
@@ -19944,7 +19944,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "expense_account_id": {
                 "description": "Enter the account id to track "
                 "the expenses associated with "
-                "the asset’s depreciation.The "
+                "the asset's depreciation.The "
                 "available account types are "
                 "<b>Expense</b>  and <b>Other "
                 "Expense</b>",
@@ -19967,7 +19967,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "salvage_value": {
                 "description": "Enter the remaining amount of the "
                 "asset after its useful life or the "
-                "value after it’s fully depreciated",
+                "value after it's fully depreciated",
                 "example": 100,
                 "format": "double",
                 "type": "string",
@@ -20071,7 +20071,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "number",
             },
             "depreciation_account_id": {
-                "description": "Enter the account id to track the asset’s depreciation over time.",
+                "description": "Enter the account id to track the asset's depreciation over time.",
                 "example": "3640355000000000367",
                 "type": "string",
             },
@@ -20123,7 +20123,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "expense_account_id": {
                 "description": "Enter the account id to track "
                 "the expenses associated with "
-                "the asset’s depreciation.The "
+                "the asset's depreciation.The "
                 "available account types are "
                 "<b>Expense</b>  and <b>Other "
                 "Expense</b>",
@@ -20146,7 +20146,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "salvage_value": {
                 "description": "Enter the remaining amount of the "
                 "asset after its useful life or the "
-                "value after it’s fully depreciated",
+                "value after it's fully depreciated",
                 "example": 100,
                 "format": "double",
                 "type": "string",
@@ -20222,7 +20222,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "expense_account_id": {
                 "description": "Enter the account id to track "
                 "the expenses associated with "
-                "the asset’s depreciation.The "
+                "the asset's depreciation.The "
                 "available account types are "
                 "<b>Expense</b>  and <b>Other "
                 "Expense</b>",
@@ -20272,7 +20272,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "depreciation_account_id": {
-                "description": "Enter the account id to track the asset’s depreciation over time.",
+                "description": "Enter the account id to track the asset's depreciation over time.",
                 "example": "3640355000000000367",
                 "type": "string",
             },
@@ -20318,7 +20318,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "expense_account_id": {
                 "description": "Enter the account id to track "
                 "the expenses associated with "
-                "the asset’s depreciation.The "
+                "the asset's depreciation.The "
                 "available account types are "
                 "<b>Expense</b>  and <b>Other "
                 "Expense</b>",
@@ -20333,7 +20333,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "salvage_value": {
                 "description": "Enter the remaining amount of the "
                 "asset after its useful life or the "
-                "value after it’s fully depreciated",
+                "value after it's fully depreciated",
                 "example": 100,
                 "format": "double",
                 "type": "string",
@@ -20368,7 +20368,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "depreciation_account_id": {
-                "description": "Enter the account id to track the asset’s depreciation over time.",
+                "description": "Enter the account id to track the asset's depreciation over time.",
                 "example": "3640355000000000367",
                 "type": "string",
             },
@@ -20414,7 +20414,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "expense_account_id": {
                 "description": "Enter the account id to track "
                 "the expenses associated with "
-                "the asset’s depreciation.The "
+                "the asset's depreciation.The "
                 "available account types are "
                 "<b>Expense</b>  and <b>Other "
                 "Expense</b>",
@@ -20429,7 +20429,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
             "salvage_value": {
                 "description": "Enter the remaining amount of the "
                 "asset after its useful life or the "
-                "value after it’s fully depreciated",
+                "value after it's fully depreciated",
                 "example": 100,
                 "format": "double",
                 "type": "string",
@@ -21178,7 +21178,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "after "
                             "the "
                             "rate "
-                            "× "
+                            "x "
                             "quantity "
                             "calculation "
                             "but "
@@ -21643,7 +21643,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "total "
                             "(rate "
-                            "× "
+                            "x "
                             "quantity) "
                             "and "
                             "affects "
@@ -22963,7 +22963,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "after "
                             "the "
                             "rate "
-                            "× "
+                            "x "
                             "quantity "
                             "calculation "
                             "but "
@@ -23433,7 +23433,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "total "
                             "(rate "
-                            "× "
+                            "x "
                             "quantity) "
                             "and "
                             "affects "
@@ -24663,7 +24663,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "after "
                             "the "
                             "rate "
-                            "× "
+                            "x "
                             "quantity "
                             "calculation "
                             "but "
@@ -25133,7 +25133,7 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                             "item "
                             "total "
                             "(rate "
-                            "× "
+                            "x "
                             "quantity) "
                             "and "
                             "affects "
@@ -25934,12 +25934,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s billing address.",
+                "description": "City of the customer's billing address.",
                 "example": "Beijing",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s billing address.",
+                "description": "Country of the customer's billing address.",
                 "type": "string",
             },
             "fax": {
@@ -25948,12 +25948,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s billing address.",
+                "description": "State of the customer's billing address.",
                 "example": "Beijing",
                 "type": "string",
             },
             "zip": {
-                "description": "Zip code of the customer’s billing address.",
+                "description": "Zip code of the customer's billing address.",
                 "example": 1000881,
                 "type": "string",
             },
@@ -25968,12 +25968,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "city": {
-                "description": "City of the customer’s Shipping address.",
+                "description": "City of the customer's Shipping address.",
                 "example": "Pleasanton",
                 "type": "string",
             },
             "country": {
-                "description": "Country of the customer’s Shipping address.",
+                "description": "Country of the customer's Shipping address.",
                 "example": "USA",
                 "type": "string",
             },
@@ -25983,13 +25983,13 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                 "type": "string",
             },
             "state": {
-                "description": "State of the customer’s Shipping address.",
+                "description": "State of the customer's Shipping address.",
                 "example": "CA",
                 "type": "string",
             },
             "street2": {"example": "McMillan Avenue", "type": "string"},
             "zip": {
-                "description": "Zip code of the customer’s Shipping address.",
+                "description": "Zip code of the customer's Shipping address.",
                 "example": 945881,
                 "type": "string",
             },
@@ -35360,12 +35360,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                         "type": "string",
                     },
                     "city": {
-                        "description": "City of the customer’s billing address.",
+                        "description": "City of the customer's billing address.",
                         "example": "Pleasanton",
                         "type": "string",
                     },
                     "country": {
-                        "description": "Country of the customer’s billing address.",
+                        "description": "Country of the customer's billing address.",
                         "example": "U.S.A",
                         "type": "string",
                     },
@@ -35375,13 +35375,13 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                         "type": "string",
                     },
                     "state": {
-                        "description": "State of the customer’s billing address.",
+                        "description": "State of the customer's billing address.",
                         "example": "CA",
                         "type": "string",
                     },
                     "street2": {"example": "McMillan Avenue", "type": "string"},
                     "zip": {
-                        "description": "Zip code of the customer’s billing address.",
+                        "description": "Zip code of the customer's billing address.",
                         "example": "94588",
                         "type": "string",
                     },
@@ -36009,12 +36009,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                         "type": "string",
                     },
                     "city": {
-                        "description": "City of the customer’s billing address.",
+                        "description": "City of the customer's billing address.",
                         "example": "Pleasanton",
                         "type": "string",
                     },
                     "country": {
-                        "description": "Country of the customer’s billing address.",
+                        "description": "Country of the customer's billing address.",
                         "example": "U.S.A",
                         "type": "string",
                     },
@@ -36024,12 +36024,12 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
                         "type": "string",
                     },
                     "state": {
-                        "description": "State of the customer’s billing address.",
+                        "description": "State of the customer's billing address.",
                         "example": "CA",
                         "type": "string",
                     },
                     "zip": {
-                        "description": "Zip code of the customer’s billing address.",
+                        "description": "Zip code of the customer's billing address.",
                         "example": "94588",
                         "type": "string",
                     },

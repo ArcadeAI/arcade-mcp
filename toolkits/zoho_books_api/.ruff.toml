@@ -38,6 +38,7 @@ select = [
 
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
+"**/request_body_schemas.py" = ["E501"]
 
 [format]
 preview = true
