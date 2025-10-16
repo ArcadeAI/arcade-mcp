@@ -1,0 +1,194 @@
+{
+  "name": "AddCommentToFigmaFile",
+  "fully_qualified_name": "FigmaApi.AddCommentToFigmaFile@0.1.0",
+  "description": "Posts a new comment on a Figma file.\n\nUse this tool to post a new comment on a specified file in Figma, identified by file_key.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "figma_file_key",
+        "required": true,
+        "description": "File or branch key for the Figma file where the comment will be added. Retrieve this using `GET /v1/files/:key` with the `branch_data` query param for branch keys.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to add comments in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_key"
+      },
+      {
+        "name": "comment_details",
+        "required": true,
+        "description": "JSON with details of the comment. Include 'message', 'comment_id' (if replying), and 'client_meta' for position.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The text contents of the comment to post."
+            },
+            "comment_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the comment to reply to, if any. This must be a root comment. You cannot reply to other replies (a comment that has a parent_id)."
+            },
+            "client_meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The position where to place the comment."
+            }
+          },
+          "inner_properties": null,
+          "description": "Comment to post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postComment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_comments:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/files/{file_key}/comments",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "file_key",
+        "tool_parameter_name": "figma_file_key",
+        "description": "File to add comments in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to add comments in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "comment_details",
+        "description": "Comment to post.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The text contents of the comment to post."
+            },
+            "comment_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the comment to reply to, if any. This must be a root comment. You cannot reply to other replies (a comment that has a parent_id)."
+            },
+            "client_meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The position where to place the comment."
+            }
+          },
+          "inner_properties": null,
+          "description": "Comment to post."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Comment to post.\",\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"message\": {\n            \"type\": \"string\",\n            \"description\": \"The text contents of the comment to post.\"\n          },\n          \"comment_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the comment to reply to, if any. This must be a root comment. You cannot reply to other replies (a comment that has a parent_id).\"\n          },\n          \"client_meta\": {\n            \"description\": \"The position where to place the comment.\",\n            \"oneOf\": [\n              {\n                \"type\": \"object\",\n                \"description\": \"A 2d vector.\",\n                \"properties\": {\n                  \"x\": {\n                    \"type\": \"number\",\n                    \"description\": \"X coordinate of the vector.\"\n                  },\n                  \"y\": {\n                    \"type\": \"number\",\n                    \"description\": \"Y coordinate of the vector.\"\n                  }\n                },\n                \"required\": [\n                  \"x\",\n                  \"y\"\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"description\": \"Position of a comment relative to the frame to which it is attached.\",\n                \"properties\": {\n                  \"node_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"Unique id specifying the frame.\"\n                  },\n                  \"node_offset\": {\n                    \"type\": \"object\",\n                    \"description\": \"A 2d vector.\",\n                    \"properties\": {\n                      \"x\": {\n                        \"type\": \"number\",\n                        \"description\": \"X coordinate of the vector.\"\n                      },\n                      \"y\": {\n                        \"type\": \"number\",\n                        \"description\": \"Y coordinate of the vector.\"\n                      }\n                    },\n                    \"required\": [\n                      \"x\",\n                      \"y\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"node_id\",\n                  \"node_offset\"\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"description\": \"Position of a region comment on the canvas.\",\n                \"properties\": {\n                  \"x\": {\n                    \"type\": \"number\",\n                    \"description\": \"X coordinate of the position.\"\n                  },\n                  \"y\": {\n                    \"type\": \"number\",\n                    \"description\": \"Y coordinate of the position.\"\n                  },\n                  \"region_height\": {\n                    \"type\": \"number\",\n                    \"description\": \"The height of the comment region. Must be greater than 0.\"\n                  },\n                  \"region_width\": {\n                    \"type\": \"number\",\n                    \"description\": \"The width of the comment region. Must be greater than 0.\"\n                  },\n                  \"comment_pin_corner\": {\n                    \"type\": \"string\",\n                    \"description\": \"The corner of the comment region to pin to the node's corner as a string enum.\",\n                    \"enum\": [\n                      \"top-left\",\n                      \"top-right\",\n                      \"bottom-left\",\n                      \"bottom-right\"\n                    ],\n                    \"default\": \"bottom-right\"\n                  }\n                },\n                \"required\": [\n                  \"x\",\n                  \"y\",\n                  \"region_height\",\n                  \"region_width\"\n                ]\n              },\n              {\n                \"type\": \"object\",\n                \"description\": \"Position of a region comment relative to the frame to which it is attached.\",\n                \"properties\": {\n                  \"node_id\": {\n                    \"type\": \"string\",\n                    \"description\": \"Unique id specifying the frame.\"\n                  },\n                  \"node_offset\": {\n                    \"type\": \"object\",\n                    \"description\": \"A 2d vector.\",\n                    \"properties\": {\n                      \"x\": {\n                        \"type\": \"number\",\n                        \"description\": \"X coordinate of the vector.\"\n                      },\n                      \"y\": {\n                        \"type\": \"number\",\n                        \"description\": \"Y coordinate of the vector.\"\n                      }\n                    },\n                    \"required\": [\n                      \"x\",\n                      \"y\"\n                    ]\n                  },\n                  \"region_height\": {\n                    \"type\": \"number\",\n                    \"description\": \"The height of the comment region. Must be greater than 0.\"\n                  },\n                  \"region_width\": {\n                    \"type\": \"number\",\n                    \"description\": \"The width of the comment region. Must be greater than 0.\"\n                  },\n                  \"comment_pin_corner\": {\n                    \"type\": \"string\",\n                    \"description\": \"The corner of the comment region to pin to the node's corner as a string enum.\",\n                    \"enum\": [\n                      \"top-left\",\n                      \"top-right\",\n                      \"bottom-left\",\n                      \"bottom-right\"\n                    ],\n                    \"default\": \"bottom-right\"\n                  }\n                },\n                \"required\": [\n                  \"node_id\",\n                  \"node_offset\",\n                  \"region_height\",\n                  \"region_width\"\n                ]\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"message\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
