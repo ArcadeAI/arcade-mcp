@@ -1,6 +1,7 @@
 arcade-airtable-api
 arcade-box-api
 arcade-calendly-api
+arcade-cursor-agents-api
 arcade-freshservice-api
 arcade-miro-api
 arcade-slack-api
