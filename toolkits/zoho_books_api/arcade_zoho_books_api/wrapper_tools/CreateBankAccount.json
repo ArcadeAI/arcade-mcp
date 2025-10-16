@@ -1,0 +1,364 @@
+{
+  "name": "CreateBankAccount",
+  "fully_qualified_name": "ZohoBooksApi.CreateBankAccount@0.1.0",
+  "description": "Create a bank or credit card account in your organization.\n\nThis tool is used to create a new bank account or credit card account for your organization via Zoho Books. Call this tool when you need to add financial accounts to manage and track transactions in your organization's accounting system.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization for which to create the bank or credit card account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "bank_account_details",
+        "required": false,
+        "description": "JSON containing details for creating a bank or credit card account, including account name, type, number, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the account"
+            },
+            "account_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the account"
+            },
+            "account_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number associated with the Bank Account"
+            },
+            "account_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Account"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Currency associated with the Account"
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the currency associated with the Bank Account"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the Account"
+            },
+            "bank_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Bank"
+            },
+            "routing_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Routing Number of the Account"
+            },
+            "is_primary_account": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Account is Primary Account in Zoho Books"
+            },
+            "is_paypal_account": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Account is Paypal Account"
+            },
+            "paypal_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of Payment for the Paypal Account. Allowed Values : <code>standard</code> and <code>adaptive</code>"
+            },
+            "paypal_email_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email Address of the Paypal account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_bank_account'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/bankaccounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "bank_account_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the account"
+            },
+            "account_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the account"
+            },
+            "account_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number associated with the Bank Account"
+            },
+            "account_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the Account"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Currency associated with the Account"
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Code of the currency associated with the Bank Account"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the Account"
+            },
+            "bank_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Bank"
+            },
+            "routing_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Routing Number of the Account"
+            },
+            "is_primary_account": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Account is Primary Account in Zoho Books"
+            },
+            "is_paypal_account": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Account is Paypal Account"
+            },
+            "paypal_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of Payment for the Paypal Account. Allowed Values : <code>standard</code> and <code>adaptive</code>"
+            },
+            "paypal_email_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email Address of the Paypal account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"account_name\",\n          \"account_type\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"account_name\": {\n            \"description\": \"Name of the account\",\n            \"type\": \"string\",\n            \"example\": \"Corporate Account\"\n          },\n          \"account_type\": {\n            \"description\": \"Type of the account\",\n            \"type\": \"string\",\n            \"example\": \"bank\"\n          },\n          \"account_number\": {\n            \"description\": \"Number associated with the Bank Account\",\n            \"type\": \"string\",\n            \"example\": \"80000009823\"\n          },\n          \"account_code\": {\n            \"description\": \"Code of the Account\",\n            \"type\": \"string\"\n          },\n          \"currency_id\": {\n            \"description\": \"ID of the Currency associated with the Account\",\n            \"type\": \"string\",\n            \"example\": \"460000000000097\"\n          },\n          \"currency_code\": {\n            \"description\": \"Code of the currency associated with the Bank Account\",\n            \"type\": \"string\",\n            \"example\": \"USD\"\n          },\n          \"description\": {\n            \"description\": \"Description of the Account\",\n            \"type\": \"string\",\n            \"example\": \"Salary details.\"\n          },\n          \"bank_name\": {\n            \"description\": \"Name of the Bank\",\n            \"type\": \"string\",\n            \"example\": \"Xavier Bank\"\n          },\n          \"routing_number\": {\n            \"description\": \"Routing Number of the Account\",\n            \"type\": \"string\",\n            \"example\": \"123456789\"\n          },\n          \"is_primary_account\": {\n            \"description\": \"Check if the Account is Primary Account in Zoho Books\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"is_paypal_account\": {\n            \"description\": \"Check if the Account is Paypal Account\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"paypal_type\": {\n            \"description\": \"The type of Payment for the Paypal Account. Allowed Values : <code>standard</code> and <code>adaptive</code>\",\n            \"type\": \"string\"\n          },\n          \"paypal_email_address\": {\n            \"description\": \"Email Address of the Paypal account.\",\n            \"type\": \"string\",\n            \"example\": \"johnsmith@zilliuminc.com\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

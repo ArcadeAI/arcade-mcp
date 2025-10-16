@@ -1,0 +1,497 @@
+{
+  "name": "UpdateVendorPayment",
+  "fully_qualified_name": "ZohoBooksApi.UpdateVendorPayment@0.1.0",
+  "description": "Update or modify an existing vendor payment.\n\nUse this tool to update an existing vendor payment, including modifying the amount applied to bills.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Provide the specific ID of the organization for which the vendor payment is being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "payment_identifier",
+        "required": true,
+        "description": "The unique identifier of the vendor payment to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the payment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "payment_id"
+      },
+      {
+        "name": "vendor_payment_details",
+        "required": false,
+        "description": "Detailed information of the vendor payment including vendor ID, bills, and payment specifics. This should be a JSON object as described in the value schema.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the vendor associated with the Vendor Payment."
+            },
+            "bills": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "bill_payment_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill Payment"
+                },
+                "bill_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the bill the payment is to be applied."
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount applied to the bill."
+                },
+                "tax_amount_withheld": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Tax Amount Withheld during Bill Payment"
+                }
+              },
+              "description": "Individual bill payment details as array."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date the payment is made."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate of the currency."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Total Amount of Vendor Payment"
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the cash/ bank account from which the payment is made."
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the Vendor Payment recorded."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number for the Vendor Payment recorded."
+            },
+            "is_paid_via_print_check": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Bill Payment is paid Via Print Check Option"
+            },
+            "check_details": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value for the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_vendor_payment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.vendorpayments.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/vendorpayments/{payment_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "payment_id",
+        "tool_parameter_name": "payment_identifier",
+        "description": "Unique identifier of the payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the payment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "vendor_payment_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the vendor associated with the Vendor Payment."
+            },
+            "bills": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "bill_payment_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill Payment"
+                },
+                "bill_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the bill the payment is to be applied."
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount applied to the bill."
+                },
+                "tax_amount_withheld": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Tax Amount Withheld during Bill Payment"
+                }
+              },
+              "description": "Individual bill payment details as array."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date the payment is made."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate of the currency."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Total Amount of Vendor Payment"
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the cash/ bank account from which the payment is made."
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the Vendor Payment recorded."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number for the Vendor Payment recorded."
+            },
+            "is_paid_via_print_check": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Bill Payment is paid Via Print Check Option"
+            },
+            "check_details": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value for the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"amount\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"vendor_id\": {\n            \"description\": \"ID of the vendor associated with the Vendor Payment.\",\n            \"type\": \"string\",\n            \"example\": \"460000000026049\"\n          },\n          \"bills\": {\n            \"description\": \"Individual bill payment details as array.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"bill_payment_id\": {\n                  \"description\": \"ID of the Bill Payment\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000053221\"\n                },\n                \"bill_id\": {\n                  \"description\": \"ID of the bill the payment is to be applied.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000053199\"\n                },\n                \"amount_applied\": {\n                  \"description\": \"Amount applied to the bill.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 150\n                },\n                \"tax_amount_withheld\": {\n                  \"description\": \"Tax Amount Withheld during Bill Payment\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"x-node_available_in\": [\n                    \"global\",\n                    \"in\",\n                    \"au\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                }\n              }\n            }\n          },\n          \"date\": {\n            \"description\": \"Date the payment is made.\",\n            \"type\": \"string\",\n            \"example\": \"2013-10-07\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate of the currency.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"amount\": {\n            \"description\": \"Total Amount of Vendor Payment\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 500\n          },\n          \"paid_through_account_id\": {\n            \"description\": \"ID of the cash/ bank account from which the payment is made.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000358\"\n          },\n          \"payment_mode\": {\n            \"description\": \"Mode of Vendor Payment\",\n            \"type\": \"string\",\n            \"example\": \"Stripe\"\n          },\n          \"description\": {\n            \"description\": \"Description for the Vendor Payment recorded.\",\n            \"type\": \"string\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference number for the Vendor Payment recorded.\",\n            \"type\": \"string\",\n            \"example\": \"REF#912300\"\n          },\n          \"is_paid_via_print_check\": {\n            \"description\": \"Check if the Bill Payment is paid Via Print Check Option\",\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\",\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"check_details\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"Index of the Custom Field\",\n                  \"type\": \"integer\"\n                },\n                \"value\": {\n                  \"description\": \"Value for the Custom Field\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

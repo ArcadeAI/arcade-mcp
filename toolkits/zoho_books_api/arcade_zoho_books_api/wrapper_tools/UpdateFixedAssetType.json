@@ -1,0 +1,333 @@
+{
+  "name": "UpdateFixedAssetType",
+  "fully_qualified_name": "ZohoBooksApi.UpdateFixedAssetType@0.1.0",
+  "description": "Update a fixed asset type with new information.\n\nUse this tool to update the details of a fixed asset type by providing the relevant asset type ID and new information. It should be called when modifying asset categories in Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "fixed_asset_type_identifier",
+        "required": true,
+        "description": "Unique identifier for the fixed asset type to be updated in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fixed_asset_type_id"
+      },
+      {
+        "name": "asset_type_update_details",
+        "required": false,
+        "description": "JSON object containing details of the fixed asset type to update, including name, accounts, depreciation details, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "fixed_asset_type_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the name of fixed asset type"
+            },
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "depreciation_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the asset\u2019s depreciation over time."
+            },
+            "depreciation_method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>"
+            },
+            "depreciation_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>"
+            },
+            "depreciation_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100"
+            },
+            "total_life": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the total life of the asset (in months)"
+            },
+            "salvage_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the remaining amount of the asset after its useful life or the value after it\u2019s fully depreciated"
+            },
+            "computation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_fixed_asset_type'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.fixedasset.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/fixedassettypes/{fixed_asset_type_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fixed_asset_type_id",
+        "tool_parameter_name": "fixed_asset_type_identifier",
+        "description": "Unique identifier of the fixed asset type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset type."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "asset_type_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "fixed_asset_type_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the name of fixed asset type"
+            },
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "depreciation_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the asset\u2019s depreciation over time."
+            },
+            "depreciation_method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>"
+            },
+            "depreciation_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>"
+            },
+            "depreciation_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100"
+            },
+            "total_life": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the total life of the asset (in months)"
+            },
+            "salvage_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the remaining amount of the asset after its useful life or the value after it\u2019s fully depreciated"
+            },
+            "computation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"fixed_asset_type_name\",\n          \"expense_account_id\",\n          \"depreciation_account_id\",\n          \"depreciation_method\",\n          \"depreciation_frequency\",\n          \"depreciation_percentage\",\n          \"total_life\",\n          \"salvage_value\",\n          \"computation_type\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"fixed_asset_type_name\": {\n            \"description\": \"Enter the name of fixed asset type\",\n            \"type\": \"string\",\n            \"example\": \"Machines\"\n          },\n          \"expense_account_id\": {\n            \"description\": \"Enter the account id to track the expenses associated with the asset\\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000421\"\n          },\n          \"depreciation_account_id\": {\n            \"description\": \"Enter the account id to track the asset\\u2019s depreciation over time.\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000367\"\n          },\n          \"depreciation_method\": {\n            \"description\": \"Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>\",\n            \"type\": \"string\",\n            \"example\": \"declining_method\"\n          },\n          \"depreciation_frequency\": {\n            \"description\": \"Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>\",\n            \"type\": \"string\",\n            \"example\": \"yearly\"\n          },\n          \"depreciation_percentage\": {\n            \"description\": \"Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 12\n          },\n          \"total_life\": {\n            \"description\": \"Enter the total life of the asset (in months)\",\n            \"type\": \"number\",\n            \"example\": 60\n          },\n          \"salvage_value\": {\n            \"description\": \"Enter the remaining amount of the asset after its useful life or the value after it\\u2019s fully depreciated\",\n            \"type\": \"string\",\n            \"format\": \"double\",\n            \"example\": 100\n          },\n          \"computation_type\": {\n            \"description\": \"Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>\",\n            \"type\": \"string\",\n            \"example\": \"prorata_basis\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

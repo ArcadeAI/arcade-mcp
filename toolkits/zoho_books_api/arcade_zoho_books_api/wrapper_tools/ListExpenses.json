@@ -1,0 +1,682 @@
+{
+  "name": "ListExpenses",
+  "fully_qualified_name": "ZohoBooksApi.ListExpenses@0.1.0",
+  "description": "Retrieve a list of expenses with pagination.\n\nUse this tool to get a paginated list of all expenses recorded in the system.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Unique identifier for the organization whose expenses are being queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "search_by_description",
+        "required": false,
+        "description": "Search expenses by description, supports 'description_startswith' and 'description_contains'. Max-length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by description.Variants <code>description_startswith</code> and <code>description_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "search_by_reference_number",
+        "required": false,
+        "description": "Search expenses by part or complete reference number using 'startswith' or 'contains'. Max-length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by reference number. Variants <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "filter_by_date",
+        "required": false,
+        "description": "Search expenses by expense date. Use variants: date_start, date_end, date_before, or date_after. Format [yyyy-mm-dd].",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense date. Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Format [yyyy-mm-dd]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "expense_status",
+        "required": false,
+        "description": "Search expenses by status. Allowed values: unbilled, invoiced, reimbursed, non-billable, billable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense status. Allowed Values <code>unbilled</code>, <code>invoiced</code>, <code>reimbursed</code>, <code>non-billable</code> and <code>billable</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "amount_filter",
+        "required": false,
+        "description": "Search expenses by amount using the variants: less_than, less_equals, greater_than, or greater_equals.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount"
+      },
+      {
+        "name": "search_expense_account_name",
+        "required": false,
+        "description": "Search expenses by account name. Use 'startswith:' or 'contains:'. Max length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_name"
+      },
+      {
+        "name": "customer_name_filter",
+        "required": false,
+        "description": "Filter expenses by customer name. Supports 'startswith' and 'contains' variants. Max length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "vendor_name_filter",
+        "required": false,
+        "description": "Filter expenses by vendor name using 'vendor_name_startswith' or 'vendor_name_contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_name"
+      },
+      {
+        "name": "expense_account_customer_id",
+        "required": false,
+        "description": "The ID of the expense account for the customer. Use this to filter expenses specific to a customer's account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the expense account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "vendor_id",
+        "required": false,
+        "description": "ID of the vendor associated with the expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the vendor the expense is made."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_id"
+      },
+      {
+        "name": "recurring_expense_id",
+        "required": false,
+        "description": "The ID used to search for expenses associated with a recurring expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by recurring expense id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recurring_expense_id"
+      },
+      {
+        "name": "paid_through_account_id",
+        "required": false,
+        "description": "The ID of the account through which the expense was paid.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by paid through account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "paid_through_account_id"
+      },
+      {
+        "name": "search_expenses_text",
+        "required": false,
+        "description": "Search expenses by account name, description, customer name, or vendor name. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_expenses_by",
+        "required": false,
+        "description": "Sort expenses by the specified column. Allowed values: date, account_name, total, bcy_total, reference_number, customer_name, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort expenses.Allowed Values <code>date</code>, <code>account_name</code>, <code>total</code>, <code>bcy_total</code>, <code>reference_number</code>, <code>customer_name</code> and <code>created_time</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "expense_status_filter",
+        "required": false,
+        "description": "Filter expenses by status. Allowed values: 'Status.All', 'Status.Billable', 'Status.Nonbillable', 'Status.Reimbursed', 'Status.Invoiced', 'Status.Unbilled'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Billable</code>, <code>Status.Nonbillable</code>, <code>Status.Reimbursed</code>, <code>Status.Invoiced</code>and <code>Status.Unbilled</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Page number to fetch, with the default starting at 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of expense records to fetch per page. Defaults to 200 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_expenses'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.expenses.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/expenses",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "search_by_description",
+        "description": "Search expenses by description.Variants <code>description_startswith</code> and <code>description_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by description.Variants <code>description_startswith</code> and <code>description_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "search_by_reference_number",
+        "description": "Search expenses by reference number. Variants <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by reference number. Variants <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "filter_by_date",
+        "description": "Search expenses by expense date. Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Format [yyyy-mm-dd]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense date. Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Format [yyyy-mm-dd]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "expense_status",
+        "description": "Search expenses by expense status. Allowed Values <code>unbilled</code>, <code>invoiced</code>, <code>reimbursed</code>, <code>non-billable</code> and <code>billable</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense status. Allowed Values <code>unbilled</code>, <code>invoiced</code>, <code>reimbursed</code>, <code>non-billable</code> and <code>billable</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount",
+        "tool_parameter_name": "amount_filter",
+        "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_name",
+        "tool_parameter_name": "search_expense_account_name",
+        "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "customer_name_filter",
+        "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_name",
+        "tool_parameter_name": "vendor_name_filter",
+        "description": "Search expenses by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "expense_account_customer_id",
+        "description": "ID of the expense account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the expense account."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_id",
+        "tool_parameter_name": "vendor_id",
+        "description": "ID of the vendor the expense is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the vendor the expense is made."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recurring_expense_id",
+        "tool_parameter_name": "recurring_expense_id",
+        "description": "Search expenses by recurring expense id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by recurring expense id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "paid_through_account_id",
+        "tool_parameter_name": "paid_through_account_id",
+        "description": "Search expenses by paid through account id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by paid through account id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_expenses_text",
+        "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_expenses_by",
+        "description": "Sort expenses.Allowed Values <code>date</code>, <code>account_name</code>, <code>total</code>, <code>bcy_total</code>, <code>reference_number</code>, <code>customer_name</code> and <code>created_time</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort expenses.Allowed Values <code>date</code>, <code>account_name</code>, <code>total</code>, <code>bcy_total</code>, <code>reference_number</code>, <code>customer_name</code> and <code>created_time</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "expense_status_filter",
+        "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Billable</code>, <code>Status.Nonbillable</code>, <code>Status.Reimbursed</code>, <code>Status.Invoiced</code>and <code>Status.Unbilled</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Billable</code>, <code>Status.Nonbillable</code>, <code>Status.Reimbursed</code>, <code>Status.Invoiced</code>and <code>Status.Unbilled</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

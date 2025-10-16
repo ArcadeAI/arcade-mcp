@@ -1,0 +1,649 @@
+{
+  "name": "RetrieveContactList",
+  "fully_qualified_name": "ZohoBooksApi.RetrieveContactList@0.1.0",
+  "description": "Retrieve and filter a list of contacts from Zoho Books.\n\nUse this tool to obtain a detailed list of contacts with options for advanced filtering by name, company, status, and more. Ideal for managing contact information and accessing financial data like outstanding amounts and credit limits. Supports pagination for efficient data handling.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "Provide the ID of the organization to retrieve relevant contact data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "filter_contact_by_type",
+        "required": false,
+        "description": "Filter contacts by type. Accepts 'customer' or 'vendor'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact type. Allowed Values: <code>customer</code>, <code>vendor</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact_type"
+      },
+      {
+        "name": "contact_name_filter",
+        "required": false,
+        "description": "Filter contacts by name. Use 'startswith' or 'contains' for match type. Max-length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact name. Max-length [100] Variants: <code>contact_name_startswith</code> and <code>contact_name_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact_name"
+      },
+      {
+        "name": "search_by_company_name",
+        "required": false,
+        "description": "Search contacts by company name. Maximum length is 100 characters. Use variants like 'company_name_startswith' and 'company_name_contains' for different search methods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by company name. Max-length [100] Variants: <code>company_name_startswith</code> and <code>company_name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "company_name"
+      },
+      {
+        "name": "primary_contact_first_name",
+        "required": false,
+        "description": "Search contacts by the first name of the primary contact person. Use 'first_name_startswith' or 'first_name_contains'. Max-length 100.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by first name of the primary contact person. Max-length [100] Variants: <code>first_name_startswith</code> and <code>first_name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "first_name"
+      },
+      {
+        "name": "search_by_last_name",
+        "required": false,
+        "description": "Search contacts by last name of the primary contact person. Supports 'startswith' or 'contains' options. Max-length 100.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by last name of the primary contact person. Max-length [100] Variants: <code>last_name_startswith</code> and <code>last_name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_name"
+      },
+      {
+        "name": "address_search",
+        "required": false,
+        "description": "Search contacts by address field. Use 'address_startswith' or 'address_contains'. Max-length 100.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by any of the address fields. Max-length [100] Variants: <code>address_startswith</code> and <code>address_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "address"
+      },
+      {
+        "name": "email_search_criteria",
+        "required": false,
+        "description": "Search contacts by email of the primary contact person. Use 'startswith' or 'contains' in the string to specify the search variant. Max length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by email of the primary contact person. Max-length [100] Variants: <code>email_startswith</code> and <code>email_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "contact_phone_number",
+        "required": false,
+        "description": "Search contacts by primary contact's phone number. Supports 'startswith' and 'contains' variants. Max length of 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by phone number of the primary contact person. Max-length [100] Variants: <code>phone_startswith</code> and <code>phone_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "phone"
+      },
+      {
+        "name": "contact_status_filter",
+        "required": false,
+        "description": "Filter contacts by status. Options include All, Active, Inactive, Duplicate, PortalEnabled, PortalDisabled, OverDue, Unpaid, CreditLimitExceed, and Crm.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter contacts by status. Allowed Values: <code>Status.All, Status.Active, Status.Inactive, Status.Duplicate, Status.PortalEnabled, Status.PortalDisabled, Invoice.OverDue, Invoice.Unpaid, Status.CreditLimitExceed and Status.Crm</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_contacts_text",
+        "required": false,
+        "description": "Search contacts using contact name or notes. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact name or notes. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Specify the column to sort contacts by. Allowed values: contact_name, first_name, last_name, email, outstanding_receivable_amount, created_time, and last_modified_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort contacts. Allowed Values: <code>contact_name, first_name, last_name, email, outstanding_receivable_amount, created_time and last_modified_time</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "crm_contact_id",
+        "required": false,
+        "description": "CRM Contact ID to filter specific contact details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Contact ID for the contact."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_contact_id"
+      },
+      {
+        "name": "crm_account_id",
+        "required": false,
+        "description": "Specify the CRM Account ID for the contact to retrieve specific contact details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Account ID for the contact."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_account_id"
+      },
+      {
+        "name": "crm_vendor_id",
+        "required": false,
+        "description": "The CRM Vendor ID associated with the contact, used to filter results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Vendor ID for the contact."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_vendor_id"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "Specify the page number to be fetched. Defaults to 1 if not provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "The number of contact records to fetch per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_contacts'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.contacts.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/contacts",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact_type",
+        "tool_parameter_name": "filter_contact_by_type",
+        "description": "Search contacts by contact type. Allowed Values: <code>customer</code>, <code>vendor</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact type. Allowed Values: <code>customer</code>, <code>vendor</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact_name",
+        "tool_parameter_name": "contact_name_filter",
+        "description": "Search contacts by contact name. Max-length [100] Variants: <code>contact_name_startswith</code> and <code>contact_name_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact name. Max-length [100] Variants: <code>contact_name_startswith</code> and <code>contact_name_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "company_name",
+        "tool_parameter_name": "search_by_company_name",
+        "description": "Search contacts by company name. Max-length [100] Variants: <code>company_name_startswith</code> and <code>company_name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by company name. Max-length [100] Variants: <code>company_name_startswith</code> and <code>company_name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "first_name",
+        "tool_parameter_name": "primary_contact_first_name",
+        "description": "Search contacts by first name of the primary contact person. Max-length [100] Variants: <code>first_name_startswith</code> and <code>first_name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by first name of the primary contact person. Max-length [100] Variants: <code>first_name_startswith</code> and <code>first_name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_name",
+        "tool_parameter_name": "search_by_last_name",
+        "description": "Search contacts by last name of the primary contact person. Max-length [100] Variants: <code>last_name_startswith</code> and <code>last_name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by last name of the primary contact person. Max-length [100] Variants: <code>last_name_startswith</code> and <code>last_name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "address",
+        "tool_parameter_name": "address_search",
+        "description": "Search contacts by any of the address fields. Max-length [100] Variants: <code>address_startswith</code> and <code>address_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by any of the address fields. Max-length [100] Variants: <code>address_startswith</code> and <code>address_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "email_search_criteria",
+        "description": "Search contacts by email of the primary contact person. Max-length [100] Variants: <code>email_startswith</code> and <code>email_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by email of the primary contact person. Max-length [100] Variants: <code>email_startswith</code> and <code>email_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "phone",
+        "tool_parameter_name": "contact_phone_number",
+        "description": "Search contacts by phone number of the primary contact person. Max-length [100] Variants: <code>phone_startswith</code> and <code>phone_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by phone number of the primary contact person. Max-length [100] Variants: <code>phone_startswith</code> and <code>phone_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "contact_status_filter",
+        "description": "Filter contacts by status. Allowed Values: <code>Status.All, Status.Active, Status.Inactive, Status.Duplicate, Status.PortalEnabled, Status.PortalDisabled, Invoice.OverDue, Invoice.Unpaid, Status.CreditLimitExceed and Status.Crm</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter contacts by status. Allowed Values: <code>Status.All, Status.Active, Status.Inactive, Status.Duplicate, Status.PortalEnabled, Status.PortalDisabled, Invoice.OverDue, Invoice.Unpaid, Status.CreditLimitExceed and Status.Crm</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_contacts_text",
+        "description": "Search contacts by contact name or notes. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search contacts by contact name or notes. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "Sort contacts. Allowed Values: <code>contact_name, first_name, last_name, email, outstanding_receivable_amount, created_time and last_modified_time</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort contacts. Allowed Values: <code>contact_name, first_name, last_name, email, outstanding_receivable_amount, created_time and last_modified_time</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_contact_id",
+        "tool_parameter_name": "crm_contact_id",
+        "description": "CRM Contact ID for the contact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Contact ID for the contact."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_account_id",
+        "tool_parameter_name": "crm_account_id",
+        "description": "CRM Account ID for the contact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Account ID for the contact."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_vendor_id",
+        "tool_parameter_name": "crm_vendor_id",
+        "description": "CRM Vendor ID for the contact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "CRM Vendor ID for the contact."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

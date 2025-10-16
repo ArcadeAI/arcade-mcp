@@ -12,4 +12,5 @@ arcade-stripe-api
 arcade-squareup-api
 arcade-xero-api
 arcade-zendesk
+arcade-zoho-books-api
 arcade-zoho-creator-api

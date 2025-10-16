@@ -1,0 +1,517 @@
+{
+  "name": "FindMatchingBankTransactions",
+  "fully_qualified_name": "ZohoBooksApi.FindMatchingBankTransactions@0.1.0",
+  "description": "Find matching uncategorized bank transactions.\n\nThis tool retrieves a list of uncategorized bank transactions that match specified criteria. It can also handle invoices, bills, and credit notes by recording and matching new payment or refund transactions.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization to search transactions for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "transaction_id",
+        "required": true,
+        "description": "Unique identifier for the bank transaction to search for matching entries.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_id"
+      },
+      {
+        "name": "bank_transaction_id",
+        "required": true,
+        "description": "Unique identifier of the bank transaction to be matched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_id"
+      },
+      {
+        "name": "transaction_type",
+        "required": false,
+        "description": "Specify the type of transaction. Allowed values: deposit, refund, transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return. Note: Some types are module-specific and cannot be created under this endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_type"
+      },
+      {
+        "name": "filter_date_after",
+        "required": false,
+        "description": "Specify the date after which transactions should be filtered. Use YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date after which Transactions are to be filtered"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_after"
+      },
+      {
+        "name": "filter_date_before",
+        "required": false,
+        "description": "Specify a date in YYYY-MM-DD format. Transactions before this date will be filtered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date before which Transactions are to be filtered"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_before"
+      },
+      {
+        "name": "minimum_transaction_amount",
+        "required": false,
+        "description": "Minimum amount to filter transactions. Only transactions equal to or greater than this amount are included.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Starting amout with which transactions are to be filtered"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount_start"
+      },
+      {
+        "name": "maximum_transaction_amount",
+        "required": false,
+        "description": "Maximum amount for filtering transactions. Only transactions with an amount less than or equal to this value will be included.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Starting amout with which transactions are to be filtered"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount_end"
+      },
+      {
+        "name": "transaction_contact_name",
+        "required": false,
+        "description": "Name of the contact person involved in the transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Contact person name, involved in the transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact"
+      },
+      {
+        "name": "transaction_reference_number",
+        "required": false,
+        "description": "Reference number of the transaction to filter matching records.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reference Number of the transaction"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "Page number to fetch. Default is 1, used for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of records to be fetched per page. The default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "show_all_transactions",
+        "required": false,
+        "description": "Set to true to display all transactions without applying filters; false to filter transactions.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if all transactions must be shown"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "show_all_transactions"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_matching_bank_transactions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_id",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "ID of the Transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Transaction"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_type",
+        "tool_parameter_name": "transaction_type",
+        "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_after",
+        "tool_parameter_name": "filter_date_after",
+        "description": "Date after which Transactions are to be filtered",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date after which Transactions are to be filtered"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_before",
+        "tool_parameter_name": "filter_date_before",
+        "description": "Date before which Transactions are to be filtered",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Date before which Transactions are to be filtered"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount_start",
+        "tool_parameter_name": "minimum_transaction_amount",
+        "description": "Starting amout with which transactions are to be filtered",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Starting amout with which transactions are to be filtered"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount_end",
+        "tool_parameter_name": "maximum_transaction_amount",
+        "description": "Starting amout with which transactions are to be filtered",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Starting amout with which transactions are to be filtered"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact",
+        "tool_parameter_name": "transaction_contact_name",
+        "description": "Contact person name, involved in the transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Contact person name, involved in the transaction."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "transaction_reference_number",
+        "description": "Reference Number of the transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reference Number of the transaction"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "show_all_transactions",
+        "tool_parameter_name": "show_all_transactions",
+        "description": "Check if all transactions must be shown",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Check if all transactions must be shown"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_id",
+        "tool_parameter_name": "bank_transaction_id",
+        "description": "Unique identifier of the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

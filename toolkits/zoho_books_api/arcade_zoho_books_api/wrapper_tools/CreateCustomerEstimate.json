@@ -1,0 +1,1414 @@
+{
+  "name": "CreateCustomerEstimate",
+  "fully_qualified_name": "ZohoBooksApi.CreateCustomerEstimate@0.1.0",
+  "description": "Create an estimate for a customer using Zoho Books.\n\nUse this tool to generate a new estimate for a customer within the Zoho Books system. This could be useful when users need to provide potential price quotes or service costs to clients.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization for which the estimate is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "estimate_details",
+        "required": false,
+        "description": "A JSON object containing detailed information for creating an estimate, such as customer details, currency, line items, and tax information.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the customer (contact) for whom the estimate is created. This must be a valid contact ID from your organization; obtain it using the Contacts API (GET /contacts) or the Create Contact response."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the currency in which the estimate will be created. Use this to specify the customer\u2019s preferred currency for transactions. Fetch valid currency IDs using the Currency API (GET /currencies)."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the estimate."
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the template used for generating the estimate PDF. Use this to apply custom branding or formats. Fetch template IDs using the Templates API (GET /estimates/templates)."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the customer."
+            },
+            "estimate_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search estimates by estimate number.Variants<code>estimate_number_startswith</code> and <code>estimate_number_contains</code>"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional external identifier used to associate the estimate with other systems or workflows. Helps improve traceability and integration during estimate creation."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>"
+            },
+            "expiry_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date of expiration of the estimates"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate of the currency."
+            },
+            "discount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190."
+            },
+            "is_discount_before_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to specify how the discount has to applied. Either before or after the calculation of tax."
+            },
+            "discount_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "How the discount is specified. Allowed values are entity_level or item_level.Allowed Values: <code>entity_level</code> and <code>item_level</code>"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to specify whether the line item rates are inclusive or exclusive of tax."
+            },
+            "custom_body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "custom_subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "salesperson_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the sales person."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Custom fields for an estimate."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog."
+                },
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of product or service for this line item. Allowed values: <code>goods</code> or <code>services</code>. For South Africa Edition, additional values include <code>capital_service</code> and <code>capital_goods</code>. This classification affects tax calculations, reporting, and compliance requirements based on your organization's location and tax regulations."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add HSN/SAC code for your goods/services"
+                },
+                "sat_item_key_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "unitkey_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order number for this line item on the estimate. Determines the display order of line items in the estimate document \u2014 lower values appear first. Use this field to organize line items in a specific sequence."
+                },
+                "bcy_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Exchange rate between the base currency and the transaction currency for this line item. Used for currency conversion and reporting."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted."
+                },
+                "discount_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount amount applied to this line item. This value reduces the line item total before tax calculation."
+                },
+                "discount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the TDS tax."
+                },
+                "tax_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the tax"
+                },
+                "tax_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the tax"
+                },
+                "tax_percentage": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The  percentage of tax levied"
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for <b>Saudi Arabia</b> are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>."
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Total amount for this line item after applying quantity, rate, discounts, and taxes. This value contributes to the overall estimate total."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured."
+                }
+              },
+              "description": "Line items of an estimate."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional information or comments to be displayed on the estimate document. This field is typically used for thank you messages, special instructions, or any other information you want to communicate to the customer. The notes appear on the estimate PDF and are visible to customers."
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the terms and conditions to be included in the estimate document. This field can be used to specify payment terms, delivery schedules, return policies, or other transactional details. The terms appear on the estimate PDF and helps communicate key conditions related to the estimate."
+            },
+            "shipping_charge": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional shipping or delivery charges applied to the estimate. Must be specified as a fixed amount (e.g., \"25.00\"). This amount is added to the estimate total and is subject to tax calculation."
+            },
+            "adjustment": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional charge or credit amount applied to the estimate total. This can be used for rounding adjustments, handling fees, or any other one-time charges/credits. Positive values add to the total, negative values reduce the total. This amount is applied after tax calculation and affects the final estimate total."
+            },
+            "adjustment_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Text description explaining the reason for the adjustment amount. This description appears on the estimate document to explain why the adjustment was applied. Common examples include \"Rounding adjustment\", \"Handling fee\", \"Early payment discount\", or \"Late payment fee\". This helps customers understand the purpose of the adjustment."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax exemption."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code."
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the estimates. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the Estimate. Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog."
+            },
+            "line_item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item."
+            },
+            "rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts."
+            },
+            "unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted."
+            },
+            "quantity": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total."
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project associated with this estimate. Use the <code>project_id</code> returned by the Projects API for the same organization. Linking an estimate to a project helps with project-based billing, tracking, and reporting."
+            },
+            "accept_retainer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag indicating whether a retainer invoice should be automatically created if the customer accepts this estimate. When set to <code>true</code>, a retainer invoice is generated upon acceptance, streamlining the process for upfront payments or deposits. Allowed values: <code>true</code> and <code>false</code>."
+            },
+            "retainer_percentage": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Percentage of the estimate amount to be collected as a retainer (upfront payment) when the estimate is accepted. Specify a value between 0 and 100. This determines the portion of the total estimate that will be invoiced as a retainer."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "send_estimate_to_contact",
+        "required": false,
+        "description": "Set to true to send the estimate to the contact person(s) associated with it, false to skip sending.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the estimate to the contact person(s) associated with the estimate.Allowed Values: <code>true</code> and <code>false</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "send"
+      },
+      {
+        "name": "ignore_automatic_estimate_number_generation",
+        "required": false,
+        "description": "Set to true to bypass automatic estimate number generation. This requires specifying an estimate number.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto estimate number generation for this estimate. This mandates the estimate number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ignore_auto_number_generation"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_estimate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.estimates.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/estimates",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "send",
+        "tool_parameter_name": "send_estimate_to_contact",
+        "description": "Send the estimate to the contact person(s) associated with the estimate.Allowed Values: <code>true</code> and <code>false</code>",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the estimate to the contact person(s) associated with the estimate.Allowed Values: <code>true</code> and <code>false</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "ignore_auto_number_generation",
+        "tool_parameter_name": "ignore_automatic_estimate_number_generation",
+        "description": "Ignore auto estimate number generation for this estimate. This mandates the estimate number.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto estimate number generation for this estimate. This mandates the estimate number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "estimate_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the customer (contact) for whom the estimate is created. This must be a valid contact ID from your organization; obtain it using the Contacts API (GET /contacts) or the Create Contact response."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the currency in which the estimate will be created. Use this to specify the customer\u2019s preferred currency for transactions. Fetch valid currency IDs using the Currency API (GET /currencies)."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the estimate."
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The ID of the template used for generating the estimate PDF. Use this to apply custom branding or formats. Fetch template IDs using the Templates API (GET /estimates/templates)."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the customer."
+            },
+            "estimate_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search estimates by estimate number.Variants<code>estimate_number_startswith</code> and <code>estimate_number_contains</code>"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional external identifier used to associate the estimate with other systems or workflows. Helps improve traceability and integration during estimate creation."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>"
+            },
+            "expiry_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date of expiration of the estimates"
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate of the currency."
+            },
+            "discount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190."
+            },
+            "is_discount_before_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to specify how the discount has to applied. Either before or after the calculation of tax."
+            },
+            "discount_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "How the discount is specified. Allowed values are entity_level or item_level.Allowed Values: <code>entity_level</code> and <code>item_level</code>"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to specify whether the line item rates are inclusive or exclusive of tax."
+            },
+            "custom_body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "custom_subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "salesperson_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the sales person."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": "Custom fields for an estimate."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog."
+                },
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of product or service for this line item. Allowed values: <code>goods</code> or <code>services</code>. For South Africa Edition, additional values include <code>capital_service</code> and <code>capital_goods</code>. This classification affects tax calculations, reporting, and compliance requirements based on your organization's location and tax regulations."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add HSN/SAC code for your goods/services"
+                },
+                "sat_item_key_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "unitkey_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order number for this line item on the estimate. Determines the display order of line items in the estimate document \u2014 lower values appear first. Use this field to organize line items in a specific sequence."
+                },
+                "bcy_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Exchange rate between the base currency and the transaction currency for this line item. Used for currency conversion and reporting."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts."
+                },
+                "quantity": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted."
+                },
+                "discount_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount amount applied to this line item. This value reduces the line item total before tax calculation."
+                },
+                "discount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the TDS tax."
+                },
+                "tax_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the tax"
+                },
+                "tax_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the tax"
+                },
+                "tax_percentage": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The  percentage of tax levied"
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for <b>Saudi Arabia</b> are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>."
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Total amount for this line item after applying quantity, rate, discounts, and taxes. This value contributes to the overall estimate total."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured."
+                }
+              },
+              "description": "Line items of an estimate."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional information or comments to be displayed on the estimate document. This field is typically used for thank you messages, special instructions, or any other information you want to communicate to the customer. The notes appear on the estimate PDF and are visible to customers."
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the terms and conditions to be included in the estimate document. This field can be used to specify payment terms, delivery schedules, return policies, or other transactional details. The terms appear on the estimate PDF and helps communicate key conditions related to the estimate."
+            },
+            "shipping_charge": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional shipping or delivery charges applied to the estimate. Must be specified as a fixed amount (e.g., \"25.00\"). This amount is added to the estimate total and is subject to tax calculation."
+            },
+            "adjustment": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional charge or credit amount applied to the estimate total. This can be used for rounding adjustments, handling fees, or any other one-time charges/credits. Positive values add to the total, negative values reduce the total. This amount is applied after tax calculation and affects the final estimate total."
+            },
+            "adjustment_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Text description explaining the reason for the adjustment amount. This description appears on the estimate document to explain why the adjustment was applied. Common examples include \"Rounding adjustment\", \"Handling fee\", \"Early payment discount\", or \"Late payment fee\". This helps customers understand the purpose of the adjustment."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax exemption."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code."
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the estimates. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the Estimate. Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog."
+            },
+            "line_item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item."
+            },
+            "rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts."
+            },
+            "unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted."
+            },
+            "quantity": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total."
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the project associated with this estimate. Use the <code>project_id</code> returned by the Projects API for the same organization. Linking an estimate to a project helps with project-based billing, tracking, and reporting."
+            },
+            "accept_retainer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag indicating whether a retainer invoice should be automatically created if the customer accepts this estimate. When set to <code>true</code>, a retainer invoice is generated upon acceptance, streamlining the process for upfront payments or deposits. Allowed values: <code>true</code> and <code>false</code>."
+            },
+            "retainer_percentage": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Percentage of the estimate amount to be collected as a retainer (upfront payment) when the estimate is accepted. Specify a value between 0 and 100. This determines the portion of the total estimate that will be invoiced as a retainer."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"customer_id\",\n          \"line_items\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"customer_id\": {\n            \"description\": \"The ID of the customer (contact) for whom the estimate is created. This must be a valid contact ID from your organization; obtain it using the Contacts API (GET /contacts) or the Create Contact response.\",\n            \"type\": \"string\",\n            \"example\": 982000000567001\n          },\n          \"currency_id\": {\n            \"description\": \"The ID of the currency in which the estimate will be created. Use this to specify the customer\\u2019s preferred currency for transactions. Fetch valid currency IDs using the Currency API (GET /currencies).\",\n            \"type\": \"string\",\n            \"example\": 982000000000190\n          },\n          \"contact_persons_associated\": {\n            \"description\": \"Contact Persons associated with the estimate.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"contact_person_id\": {\n                  \"description\": \"Unique ID of the Contact Person.\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": 982000000567003\n                },\n                \"communication_preference\": {\n                  \"description\": \"Preferred modes of communication for the contact person at transaction level.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"is_email_enabled\": {\n                      \"description\": \"Used to check if Email communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"is_whatsapp_enabled\": {\n                      \"description\": \"Used to check if WhatsApp communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true,\n                      \"x-node_available_in\": [\n                        \"WhatsApp integration\"\n                      ]\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"template_id\": {\n            \"description\": \"The ID of the template used for generating the estimate PDF. Use this to apply custom branding or formats. Fetch template IDs using the Templates API (GET /estimates/templates).\",\n            \"type\": \"string\",\n            \"example\": 982000000000143\n          },\n          \"place_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"gcc\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_treatment\": {\n            \"description\": \"Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>.\",\n            \"type\": \"string\",\n            \"example\": \"business_gst\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15 digit GST identification number of the customer.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"estimate_number\": {\n            \"description\": \"Search estimates by estimate number.Variants<code>estimate_number_startswith</code> and <code>estimate_number_contains</code>\",\n            \"type\": \"string\",\n            \"example\": \"EST-00002\"\n          },\n          \"reference_number\": {\n            \"description\": \"Optional external identifier used to associate the estimate with other systems or workflows. Helps improve traceability and integration during estimate creation.\",\n            \"type\": \"string\",\n            \"example\": \"QRT-12346\"\n          },\n          \"date\": {\n            \"description\": \"Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>\",\n            \"type\": \"string\",\n            \"example\": \"2013-11-18\"\n          },\n          \"expiry_date\": {\n            \"description\": \"The date of expiration of the estimates\",\n            \"type\": \"string\",\n            \"example\": \"2013-11-30\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate of the currency.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"discount\": {\n            \"description\": \"Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 0\n          },\n          \"is_discount_before_tax\": {\n            \"description\": \"Used to specify how the discount has to applied. Either before or after the calculation of tax.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"discount_type\": {\n            \"description\": \"How the discount is specified. Allowed values are entity_level or item_level.Allowed Values: <code>entity_level</code> and <code>item_level</code>\",\n            \"type\": \"string\",\n            \"example\": \"item_level\"\n          },\n          \"is_inclusive_tax\": {\n            \"description\": \"Used to specify whether the line item rates are inclusive or exclusive of tax.\",\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\",\n              \"ca\"\n            ]\n          },\n          \"custom_body\": {\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"custom_subject\": {\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"salesperson_name\": {\n            \"description\": \"Name of the sales person.\",\n            \"type\": \"string\",\n            \"example\": \"Will smith\"\n          },\n          \"custom_fields\": {\n            \"description\": \"Custom fields for an estimate.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"value\": {\n                  \"type\": \"string\",\n                  \"example\": \"15 Dec 2013\"\n                }\n              }\n            }\n          },\n          \"line_items\": {\n            \"description\": \"Line items of an estimate.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"item_id\": {\n                  \"description\": \"Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"line_item_id\": {\n                  \"description\": \"Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added.\",\n                  \"type\": \"string\",\n                  \"example\": 982000000567021\n                },\n                \"name\": {\n                  \"description\": \"Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted.\",\n                  \"type\": \"string\",\n                  \"example\": \"Hard Drive\"\n                },\n                \"description\": {\n                  \"description\": \"Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item.\",\n                  \"type\": \"string\",\n                  \"example\": \"500GB, USB 2.0 interface 1400 rpm, protective hard case.\"\n                },\n                \"product_type\": {\n                  \"description\": \"Type of product or service for this line item. Allowed values: <code>goods</code> or <code>services</code>. For South Africa Edition, additional values include <code>capital_service</code> and <code>capital_goods</code>. This classification affects tax calculations, reporting, and compliance requirements based on your organization's location and tax regulations.\",\n                  \"type\": \"string\",\n                  \"example\": \"goods\"\n                },\n                \"hsn_or_sac\": {\n                  \"description\": \"Add HSN/SAC code for your goods/services\",\n                  \"type\": \"string\",\n                  \"example\": 80540,\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"ke\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"sat_item_key_code\": {\n                  \"description\": \"Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n                  \"type\": \"string\",\n                  \"example\": 71121206,\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"unitkey_code\": {\n                  \"description\": \"Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n                  \"type\": \"string\",\n                  \"example\": \"E48\",\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"item_order\": {\n                  \"description\": \"Sequential order number for this line item on the estimate. Determines the display order of line items in the estimate document \\u2014 lower values appear first. Use this field to organize line items in a specific sequence.\",\n                  \"type\": \"integer\",\n                  \"example\": 1\n                },\n                \"bcy_rate\": {\n                  \"description\": \"Exchange rate between the base currency and the transaction currency for this line item. Used for currency conversion and reporting.\",\n                  \"type\": \"number\",\n                  \"format\": \"float\",\n                  \"example\": 120\n                },\n                \"rate\": {\n                  \"description\": \"Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 120\n                },\n                \"quantity\": {\n                  \"description\": \"Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 1\n                },\n                \"unit\": {\n                  \"description\": \"Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"discount_amount\": {\n                  \"description\": \"Discount amount applied to this line item. This value reduces the line item total before tax calculation.\",\n                  \"type\": \"number\",\n                  \"format\": \"float\",\n                  \"example\": 0\n                },\n                \"discount\": {\n                  \"description\": \"Discount applied to the estimate. It can be either in % or in amount. e.g. 12.5% or 190.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 0\n                },\n                \"tax_id\": {\n                  \"description\": \"Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting.\",\n                  \"type\": \"string\",\n                  \"example\": 982000000557028\n                },\n                \"tds_tax_id\": {\n                  \"description\": \"ID of the TDS tax.\",\n                  \"type\": \"string\",\n                  \"example\": \"982000000557012\",\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_name\": {\n                  \"description\": \"The name of the tax\",\n                  \"type\": \"string\",\n                  \"example\": \"VAT\"\n                },\n                \"tax_type\": {\n                  \"description\": \"The type of the tax\",\n                  \"type\": \"string\",\n                  \"example\": \"tax\"\n                },\n                \"tax_percentage\": {\n                  \"description\": \"The  percentage of tax levied\",\n                  \"type\": \"number\",\n                  \"format\": \"float\",\n                  \"example\": 12.5\n                },\n                \"tax_treatment_code\": {\n                  \"description\": \"Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for <b>Saudi Arabia</b> are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>.\",\n                  \"type\": \"string\",\n                  \"example\": \"uae_others\",\n                  \"x-node_available_in\": [\n                    \"gcc\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"item_total\": {\n                  \"description\": \"Total amount for this line item after applying quantity, rate, discounts, and taxes. This value contributes to the overall estimate total.\",\n                  \"type\": \"number\",\n                  \"format\": \"float\",\n                  \"example\": 120\n                },\n                \"location_id\": {\n                  \"description\": \"Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                }\n              }\n            }\n          },\n          \"location_id\": {\n            \"description\": \"Unique identifier of the business location associated with the estimate. Use the `location_id` returned by the Locations API for the same organization. This links the estimate to a specific business location, which may affect tax calculations, reporting, and business operations. Required if your organization has multiple locations configured.\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"notes\": {\n            \"description\": \"Additional information or comments to be displayed on the estimate document. This field is typically used for thank you messages, special instructions, or any other information you want to communicate to the customer. The notes appear on the estimate PDF and are visible to customers.\",\n            \"type\": \"string\",\n            \"example\": \"Looking forward for your business.\"\n          },\n          \"terms\": {\n            \"description\": \"Defines the terms and conditions to be included in the estimate document. This field can be used to specify payment terms, delivery schedules, return policies, or other transactional details. The terms appear on the estimate PDF and helps communicate key conditions related to the estimate.\",\n            \"type\": \"string\",\n            \"example\": \"Terms & Conditions apply\"\n          },\n          \"shipping_charge\": {\n            \"description\": \"Additional shipping or delivery charges applied to the estimate. Must be specified as a fixed amount (e.g., \\\"25.00\\\"). This amount is added to the estimate total and is subject to tax calculation.\",\n            \"type\": \"string\",\n            \"example\": 0\n          },\n          \"adjustment\": {\n            \"description\": \"Additional charge or credit amount applied to the estimate total. This can be used for rounding adjustments, handling fees, or any other one-time charges/credits. Positive values add to the total, negative values reduce the total. This amount is applied after tax calculation and affects the final estimate total.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 0\n          },\n          \"adjustment_description\": {\n            \"description\": \"Text description explaining the reason for the adjustment amount. This description appears on the estimate document to explain why the adjustment was applied. Common examples include \\\"Rounding adjustment\\\", \\\"Handling fee\\\", \\\"Early payment discount\\\", or \\\"Late payment fee\\\". This helps customers understand the purpose of the adjustment.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"tax_id\": {\n            \"description\": \"Unique identifier of the tax to be applied to this line item. Use the `tax_id` returned by the Taxes API for the same organization. This determines which tax rate and rules are applied to the line item, affecting the final tax calculation and compliance reporting.\",\n            \"type\": \"string\",\n            \"example\": 982000000557028\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"ID of the tax exemption.\",\n            \"type\": \"string\",\n            \"example\": 11149000000061054,\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_authority_id\": {\n            \"description\": \"ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority.\",\n            \"type\": \"string\",\n            \"example\": 11149000000061052,\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_use_code\": {\n            \"description\": \"Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_exempt_no\": {\n            \"description\": \"Exemption certificate number of the customer.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"vat_treatment\": {\n            \"description\": \"(Optional) VAT treatment for the estimates. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the Estimate. Allowed Values: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_reverse_charge_applied\": {\n            \"description\": \"(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not.\",\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"x-node_available_in\": [\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"item_id\": {\n            \"description\": \"Unique identifier of the item (product or service) being quoted in this line item. Use the `item_id` returned by the Items API for the same organization. This links the line item to a specific product or service in your catalog.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"line_item_id\": {\n            \"description\": \"Unique identifier of the line item within the estimate. Required when updating or referencing a specific line item. If omitted during creation, a new line item will be added.\",\n            \"type\": \"string\",\n            \"example\": 982000000567021\n          },\n          \"name\": {\n            \"description\": \"Name of the product or service for this line item. This is displayed on the estimate document and helps the customer identify what is being quoted.\",\n            \"type\": \"string\",\n            \"example\": \"Hard Drive\"\n          },\n          \"description\": {\n            \"description\": \"Detailed description of the product or service in this line item. Use this field to provide specifications, features, or any other relevant information that helps the customer understand about the line item.\",\n            \"type\": \"string\",\n            \"example\": \"500GB, USB 2.0 interface 1400 rpm, protective hard case.\"\n          },\n          \"rate\": {\n            \"description\": \"Unit price or rate for the product or service in this line item. This value is multiplied by the quantity to determine the line item total before taxes and discounts.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 120\n          },\n          \"unit\": {\n            \"description\": \"Unit of measurement for the product or service in this line item (e.g., kgs, Nos., hours). Helps clarify the quantity being quoted.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"quantity\": {\n            \"description\": \"Number of units of the product or service being quoted in this line item. This value is multiplied by the rate to calculate the line item total.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"project_id\": {\n            \"description\": \"Unique identifier of the project associated with this estimate. Use the <code>project_id</code> returned by the Projects API for the same organization. Linking an estimate to a project helps with project-based billing, tracking, and reporting.\",\n            \"type\": \"string\",\n            \"example\": 90300000087378\n          },\n          \"accept_retainer\": {\n            \"description\": \"Boolean flag indicating whether a retainer invoice should be automatically created if the customer accepts this estimate. When set to <code>true</code>, a retainer invoice is generated upon acceptance, streamlining the process for upfront payments or deposits. Allowed values: <code>true</code> and <code>false</code>.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"retainer_percentage\": {\n            \"description\": \"Percentage of the estimate amount to be collected as a retainer (upfront payment) when the estimate is accepted. Specify a value between 0 and 100. This determines the portion of the total estimate that will be invoiced as a retainer.\",\n            \"type\": \"integer\",\n            \"example\": 10\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

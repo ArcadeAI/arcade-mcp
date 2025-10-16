@@ -1,0 +1,317 @@
+{
+  "name": "RefundCreditNote",
+  "fully_qualified_name": "ZohoBooksApi.RefundCreditNote@0.1.0",
+  "description": "Process a credit note refund in Zoho Books.\n\nUse this tool to issue a refund for a specified credit note in Zoho Books. It is triggered when there's a need to reimburse the amount associated with a credit note.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization in Zoho Books for which the credit note refund is being processed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "credit_note_id",
+        "required": true,
+        "description": "Unique identifier of the credit note to refund. This is required to specify which credit note the refund applies to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the credit note."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "creditnote_id"
+      },
+      {
+        "name": "credit_note_refund_details",
+        "required": false,
+        "description": "JSON object containing details for processing the credit note refund, including date, refund mode, and amount.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the credit note is raised. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations."
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The method of refund."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid for the invoice."
+            },
+            "exchange_rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the credit note currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account from which credit note is refunded."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the credit note document."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_credit_note_refund'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.creditnotes.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "creditnote_id",
+        "tool_parameter_name": "credit_note_id",
+        "description": "Unique identifier of the credit note.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the credit note."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "credit_note_refund_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the credit note is raised. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations."
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The method of refund."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid for the invoice."
+            },
+            "exchange_rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the credit note currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account from which credit note is refunded."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the credit note document."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"date\": {\n            \"description\": \"The date on which the credit note is raised. Must be in yyyy-mm-dd format. This date determines the accounting period and affects tax calculations.\",\n            \"type\": \"string\",\n            \"example\": \"2016-06-05\"\n          },\n          \"refund_mode\": {\n            \"description\": \"The method of refund.\",\n            \"type\": \"string\",\n            \"example\": \"cash\"\n          },\n          \"payment_form\": {\n            \"description\": \"Mode of Vendor Payment\",\n            \"type\": \"string\",\n            \"example\": \"cash\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"reference_number\": {\n            \"description\": \"Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]\",\n            \"type\": \"string\",\n            \"example\": \"INV-384\"\n          },\n          \"amount\": {\n            \"description\": \"Amount paid for the invoice.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 450\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate for converting the credit note currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs.\",\n            \"type\": \"string\",\n            \"example\": \"5.5\"\n          },\n          \"from_account_id\": {\n            \"description\": \"The account from which credit note is refunded.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"description\": {\n            \"description\": \"Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the credit note document.\",\n            \"type\": \"string\",\n            \"example\": \"prorated amount for items\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
