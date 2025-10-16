@@ -1,5 +1,0 @@
-[tool.poetry]
-name = "mock_toolkit"
-version = "0.1.0"
-description = "Mock toolkit for Arcade"
-authors = ["Arcade <dev@arcade.dev>"]
