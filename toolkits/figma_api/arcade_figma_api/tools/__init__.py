@@ -59,7 +59,7 @@ async def make_request(
                 method=method,
                 params=params,
                 headers=headers,
-                data=data,
+                data=data,  # type: ignore[arg-type]
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
@@ -649,7 +649,7 @@ async def add_comment_to_figma_file(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -881,7 +881,7 @@ async def add_figma_comment_reaction(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1418,7 +1418,7 @@ async def create_figma_webhook(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1584,7 +1584,7 @@ async def update_figma_webhook(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -1848,7 +1848,7 @@ async def manage_figma_variables(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2003,7 +2003,7 @@ async def create_bulk_dev_resources(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
@@ -2126,7 +2126,7 @@ async def bulk_update_figma_dev_resources(
                 authorization=context.get_auth_token_or_empty()
             ),
         }),
-        data=json.dumps(request_data),
+        data=json.dumps(request_data) if request_data else None,
     )
     try:
         return {"response_json": response.json()}
