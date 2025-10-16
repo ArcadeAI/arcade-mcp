@@ -8,16 +8,17 @@ version = "0.1.0"
 description = "Tools that enable LLMs to interact directly with the zoho-books API."
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.0.0,<3.0.0",
+    "arcade-tdk>=3.0.0,<4.0.0",
+    "httpx[http2]>=0.27.2,<1.0.0",
+    "jsonschema>=4.0.0,<5.0.0",
 ]
 [[project.authors]]
 email = "support@arcade.dev"
 
-
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>=2.2.3,<3.0.0",
-    "arcade-serve>=2.0.0,<3.0.0",
+    "arcade-mcp[all]>=1.2.0,<2.0.0",
+    "arcade-serve>=3.0.0,<4.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-mock>=3.11.1,<3.12.0",
@@ -34,7 +35,7 @@ toolkit_name = "arcade_zoho_books_api"
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = { path = "../../", editable = true }
+arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 [tool.mypy]

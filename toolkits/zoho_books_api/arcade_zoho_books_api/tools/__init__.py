@@ -70,7 +70,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -99,7 +99,6 @@ async def make_request_with_schema_validation(
             content=json.dumps(request_data),
             max_retries=max_retries,
         )
-        return response
     except httpx.HTTPStatusError as e:
         # Only provide schema validation for format-related errors
         if e.response.status_code in (400, 422):
@@ -127,6 +126,8 @@ async def make_request_with_schema_validation(
         else:
             # For non-validation errors, re-raise as-is
             raise
+    else:
+        return response
 
 
 def validate_json_against_schema(
@@ -230,14 +231,12 @@ async def create_bank_account(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -279,7 +278,7 @@ async def create_bank_account(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bankaccounts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -330,7 +329,7 @@ async def list_bank_accounts(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -420,14 +419,12 @@ async def update_bank_account_zoho_books(
         missing_params.append(("bank_account_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -469,7 +466,7 @@ async def update_bank_account_zoho_books(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_id
         ),
         method="PUT",
@@ -509,7 +506,7 @@ async def get_bank_account_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_id
         ),
         method="GET",
@@ -545,7 +542,7 @@ async def delete_bank_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_unique_id
         ),
         method="DELETE",
@@ -583,7 +580,7 @@ async def deactivate_bank_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_id
         ),
         method="POST",
@@ -621,7 +618,7 @@ async def activate_bank_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_id
         ),
         method="POST",
@@ -694,14 +691,12 @@ async def import_bank_statements(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -743,7 +738,7 @@ async def import_bank_statements(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bankstatements".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankstatements".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -784,7 +779,7 @@ async def get_last_imported_bank_statement(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/statement/lastimported".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/statement/lastimported".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=bank_account_id
         ),
         method="GET",
@@ -828,7 +823,7 @@ async def delete_last_imported_bank_statement(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/statement/{statement_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/{account_id}/statement/{statement_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_id=bank_account_unique_identifier,
             statement_id=bank_statement_id,
@@ -866,7 +861,7 @@ async def fetch_bank_account_rules(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/rules".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/rules".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -947,14 +942,12 @@ async def create_financial_account_rule(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -996,7 +989,7 @@ async def create_financial_account_rule(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bankaccounts/rules".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/rules".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -1035,7 +1028,7 @@ async def get_bank_account_rule_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), rule_id=bank_account_rule_id
         ),
         method="GET",
@@ -1119,14 +1112,12 @@ async def update_bank_account_rule(
         missing_params.append(("bank_account_rule_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -1168,7 +1159,7 @@ async def update_bank_account_rule(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), rule_id=bank_account_rule_id
         ),
         method="PUT",
@@ -1208,7 +1199,7 @@ async def delete_bank_account_rule(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bankaccounts/rules/{rule_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), rule_id=bank_account_rule_id
         ),
         method="DELETE",
@@ -1286,14 +1277,12 @@ async def create_bank_transaction(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -1335,7 +1324,7 @@ async def create_bank_transaction(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -1415,7 +1404,7 @@ async def get_bank_transactions(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -1513,14 +1502,12 @@ async def update_bank_transaction(
         missing_params.append(("bank_transaction_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -1562,7 +1549,7 @@ async def update_bank_transaction(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             bank_transaction_id=bank_transaction_identifier,
         ),
@@ -1602,7 +1589,7 @@ async def fetch_bank_transaction_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             bank_transaction_id=bank_transaction_id,
         ),
@@ -1640,7 +1627,7 @@ async def delete_bank_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/{bank_transaction_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             bank_transaction_id=bank_transaction_id,
         ),
@@ -1713,7 +1700,7 @@ async def find_matching_bank_transactions(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -1813,14 +1800,12 @@ async def match_bank_transaction(
         missing_params.append(("bank_transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -1862,7 +1847,7 @@ async def match_bank_transaction(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/match".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -1907,7 +1892,7 @@ async def unmatch_bank_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/{transaction_id}/unmatch".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/{transaction_id}/unmatch".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), transaction_id=transaction_id
         ),
         method="POST",
@@ -1947,7 +1932,7 @@ async def exclude_bank_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/exclude".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/exclude".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), transaction_id=transaction_id
         ),
         method="POST",
@@ -1990,7 +1975,7 @@ async def restore_bank_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/restore".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/restore".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2075,14 +2060,12 @@ async def categorize_bank_transaction(
         missing_params.append(("bank_transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2124,7 +2107,7 @@ async def categorize_bank_transaction(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2225,14 +2208,12 @@ async def categorize_bank_transaction_as_expense(
         missing_params.append(("bank_transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2276,7 +2257,7 @@ async def categorize_bank_transaction_as_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/expenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/expenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2325,7 +2306,7 @@ async def uncategorize_bank_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/banktransactions/{transaction_id}/uncategorize".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/{transaction_id}/uncategorize".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2416,14 +2397,12 @@ async def categorize_transaction_as_vendor_payment(
         missing_params.append(("transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2471,7 +2450,7 @@ async def categorize_transaction_as_vendor_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/vendorpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/vendorpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), transaction_id=transaction_id
         ),
         method="POST",
@@ -2560,14 +2539,12 @@ async def categorize_transaction_as_payment(
         missing_params.append(("bank_transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2611,7 +2588,7 @@ async def categorize_transaction_as_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/customerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/customerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2700,14 +2677,12 @@ async def categorize_transaction_as_refund(
         missing_params.append(("transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2751,7 +2726,7 @@ async def categorize_transaction_as_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/creditnoterefunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/creditnoterefunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), transaction_id=transaction_id
         ),
         method="POST",
@@ -2839,14 +2814,12 @@ async def categorize_refund_vendor_credit(
         missing_params.append(("bank_transaction_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -2890,7 +2863,7 @@ async def categorize_refund_vendor_credit(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/vendorcreditrefunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/vendorcreditrefunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=bank_transaction_id,
         ),
@@ -2980,14 +2953,12 @@ async def categorize_bank_transaction_payment_refund(
         missing_params.append(("bank_statement_line_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -3035,7 +3006,7 @@ async def categorize_bank_transaction_payment_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{statement_line_id}/categorize/paymentrefunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{statement_line_id}/categorize/paymentrefunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             statement_line_id=bank_statement_line_id,
         ),
@@ -3124,14 +3095,12 @@ async def categorize_vendor_payment_refund(
         missing_params.append(("bank_statement_line_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -3175,7 +3144,7 @@ async def categorize_vendor_payment_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{statement_line_id}/categorize/vendorpaymentrefunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/banktransactions/uncategorized/{statement_line_id}/categorize/vendorpaymentrefunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             statement_line_id=bank_statement_line_id,
         ),
@@ -3262,14 +3231,12 @@ async def create_currency_adjustment(
         missing_params.append(("account_identifiers", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -3311,7 +3278,7 @@ async def create_currency_adjustment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/basecurrencyadjustment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/basecurrencyadjustment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -3367,7 +3334,7 @@ async def list_base_currency_adjustments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/basecurrencyadjustment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/basecurrencyadjustment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -3410,7 +3377,7 @@ async def get_base_currency_adjustment_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/basecurrencyadjustment/{base_currency_adjustment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/basecurrencyadjustment/{base_currency_adjustment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             base_currency_adjustment_id=base_currency_adjustment_identifier,
         ),
@@ -3448,7 +3415,7 @@ async def delete_currency_adjustment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/basecurrencyadjustment/{base_currency_adjustment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/basecurrencyadjustment/{base_currency_adjustment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             base_currency_adjustment_id=base_currency_adjustment_id,
         ),
@@ -3498,7 +3465,7 @@ async def list_currency_adjustment_accounts(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/basecurrencyadjustment/accounts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/basecurrencyadjustment/accounts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -3584,14 +3551,12 @@ async def create_vendor_bill(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -3629,7 +3594,7 @@ async def create_vendor_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -3739,7 +3704,7 @@ async def list_all_bills(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -3849,14 +3814,12 @@ async def update_bill_by_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -3898,7 +3861,7 @@ async def update_bill_by_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -3989,14 +3952,12 @@ async def update_bill_in_zoho(
         missing_params.append(("bill_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -4034,7 +3995,7 @@ async def update_bill_in_zoho(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_unique_identifier
         ),
         method="PUT",
@@ -4077,7 +4038,7 @@ async def retrieve_bill_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="GET",
@@ -4112,7 +4073,7 @@ async def delete_existing_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="DELETE",
@@ -4196,14 +4157,12 @@ async def update_custom_fields_in_bill(
         missing_params.append(("bill_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -4245,7 +4204,7 @@ async def update_custom_fields_in_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bill/{bill_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bill/{bill_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="PUT",
@@ -4283,7 +4242,7 @@ async def mark_bill_void(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="POST",
@@ -4318,7 +4277,7 @@ async def mark_bill_open(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/status/open".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/status/open".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_id
         ),
         method="POST",
@@ -4353,7 +4312,7 @@ async def submit_bill_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="POST",
@@ -4388,7 +4347,7 @@ async def approve_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="POST",
@@ -4470,14 +4429,12 @@ async def update_billing_address(
         missing_params.append(("bill_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -4519,7 +4476,7 @@ async def update_billing_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_unique_identifier
         ),
         method="PUT",
@@ -4558,7 +4515,7 @@ async def get_bill_payments_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/payments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/payments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="GET",
@@ -4642,14 +4599,12 @@ async def apply_vendor_credits_to_bill(
         missing_params.append(("bill_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -4691,7 +4646,7 @@ async def apply_vendor_credits_to_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/credits".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/credits".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="POST",
@@ -4730,7 +4685,7 @@ async def delete_bill_payment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/payments/{bill_payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/payments/{bill_payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             bill_id=bill_identifier,
             bill_payment_id=bill_payment_identifier,
@@ -4772,7 +4727,7 @@ async def retrieve_bill_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="GET",
@@ -4813,7 +4768,7 @@ async def attach_file_to_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_id
         ),
         method="POST",
@@ -4854,7 +4809,7 @@ async def delete_bill_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_unique_identifier
         ),
         method="DELETE",
@@ -4892,7 +4847,7 @@ async def get_bill_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="GET",
@@ -4974,14 +4929,12 @@ async def add_comment_to_bill(
         missing_params.append(("bill_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -5019,7 +4972,7 @@ async def add_comment_to_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), bill_id=bill_identifier
         ),
         method="POST",
@@ -5060,7 +5013,7 @@ async def delete_bill_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/{bill_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             bill_id=bill_identifier,
             comment_id=comment_id,
@@ -5099,7 +5052,7 @@ async def convert_purchase_order_to_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/bills/editpage/frompurchaseorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/bills/editpage/frompurchaseorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -5178,14 +5131,12 @@ async def create_chart_of_account(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -5227,7 +5178,7 @@ async def create_chart_of_account(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/chartofaccounts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -5279,7 +5230,7 @@ async def list_chart_of_accounts(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -5369,14 +5320,12 @@ async def update_account_info(
         missing_params.append(("account_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -5418,7 +5367,7 @@ async def update_account_info(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=account_identifier
         ),
         method="PUT",
@@ -5455,7 +5404,7 @@ async def get_account_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=account_unique_id
         ),
         method="GET",
@@ -5490,7 +5439,7 @@ async def delete_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=account_identifier
         ),
         method="DELETE",
@@ -5528,7 +5477,7 @@ async def activate_chart_of_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_id=account_unique_identifier,
         ),
@@ -5564,7 +5513,7 @@ async def deactivate_chart_of_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/{account_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), account_id=account_identifier
         ),
         method="POST",
@@ -5628,7 +5577,7 @@ async def list_account_transactions(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/transactions".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/transactions".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -5678,7 +5627,7 @@ async def delete_transaction(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/chartofaccounts/transactions/{transaction_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/chartofaccounts/transactions/{transaction_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             transaction_id=transaction_identifier,
         ),
@@ -5755,14 +5704,12 @@ async def create_contact_person(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -5804,7 +5751,7 @@ async def create_contact_person(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/contactpersons".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/contactpersons".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -5888,14 +5835,12 @@ async def update_contact_person(
         missing_params.append(("contact_person_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -5937,7 +5882,7 @@ async def update_contact_person(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_person_id=contact_person_identifier,
         ),
@@ -5976,7 +5921,7 @@ async def delete_contact_person(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_person_id=contact_person_id,
         ),
@@ -6021,7 +5966,7 @@ async def list_contact_persons(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/contactpersons".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/contactpersons".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_identifier
         ),
         method="GET",
@@ -6064,7 +6009,7 @@ async def get_contact_person_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/contactpersons/{contact_person_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/contactpersons/{contact_person_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_identifier,
             contact_person_id=contact_person_identifier,
@@ -6104,7 +6049,7 @@ async def mark_primary_contact_person(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}/primary".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}/primary".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_person_id=contact_person_identifier,
         ),
@@ -6183,14 +6128,12 @@ async def create_business_contact(
         missing_params.append(("organization_identifier", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -6232,7 +6175,7 @@ async def create_business_contact(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -6326,7 +6269,7 @@ async def retrieve_contact_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -6436,14 +6379,12 @@ async def update_contact_by_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -6485,7 +6426,7 @@ async def update_contact_by_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -6574,14 +6515,12 @@ async def update_business_contact(
         missing_params.append(("contact_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -6623,7 +6562,7 @@ async def update_business_contact(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="PUT",
@@ -6663,7 +6602,7 @@ async def retrieve_contact_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="GET",
@@ -6696,7 +6635,7 @@ async def delete_contact(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -6732,7 +6671,7 @@ async def activate_contact(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_identifier
         ),
         method="POST",
@@ -6768,7 +6707,7 @@ async def mark_contact_inactive(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_identifier
         ),
         method="POST",
@@ -6852,14 +6791,12 @@ async def enable_contact_portal_access(
         missing_params.append(("contact_unique_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -6901,7 +6838,7 @@ async def enable_contact_portal_access(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/portal/enable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/portal/enable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_unique_id
         ),
         method="POST",
@@ -6940,7 +6877,7 @@ async def enable_payment_reminder(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/paymentreminder/enable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/paymentreminder/enable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -6981,7 +6918,7 @@ async def disable_contact_payment_reminder(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/paymentreminder/disable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/paymentreminder/disable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -7078,14 +7015,12 @@ async def email_contact_statement(
         missing_params.append(("contact_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -7127,7 +7062,7 @@ async def email_contact_statement(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/statements/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/statements/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_identifier
         ),
         method="POST",
@@ -7178,7 +7113,7 @@ async def get_contact_statement_mail_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/statements/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/statements/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -7269,14 +7204,12 @@ async def send_email_to_contact(
         missing_params.append(("contact_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -7318,7 +7251,7 @@ async def send_email_to_contact(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="POST",
@@ -7367,7 +7300,7 @@ async def get_contact_activity_recent_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -7408,7 +7341,7 @@ async def get_contact_addresses(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="GET",
@@ -7490,14 +7423,12 @@ async def add_contact_address(
         missing_params.append(("contact_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -7539,7 +7470,7 @@ async def add_contact_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="POST",
@@ -7629,14 +7560,12 @@ async def update_contact_address(
         missing_params.append(("address_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -7678,7 +7607,7 @@ async def update_contact_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address/{address_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address/{address_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_identifier,
             address_id=address_identifier,
@@ -7722,7 +7651,7 @@ async def delete_contact_address(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address/{address_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/address/{address_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_id,
             address_id=address_identifier,
@@ -7768,7 +7697,7 @@ async def get_contact_refund_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             contact_id=contact_unique_identifier,
         ),
@@ -7809,7 +7738,7 @@ async def track_contact_for1099_reporting(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/track1099".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/track1099".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_unique_id
         ),
         method="POST",
@@ -7846,7 +7775,7 @@ async def stop1099_tracking_for_vendor(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/untrack1099".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/untrack1099".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=vendor_contact_id
         ),
         method="POST",
@@ -7887,7 +7816,7 @@ async def retrieve_unused_retainer_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/contacts/{contact_id}/receivables/unusedretainerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/contacts/{contact_id}/receivables/unusedretainerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), contact_id=contact_id
         ),
         method="GET",
@@ -7974,14 +7903,12 @@ async def create_credit_note(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -8019,7 +7946,7 @@ async def create_credit_note(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -8125,7 +8052,7 @@ async def list_credit_notes(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -8236,14 +8163,12 @@ async def update_credit_note_with_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -8287,7 +8212,7 @@ async def update_credit_note_with_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -8380,14 +8305,12 @@ async def update_credit_note_details(
         missing_params.append(("credit_note_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -8429,7 +8352,7 @@ async def update_credit_note_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_unique_identifier,
         ),
@@ -8479,7 +8402,7 @@ async def get_credit_note_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -8518,7 +8441,7 @@ async def delete_credit_note(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="DELETE",
@@ -8608,14 +8531,12 @@ async def email_credit_note(
         missing_params.append(("credit_note_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -8653,7 +8574,7 @@ async def email_credit_note(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -8701,7 +8622,7 @@ async def get_credit_note_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -8741,7 +8662,7 @@ async def mark_credit_note_void(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_identifier,
         ),
@@ -8777,7 +8698,7 @@ async def convert_credit_note_to_draft(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/draft".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/draft".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -8812,7 +8733,7 @@ async def mark_credit_note_open(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/open".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/status/open".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -8850,7 +8771,7 @@ async def submit_credit_note_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -8887,7 +8808,7 @@ async def approve_credit_note(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_identifier,
         ),
@@ -8926,7 +8847,7 @@ async def retrieve_credit_note_email_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/emailhistory".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/emailhistory".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -9012,14 +8933,12 @@ async def update_credit_note_billing_address(
         missing_params.append(("credit_note_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -9063,7 +8982,7 @@ async def update_credit_note_billing_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_identifier,
         ),
@@ -9152,14 +9071,12 @@ async def update_credit_note_shipping_address(
         missing_params.append(("credit_note_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -9203,7 +9120,7 @@ async def update_credit_note_shipping_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/address/shipping".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/address/shipping".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="PUT",
@@ -9240,7 +9157,7 @@ async def get_credit_note_pdf_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -9279,7 +9196,7 @@ async def update_credit_note_template(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_id,
             template_id=credit_note_template_id,
@@ -9319,7 +9236,7 @@ async def list_credit_note_invoices(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -9403,14 +9320,12 @@ async def apply_credit_note_to_invoice(
         missing_params.append(("credit_note_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -9452,7 +9367,7 @@ async def apply_credit_note_to_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -9494,7 +9409,7 @@ async def delete_credit_note_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices/{creditnote_invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/invoices/{creditnote_invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_unique_id,
             creditnote_invoice_id=credit_note_invoice_id,
@@ -9534,7 +9449,7 @@ async def get_credit_note_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -9616,14 +9531,12 @@ async def add_credit_note_comment(
         missing_params.append(("credit_note_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -9665,7 +9578,7 @@ async def add_credit_note_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -9708,7 +9621,7 @@ async def delete_credit_note_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_id,
             comment_id=comment_unique_identifier,
@@ -9761,7 +9674,7 @@ async def credit_note_refund_listing(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -9808,7 +9721,7 @@ async def list_credit_note_refunds(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="GET",
@@ -9894,14 +9807,12 @@ async def refund_credit_note(
         missing_params.append(("credit_note_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -9939,7 +9850,7 @@ async def refund_credit_note(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), creditnote_id=credit_note_id
         ),
         method="POST",
@@ -9982,7 +9893,7 @@ async def get_credit_note_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_id,
             creditnote_refund_id=credit_note_refund_id,
@@ -10074,14 +9985,12 @@ async def update_refund_transaction(
         missing_params.append(("credit_note_refund_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -10123,7 +10032,7 @@ async def update_refund_transaction(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_identifier,
             creditnote_refund_id=credit_note_refund_id,
@@ -10163,7 +10072,7 @@ async def delete_credit_note_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/creditnotes/{creditnote_id}/refunds/{creditnote_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             creditnote_id=credit_note_id,
             creditnote_refund_id=credit_note_refund_id,
@@ -10241,14 +10150,12 @@ async def create_currency(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -10286,7 +10193,7 @@ async def create_currency(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/currencies".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -10334,7 +10241,7 @@ async def list_configured_currencies(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -10423,14 +10330,12 @@ async def update_currency_details(
         missing_params.append(("currency_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -10472,7 +10377,7 @@ async def update_currency_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             currency_id=currency_unique_identifier,
         ),
@@ -10510,7 +10415,7 @@ async def get_currency_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), currency_id=currency_identifier
         ),
         method="GET",
@@ -10546,7 +10451,7 @@ async def remove_currency(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), currency_id=currency_identifier
         ),
         method="DELETE",
@@ -10595,7 +10500,7 @@ async def list_currency_exchange_rates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), currency_id=currency_identifier
         ),
         method="GET",
@@ -10682,14 +10587,12 @@ async def create_exchange_rate(
         missing_params.append(("currency_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -10731,7 +10634,7 @@ async def create_exchange_rate(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), currency_id=currency_identifier
         ),
         method="POST",
@@ -10775,7 +10678,7 @@ async def get_currency_exchange_rate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             currency_id=currency_unique_identifier,
             exchange_rate_id=exchange_rate_unique_id,
@@ -10865,14 +10768,12 @@ async def update_exchange_rate(
         missing_params.append(("exchange_rate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -10914,7 +10815,7 @@ async def update_exchange_rate(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             currency_id=currency_unique_identifier,
             exchange_rate_id=exchange_rate_identifier,
@@ -10958,7 +10859,7 @@ async def delete_exchange_rate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/currencies/{currency_id}/exchangerates/{exchange_rate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             currency_id=currency_identifier,
             exchange_rate_id=exchange_rate_identifier,
@@ -10997,7 +10898,7 @@ async def list_custom_module_records(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/{module_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), module_name=custom_module_name
         ),
         method="GET",
@@ -11083,14 +10984,12 @@ async def update_custom_module_records(
         missing_params.append(("module_name", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -11132,7 +11031,7 @@ async def update_custom_module_records(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/{module_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), module_name=module_name
         ),
         method="PUT",
@@ -11216,14 +11115,12 @@ async def create_custom_module(
         missing_params.append(("custom_module_name", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -11265,7 +11162,7 @@ async def create_custom_module(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/{module_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), module_name=custom_module_name
         ),
         method="POST",
@@ -11300,7 +11197,7 @@ async def delete_custom_module(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/{module_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), module_name=module_name
         ),
         method="DELETE",
@@ -11341,7 +11238,7 @@ async def get_custom_module_record_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             module_name=module_name,
             module_id=custom_module_id,
@@ -11433,14 +11330,12 @@ async def update_custom_module_record(
         missing_params.append(("custom_module_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -11482,7 +11377,7 @@ async def update_custom_module_record(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             module_name=module_name,
             module_id=custom_module_id,
@@ -11523,7 +11418,7 @@ async def delete_custom_module_record(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/{module_name}/{module_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             module_name=module_name,
             module_id=custom_module_id,
@@ -11611,14 +11506,12 @@ async def create_customer_debit_note(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -11660,7 +11553,7 @@ async def create_customer_debit_note(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerdebitnotes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerdebitnotes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -11777,7 +11670,7 @@ async def list_customer_debit_notes(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerdebitnotes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerdebitnotes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -11886,14 +11779,12 @@ async def update_customer_debit_note(
         missing_params.append(("debit_note_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -11935,7 +11826,7 @@ async def update_customer_debit_note(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             debit_note_id=debit_note_unique_identifier,
         ),
@@ -11987,7 +11878,7 @@ async def get_customer_debit_note(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             debit_note_id=debit_note_unique_id,
         ),
@@ -12028,7 +11919,7 @@ async def delete_customer_debit_note(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{debit_note_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             debit_note_id=debit_note_unique_id,
         ),
@@ -12107,14 +11998,12 @@ async def create_customer_payment(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -12156,7 +12045,7 @@ async def create_customer_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -12239,7 +12128,7 @@ async def list_customer_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -12293,7 +12182,7 @@ async def bulk_delete_customer_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="DELETE",
@@ -12389,14 +12278,12 @@ async def update_payment_by_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -12438,7 +12325,7 @@ async def update_payment_by_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -12527,14 +12414,12 @@ async def update_customer_payment_info(
         missing_params.append(("payment_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -12576,7 +12461,7 @@ async def update_customer_payment_info(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             payment_id=payment_unique_identifier,
         ),
@@ -12619,7 +12504,7 @@ async def get_customer_payment_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=payment_identifier
         ),
         method="GET",
@@ -12657,7 +12542,7 @@ async def delete_customer_payment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=payment_identifier
         ),
         method="DELETE",
@@ -12701,7 +12586,7 @@ async def list_customer_payment_refunds(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_identifier,
         ),
@@ -12788,14 +12673,12 @@ async def refund_excess_payment(
         missing_params.append(("customer_payment_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -12837,7 +12720,7 @@ async def refund_excess_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_identifier,
         ),
@@ -12926,14 +12809,12 @@ async def update_customer_payment_custom_fields(
         missing_params.append(("customer_payment_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -12977,7 +12858,7 @@ async def update_customer_payment_custom_fields(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayment/{customer_payment_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayment/{customer_payment_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_identifier,
         ),
@@ -13021,7 +12902,7 @@ async def get_customer_payment_refund_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_unique_id,
             refund_id=refund_identifier,
@@ -13111,14 +12992,12 @@ async def update_payment_refund(
         missing_params.append(("refund_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -13160,7 +13039,7 @@ async def update_payment_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_identifier,
             refund_id=refund_identifier,
@@ -13203,7 +13082,7 @@ async def delete_customer_payment_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/customerpayments/{customer_payment_id}/refunds/{refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             customer_payment_id=customer_payment_identifier,
             refund_id=refund_identifier,
@@ -13291,14 +13170,12 @@ async def create_customer_estimate(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -13340,7 +13217,7 @@ async def create_customer_estimate(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -13448,7 +13325,7 @@ async def list_estimates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -13560,14 +13437,12 @@ async def update_estimate_with_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -13611,7 +13486,7 @@ async def update_estimate_with_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -13702,14 +13577,12 @@ async def update_estimate(
         missing_params.append(("estimate_unique_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -13747,7 +13620,7 @@ async def update_estimate(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_unique_id
         ),
         method="PUT",
@@ -13797,7 +13670,7 @@ async def retrieve_estimate_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_id
         ),
         method="GET",
@@ -13836,7 +13709,7 @@ async def delete_estimate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_id
         ),
         method="DELETE",
@@ -13922,14 +13795,12 @@ async def update_estimate_custom_fields(
         missing_params.append(("estimate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -13971,7 +13842,7 @@ async def update_estimate_custom_fields(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimate/{estimate_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimate/{estimate_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="PUT",
@@ -14011,7 +13882,7 @@ async def mark_estimate_as_sent(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/sent".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/sent".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14046,7 +13917,7 @@ async def accept_estimate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/accepted".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/accepted".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14081,7 +13952,7 @@ async def decline_estimate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/declined".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/status/declined".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14119,7 +13990,7 @@ async def submit_estimate_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14157,7 +14028,7 @@ async def approve_estimate(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14243,14 +14114,12 @@ async def send_estimate_email(
         missing_params.append(("estimate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -14292,7 +14161,7 @@ async def send_estimate_email(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -14338,7 +14207,7 @@ async def get_estimate_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_id
         ),
         method="GET",
@@ -14376,7 +14245,7 @@ async def send_estimates_email(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -14418,7 +14287,7 @@ async def export_estimates_as_pdf(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/pdf".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/pdf".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -14458,7 +14327,7 @@ async def export_and_print_estimates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/print".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/print".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -14545,14 +14414,12 @@ async def update_estimate_billing_address(
         missing_params.append(("estimate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -14596,7 +14463,7 @@ async def update_estimate_billing_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="PUT",
@@ -14684,14 +14551,12 @@ async def update_estimate_shipping_address(
         missing_params.append(("estimate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -14735,7 +14600,7 @@ async def update_estimate_shipping_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/address/shipping".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/address/shipping".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="PUT",
@@ -14769,7 +14634,7 @@ async def get_estimate_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -14809,7 +14674,7 @@ async def update_estimate_template(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             estimate_id=estimate_identifier,
             template_id=estimate_template_identifier,
@@ -14848,7 +14713,7 @@ async def get_estimate_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="GET",
@@ -14930,14 +14795,12 @@ async def add_estimate_comment(
         missing_params.append(("estimate_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -14979,7 +14842,7 @@ async def add_estimate_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), estimate_id=estimate_identifier
         ),
         method="POST",
@@ -15071,14 +14934,12 @@ async def update_estimate_comment(
         missing_params.append(("comment_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -15120,7 +14981,7 @@ async def update_estimate_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             estimate_id=estimate_identifier,
             comment_id=comment_unique_identifier,
@@ -15163,7 +15024,7 @@ async def delete_estimate_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/estimates/{estimate_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             estimate_id=estimate_unique_id,
             comment_id=comment_unique_identifier,
@@ -15245,14 +15106,12 @@ async def create_expense(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -15290,7 +15149,7 @@ async def create_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/expenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -15388,7 +15247,7 @@ async def list_expenses(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -15499,14 +15358,12 @@ async def update_expense_with_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -15550,7 +15407,7 @@ async def update_expense_with_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/expenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -15647,14 +15504,12 @@ async def update_existing_expense(
         missing_params.append(("expense_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -15696,7 +15551,7 @@ async def update_existing_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_identifier
         ),
         method="PUT",
@@ -15740,7 +15595,7 @@ async def get_expense_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_identifier
         ),
         method="GET",
@@ -15777,7 +15632,7 @@ async def delete_expense_entry(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_identifier
         ),
         method="DELETE",
@@ -15815,7 +15670,7 @@ async def get_expense_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_unique_id
         ),
         method="GET",
@@ -15857,7 +15712,7 @@ async def list_company_employees(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/employees".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/employees".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -15939,14 +15794,12 @@ async def create_employee_for_expense(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -15988,7 +15841,7 @@ async def create_employee_for_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/employees".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/employees".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -16028,7 +15881,7 @@ async def fetch_employee_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/employees/{employee_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/employees/{employee_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), employee_id=employee_unique_id
         ),
         method="GET",
@@ -16065,7 +15918,7 @@ async def delete_employee_record(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/employee/{employee_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/employee/{employee_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), employee_id=employee_identifier
         ),
         method="DELETE",
@@ -16108,7 +15961,7 @@ async def retrieve_expense_receipt(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_identifier
         ),
         method="GET",
@@ -16150,7 +16003,7 @@ async def attach_expense_receipt(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_id
         ),
         method="POST",
@@ -16189,7 +16042,7 @@ async def delete_expense_receipt(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/expenses/{expense_id}/receipt".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_id
         ),
         method="DELETE",
@@ -16265,14 +16118,12 @@ async def create_fixed_asset(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -16310,7 +16161,7 @@ async def create_fixed_asset(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassets".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -16365,7 +16216,7 @@ async def get_fixed_assets_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -16454,14 +16305,12 @@ async def update_fixed_asset_info(
         missing_params.append(("fixed_asset_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -16503,7 +16352,7 @@ async def update_fixed_asset_info(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16543,7 +16392,7 @@ async def get_fixed_asset_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16583,7 +16432,7 @@ async def delete_fixed_asset(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16625,7 +16474,7 @@ async def fetch_asset_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/history".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/history".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16668,7 +16517,7 @@ async def get_asset_depreciation_summary(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/forecast".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/forecast".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16707,7 +16556,7 @@ async def activate_fixed_asset(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), fixed_asset_id=fixed_asset_id
         ),
         method="POST",
@@ -16743,7 +16592,7 @@ async def cancel_fixed_asset(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/cancel".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/cancel".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), fixed_asset_id=fixed_asset_id
         ),
         method="POST",
@@ -16778,7 +16627,7 @@ async def mark_fixed_asset_as_draft(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/draft".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/status/draft".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16861,14 +16710,12 @@ async def write_off_fixed_asset(
         missing_params.append(("fixed_asset_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -16910,7 +16757,7 @@ async def write_off_fixed_asset(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/writeoff".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/writeoff".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -16995,14 +16842,12 @@ async def sell_fixed_asset(
         missing_params.append(("fixed_asset_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -17040,7 +16885,7 @@ async def sell_fixed_asset(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/sell".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/sell".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -17125,14 +16970,12 @@ async def add_fixed_asset_comment(
         missing_params.append(("fixed_asset_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -17174,7 +17017,7 @@ async def add_fixed_asset_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
         ),
@@ -17218,7 +17061,7 @@ async def delete_asset_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_id=fixed_asset_identifier,
             comment_id=comment_id,
@@ -17296,14 +17139,12 @@ async def create_fixed_asset_type(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -17345,7 +17186,7 @@ async def create_fixed_asset_type(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassettypes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassettypes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -17388,7 +17229,7 @@ async def get_fixed_asset_type_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassettypes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassettypes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -17474,14 +17315,12 @@ async def update_fixed_asset_type(
         missing_params.append(("fixed_asset_type_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -17523,7 +17362,7 @@ async def update_fixed_asset_type(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/fixedassettypes/{fixed_asset_type_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassettypes/{fixed_asset_type_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_type_id=fixed_asset_type_identifier,
         ),
@@ -17559,7 +17398,7 @@ async def delete_fixed_asset_type(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/fixedassettypes/{fixed_asset_type_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/fixedassettypes/{fixed_asset_type_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             fixed_asset_type_id=fixed_asset_type_identifier,
         ),
@@ -17597,7 +17436,7 @@ async def import_customer_from_crm(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/crm/account/{crm_account_id}/import".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/crm/account/{crm_account_id}/import".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), crm_account_id=crm_account_id
         ),
         method="POST",
@@ -17636,7 +17475,7 @@ async def crm_to_books_contact_import(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/crm/contact/{crm_contact_id}/import".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/crm/contact/{crm_contact_id}/import".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             crm_contact_id=zoho_crm_contact_id,
         ),
@@ -17675,7 +17514,7 @@ async def import_vendor_from_crm(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/crm/vendor/{crm_vendor_id}/import".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/crm/vendor/{crm_vendor_id}/import".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), crm_vendor_id=zoho_crm_vendor_id
         ),
         method="POST",
@@ -17713,7 +17552,7 @@ async def import_crm_product_to_zoho_books(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/crm/item/{crm_product_id}/import".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/crm/item/{crm_product_id}/import".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), crm_product_id=crm_product_id
         ),
         method="POST",
@@ -17807,14 +17646,12 @@ async def create_customer_invoice(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -17856,7 +17693,7 @@ async def create_customer_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -17994,7 +17831,7 @@ async def get_invoice_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -18112,14 +17949,12 @@ async def update_invoice_by_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -18161,7 +17996,7 @@ async def update_invoice_by_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -18252,14 +18087,12 @@ async def update_invoice(
         missing_params.append(("invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -18297,7 +18130,7 @@ async def update_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_id
         ),
         method="PUT",
@@ -18332,7 +18165,7 @@ async def get_invoice_details(
     invoice_identifier: Annotated[
         str, "Unique identifier of the invoice. Used to specify which invoice details to retrieve."
     ],
-    format: Annotated[
+    format_type: Annotated[
         str | None, "Specify the format for invoice details: json, pdf, or html. Default is json."
     ] = None,
     print_pdf: Annotated[
@@ -18345,14 +18178,14 @@ async def get_invoice_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
         params=remove_none_values({
             "organization_id": organization_id,
             "print": print_pdf,
-            "accept": format,
+            "accept": format_type,
         }),
         headers=remove_none_values({
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
@@ -18384,7 +18217,7 @@ async def delete_invoice_in_zoho_books(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="DELETE",
@@ -18421,7 +18254,7 @@ async def mark_invoice_as_sent(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/sent".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/sent".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_identifier,
         ),
@@ -18460,7 +18293,7 @@ async def void_invoice_status(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_identifier,
         ),
@@ -18494,7 +18327,7 @@ async def mark_invoice_as_draft(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/draft".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/status/draft".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -18576,14 +18409,12 @@ async def send_invoices_email(
         missing_params.append(("comma_separated_invoice_ids", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -18625,7 +18456,7 @@ async def send_invoices_email(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -18668,7 +18499,7 @@ async def create_invoice_from_sales_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/fromsalesorder".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/fromsalesorder".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -18749,14 +18580,12 @@ async def associate_invoice_with_sales_order(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -18800,7 +18629,7 @@ async def associate_invoice_with_sales_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/mapwithorder".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/mapwithorder".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -18837,7 +18666,7 @@ async def submit_invoice_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_unique_id
         ),
         method="POST",
@@ -18872,7 +18701,7 @@ async def approve_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -18914,7 +18743,7 @@ async def get_invoice_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -19011,14 +18840,12 @@ async def send_invoice_email(
         missing_params.append(("invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -19056,7 +18883,7 @@ async def send_invoice_email(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -19157,14 +18984,12 @@ async def remind_customer_invoice_payment(
         missing_params.append(("invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -19208,7 +19033,7 @@ async def remind_customer_invoice_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -19255,7 +19080,7 @@ async def get_payment_reminder_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -19293,7 +19118,7 @@ async def send_invoice_reminders(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/paymentreminder".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/paymentreminder".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -19333,7 +19158,7 @@ async def export_invoices_as_pdf(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/pdf".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/pdf".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -19374,7 +19199,7 @@ async def export_and_print_invoices(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/print".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/print".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -19415,7 +19240,7 @@ async def disable_invoice_payment_reminder(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder/disable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder/disable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -19452,7 +19277,7 @@ async def activate_invoice_reminder(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder/enable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/paymentreminder/enable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -19485,7 +19310,7 @@ async def write_off_invoice_balance(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/writeoff".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/writeoff".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -19522,7 +19347,7 @@ async def cancel_write_off_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/writeoff/cancel".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/writeoff/cancel".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_identifier,
         ),
@@ -19605,14 +19430,12 @@ async def modify_invoice_address(
         missing_params.append(("invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -19654,7 +19477,7 @@ async def modify_invoice_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="PUT",
@@ -19740,14 +19563,12 @@ async def update_invoice_shipping_address(
         missing_params.append(("invoice_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -19791,7 +19612,7 @@ async def update_invoice_shipping_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/address/shipping".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/address/shipping".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_identifier,
         ),
@@ -19826,7 +19647,7 @@ async def list_invoice_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -19866,7 +19687,7 @@ async def update_invoice_template(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_identifier,
             template_id=invoice_template_id,
@@ -19903,7 +19724,7 @@ async def get_invoice_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/payments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/payments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -19941,7 +19762,7 @@ async def get_invoice_credits_applied(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/creditsapplied".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/creditsapplied".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -20025,14 +19846,12 @@ async def apply_credits_to_invoice(
         missing_params.append(("invoice_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -20074,7 +19893,7 @@ async def apply_credits_to_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/credits".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/credits".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_identifier,
         ),
@@ -20118,7 +19937,7 @@ async def delete_invoice_payment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/payments/{invoice_payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/payments/{invoice_payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_identifier,
             invoice_payment_id=invoice_payment_identifier,
@@ -20158,7 +19977,7 @@ async def remove_invoice_credit(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/creditsapplied/{creditnotes_invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/creditsapplied/{creditnotes_invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_identifier,
             creditnotes_invoice_id=credit_note_invoice_id,
@@ -20200,7 +20019,7 @@ async def get_invoice_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -20242,7 +20061,7 @@ async def attach_invoice_file(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -20284,7 +20103,7 @@ async def set_invoice_attachment_preference(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="PUT",
@@ -20326,7 +20145,7 @@ async def delete_invoice_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="DELETE",
@@ -20369,7 +20188,7 @@ async def retrieve_invoice_document(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/documents/{document_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/documents/{document_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_id,
             document_id=invoice_document_id,
@@ -20416,7 +20235,7 @@ async def delete_invoice_document(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/documents/{document_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/documents/{document_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_id,
             document_id=invoice_document_id,
@@ -20453,7 +20272,7 @@ async def delete_invoice_expense_receipt(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/expenses/{expense_id}/receipt".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/expenses/{expense_id}/receipt".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), expense_id=expense_identifier
         ),
         method="DELETE",
@@ -20537,14 +20356,12 @@ async def update_invoice_custom_fields(
         missing_params.append(("invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -20586,7 +20403,7 @@ async def update_invoice_custom_fields(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoice/{invoice_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoice/{invoice_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="PUT",
@@ -20626,7 +20443,7 @@ async def get_invoice_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="GET",
@@ -20708,14 +20525,12 @@ async def add_invoice_comment(
         missing_params.append(("invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -20757,7 +20572,7 @@ async def add_invoice_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), invoice_id=invoice_identifier
         ),
         method="POST",
@@ -20847,14 +20662,12 @@ async def update_invoice_comment(
         missing_params.append(("comment_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -20896,7 +20709,7 @@ async def update_invoice_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_unique_id,
             comment_id=comment_id,
@@ -20938,7 +20751,7 @@ async def delete_invoice_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/invoices/{invoice_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             invoice_id=invoice_identifier,
             comment_id=comment_unique_identifier,
@@ -20980,7 +20793,7 @@ async def generate_invoice_payment_link(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/share/paymentlink".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/share/paymentlink".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -21062,14 +20875,12 @@ async def create_new_zoho_item(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -21111,7 +20922,7 @@ async def create_new_zoho_item(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/items".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -21197,7 +21008,7 @@ async def list_active_inventory_items(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/items".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -21304,14 +21115,12 @@ async def update_item_via_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -21353,7 +21162,7 @@ async def update_item_via_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/items".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -21442,14 +21251,12 @@ async def update_zoho_item_details(
         missing_params.append(("item_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -21491,7 +21298,7 @@ async def update_zoho_item_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/items/{item_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items/{item_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_identifier
         ),
         method="PUT",
@@ -21530,7 +21337,7 @@ async def retrieve_item_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/items/{item_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items/{item_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_unique_identifier
         ),
         method="GET",
@@ -21565,7 +21372,7 @@ async def delete_item_in_zoho_books(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/items/{item_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items/{item_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_identifier
         ),
         method="DELETE",
@@ -21649,14 +21456,12 @@ async def update_item_custom_fields(
         missing_params.append(("item_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -21698,7 +21503,7 @@ async def update_item_custom_fields(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/item/{item_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/item/{item_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_identifier
         ),
         method="PUT",
@@ -21736,7 +21541,7 @@ async def activate_inactive_item(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/items/{item_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items/{item_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_identifier
         ),
         method="POST",
@@ -21772,7 +21577,7 @@ async def mark_item_inactive(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/items/{item_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/items/{item_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), item_id=item_identifier
         ),
         method="POST",
@@ -21848,14 +21653,12 @@ async def create_journal_entry(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -21897,7 +21700,7 @@ async def create_journal_entry(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/journals".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -21977,7 +21780,7 @@ async def get_journal_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -22075,14 +21878,12 @@ async def update_journal_in_zoho_books(
         missing_params.append(("journal_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -22124,7 +21925,7 @@ async def update_journal_in_zoho_books(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), journal_id=journal_identifier
         ),
         method="PUT",
@@ -22163,7 +21964,7 @@ async def get_journal_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), journal_id=journal_unique_id
         ),
         method="GET",
@@ -22198,7 +21999,7 @@ async def delete_journal_entry(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), journal_id=journal_entry_id
         ),
         method="DELETE",
@@ -22236,7 +22037,7 @@ async def publish_draft_journal(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}/status/publish".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}/status/publish".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), journal_id=journal_identifier
         ),
         method="POST",
@@ -22289,7 +22090,7 @@ async def attach_file_to_journal(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             journal_id=journal_unique_identifier,
         ),
@@ -22378,14 +22179,12 @@ async def add_journal_comment(
         missing_params.append(("journal_unique_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -22427,7 +22226,7 @@ async def add_journal_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), journal_id=journal_unique_id
         ),
         method="POST",
@@ -22468,7 +22267,7 @@ async def delete_journal_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/journals/{journal_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/journals/{journal_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             journal_id=journal_unique_id,
             comment_id=comment_id,
@@ -22504,7 +22303,7 @@ async def enable_organization_locations(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/locations/enable".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/locations/enable".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -22582,14 +22381,12 @@ async def create_zoho_book_location(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -22631,7 +22428,7 @@ async def create_zoho_book_location(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/locations".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -22665,7 +22462,7 @@ async def list_inventory_locations(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/locations".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -22749,14 +22546,12 @@ async def update_location_in_zoho_books(
         missing_params.append(("location_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -22798,7 +22593,7 @@ async def update_location_in_zoho_books(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/locations/{location_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations/{location_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), location_id=location_identifier
         ),
         method="PUT",
@@ -22835,7 +22630,7 @@ async def delete_location(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/locations/{location_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations/{location_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), location_id=location_id
         ),
         method="DELETE",
@@ -22870,7 +22665,7 @@ async def activate_location(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/locations/{location_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations/{location_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), location_id=location_identifier
         ),
         method="POST",
@@ -22907,7 +22702,7 @@ async def mark_location_inactive(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/locations/{location_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations/{location_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), location_id=location_identifier
         ),
         method="POST",
@@ -22944,7 +22739,7 @@ async def set_primary_location(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/locations/{location_id}/markasprimary".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/locations/{location_id}/markasprimary".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), location_id=location_identifier
         ),
         method="POST",
@@ -23020,14 +22815,12 @@ async def create_opening_balance(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23069,7 +22862,7 @@ async def create_opening_balance(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/openingbalances".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/openingbalances".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -23147,14 +22940,12 @@ async def update_opening_balance(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23196,7 +22987,7 @@ async def update_opening_balance(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/openingbalances".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/openingbalances".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -23228,7 +23019,7 @@ async def get_opening_balance(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/openingbalances".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/openingbalances".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -23262,7 +23053,7 @@ async def delete_opening_balance(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/openingbalances".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/openingbalances".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="DELETE",
@@ -23340,14 +23131,12 @@ async def create_organization_in_zoho_books(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23391,7 +23180,7 @@ async def create_organization_in_zoho_books(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/organizations".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/organizations".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -23427,7 +23216,7 @@ async def list_organizations(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/organizations".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/organizations".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -23509,14 +23298,12 @@ async def update_organization_details(
         missing_params.append(("organization_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23558,7 +23345,7 @@ async def update_organization_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/organizations/{organization_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/organizations/{organization_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             organization_id=organization_identifier,
         ),
@@ -23597,7 +23384,7 @@ async def get_organization_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/organizations/{organization_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/organizations/{organization_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), organization_id=org_id
         ),
         method="GET",
@@ -23673,14 +23460,12 @@ async def create_project(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23718,7 +23503,7 @@ async def create_project(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -23767,7 +23552,7 @@ async def list_projects(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -23866,14 +23651,12 @@ async def update_project_with_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -23917,7 +23700,7 @@ async def update_project_with_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -24004,14 +23787,12 @@ async def update_project_details(
         missing_params.append(("project_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24053,7 +23834,7 @@ async def update_project_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -24091,7 +23872,7 @@ async def get_project_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -24128,7 +23909,7 @@ async def delete_project(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_id
         ),
         method="DELETE",
@@ -24165,7 +23946,7 @@ async def activate_project(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_identifier
         ),
         method="POST",
@@ -24201,7 +23982,7 @@ async def deactivate_project(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_id
         ),
         method="POST",
@@ -24283,14 +24064,12 @@ async def clone_project(
         missing_params.append(("project_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24328,7 +24107,7 @@ async def clone_project(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/clone".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/clone".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -24413,14 +24192,12 @@ async def assign_users_to_project(
         missing_params.append(("project_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24462,7 +24239,7 @@ async def assign_users_to_project(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_identifier
         ),
         method="POST",
@@ -24502,7 +24279,7 @@ async def list_project_users(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_identifier
         ),
         method="GET",
@@ -24584,14 +24361,12 @@ async def invite_user_to_project(
         missing_params.append(("project_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24633,7 +24408,7 @@ async def invite_user_to_project(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users/invite".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users/invite".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -24726,14 +24501,12 @@ async def update_project_user_details(
         missing_params.append(("user_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24775,7 +24548,7 @@ async def update_project_user_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             user_id=user_identifier,
@@ -24821,7 +24594,7 @@ async def get_project_user_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             user_id=user_identifier,
@@ -24863,7 +24636,7 @@ async def remove_user_from_project(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             user_id=user_identifier,
@@ -24947,14 +24720,12 @@ async def post_project_comment(
         missing_params.append(("project_unique_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -24996,7 +24767,7 @@ async def post_project_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -25034,7 +24805,7 @@ async def get_project_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_identifier
         ),
         method="GET",
@@ -25072,7 +24843,7 @@ async def delete_project_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             comment_id=comment_unique_identifier,
@@ -25123,7 +24894,7 @@ async def list_project_invoices(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/invoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/invoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_unique_identifier,
         ),
@@ -25215,14 +24986,12 @@ async def create_vendor_purchase_order(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -25264,7 +25033,7 @@ async def create_vendor_purchase_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -25360,7 +25129,7 @@ async def list_purchase_orders(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -25470,14 +25239,12 @@ async def update_purchase_order_by_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -25521,7 +25288,7 @@ async def update_purchase_order_by_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -25616,14 +25383,12 @@ async def update_purchase_order(
         missing_params.append(("purchase_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -25665,7 +25430,7 @@ async def update_purchase_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchase_order_id=purchase_order_identifier,
         ),
@@ -25716,7 +25481,7 @@ async def retrieve_purchase_order_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchase_order_id=purchase_order_id,
         ),
@@ -25759,7 +25524,7 @@ async def delete_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchase_order_id=purchase_order_identifier,
         ),
@@ -25846,14 +25611,12 @@ async def update_custom_fields_purchase_order(
         missing_params.append(("purchase_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -25897,7 +25660,7 @@ async def update_custom_fields_purchase_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorder/{purchaseorder_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorder/{purchaseorder_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -25938,7 +25701,7 @@ async def open_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/open".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/open".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_identifier,
         ),
@@ -25977,7 +25740,7 @@ async def mark_purchase_order_billed(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/billed".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/billed".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26016,7 +25779,7 @@ async def cancel_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/cancelled".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/status/cancelled".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26052,7 +25815,7 @@ async def submit_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26091,7 +25854,7 @@ async def approve_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_identifier,
         ),
@@ -26188,14 +25951,12 @@ async def send_purchase_order_email(
         missing_params.append(("purchase_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -26237,7 +25998,7 @@ async def send_purchase_order_email(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26287,7 +26048,7 @@ async def get_purchase_order_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26377,14 +26138,12 @@ async def update_purchase_order_billing_address(
         missing_params.append(("purchase_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -26428,7 +26187,7 @@ async def update_purchase_order_billing_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_identifier,
         ),
@@ -26465,7 +26224,7 @@ async def get_purchase_order_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -26507,7 +26266,7 @@ async def retrieve_purchase_order_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26550,7 +26309,7 @@ async def attach_file_to_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26599,7 +26358,7 @@ async def update_purchase_order_email_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26643,7 +26402,7 @@ async def delete_purchase_order_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26682,7 +26441,7 @@ async def get_purchase_order_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -26767,14 +26526,12 @@ async def add_purchase_order_comment(
         missing_params.append(("purchase_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -26816,7 +26573,7 @@ async def add_purchase_order_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_identifier,
         ),
@@ -26909,14 +26666,12 @@ async def update_purchase_order_comment(
         missing_params.append(("comment_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -26958,7 +26713,7 @@ async def update_purchase_order_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
             comment_id=comment_identifier,
@@ -27004,7 +26759,7 @@ async def delete_purchase_order_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
             comment_id=comment_unique_identifier,
@@ -27041,7 +26796,7 @@ async def reject_purchase_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/reject".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/reject".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             purchaseorder_id=purchase_order_id,
         ),
@@ -27118,14 +26873,12 @@ async def create_recurring_bill(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -27167,7 +26920,7 @@ async def create_recurring_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringbills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -27261,14 +27014,12 @@ async def update_recurring_bill_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -27312,7 +27063,7 @@ async def update_recurring_bill_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringbills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -27399,14 +27150,12 @@ async def update_recurring_bill(
         missing_params.append(("recurring_bill_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -27448,7 +27197,7 @@ async def update_recurring_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_identifier,
         ),
@@ -27486,7 +27235,7 @@ async def get_recurring_bill_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurring_bills/{recurring_bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurring_bills/{recurring_bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_unique_id,
         ),
@@ -27524,7 +27273,7 @@ async def delete_recurring_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurring_bills/{recurring_bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurring_bills/{recurring_bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_identifier,
         ),
@@ -27560,7 +27309,7 @@ async def stop_recurring_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/status/stop".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/status/stop".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_identifier,
         ),
@@ -27596,7 +27345,7 @@ async def resume_recurring_bill(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/status/resume".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/status/resume".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_identifier,
         ),
@@ -27635,7 +27384,7 @@ async def get_recurring_bill_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringbills/{recurring_bill_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_bill_id=recurring_bill_identifier,
         ),
@@ -27714,14 +27463,12 @@ async def create_recurring_expense(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -27763,7 +27510,7 @@ async def create_recurring_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringexpenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -27855,7 +27602,7 @@ async def list_recurring_expenses(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -27964,14 +27711,12 @@ async def update_recurring_expense(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -28013,7 +27758,7 @@ async def update_recurring_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringexpenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -28102,14 +27847,12 @@ async def modify_recurring_expense(
         missing_params.append(("recurring_expense_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -28151,7 +27894,7 @@ async def modify_recurring_expense(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_identifier,
         ),
@@ -28192,7 +27935,7 @@ async def get_recurring_expense_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_id,
         ),
@@ -28228,7 +27971,7 @@ async def delete_recurring_expense(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_id,
         ),
@@ -28267,7 +28010,7 @@ async def stop_recurring_expense(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/status/stop".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/status/stop".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_identifier,
         ),
@@ -28303,7 +28046,7 @@ async def resume_recurring_expense(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/status/resume".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/status/resume".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_id,
         ),
@@ -28353,7 +28096,7 @@ async def list_child_expenses(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/expenses".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/expenses".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_identifier,
         ),
@@ -28397,7 +28140,7 @@ async def get_recurring_expense_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringexpenses/{recurring_expense_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_expense_id=recurring_expense_id,
         ),
@@ -28476,14 +28219,12 @@ async def create_recurring_invoice(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -28525,7 +28266,7 @@ async def create_recurring_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -28620,7 +28361,7 @@ async def list_recurring_invoices(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringinvoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -28731,14 +28472,12 @@ async def update_recurring_invoice_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -28782,7 +28521,7 @@ async def update_recurring_invoice_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -28871,14 +28610,12 @@ async def update_recurring_invoice(
         missing_params.append(("recurring_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -28920,7 +28657,7 @@ async def update_recurring_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_id,
         ),
@@ -28961,7 +28698,7 @@ async def get_recurring_invoice_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_identifier,
         ),
@@ -29000,7 +28737,7 @@ async def delete_recurring_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_id,
         ),
@@ -29083,14 +28820,12 @@ async def stop_recurring_invoice(
         missing_params.append(("recurring_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -29132,7 +28867,7 @@ async def stop_recurring_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/status/stop".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/status/stop".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_id,
         ),
@@ -29219,14 +28954,12 @@ async def resume_recurring_invoice(
         missing_params.append(("recurring_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -29268,7 +29001,7 @@ async def resume_recurring_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/status/resume".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/status/resume".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_id,
         ),
@@ -29363,14 +29096,12 @@ async def update_recurring_invoice_template(
         missing_params.append(("invoice_template_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -29414,7 +29145,7 @@ async def update_recurring_invoice_template(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_identifier,
             template_id=invoice_template_id,
@@ -29456,7 +29187,7 @@ async def get_recurring_invoice_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/recurringinvoices/{recurring_invoice_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             recurring_invoice_id=recurring_invoice_id,
         ),
@@ -29539,14 +29270,12 @@ async def create_retainer_invoice(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -29588,7 +29317,7 @@ async def create_retainer_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -29648,7 +29377,7 @@ async def list_retainer_invoices(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -29738,14 +29467,12 @@ async def modify_invoice(
         missing_params.append(("retainer_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -29783,7 +29510,7 @@ async def modify_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -29823,7 +29550,7 @@ async def get_retainer_invoice_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -29862,7 +29589,7 @@ async def delete_retainer_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_identifier,
         ),
@@ -29901,7 +29628,7 @@ async def mark_invoice_sent(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/status/sent".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/status/sent".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -29945,7 +29672,7 @@ async def modify_retainer_invoice_template(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
             template_id=retainer_invoice_template_id,
@@ -29984,7 +29711,7 @@ async def void_retainer_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30020,7 +29747,7 @@ async def mark_retainer_invoice_as_draft(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/status/draft".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/status/draft".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             reatinerinvoice_id=retainer_invoice_id,
         ),
@@ -30058,7 +29785,7 @@ async def submit_retainer_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             reatinerinvoice_id=retainer_invoice_unique_id,
         ),
@@ -30094,7 +29821,7 @@ async def approve_retainer_invoice(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{reatinerinvoice_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             reatinerinvoice_id=retainer_invoice_id,
         ),
@@ -30191,14 +29918,12 @@ async def email_retainer_invoice_to_customer(
         missing_params.append(("retainer_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -30242,7 +29967,7 @@ async def email_retainer_invoice_to_customer(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30287,7 +30012,7 @@ async def retrieve_retainer_invoice_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30374,14 +30099,12 @@ async def update_billing_address_retainer_invoice(
         missing_params.append(("retainer_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -30425,7 +30148,7 @@ async def update_billing_address_retainer_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30462,7 +30185,7 @@ async def get_retainer_invoice_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -30501,7 +30224,7 @@ async def get_retainer_invoice_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30584,14 +30307,12 @@ async def attach_file_to_invoice(
         missing_params.append(("retainer_invoice_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -30633,7 +30354,7 @@ async def attach_file_to_invoice(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_identifier,
         ),
@@ -30680,7 +30401,7 @@ async def delete_retainer_invoice_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/documents/{document_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/documents/{document_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
             document_id=document_id,
@@ -30719,7 +30440,7 @@ async def get_retainer_invoice_history(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30804,14 +30525,12 @@ async def add_retainer_invoice_comment(
         missing_params.append(("retainer_invoice_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -30853,7 +30572,7 @@ async def add_retainer_invoice_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
         ),
@@ -30898,7 +30617,7 @@ async def delete_retainer_invoice_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
             comment_id=comment_identifier,
@@ -30990,14 +30709,12 @@ async def update_retainer_invoice_comment(
         missing_params.append(("comment_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -31041,7 +30758,7 @@ async def update_retainer_invoice_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/retainerinvoices/{retainerinvoice_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             retainerinvoice_id=retainer_invoice_id,
             comment_id=comment_identifier,
@@ -31137,14 +30854,12 @@ async def create_sales_order(
         missing_params.append(("organization_identifier", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -31182,7 +30897,7 @@ async def create_sales_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -31315,7 +31030,7 @@ async def list_sales_orders(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -31432,14 +31147,12 @@ async def update_sales_order_with_custom_field(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -31483,7 +31196,7 @@ async def update_sales_order_with_custom_field(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -31588,14 +31301,12 @@ async def update_sales_order_in_zoho_books(
         missing_params.append(("sales_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -31639,7 +31350,7 @@ async def update_sales_order_in_zoho_books(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="PUT",
@@ -31692,7 +31403,7 @@ async def get_sales_order_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="GET",
@@ -31733,7 +31444,7 @@ async def delete_sales_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="DELETE",
@@ -31817,14 +31528,12 @@ async def update_sales_order_custom_fields(
         missing_params.append(("sales_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -31868,7 +31577,7 @@ async def update_sales_order_custom_fields(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorder/{salesorder_id}/customfields".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorder/{salesorder_id}/customfields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="PUT",
@@ -31907,7 +31616,7 @@ async def open_sales_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/status/open".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/status/open".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="POST",
@@ -31989,14 +31698,12 @@ async def mark_sales_order_as_void(
         missing_params.append(("sales_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -32038,7 +31745,7 @@ async def mark_sales_order_as_void(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="POST",
@@ -32080,7 +31787,7 @@ async def update_sales_order_sub_status(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/substatus/{status_code}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/substatus/{status_code}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_id,
             status_code=sales_order_status_code,
@@ -32182,14 +31889,12 @@ async def email_sales_order_to_customer(
         missing_params.append(("sales_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -32231,7 +31936,7 @@ async def email_sales_order_to_customer(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_identifier,
         ),
@@ -32282,7 +31987,7 @@ async def get_sales_order_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="GET",
@@ -32322,7 +32027,7 @@ async def submit_sales_order_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="POST",
@@ -32357,7 +32062,7 @@ async def approve_sales_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="POST",
@@ -32392,7 +32097,7 @@ async def export_sales_orders_pdf(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/pdf".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/pdf".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -32426,7 +32131,7 @@ async def export_print_sales_orders(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/print".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/print".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -32512,14 +32217,12 @@ async def update_sales_order_billing_address(
         missing_params.append(("sales_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -32563,7 +32266,7 @@ async def update_sales_order_billing_address(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/address/billing".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/address/billing".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_identifier,
         ),
@@ -32652,14 +32355,12 @@ async def update_shipping_address_sales_order(
         missing_params.append(("sales_order_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -32703,7 +32404,7 @@ async def update_shipping_address_sales_order(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/address/shipping".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/address/shipping".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_identifier,
         ),
@@ -32741,7 +32442,7 @@ async def get_sales_order_templates(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/templates".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/templates".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -32781,7 +32482,7 @@ async def update_sales_order_template(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/templates/{template_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/templates/{template_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_id,
             template_id=sales_order_template_id,
@@ -32826,7 +32527,7 @@ async def get_sales_order_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="GET",
@@ -32881,7 +32582,7 @@ async def attach_file_to_sales_order(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_identifier,
         ),
@@ -32929,7 +32630,7 @@ async def set_sales_order_attachment_preference(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="PUT",
@@ -32969,7 +32670,7 @@ async def delete_sales_order_attachment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/attachment".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="DELETE",
@@ -33006,7 +32707,7 @@ async def get_sales_order_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="GET",
@@ -33088,14 +32789,12 @@ async def add_sales_order_comment(
         missing_params.append(("sales_order_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -33137,7 +32836,7 @@ async def add_sales_order_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), salesorder_id=sales_order_id
         ),
         method="POST",
@@ -33229,14 +32928,12 @@ async def update_sales_order_comment(
         missing_params.append(("comment_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -33278,7 +32975,7 @@ async def update_sales_order_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_id,
             comment_id=comment_id,
@@ -33321,7 +33018,7 @@ async def delete_sales_order_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesorders/{salesorder_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             salesorder_id=sales_order_id,
             comment_id=comment_identifier,
@@ -33407,14 +33104,12 @@ async def create_sales_receipt(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -33456,7 +33151,7 @@ async def create_sales_receipt(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesreceipts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -33532,7 +33227,7 @@ async def list_sales_receipts(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesreceipts".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -33625,14 +33320,12 @@ async def update_sales_receipt(
         missing_params.append(("sales_receipt_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -33674,7 +33367,7 @@ async def update_sales_receipt(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             sales_receipt_id=sales_receipt_identifier,
         ),
@@ -33719,7 +33412,7 @@ async def get_sales_receipt_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), sales_receipt_id=sales_receipt_id
         ),
         method="GET",
@@ -33755,7 +33448,7 @@ async def delete_sales_receipt(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), sales_receipt_id=sales_receipt_id
         ),
         method="DELETE",
@@ -33837,14 +33530,12 @@ async def email_sales_receipt_to_customer(
         missing_params.append(("sales_receipt_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -33888,7 +33579,7 @@ async def email_sales_receipt_to_customer(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/salesreceipts/{sales_receipt_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             sales_receipt_id=sales_receipt_identifier,
         ),
@@ -33973,14 +33664,12 @@ async def add_project_task(
         missing_params.append(("project_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34018,7 +33707,7 @@ async def add_project_task(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_identifier
         ),
         method="POST",
@@ -34062,7 +33751,7 @@ async def get_project_tasks(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), project_id=project_unique_id
         ),
         method="GET",
@@ -34154,14 +33843,12 @@ async def update_project_task(
         missing_params.append(("task_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34203,7 +33890,7 @@ async def update_project_task(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             task_id=task_identifier,
@@ -34243,7 +33930,7 @@ async def get_task_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_id,
             task_id=task_unique_identifier,
@@ -34283,7 +33970,7 @@ async def delete_project_task(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/{project_id}/tasks/{task_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             project_id=project_identifier,
             task_id=task_identifier,
@@ -34361,14 +34048,12 @@ async def create_associated_tax(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34410,7 +34095,7 @@ async def create_associated_tax(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -34451,7 +34136,7 @@ async def list_taxes(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxes".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxes".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -34537,14 +34222,12 @@ async def update_tax_details(
         missing_params.append(("tax_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34582,7 +34265,7 @@ async def update_tax_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_id=tax_identifier
         ),
         method="PUT",
@@ -34617,7 +34300,7 @@ async def get_tax_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_id=tax_identifier
         ),
         method="GET",
@@ -34653,7 +34336,7 @@ async def delete_tax(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxes/{tax_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_id=tax_identifier
         ),
         method="DELETE",
@@ -34688,7 +34371,7 @@ async def retrieve_tax_group_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_group_id=tax_group_identifier
         ),
         method="GET",
@@ -34772,14 +34455,12 @@ async def update_tax_group_details(
         missing_params.append(("tax_group_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34821,7 +34502,7 @@ async def update_tax_group_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_group_id=tax_group_identifier
         ),
         method="PUT",
@@ -34861,7 +34542,7 @@ async def delete_tax_group(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxgroups/{tax_group_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), tax_group_id=tax_group_identifier
         ),
         method="DELETE",
@@ -34937,14 +34618,12 @@ async def create_tax_group(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -34982,7 +34661,7 @@ async def create_tax_group(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxgroups".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxgroups".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -35060,14 +34739,12 @@ async def create_tax_authority(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -35109,7 +34786,7 @@ async def create_tax_authority(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxauthorities".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxauthorities".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -35145,7 +34822,7 @@ async def get_tax_authorities(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxauthorities".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxauthorities".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -35229,14 +34906,12 @@ async def update_tax_authority_details(
         missing_params.append(("tax_authority_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -35278,7 +34953,7 @@ async def update_tax_authority_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_authority_id=tax_authority_identifier,
         ),
@@ -35318,7 +34993,7 @@ async def get_tax_authority_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_authority_id=tax_authority_unique_id,
         ),
@@ -35356,7 +35031,7 @@ async def delete_tax_authority(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxauthorities/{tax_authority_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_authority_id=tax_authority_identifier,
         ),
@@ -35433,14 +35108,12 @@ async def create_tax_exemption(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -35482,7 +35155,7 @@ async def create_tax_exemption(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxexemptions".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxexemptions".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -35518,7 +35191,7 @@ async def get_tax_exemptions_list(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxexemptions".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxexemptions".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -35602,14 +35275,12 @@ async def update_tax_exemption_details(
         missing_params.append(("tax_exemption_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -35651,7 +35322,7 @@ async def update_tax_exemption_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_exemption_id=tax_exemption_identifier,
         ),
@@ -35692,7 +35363,7 @@ async def get_tax_exemption_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_exemption_id=tax_exemption_identifier,
         ),
@@ -35728,7 +35399,7 @@ async def delete_tax_exemption(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/settings/taxexemptions/{tax_exemption_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             tax_exemption_id=tax_exemption_identifier,
         ),
@@ -35805,14 +35476,12 @@ async def log_time_entries(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -35850,7 +35519,7 @@ async def log_time_entries(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/timeentries".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -35915,7 +35584,7 @@ async def list_time_entries(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -35959,7 +35628,7 @@ async def delete_time_entries(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="DELETE",
@@ -36041,14 +35710,12 @@ async def update_time_entry(
         missing_params.append(("time_entry_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -36086,7 +35753,7 @@ async def update_time_entry(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             time_entry_id=time_entry_identifier,
         ),
@@ -36126,7 +35793,7 @@ async def get_time_entry_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             time_entry_id=time_entry_identifier,
         ),
@@ -36164,7 +35831,7 @@ async def delete_logged_time_entry(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             time_entry_id=time_entry_identifier,
         ),
@@ -36202,7 +35869,7 @@ async def start_time_tracking(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}/timer/start".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/{time_entry_id}/timer/start".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             time_entry_id=time_entry_identifier,
         ),
@@ -36238,7 +35905,7 @@ async def stop_time_tracking(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries/timer/stop".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/timer/stop".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -36272,7 +35939,7 @@ async def get_current_running_timer(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/projects/timeentries/runningtimer/me".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/projects/timeentries/runningtimer/me".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -36350,14 +36017,12 @@ async def create_organization_user(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -36399,7 +36064,7 @@ async def create_organization_user(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/users".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -36451,7 +36116,7 @@ async def get_organization_users(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -36539,14 +36204,12 @@ async def update_user_details(
         missing_params.append(("user_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -36588,7 +36251,7 @@ async def update_user_details(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_identifier
         ),
         method="PUT",
@@ -36628,7 +36291,7 @@ async def get_user_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_unique_identifier
         ),
         method="GET",
@@ -36665,7 +36328,7 @@ async def remove_user_from_organization(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/{user_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_unique_identifier
         ),
         method="DELETE",
@@ -36700,7 +36363,7 @@ async def get_current_user_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/me".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/me".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -36738,7 +36401,7 @@ async def send_invitation_email(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/{user_id}/invite".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}/invite".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_unique_identifier
         ),
         method="POST",
@@ -36774,7 +36437,7 @@ async def activate_inactive_user(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/{user_id}/active".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}/active".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_identifier
         ),
         method="POST",
@@ -36811,7 +36474,7 @@ async def deactivate_user_account(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/users/{user_id}/inactive".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/users/{user_id}/inactive".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), user_id=user_unique_identifier
         ),
         method="POST",
@@ -36895,14 +36558,12 @@ async def create_vendor_credit(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -36944,7 +36605,7 @@ async def create_vendor_credit(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -37061,7 +36722,7 @@ async def list_vendor_credits(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -37165,14 +36826,12 @@ async def update_vendor_credit(
         missing_params.append(("vendor_credit_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -37214,7 +36873,7 @@ async def update_vendor_credit(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), vendor_credit_id=vendor_credit_id
         ),
         method="PUT",
@@ -37262,7 +36921,7 @@ async def get_vendor_credit_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), vendor_credit_id=vendor_credit_id
         ),
         method="GET",
@@ -37304,7 +36963,7 @@ async def delete_vendor_credit(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37343,7 +37002,7 @@ async def open_vendor_credit_status(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/status/open".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/status/open".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37379,7 +37038,7 @@ async def mark_vendor_credit_void(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/status/void".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/status/void".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37417,7 +37076,7 @@ async def submit_vendor_credit_for_approval(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/submit".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/submit".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_unique_id,
         ),
@@ -37456,7 +37115,7 @@ async def approve_vendor_credit(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/approve".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/approve".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37494,7 +37153,7 @@ async def list_bills_with_vendor_credit(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), vendor_credit_id=vendor_credit_id
         ),
         method="GET",
@@ -37578,14 +37237,12 @@ async def apply_vendor_credit_to_bill(
         missing_params.append(("vendor_credit_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -37627,7 +37284,7 @@ async def apply_vendor_credit_to_bill(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37671,7 +37328,7 @@ async def remove_vendor_bill_credit(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills/{vendor_credit_bill_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/bills/{vendor_credit_bill_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
             vendor_credit_bill_id=vendor_credit_bill_identifier,
@@ -37755,14 +37412,12 @@ async def refund_vendor_credit(
         missing_params.append(("vendor_credit_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -37804,7 +37459,7 @@ async def refund_vendor_credit(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -37852,7 +37507,7 @@ async def list_vendor_credit_refunds(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), vendor_credit_id=vendor_credit_id
         ),
         method="GET",
@@ -37946,14 +37601,12 @@ async def update_vendor_credit_refund(
         missing_params.append(("vendor_credit_refund_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -37995,7 +37648,7 @@ async def update_vendor_credit_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
             vendor_credit_refund_id=vendor_credit_refund_identifier,
@@ -38040,7 +37693,7 @@ async def get_vendor_credit_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
             vendor_credit_refund_id=vendor_credit_refund_id,
@@ -38082,7 +37735,7 @@ async def delete_vendor_credit_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds/{vendor_credit_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
             vendor_credit_refund_id=vendor_credit_refund_id,
@@ -38135,7 +37788,7 @@ async def fetch_vendor_credit_refunds(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -38226,14 +37879,12 @@ async def add_vendor_credit_comment(
         missing_params.append(("vendor_credit_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -38275,7 +37926,7 @@ async def add_vendor_credit_comment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -38317,7 +37968,7 @@ async def get_vendor_credit_comments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_identifier,
         ),
@@ -38354,7 +38005,7 @@ async def delete_vendor_credit_comment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments/{comment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/comments/{comment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             vendor_credit_id=vendor_credit_id,
             comment_id=comment_id,
@@ -38432,14 +38083,12 @@ async def create_vendor_payment(
         missing_params.append(("organization_identifier", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -38481,7 +38130,7 @@ async def create_vendor_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="POST",
@@ -38575,7 +38224,7 @@ async def list_vendor_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -38685,14 +38334,12 @@ async def update_vendor_payment_with_custom_id(
         missing_params.append(("organization_id", "query"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -38736,7 +38383,7 @@ async def update_vendor_payment_with_custom_id(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="PUT",
@@ -38778,7 +38425,7 @@ async def delete_multiple_vendor_payments(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="DELETE",
@@ -38864,14 +38511,12 @@ async def update_vendor_payment(
         missing_params.append(("payment_identifier", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -38913,7 +38558,7 @@ async def update_vendor_payment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=payment_identifier
         ),
         method="PUT",
@@ -38964,7 +38609,7 @@ async def fetch_vendor_payment_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=payment_identifier
         ),
         method="GET",
@@ -39006,7 +38651,7 @@ async def delete_vendor_payment(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=vendor_payment_id
         ),
         method="DELETE",
@@ -39050,7 +38695,7 @@ async def list_vendor_payment_refunds(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=payment_identifier
         ),
         method="GET",
@@ -39138,14 +38783,12 @@ async def refund_vendor_overpayment(
         missing_params.append(("vendor_payment_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -39187,7 +38830,7 @@ async def refund_vendor_overpayment(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=vendor_payment_id
         ),
         method="POST",
@@ -39229,7 +38872,7 @@ async def get_vendor_payment_refund_details(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             payment_id=payment_identifier,
             vendorpayment_refund_id=vendor_payment_refund_id,
@@ -39321,14 +38964,12 @@ async def update_vendor_payment_refund(
         missing_params.append(("vendor_payment_refund_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -39370,7 +39011,7 @@ async def update_vendor_payment_refund(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             payment_id=payment_identifier,
             vendorpayment_refund_id=vendor_payment_refund_id,
@@ -39412,7 +39053,7 @@ async def delete_vendor_payment_refund(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/refunds/{vendorpayment_refund_id}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             payment_id=payment_identifier,
             vendorpayment_refund_id=vendor_payment_refund_id,
@@ -39510,14 +39151,12 @@ async def send_vendor_payment_email(
         missing_params.append(("vendor_payment_id", "path"))
 
     if missing_params:
-        param_names = [p[0] for p in missing_params]
-        param_details = ", ".join([f"{{p[0]}} ({{p[1]}})" for p in missing_params])
         raise RetryableToolError(
-            message=f"Missing required parameters: {{param_names}}",
-            developer_message=(f"Required parameters validation failed: {{param_details}}"),
+            message="Missing required parameters: {param_names}",
+            developer_message=("Required parameters validation failed: {param_details}"),
             additional_prompt_content=(
-                f"The following required parameters are missing: "
-                f"{{param_details}}. Please call this tool again with all "
+                "The following required parameters are missing: "
+                "{param_details}. Please call this tool again with all "
                 "required parameters."
             ),
         )
@@ -39559,7 +39198,7 @@ async def send_vendor_payment_email(
         ) from e
 
     response = await make_request_with_schema_validation(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=vendor_payment_id
         ),
         method="POST",
@@ -39606,7 +39245,7 @@ async def get_vendor_payment_email_content(
     request_data = remove_none_values({})
     content = json.dumps(request_data) if request_data else None
     response = await make_request(
-        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/email".format(  # noqa: UP032
+        url="{zoho_server_url}/books/v3/vendorpayments/{payment_id}/email".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"), payment_id=vendor_payment_id
         ),
         method="GET",
