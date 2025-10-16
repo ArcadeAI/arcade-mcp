@@ -70,7 +70,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -143,7 +143,7 @@ async def fetch_zoho_app_sections(
     Use this tool to retrieve information about the sections, forms, reports, and pages of a Zoho Creator application's web form factor."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/sections".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/sections".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=zoho_application_link_name,
@@ -192,7 +192,7 @@ async def fetch_record_detail(
     Use this tool to fetch detailed information of a specific record identified by its ID in a Zoho app. It does not include related data blocks."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -226,7 +226,7 @@ async def fetch_zoho_form_fields_metadata(
     ],
     application_link_name: Annotated[
         str,
-        "The unique link name of the Zoho Creator application. It identifies which application’s form metadata to fetch.",  # noqa: E501
+        "The unique link name of the Zoho Creator application. It identifies which application's form metadata to fetch.",  # noqa: E501
     ],
     form_identifier: Annotated[
         str, "The unique identifier or link name of the Zoho Creator form to fetch metadata for."
@@ -237,7 +237,7 @@ async def fetch_zoho_form_fields_metadata(
     Use this tool to obtain meta information about all the fields within a specified form in a Zoho Creator application. It should be called when you need to understand the structure or details of the form fields such as field types, names, etc."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/form/{form_link_name}/fields".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/form/{form_link_name}/fields".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -278,7 +278,7 @@ async def fetch_zoho_reports_meta(
     This tool retrieves the meta information for all reports within a specified Zoho Creator application. Use it to gain insights into the report configurations and structures available in a particular app."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/reports".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/reports".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=zoho_app_link_name,
@@ -467,7 +467,7 @@ async def update_zoho_creator_report_records(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -520,7 +520,7 @@ async def fetch_zoho_records(
     Use this tool to retrieve up to 200 records from the quick view fields of a specified Zoho Creator report."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_identifier,
             app_link_name=application_link_name,
@@ -710,7 +710,7 @@ async def delete_report_records(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -750,7 +750,7 @@ async def fetch_zoho_creator_pages_meta(
     This tool retrieves the meta information of all the pages present in a specified Zoho Creator application. Use it to gather detailed metadata about the app's pages, which can aid in app management and analysis."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/pages".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/pages".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=zoho_app_link_name,
@@ -782,7 +782,7 @@ async def get_application_meta_info(
     Use this tool to retrieve the meta information of all applications you have access to in Zoho."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/applications".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/applications".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL")
         ),
         method="GET",
@@ -963,7 +963,7 @@ async def insert_records_in_zoho_form(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/form/{form_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/form/{form_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=application_link_name,
@@ -1160,7 +1160,7 @@ async def update_zoho_record(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=application_link_name,
@@ -1208,7 +1208,7 @@ async def fetch_zoho_record_detail(
     Use this tool to fetch the detailed information of a specific record in Zoho, identified by its record ID. This tool does not retrieve related records, only the detailed view of the specific identified record."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_identifier,
@@ -1406,7 +1406,7 @@ async def delete_zoho_record(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/data/{account_owner_name}/{app_link_name}/report/{report_link_name}/{record_ID}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=application_link_name,
@@ -1589,7 +1589,7 @@ async def create_bulk_read_job(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/bulk/{account_owner_name}/{app_link_name}/report/{report_link_name}/read".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/bulk/{account_owner_name}/{app_link_name}/report/{report_link_name}/read".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -1644,7 +1644,7 @@ async def fetch_zoho_report_records(
     Use this tool to retrieve up to 200 records from a Zoho Creator report. It accesses the data in the fields shown in the report's quick view."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/report/{report_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=zoho_application_link_name,
@@ -1697,7 +1697,7 @@ async def get_bulk_read_job_details(
     This tool retrieves information about a bulk read job that was executed previously in Zoho Creator. It is useful when you need to check the status or outcome of a specific bulk read job."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/bulk/{account_owner_name}/{app_link_name}/report/{report_link_name}/read/{job_ID}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/bulk/{account_owner_name}/{app_link_name}/report/{report_link_name}/read/{job_ID}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=account_owner_name,
             app_link_name=application_link_name,
@@ -1735,7 +1735,7 @@ async def fetch_workspace_app_meta(
     Use this tool to retrieve the meta information for applications hosted in a specific workspace you have access to. Useful for gaining insights into application details."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/applications".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/applications".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=workspace_account_owner_name,
         ),
@@ -1774,7 +1774,7 @@ async def fetch_zoho_form_meta_information(
     This tool retrieves the meta information of all forms in a specified Zoho Creator application. Use it to obtain details about the forms within the application."""  # noqa: E501
     request_data = remove_none_values({})
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/forms".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/meta/{account_owner_name}/{app_link_name}/forms".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=zoho_app_link_name,
@@ -1971,7 +1971,7 @@ async def add_records_to_zoho_form(
 
     # Make the actual API request
     response = await make_request(
-        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/form/{form_link_name}".format(  # noqa: UP032
+        url="{zoho_server_url}/creator/v2/publish/{account_owner_name}/{app_link_name}/form/{form_link_name}".format(
             zoho_server_url=context.get_secret("ZOHO_SERVER_URL"),
             account_owner_name=zoho_account_owner_name,
             app_link_name=application_link_name,

@@ -54,7 +54,10 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
     "INSERTRECORDSINZOHOFORM_REQUEST_BODY_SCHEMA": {
         "properties": {
             "data": {
-                "example": '[{"Email":"jason@zylker.com","Phone_Number":"+16103948336"},{"Email":"p.boyle@zylker.com","Phone_Number":"+12096173907"}]',
+                "example": (
+                    '[{"Email":"jason@zylker.com","Phone_Number":"+16103948336"},'
+                    '{"Email":"p.boyle@zylker.com","Phone_Number":"+12096173907"}]'
+                ),
                 "items": {"type": "object"},
                 "type": "array",
             },
@@ -132,7 +135,10 @@ REQUEST_BODY_SCHEMAS: dict[str, Any] = {
     "ADDRECORDSTOZOHOFORM_REQUEST_BODY_SCHEMA": {
         "properties": {
             "data": {
-                "example": '[{"Email":"jason@zylker.com","Phone_Number":"+16103948336"},{"Email":"p.boyle@zylker.com","Phone_Number":"+12096173907"}]',
+                "example": (
+                    '[{"Email":"jason@zylker.com","Phone_Number":"+16103948336"},'
+                    '{"Email":"p.boyle@zylker.com","Phone_Number":"+12096173907"}]'
+                ),
                 "items": {"type": "object"},
                 "type": "array",
             },
