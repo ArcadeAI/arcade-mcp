@@ -1,0 +1,202 @@
+{
+  "name": "DownloadBulkReadJobCsv",
+  "fully_qualified_name": "ZohoCreatorApi.DownloadBulkReadJobCsv@0.1.0",
+  "description": "Download a bulk read job as a CSV in a ZIP file.\n\nUse this tool to download the results of a bulk read job from Zoho in CSV format. The file will be provided as a ZIP, which needs to be extracted to access the CSV. This is useful for retrieving large data sets processed as bulk read jobs.",
+  "toolkit": {
+    "name": "ArcadeZohoCreatorApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "account_owner_name",
+        "required": true,
+        "description": "The name of the account owner associated with the Zoho bulk read job. This is required to identify the correct account for the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_owner_name"
+      },
+      {
+        "name": "application_link_name",
+        "required": true,
+        "description": "The unique name identifier for the application from which the bulk read job is to be downloaded. It is required to specify the application context in Zoho.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_link_name"
+      },
+      {
+        "name": "report_link_name",
+        "required": true,
+        "description": "The unique name of the report linked to the bulk read job. Required to specify which report's CSV to download.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "report_link_name"
+      },
+      {
+        "name": "bulk_read_job_id",
+        "required": true,
+        "description": "The unique identifier for the bulk read job to be downloaded. This ID specifies which job's results should be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "job_ID"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint ''.",
+    "available_modes": ["value", "error", "null"],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": ["ZohoCreator.bulk.READ"]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://zohoapis.com/creator/v2/bulk/{account_owner_name}/{app_link_name}/report/{report_link_name}/read/{job_ID}/result",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_owner_name",
+        "tool_parameter_name": "account_owner_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "app_link_name",
+        "tool_parameter_name": "application_link_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "report_link_name",
+        "tool_parameter_name": "report_link_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "job_ID",
+        "tool_parameter_name": "bulk_read_job_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
