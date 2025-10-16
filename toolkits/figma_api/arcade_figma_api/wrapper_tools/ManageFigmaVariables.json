@@ -1,0 +1,260 @@
+{
+  "name": "ManageFigmaVariables",
+  "fully_qualified_name": "FigmaApi.ManageFigmaVariables@0.1.0",
+  "description": "Manage and organize Figma variable collections in bulk.\n\nThis tool allows you to create, update, and delete variable collections, modes, and variables within Figma files for Enterprise members with Editor seats. Use it to handle variable operations in bulk, including setting mode values and managing temporary IDs. Ideal for organizing complex Figma projects efficiently.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_identifier",
+        "required": true,
+        "description": "Specifies the Figma file or branch key to modify variables. Retrieve branch key using `GET /v1/files/:key` with `branch_data` parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to modify variables in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_key"
+      },
+      {
+        "name": "variable_operations_request_body",
+        "required": true,
+        "description": "A JSON object detailing the operations to create, update, or delete variable collections, modes, or values. Includes arrays for variableCollections, variableModes, variables, and variableModeValues. Temporary IDs can be used for newly created objects and must be unique within the request. The request must be 4MB or less.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "variableCollections": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting variable collections."
+            },
+            "variableModes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting modes within variable collections."
+            },
+            "variables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting variables."
+            },
+            "variableModeValues": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "variableId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The target variable. You can use the temporary id of a variable."
+                },
+                "modeId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must correspond to a mode in the variable collection that contains the target variable."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value for the variable. The value must match the variable's type. If setting to a variable alias, the alias must resolve to this type."
+                }
+              },
+              "description": "For setting a specific value, given a variable and a mode."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'postVariables'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_variables:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/files/{file_key}/variables",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "file_key",
+        "tool_parameter_name": "file_identifier",
+        "description": "File to modify variables in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to modify variables in. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "variable_operations_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "variableCollections": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting variable collections."
+            },
+            "variableModes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting modes within variable collections."
+            },
+            "variables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "For creating, updating, and deleting variables."
+            },
+            "variableModeValues": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "variableId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The target variable. You can use the temporary id of a variable."
+                },
+                "modeId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Must correspond to a mode in the variable collection that contains the target variable."
+                },
+                "value": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value for the variable. The value must match the variable's type. If setting to a variable alias, the alias must resolve to this type."
+                }
+              },
+              "description": "For setting a specific value, given a variable and a mode."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"minProperties\": 1,\n        \"properties\": {\n          \"variableCollections\": {\n            \"type\": \"array\",\n            \"description\": \"For creating, updating, and deleting variable collections.\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about creating a `VariableCollection`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable collection.\",\n                      \"enum\": [\n                        \"CREATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"A temporary id for this variable collection.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable collection.\"\n                    },\n                    \"initialModeId\": {\n                      \"type\": \"string\",\n                      \"description\": \"The initial mode refers to the mode that is created by default. You can set a temporary id here, in order to reference this mode later in this request.\"\n                    },\n                    \"hiddenFromPublishing\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether this variable collection is hidden when publishing the current file as a library.\",\n                      \"default\": false\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"name\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about updating a `VariableCollection`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable collection.\",\n                      \"enum\": [\n                        \"UPDATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable collection to update.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable collection.\"\n                    },\n                    \"hiddenFromPublishing\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether this variable collection is hidden when publishing the current file as a library.\",\n                      \"default\": false\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about deleting a `VariableCollection`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable collection.\",\n                      \"enum\": [\n                        \"DELETE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable collection to delete.\"\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\"\n                  ]\n                }\n              ],\n              \"discriminator\": {\n                \"propertyName\": \"action\",\n                \"mapping\": {\n                  \"CREATE\": \"#/components/schemas/VariableCollectionCreate\",\n                  \"UPDATE\": \"#/components/schemas/VariableCollectionUpdate\",\n                  \"DELETE\": \"#/components/schemas/VariableCollectionDelete\"\n                }\n              }\n            }\n          },\n          \"variableModes\": {\n            \"type\": \"array\",\n            \"description\": \"For creating, updating, and deleting modes within variable collections.\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about creating a `VariableMode`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable mode.\",\n                      \"enum\": [\n                        \"CREATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"A temporary id for this variable mode.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable mode.\"\n                    },\n                    \"variableCollectionId\": {\n                      \"type\": \"string\",\n                      \"description\": \"The variable collection that will contain the mode. You can use the temporary id of a variable collection.\"\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"name\",\n                    \"variableCollectionId\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about updating a `VariableMode`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable mode.\",\n                      \"enum\": [\n                        \"UPDATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable mode to update.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable mode.\"\n                    },\n                    \"variableCollectionId\": {\n                      \"type\": \"string\",\n                      \"description\": \"The variable collection that contains the mode.\"\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\",\n                    \"variableCollectionId\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about deleting a `VariableMode`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable mode.\",\n                      \"enum\": [\n                        \"DELETE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable mode to delete.\"\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\"\n                  ]\n                }\n              ],\n              \"discriminator\": {\n                \"propertyName\": \"action\",\n                \"mapping\": {\n                  \"CREATE\": \"#/components/schemas/VariableModeCreate\",\n                  \"UPDATE\": \"#/components/schemas/VariableModeUpdate\",\n                  \"DELETE\": \"#/components/schemas/VariableModeDelete\"\n                }\n              }\n            }\n          },\n          \"variables\": {\n            \"type\": \"array\",\n            \"description\": \"For creating, updating, and deleting variables.\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about creating a `Variable`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable.\",\n                      \"enum\": [\n                        \"CREATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"A temporary id for this variable.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable.\"\n                    },\n                    \"variableCollectionId\": {\n                      \"type\": \"string\",\n                      \"description\": \"The variable collection that will contain the variable. You can use the temporary id of a variable collection.\"\n                    },\n                    \"resolvedType\": {\n                      \"type\": \"string\",\n                      \"description\": \"Defines the types of data a VariableData object can eventually equal\",\n                      \"enum\": [\n                        \"BOOLEAN\",\n                        \"FLOAT\",\n                        \"STRING\",\n                        \"COLOR\"\n                      ]\n                    },\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"description\": \"The description of this variable.\"\n                    },\n                    \"hiddenFromPublishing\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether this variable is hidden when publishing the current file as a library.\",\n                      \"default\": false\n                    },\n                    \"scopes\": {\n                      \"type\": \"array\",\n                      \"description\": \"An array of scopes in the UI where this variable is shown. Setting this property will show/hide this variable in the variable picker UI for different fields.\",\n                      \"items\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"ALL_SCOPES\",\n                          \"TEXT_CONTENT\",\n                          \"CORNER_RADIUS\",\n                          \"WIDTH_HEIGHT\",\n                          \"GAP\",\n                          \"ALL_FILLS\",\n                          \"FRAME_FILL\",\n                          \"SHAPE_FILL\",\n                          \"TEXT_FILL\",\n                          \"STROKE_COLOR\",\n                          \"STROKE_FLOAT\",\n                          \"EFFECT_FLOAT\",\n                          \"EFFECT_COLOR\",\n                          \"OPACITY\",\n                          \"FONT_FAMILY\",\n                          \"FONT_STYLE\",\n                          \"FONT_WEIGHT\",\n                          \"FONT_SIZE\",\n                          \"LINE_HEIGHT\",\n                          \"LETTER_SPACING\",\n                          \"PARAGRAPH_SPACING\",\n                          \"PARAGRAPH_INDENT\",\n                          \"FONT_VARIATIONS\"\n                        ],\n                        \"description\": \"Scopes allow a variable to be shown or hidden in the variable picker for various fields. This declutters the Figma UI if you have a large number of variables. Variable scopes are currently supported on `FLOAT`, `STRING`, and `COLOR` variables.\\n\\n`ALL_SCOPES` is a special scope that means that the variable will be shown in the variable picker for all variable fields. If `ALL_SCOPES` is set, no additional scopes can be set.\\n\\n`ALL_FILLS` is a special scope that means that the variable will be shown in the variable picker for all fill fields. If `ALL_FILLS` is set, no additional fill scopes can be set.\\n\\nValid scopes for `FLOAT` variables:\\n- `ALL_SCOPES`\\n- `TEXT_CONTENT`\\n- `WIDTH_HEIGHT`\\n- `GAP`\\n- `STROKE_FLOAT`\\n- `EFFECT_FLOAT`\\n- `OPACITY`\\n- `FONT_WEIGHT`\\n- `FONT_SIZE`\\n- `LINE_HEIGHT`\\n- `LETTER_SPACING`\\n- `PARAGRAPH_SPACING`\\n- `PARAGRAPH_INDENT`\\n\\nValid scopes for `STRING` variables:\\n- `ALL_SCOPES`\\n- `TEXT_CONTENT`\\n- `FONT_FAMILY`\\n- `FONT_STYLE`\\n\\nValid scopes for `COLOR` variables:\\n- `ALL_SCOPES`\\n- `ALL_FILLS`\\n- `FRAME_FILL`\\n- `SHAPE_FILL`\\n- `TEXT_FILL`\\n- `STROKE_COLOR`\\n- `EFFECT_COLOR`\"\n                      }\n                    },\n                    \"codeSyntax\": {\n                      \"type\": \"object\",\n                      \"description\": \"An object containing platform-specific code syntax definitions for a variable. All platforms are optional.\",\n                      \"properties\": {\n                        \"WEB\": {\n                          \"type\": \"string\"\n                        },\n                        \"ANDROID\": {\n                          \"type\": \"string\"\n                        },\n                        \"iOS\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"name\",\n                    \"variableCollectionId\",\n                    \"resolvedType\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about updating a `Variable`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable.\",\n                      \"enum\": [\n                        \"UPDATE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable to update.\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"The name of this variable.\"\n                    },\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"description\": \"The description of this variable.\"\n                    },\n                    \"hiddenFromPublishing\": {\n                      \"type\": \"boolean\",\n                      \"description\": \"Whether this variable is hidden when publishing the current file as a library.\",\n                      \"default\": false\n                    },\n                    \"scopes\": {\n                      \"type\": \"array\",\n                      \"description\": \"An array of scopes in the UI where this variable is shown. Setting this property will show/hide this variable in the variable picker UI for different fields.\",\n                      \"items\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"ALL_SCOPES\",\n                          \"TEXT_CONTENT\",\n                          \"CORNER_RADIUS\",\n                          \"WIDTH_HEIGHT\",\n                          \"GAP\",\n                          \"ALL_FILLS\",\n                          \"FRAME_FILL\",\n                          \"SHAPE_FILL\",\n                          \"TEXT_FILL\",\n                          \"STROKE_COLOR\",\n                          \"STROKE_FLOAT\",\n                          \"EFFECT_FLOAT\",\n                          \"EFFECT_COLOR\",\n                          \"OPACITY\",\n                          \"FONT_FAMILY\",\n                          \"FONT_STYLE\",\n                          \"FONT_WEIGHT\",\n                          \"FONT_SIZE\",\n                          \"LINE_HEIGHT\",\n                          \"LETTER_SPACING\",\n                          \"PARAGRAPH_SPACING\",\n                          \"PARAGRAPH_INDENT\",\n                          \"FONT_VARIATIONS\"\n                        ],\n                        \"description\": \"Scopes allow a variable to be shown or hidden in the variable picker for various fields. This declutters the Figma UI if you have a large number of variables. Variable scopes are currently supported on `FLOAT`, `STRING`, and `COLOR` variables.\\n\\n`ALL_SCOPES` is a special scope that means that the variable will be shown in the variable picker for all variable fields. If `ALL_SCOPES` is set, no additional scopes can be set.\\n\\n`ALL_FILLS` is a special scope that means that the variable will be shown in the variable picker for all fill fields. If `ALL_FILLS` is set, no additional fill scopes can be set.\\n\\nValid scopes for `FLOAT` variables:\\n- `ALL_SCOPES`\\n- `TEXT_CONTENT`\\n- `WIDTH_HEIGHT`\\n- `GAP`\\n- `STROKE_FLOAT`\\n- `EFFECT_FLOAT`\\n- `OPACITY`\\n- `FONT_WEIGHT`\\n- `FONT_SIZE`\\n- `LINE_HEIGHT`\\n- `LETTER_SPACING`\\n- `PARAGRAPH_SPACING`\\n- `PARAGRAPH_INDENT`\\n\\nValid scopes for `STRING` variables:\\n- `ALL_SCOPES`\\n- `TEXT_CONTENT`\\n- `FONT_FAMILY`\\n- `FONT_STYLE`\\n\\nValid scopes for `COLOR` variables:\\n- `ALL_SCOPES`\\n- `ALL_FILLS`\\n- `FRAME_FILL`\\n- `SHAPE_FILL`\\n- `TEXT_FILL`\\n- `STROKE_COLOR`\\n- `EFFECT_COLOR`\"\n                      }\n                    },\n                    \"codeSyntax\": {\n                      \"type\": \"object\",\n                      \"description\": \"An object containing platform-specific code syntax definitions for a variable. All platforms are optional.\",\n                      \"properties\": {\n                        \"WEB\": {\n                          \"type\": \"string\"\n                        },\n                        \"ANDROID\": {\n                          \"type\": \"string\"\n                        },\n                        \"iOS\": {\n                          \"type\": \"string\"\n                        }\n                      }\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\"\n                  ]\n                },\n                {\n                  \"type\": \"object\",\n                  \"description\": \"An object that contains details about deleting a `Variable`.\",\n                  \"properties\": {\n                    \"action\": {\n                      \"type\": \"string\",\n                      \"description\": \"The action to perform for the variable.\",\n                      \"enum\": [\n                        \"DELETE\"\n                      ]\n                    },\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"description\": \"The id of the variable to delete.\"\n                    }\n                  },\n                  \"required\": [\n                    \"action\",\n                    \"id\"\n                  ]\n                }\n              ],\n              \"discriminator\": {\n                \"propertyName\": \"action\",\n                \"mapping\": {\n                  \"CREATE\": \"#/components/schemas/VariableCreate\",\n                  \"UPDATE\": \"#/components/schemas/VariableUpdate\",\n                  \"DELETE\": \"#/components/schemas/VariableDelete\"\n                }\n              }\n            }\n          },\n          \"variableModeValues\": {\n            \"type\": \"array\",\n            \"description\": \"For setting a specific value, given a variable and a mode.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"An object that represents a value for a given mode of a variable. All properties are required.\",\n              \"properties\": {\n                \"variableId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The target variable. You can use the temporary id of a variable.\"\n                },\n                \"modeId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Must correspond to a mode in the variable collection that contains the target variable.\"\n                },\n                \"value\": {\n                  \"description\": \"The value for the variable. The value must match the variable's type. If setting to a variable alias, the alias must resolve to this type.\",\n                  \"oneOf\": [\n                    {\n                      \"type\": \"boolean\"\n                    },\n                    {\n                      \"type\": \"number\"\n                    },\n                    {\n                      \"type\": \"string\"\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"description\": \"An RGB color\",\n                      \"properties\": {\n                        \"r\": {\n                          \"type\": \"number\",\n                          \"description\": \"Red channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        },\n                        \"g\": {\n                          \"type\": \"number\",\n                          \"description\": \"Green channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        },\n                        \"b\": {\n                          \"type\": \"number\",\n                          \"description\": \"Blue channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        }\n                      },\n                      \"required\": [\n                        \"r\",\n                        \"g\",\n                        \"b\"\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"description\": \"An RGBA color\",\n                      \"properties\": {\n                        \"r\": {\n                          \"type\": \"number\",\n                          \"description\": \"Red channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        },\n                        \"g\": {\n                          \"type\": \"number\",\n                          \"description\": \"Green channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        },\n                        \"b\": {\n                          \"type\": \"number\",\n                          \"description\": \"Blue channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        },\n                        \"a\": {\n                          \"type\": \"number\",\n                          \"description\": \"Alpha channel value, between 0 and 1.\",\n                          \"minimum\": 0,\n                          \"maximum\": 1\n                        }\n                      },\n                      \"required\": [\n                        \"r\",\n                        \"g\",\n                        \"b\",\n                        \"a\"\n                      ]\n                    },\n                    {\n                      \"type\": \"object\",\n                      \"description\": \"Contains a variable alias\",\n                      \"properties\": {\n                        \"type\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"VARIABLE_ALIAS\"\n                          ]\n                        },\n                        \"id\": {\n                          \"type\": \"string\",\n                          \"description\": \"The id of the variable that the current variable is aliased to. This variable can be a local or remote variable, and both can be retrieved via the GET /v1/files/:file_key/variables/local endpoint.\"\n                        }\n                      },\n                      \"required\": [\n                        \"type\",\n                        \"id\"\n                      ]\n                    }\n                  ]\n                }\n              },\n              \"required\": [\n                \"variableId\",\n                \"modeId\",\n                \"value\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
