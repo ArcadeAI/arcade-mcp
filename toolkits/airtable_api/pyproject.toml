@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_airtable_api"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tools that enable LLMs to interact directly with the airtable API."
 requires-python = ">=3.10"
 dependencies = [
@@ -16,8 +16,8 @@ email = "support@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-mcp[all]>=1.0.0rc2,<3.0.0",
-    "arcade-serve>=2.0.0,<3.0.0",
+    "arcade-mcp[all]>=1.2.0,<2.0.0",
+    "arcade-serve>=3.0.0,<4.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-mock>=3.11.1,<3.12.0",
