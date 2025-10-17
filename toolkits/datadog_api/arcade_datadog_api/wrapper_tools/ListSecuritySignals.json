@@ -1,0 +1,297 @@
+{
+  "name": "ListSecuritySignals",
+  "fully_qualified_name": "DatadogApi.ListSecuritySignals@0.1.0",
+  "description": "Retrieve security signals that match a search query.\n\nThis tool retrieves a list of security signals from Datadog based on a search query, using the GET method for the security monitoring signals endpoint.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_query_for_security_signals",
+        "required": false,
+        "description": "The search query string used to filter security signals from Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query for security signals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[query]"
+      },
+      {
+        "name": "minimum_timestamp",
+        "required": false,
+        "description": "The minimum timestamp to filter security signals. Format: ISO 8601 string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum timestamp for requested security signals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[from]"
+      },
+      {
+        "name": "max_timestamp_for_security_signals",
+        "required": false,
+        "description": "Specify the maximum timestamp for retrieving security signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum timestamp for requested security signals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[to]"
+      },
+      {
+        "name": "result_sort_order",
+        "required": false,
+        "description": "Specify the sort order for the security signals. Use 'timestamp' for ascending order, '-timestamp' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of the security signals in results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "cursor_based_pagination",
+        "required": false,
+        "description": "Cursor for pagination to continue retrieving results from a previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of results using the cursor provided in the previous query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[cursor]"
+      },
+      {
+        "name": "max_security_signals_response",
+        "required": false,
+        "description": "Specify the maximum number of security signals to return in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of security signals in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[limit]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListSecurityMonitoringSignals'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/signals",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[query]",
+        "tool_parameter_name": "search_query_for_security_signals",
+        "description": "The search query for security signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query for security signals."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[from]",
+        "tool_parameter_name": "minimum_timestamp",
+        "description": "The minimum timestamp for requested security signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum timestamp for requested security signals."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[to]",
+        "tool_parameter_name": "max_timestamp_for_security_signals",
+        "description": "The maximum timestamp for requested security signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum timestamp for requested security signals."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "result_sort_order",
+        "description": "The order of the security signals in results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order of the security signals in results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[cursor]",
+        "tool_parameter_name": "cursor_based_pagination",
+        "description": "A list of results using the cursor provided in the previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of results using the cursor provided in the previous query."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[limit]",
+        "tool_parameter_name": "max_security_signals_response",
+        "description": "The maximum number of security signals in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of security signals in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

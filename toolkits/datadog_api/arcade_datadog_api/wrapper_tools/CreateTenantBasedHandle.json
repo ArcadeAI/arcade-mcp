@@ -1,0 +1,262 @@
+{
+  "name": "CreateTenantBasedHandle",
+  "fully_qualified_name": "DatadogApi.CreateTenantBasedHandle@0.1.0",
+  "description": "Create a tenant-based handle in Datadog for Teams.\n\nUse this tool to create a new tenant-based handle for the Microsoft Teams integration within Datadog. It should be called when you need to configure or add a handle specific to a tenant in Datadog's Microsoft Teams integration.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "channel_id",
+        "required": true,
+        "description": "ID of the Microsoft Teams channel to associate with the tenant-based handle.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Channel id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.channel_id"
+      },
+      {
+        "name": "handle_name",
+        "required": true,
+        "description": "The name for the tenant-based handle you wish to create in the Datadog Microsoft Teams integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tenant-based handle name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The ID of the Microsoft Teams team to associate with the Datadog handle.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.team_id"
+      },
+      {
+        "name": "tenant_id",
+        "required": true,
+        "description": "The unique identifier for the tenant in the Datadog Microsoft Teams integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tenant id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.tenant_id"
+      },
+      {
+        "name": "resource_type",
+        "required": true,
+        "description": "Specifies the resource type as 'tenant-based-handle'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "tenant-based-handle"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant-based handle resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTenantBasedHandle'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integration/ms-teams/configuration/tenant-based-handles",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.channel_id",
+        "tool_parameter_name": "channel_id",
+        "description": "Channel id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Channel id."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "handle_name",
+        "description": "Tenant-based handle name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tenant-based handle name."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.team_id",
+        "tool_parameter_name": "team_id",
+        "description": "Team id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team id."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.tenant_id",
+        "tool_parameter_name": "tenant_id",
+        "description": "Tenant id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tenant id."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "resource_type",
+        "description": "Specifies the tenant-based handle resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "tenant-based-handle"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant-based handle resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "tenant-based-handle",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Create tenant-based handle request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Tenant-based handle data from a response.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Tenant-based handle attributes.\",\n                \"properties\": {\n                  \"channel_id\": {\n                    \"description\": \"Channel id.\",\n                    \"example\": \"fake-channel-id\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Tenant-based handle name.\",\n                    \"example\": \"fake-handle-name\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  },\n                  \"team_id\": {\n                    \"description\": \"Team id.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  },\n                  \"tenant_id\": {\n                    \"description\": \"Tenant id.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000001\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"channel_id\",\n                  \"team_id\",\n                  \"tenant_id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"tenant-based-handle\",\n                \"description\": \"Specifies the tenant-based handle resource type.\",\n                \"enum\": [\n                  \"tenant-based-handle\"\n                ],\n                \"example\": \"tenant-based-handle\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TENANT_BASED_HANDLE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Tenant-based handle payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

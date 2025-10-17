@@ -1,0 +1,215 @@
+{
+  "name": "OrderRumRetentionFilters",
+  "fully_qualified_name": "DatadogApi.OrderRumRetentionFilters@0.1.0",
+  "description": "Order RUM retention filters for a RUM application.\n\nUse this tool to reorder the RUM retention filters for a specified RUM application. It returns the updated RUM retention filter objects without attributes when successful.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rum_application_id",
+        "required": true,
+        "description": "The ID of the RUM application for which to order retention filters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_id"
+      },
+      {
+        "name": "new_rum_retention_filter_definition",
+        "required": true,
+        "description": "JSON object defining the new RUM retention filter. Includes a list of filter IDs with type. Expected format: {\"data\": [{\"id\": \"UUID\", \"type\": \"retention_filters\"}]}",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of retention filter in UUID."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "retention_filters"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be retention_filters."
+                }
+              },
+              "description": "A list of RUM retention filter IDs along with type."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the RUM retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'OrderRetentionFilters'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/rum/applications/{app_id}/relationships/retention_filters",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "app_id",
+        "tool_parameter_name": "rum_application_id",
+        "description": "RUM application ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_rum_retention_filter_definition",
+        "description": "New definition of the RUM retention filter.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of retention filter in UUID."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "retention_filters"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be retention_filters."
+                }
+              },
+              "description": "A list of RUM retention filter IDs along with type."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the RUM retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The list of RUM retention filter IDs along with their corresponding type to reorder.\\nAll retention filter IDs should be included in the list created for a RUM application.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A list of RUM retention filter IDs along with type.\",\n            \"items\": {\n              \"description\": \"The RUM retention filter data for ordering.\",\n              \"properties\": {\n                \"id\": {\n                  \"description\": \"ID of retention filter in UUID.\",\n                  \"example\": \"051601eb-54a0-abc0-03f9-cc02efa18892\",\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"default\": \"retention_filters\",\n                  \"description\": \"The type of the resource. The value should always be retention_filters.\",\n                  \"enum\": [\n                    \"retention_filters\"\n                  ],\n                  \"example\": \"retention_filters\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"RETENTION_FILTERS\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"id\",\n                \"type\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the RUM retention filter.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

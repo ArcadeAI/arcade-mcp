@@ -1,0 +1,229 @@
+{
+  "name": "UpdateWorkflowsWebhookHandle",
+  "fully_qualified_name": "DatadogApi.UpdateWorkflowsWebhookHandle@0.1.0",
+  "description": "Update a webhook handle in Datadog's Microsoft Teams integration.\n\nThis tool updates a Workflows webhook handle for the Datadog Microsoft Teams integration. Use it to modify existing webhook configurations.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webhook_handle_id",
+        "required": true,
+        "description": "The unique identifier for the Workflows webhook handle to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Your Workflows webhook handle id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "handle_id"
+      },
+      {
+        "name": "webhook_handle_resource_type",
+        "required": true,
+        "description": "Specifies the Workflows webhook handle resource type. Use 'workflows-webhook-handle'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "workflows-webhook-handle"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the Workflows webhook handle resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "webhook_handle_name",
+        "required": false,
+        "description": "The name of the Workflows Webhook handle to be updated. This should be a descriptive string identifying the webhook.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workflows Webhook handle name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "workflows_webhook_url",
+        "required": false,
+        "description": "The URL for the Workflows Webhook. Specify the endpoint to send requests to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workflows Webhook URL."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.url"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateWorkflowsWebhookHandle'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integration/ms-teams/configuration/workflows-webhook-handles/{handle_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "handle_id",
+        "tool_parameter_name": "webhook_handle_id",
+        "description": "Your Workflows webhook handle id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Your Workflows webhook handle id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "webhook_handle_name",
+        "description": "Workflows Webhook handle name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workflows Webhook handle name."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.url",
+        "tool_parameter_name": "workflows_webhook_url",
+        "description": "Workflows Webhook URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Workflows Webhook URL."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "webhook_handle_resource_type",
+        "description": "Specifies the Workflows webhook handle resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "workflows-webhook-handle"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the Workflows webhook handle resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "workflows-webhook-handle",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update Workflows webhook handle request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Workflows Webhook handle data from a response.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Workflows Webhook handle attributes.\",\n                \"properties\": {\n                  \"name\": {\n                    \"description\": \"Workflows Webhook handle name.\",\n                    \"example\": \"fake-handle-name\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  },\n                  \"url\": {\n                    \"description\": \"Workflows Webhook URL.\",\n                    \"example\": \"https://fake.url.com\",\n                    \"maxLength\": 255,\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"workflows-webhook-handle\",\n                \"description\": \"Specifies the Workflows webhook handle resource type.\",\n                \"enum\": [\n                  \"workflows-webhook-handle\"\n                ],\n                \"example\": \"workflows-webhook-handle\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"WORKFLOWS_WEBHOOK_HANDLE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Workflows Webhook handle payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

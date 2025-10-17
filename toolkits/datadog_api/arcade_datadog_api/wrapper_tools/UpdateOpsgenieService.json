@@ -1,0 +1,336 @@
+{
+  "name": "UpdateOpsgenieService",
+  "fully_qualified_name": "DatadogApi.UpdateOpsgenieService@0.1.0",
+  "description": "Update a service in the Datadog Opsgenie integration.\n\nThis tool updates a specified service object within the Datadog Opsgenie integration. It should be called when you need to modify an existing Opsgenie service.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "service_uuid",
+        "required": true,
+        "description": "The UUID of the service to be updated in the Datadog Opsgenie integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integration_service_id"
+      },
+      {
+        "name": "opsgenie_service_id",
+        "required": true,
+        "description": "The unique identifier of the Opsgenie service to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Opsgenie service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "opsgenie_service_resource_type",
+        "required": true,
+        "description": "Specify as 'opsgenie-service' to denote the Opsgenie service resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "opsgenie-service"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Opsgenie service resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "custom_region_url",
+        "required": false,
+        "description": "The custom URL for a specific Opsgenie region. Specify if using a custom region.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The custom URL for a custom region."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.custom_url"
+      },
+      {
+        "name": "opsgenie_service_name",
+        "required": false,
+        "description": "The name for the Opsgenie service to update. It should uniquely identify the service within your Opsgenie account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for the Opsgenie service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "opsgenie_api_key",
+        "required": false,
+        "description": "The API key for your Opsgenie service, needed to authenticate the update request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Opsgenie API key for your Opsgenie service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.opsgenie_api_key"
+      },
+      {
+        "name": "opsgenie_service_region",
+        "required": false,
+        "description": "Specify the region for the Opsgenie service. Allowed values are 'us', 'eu', or 'custom'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "us",
+            "eu",
+            "custom"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The region for the Opsgenie service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.region"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateOpsgenieService'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integration/opsgenie/services/{integration_service_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "integration_service_id",
+        "tool_parameter_name": "service_uuid",
+        "description": "The UUID of the service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the service."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.custom_url",
+        "tool_parameter_name": "custom_region_url",
+        "description": "The custom URL for a custom region.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The custom URL for a custom region."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "opsgenie_service_name",
+        "description": "The name for the Opsgenie service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for the Opsgenie service."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.opsgenie_api_key",
+        "tool_parameter_name": "opsgenie_api_key",
+        "description": "The Opsgenie API key for your Opsgenie service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Opsgenie API key for your Opsgenie service."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.region",
+        "tool_parameter_name": "opsgenie_service_region",
+        "description": "The region for the Opsgenie service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "us",
+            "eu",
+            "custom"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The region for the Opsgenie service."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "opsgenie_service_id",
+        "description": "The ID of the Opsgenie service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Opsgenie service."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "opsgenie_service_resource_type",
+        "description": "Opsgenie service resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "opsgenie-service"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Opsgenie service resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "opsgenie-service",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update request for an Opsgenie service.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Opsgenie service for an update request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The Opsgenie service attributes for an update request.\",\n                \"properties\": {\n                  \"custom_url\": {\n                    \"description\": \"The custom URL for a custom region.\",\n                    \"example\": \"https://example.com\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name for the Opsgenie service.\",\n                    \"example\": \"fake-opsgenie-service-name\",\n                    \"maxLength\": 100,\n                    \"type\": \"string\"\n                  },\n                  \"opsgenie_api_key\": {\n                    \"description\": \"The Opsgenie API key for your Opsgenie service.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"type\": \"string\"\n                  },\n                  \"region\": {\n                    \"description\": \"The region for the Opsgenie service.\",\n                    \"enum\": [\n                      \"us\",\n                      \"eu\",\n                      \"custom\"\n                    ],\n                    \"example\": \"us\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"US\",\n                      \"EU\",\n                      \"CUSTOM\"\n                    ]\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the Opsgenie service.\",\n                \"example\": \"596da4af-0563-4097-90ff-07230c3f9db3\",\n                \"maxLength\": 100,\n                \"minLength\": 1,\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"opsgenie-service\",\n                \"description\": \"Opsgenie service resource type.\",\n                \"enum\": [\n                  \"opsgenie-service\"\n                ],\n                \"example\": \"opsgenie-service\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"OPSGENIE_SERVICE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Opsgenie service payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

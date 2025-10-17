@@ -1,0 +1,363 @@
+{
+  "name": "FetchMonthlyCostAttribution",
+  "fully_qualified_name": "DatadogApi.FetchMonthlyCostAttribution@0.1.0",
+  "description": "Retrieve monthly cost attribution data by tag.\n\nFetch detailed monthly cost attribution by tag for both multi-org and single root-org accounts. Use this to track and report cost allocations within an organization after the 19th of each month. Ensure to handle pagination if necessary to acquire all records.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_month",
+        "required": true,
+        "description": "Datetime in ISO-8601 format, UTC, precise to month `[YYYY-MM]`. Represents the start of the costing period.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning in this month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_month"
+      },
+      {
+        "name": "cost_types_fields",
+        "required": true,
+        "description": "Comma-separated list specifying cost types and proportions. Use `*` to retrieve all fields. Example: `infra_host_on_demand_cost,infra_host_percentage_in_account`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list specifying cost types (e.g., `<billing_dimension>_on_demand_cost`, `<billing_dimension>_committed_cost`, `<billing_dimension>_total_cost`) and the\nproportions (`<billing_dimension>_percentage_in_org`, `<billing_dimension>_percentage_in_account`). Use `*` to retrieve all fields.\nExample: `infra_host_on_demand_cost,infra_host_percentage_in_account`\nTo obtain the complete list of active billing dimensions that can be used to replace\n`<billing_dimension>` in the field names, make a request to the [Get active billing dimensions API](https://docs.datadoghq.com/api/latest/usage-metering/#get-active-billing-dimensions-for-cost-attribution)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "end_month",
+        "required": false,
+        "description": "The final month for cost calculation. Use ISO-8601 format `[YYYY-MM]` to specify the month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_month"
+      },
+      {
+        "name": "sort_by_direction",
+        "required": false,
+        "description": "Specifies the direction to sort cost attribution data. Use 'desc' for descending or 'asc' for ascending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort by: `[desc, asc]`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_direction"
+      },
+      {
+        "name": "sort_by_billing_dimension",
+        "required": false,
+        "description": "Billing dimension to sort by. Defaults to sorting by total cost. Example: 'infra_host'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The billing dimension to sort by. Always sorted by total cost. Example: `infra_host`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_name"
+      },
+      {
+        "name": "tag_keys_for_cost_grouping",
+        "required": false,
+        "description": "Comma-separated list of tag keys used to group costs. If empty, costs won't be grouped by tag. Check `tag_config_source` in the API response for available tags.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of tag keys used to group cost. If no value is provided the cost will not be broken down by tags.\nTo see which tags are available, look for the value of `tag_config_source` in the API response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tag_breakdown_keys"
+      },
+      {
+        "name": "pagination_next_record_id",
+        "required": false,
+        "description": "Identifier for fetching the next set of results in a paginated response. Use the 'next_record_id' from the previous response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a next_record_id provided in the previous query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_record_id"
+      },
+      {
+        "name": "include_child_organization_costs",
+        "required": false,
+        "description": "Include child organization costs in the response. Defaults to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include child org cost in the response. Defaults to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_descendants"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetMonthlyCostAttribution'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost_by_tag/monthly_cost_attribution",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start_month",
+        "tool_parameter_name": "start_month",
+        "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning in this month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost beginning in this month."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_month",
+        "tool_parameter_name": "end_month",
+        "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to month: `[YYYY-MM]` for cost ending this month."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "cost_types_fields",
+        "description": "Comma-separated list specifying cost types (e.g., `<billing_dimension>_on_demand_cost`, `<billing_dimension>_committed_cost`, `<billing_dimension>_total_cost`) and the\nproportions (`<billing_dimension>_percentage_in_org`, `<billing_dimension>_percentage_in_account`). Use `*` to retrieve all fields.\nExample: `infra_host_on_demand_cost,infra_host_percentage_in_account`\nTo obtain the complete list of active billing dimensions that can be used to replace\n`<billing_dimension>` in the field names, make a request to the [Get active billing dimensions API](https://docs.datadoghq.com/api/latest/usage-metering/#get-active-billing-dimensions-for-cost-attribution).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list specifying cost types (e.g., `<billing_dimension>_on_demand_cost`, `<billing_dimension>_committed_cost`, `<billing_dimension>_total_cost`) and the\nproportions (`<billing_dimension>_percentage_in_org`, `<billing_dimension>_percentage_in_account`). Use `*` to retrieve all fields.\nExample: `infra_host_on_demand_cost,infra_host_percentage_in_account`\nTo obtain the complete list of active billing dimensions that can be used to replace\n`<billing_dimension>` in the field names, make a request to the [Get active billing dimensions API](https://docs.datadoghq.com/api/latest/usage-metering/#get-active-billing-dimensions-for-cost-attribution)."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_direction",
+        "tool_parameter_name": "sort_by_direction",
+        "description": "The direction to sort by: `[desc, asc]`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort by: `[desc, asc]`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "desc",
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_name",
+        "tool_parameter_name": "sort_by_billing_dimension",
+        "description": "The billing dimension to sort by. Always sorted by total cost. Example: `infra_host`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The billing dimension to sort by. Always sorted by total cost. Example: `infra_host`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tag_breakdown_keys",
+        "tool_parameter_name": "tag_keys_for_cost_grouping",
+        "description": "Comma separated list of tag keys used to group cost. If no value is provided the cost will not be broken down by tags.\nTo see which tags are available, look for the value of `tag_config_source` in the API response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of tag keys used to group cost. If no value is provided the cost will not be broken down by tags.\nTo see which tags are available, look for the value of `tag_config_source` in the API response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_record_id",
+        "tool_parameter_name": "pagination_next_record_id",
+        "description": "List following results with a next_record_id provided in the previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a next_record_id provided in the previous query."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_descendants",
+        "tool_parameter_name": "include_child_organization_costs",
+        "description": "Include child org cost in the response. Defaults to `true`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include child org cost in the response. Defaults to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

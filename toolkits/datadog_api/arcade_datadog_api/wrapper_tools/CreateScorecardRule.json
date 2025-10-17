@@ -1,0 +1,344 @@
+{
+  "name": "CreateScorecardRule",
+  "fully_qualified_name": "DatadogApi.CreateScorecardRule@0.1.0",
+  "description": "Create a new scorecard rule in Datadog.\n\nUse this tool to create a new scorecard rule in Datadog when you need to automate monitoring tasks or enforce policies. Ideal for setting up performance metrics or compliance checks.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rule_attributes",
+        "required": true,
+        "description": "JSON object with details about the scorecard rule to create, including attributes like category, enabled status, level, owner, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "category": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scorecard name to which this rule must belong."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Creation time of the rule outcome."
+                    },
+                    "custom": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines if the rule is a custom rule."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Explanation of the rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If enabled, the rule is calculated as part of the score."
+                    },
+                    "level": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The maturity level of the rule (1, 2, or 3)."
+                    },
+                    "modified_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Time of the last rule outcome modification."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the rule."
+                    },
+                    "owner": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Owner of the rule."
+                    },
+                    "scorecard_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scorecard name to which this rule must belong."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Details of a rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for scorecard rules."
+                }
+              },
+              "inner_properties": null,
+              "description": "Scorecard create rule request data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Rule attributes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateScorecardRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/scorecard/rules",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "rule_attributes",
+        "description": "Rule attributes.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "category": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scorecard name to which this rule must belong."
+                    },
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Creation time of the rule outcome."
+                    },
+                    "custom": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Defines if the rule is a custom rule."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Explanation of the rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If enabled, the rule is calculated as part of the score."
+                    },
+                    "level": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The maturity level of the rule (1, 2, or 3)."
+                    },
+                    "modified_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Time of the last rule outcome modification."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the rule."
+                    },
+                    "owner": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Owner of the rule."
+                    },
+                    "scorecard_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scorecard name to which this rule must belong."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Details of a rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for scorecard rules."
+                }
+              },
+              "inner_properties": null,
+              "description": "Scorecard create rule request data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Rule attributes."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Scorecard create rule request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Scorecard create rule request data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Details of a rule.\",\n                \"properties\": {\n                  \"category\": {\n                    \"deprecated\": true,\n                    \"description\": \"The scorecard name to which this rule must belong.\",\n                    \"type\": \"string\"\n                  },\n                  \"created_at\": {\n                    \"description\": \"Creation time of the rule outcome.\",\n                    \"format\": \"date-time\",\n                    \"type\": \"string\"\n                  },\n                  \"custom\": {\n                    \"description\": \"Defines if the rule is a custom rule.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"description\": {\n                    \"description\": \"Explanation of the rule.\",\n                    \"type\": \"string\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"If enabled, the rule is calculated as part of the score.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"level\": {\n                    \"description\": \"The maturity level of the rule (1, 2, or 3).\",\n                    \"example\": 2,\n                    \"format\": \"int32\",\n                    \"maximum\": 3,\n                    \"minimum\": 1,\n                    \"type\": \"integer\"\n                  },\n                  \"modified_at\": {\n                    \"description\": \"Time of the last rule outcome modification.\",\n                    \"format\": \"date-time\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the rule.\",\n                    \"example\": \"Team Defined\",\n                    \"type\": \"string\"\n                  },\n                  \"owner\": {\n                    \"description\": \"Owner of the rule.\",\n                    \"type\": \"string\"\n                  },\n                  \"scorecard_name\": {\n                    \"description\": \"The scorecard name to which this rule must belong.\",\n                    \"example\": \"Deployments automated via Deployment Trains\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"rule\",\n                \"description\": \"The JSON:API type for scorecard rules.\",\n                \"enum\": [\n                  \"rule\"\n                ],\n                \"example\": \"rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"RULE\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Rule attributes.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

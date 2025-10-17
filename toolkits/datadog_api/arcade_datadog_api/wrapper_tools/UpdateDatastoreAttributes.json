@@ -1,0 +1,262 @@
+{
+  "name": "UpdateDatastoreAttributes",
+  "fully_qualified_name": "DatadogApi.UpdateDatastoreAttributes@0.1.0",
+  "description": "Update attributes of an existing datastore in Datadog.\n\nUse this tool to update details of an existing datastore in Datadog by specifying its ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_unique_identifier",
+        "required": true,
+        "description": "The unique identifier of the datastore to update in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "datastore_id"
+      },
+      {
+        "name": "datastore_description",
+        "required": false,
+        "description": "A human-readable description for the datastore. Use this to provide additional information or context about the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable description about the datastore."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "datastore_display_name",
+        "required": false,
+        "description": "The display name of the datastore to be updated. Provide a concise, human-readable name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display name of the datastore."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "datastore_update_id",
+        "required": false,
+        "description": "The unique identifier for the datastore that needs to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "resource_type_for_datastores",
+        "required": false,
+        "description": "Specifies the resource type for datastores. Must be 'datastores'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "datastores"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type for datastores."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateDatastore'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores/{datastore_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "datastore_id",
+        "tool_parameter_name": "datastore_unique_identifier",
+        "description": "The unique identifier of the datastore to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "datastore_description",
+        "description": "A human-readable description about the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable description about the datastore."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "datastore_display_name",
+        "description": "The display name of the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The display name of the datastore."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "datastore_update_id",
+        "description": "The unique identifier of the datastore to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to update."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "resource_type_for_datastores",
+        "description": "The resource type for datastores.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "datastores"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The resource type for datastores."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "datastores",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to update a datastore's configuration such as its name or description.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data wrapper containing the datastore identifier and the attributes to update.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes that can be updated on a datastore.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"A human-readable description about the datastore.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The display name of the datastore.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the datastore to update.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"datastores\",\n                \"description\": \"The resource type for datastores.\",\n                \"enum\": [\n                  \"datastores\"\n                ],\n                \"example\": \"datastores\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"DATASTORES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

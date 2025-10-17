@@ -1,0 +1,159 @@
+{
+  "name": "GetBillingDimensionMapping",
+  "fully_qualified_name": "DatadogApi.GetBillingDimensionMapping@0.1.0",
+  "description": "Retrieve the mapping of billing dimensions to API keys.\n\nUse this tool to obtain the mapping of billing dimensions to corresponding keys for usage metering API endpoints. This information is updated monthly and accessible only to parent-level organizations.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "billing_month",
+        "required": false,
+        "description": "Date in ISO-8601 format (UTC) for the starting month of mappings. Defaults to the current month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[month]"
+      },
+      {
+        "name": "billing_dimension_view",
+        "required": false,
+        "description": "Specify 'active' for current contract mappings or 'all' for all mappings. Defaults to 'active'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to specify whether to retrieve active billing dimension mappings for the contract or for all available mappings. Allowed views have the string `active` or `all`. Defaults to `active`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[view]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetBillingDimensionMapping'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/usage/billing_dimension_mapping",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[month]",
+        "tool_parameter_name": "billing_month",
+        "description": "Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, and for mappings beginning this month. Defaults to the current month."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[view]",
+        "tool_parameter_name": "billing_dimension_view",
+        "description": "String to specify whether to retrieve active billing dimension mappings for the contract or for all available mappings. Allowed views have the string `active` or `all`. Defaults to `active`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to specify whether to retrieve active billing dimension mappings for the contract or for all available mappings. Allowed views have the string `active` or `all`. Defaults to `active`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "active",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

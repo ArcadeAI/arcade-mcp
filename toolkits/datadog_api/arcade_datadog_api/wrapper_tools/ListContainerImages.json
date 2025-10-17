@@ -1,0 +1,258 @@
+{
+  "name": "ListContainerImages",
+  "fully_qualified_name": "DatadogApi.ListContainerImages@0.1.0",
+  "description": "Retrieve all container images for your organization.\n\nUse this tool to get a list of all container images associated with your organization. This is useful for monitoring and managing your containerized applications within Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_tags",
+        "required": false,
+        "description": "Comma-separated list of tags to filter container images by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tags to filter Container Images by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[tags]"
+      },
+      {
+        "name": "group_container_images_by_tags",
+        "required": false,
+        "description": "Comma-separated list of tags to group container images by. Helps in organizing images based on specified criteria.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tags to group Container Images by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_by"
+      },
+      {
+        "name": "sort_container_images_by",
+        "required": false,
+        "description": "Attribute to sort Container Images by, such as 'name' or 'date'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Attribute to sort Container Images by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "The maximum number of container image results to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "next_page_cursor",
+        "required": false,
+        "description": "String to query the next page of container image results. Obtain this from the `meta.pagination.next_cursor` in the API response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[cursor]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListContainerImages'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/container_images",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[tags]",
+        "tool_parameter_name": "filter_tags",
+        "description": "Comma-separated list of tags to filter Container Images by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tags to filter Container Images by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_by",
+        "tool_parameter_name": "group_container_images_by_tags",
+        "description": "Comma-separated list of tags to group Container Images by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of tags to group Container Images by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_container_images_by",
+        "description": "Attribute to sort Container Images by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Attribute to sort Container Images by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "Maximum number of results returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1000,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[cursor]",
+        "tool_parameter_name": "next_page_cursor",
+        "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "String to query the next page of results.\nThis key is provided with each valid response from the API in `meta.pagination.next_cursor`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

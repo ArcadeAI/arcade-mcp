@@ -1,0 +1,229 @@
+{
+  "name": "BulkDeleteDatastoreItems",
+  "fully_qualified_name": "DatadogApi.BulkDeleteDatastoreItems@0.1.0",
+  "description": "Delete multiple items from a datastore at once.\n\nUse this tool to delete multiple items from a specified datastore by their keys in a single operation. It's ideal for efficiently removing batches of entries when managing datastore contents.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_identifier",
+        "required": true,
+        "description": "The unique ID of the datastore from which items will be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the datastore."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "datastore_id"
+      },
+      {
+        "name": "item_keys_to_delete",
+        "required": false,
+        "description": "List of up to 100 primary keys identifying items to delete from the datastore.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of primary keys identifying items to delete from datastore. Up to 100 items can be deleted in a single request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.item_keys"
+      },
+      {
+        "name": "datastore_items_id",
+        "required": false,
+        "description": "ID for the datastore of items you want to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID for the datastore of the items to delete."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "items_resource_type",
+        "required": false,
+        "description": "Specifies the resource type of the items. Must be 'items'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "items"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Items resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkDeleteDatastoreItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores/{datastore_id}/items/bulk",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "datastore_id",
+        "tool_parameter_name": "datastore_identifier",
+        "description": "The ID of the datastore.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the datastore."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.item_keys",
+        "tool_parameter_name": "item_keys_to_delete",
+        "description": "List of primary keys identifying items to delete from datastore. Up to 100 items can be deleted in a single request.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of primary keys identifying items to delete from datastore. Up to 100 items can be deleted in a single request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "datastore_items_id",
+        "description": "ID for the datastore of the items to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID for the datastore of the items to delete."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "items_resource_type",
+        "description": "Items resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "items"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Items resource type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "items",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to delete items from a datastore.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data wrapper containing the data needed to delete items from a datastore.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of request data to delete items from a datastore.\",\n                \"properties\": {\n                  \"item_keys\": {\n                    \"description\": \"List of primary keys identifying items to delete from datastore. Up to 100 items can be deleted in a single request.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"maxItems\": 100,\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID for the datastore of the items to delete.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"items\",\n                \"description\": \"Items resource type.\",\n                \"enum\": [\n                  \"items\"\n                ],\n                \"example\": \"items\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ITEMS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

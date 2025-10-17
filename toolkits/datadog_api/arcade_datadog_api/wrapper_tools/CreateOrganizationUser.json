@@ -1,0 +1,322 @@
+{
+  "name": "CreateOrganizationUser",
+  "fully_qualified_name": "DatadogApi.CreateOrganizationUser@0.1.0",
+  "description": "Create a user for your organization in Datadog.\n\nThis tool allows you to create a new user for your organization in Datadog. Use it when you need to add a team member to your Datadog account.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "new_user_details",
+        "required": true,
+        "description": "Details of the user to be created, including attributes like email, name, title, and relationships specifying user roles.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "email": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The email of the user."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the user."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the created user."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "roles": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the role."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "roles"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Roles type."
+                            }
+                          },
+                          "description": "An array containing type and the unique identifier of a role."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to roles."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the user object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "users"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Users resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to create a user."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/users",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_user_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "email": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The email of the user."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the user."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the created user."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "roles": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the role."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "roles"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Roles type."
+                            }
+                          },
+                          "description": "An array containing type and the unique identifier of a role."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to roles."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the user object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "users"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Users resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to create a user."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Create a user.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object to create a user.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of the created user.\",\n                \"properties\": {\n                  \"email\": {\n                    \"description\": \"The email of the user.\",\n                    \"example\": \"jane.doe@example.com\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the user.\",\n                    \"type\": \"string\"\n                  },\n                  \"title\": {\n                    \"description\": \"The title of the user.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"email\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships of the user object.\",\n                \"properties\": {\n                  \"roles\": {\n                    \"description\": \"Relationship to roles.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"An array containing type and the unique identifier of a role.\",\n                        \"items\": {\n                          \"description\": \"Relationship to role object.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The unique identifier of the role.\",\n                              \"example\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"roles\",\n                              \"description\": \"Roles type.\",\n                              \"enum\": [\n                                \"roles\"\n                              ],\n                              \"example\": \"roles\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"ROLES\"\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"users\",\n                \"description\": \"Users resource type.\",\n                \"enum\": [\n                  \"users\"\n                ],\n                \"example\": \"users\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"USERS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

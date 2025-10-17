@@ -1,0 +1,771 @@
+{
+  "name": "UpdateAppVersion",
+  "fully_qualified_name": "DatadogApi.UpdateAppVersion@0.1.0",
+  "description": "Update an app by creating a new version.\n\nUse this tool to update an existing app by creating a new version through Datadog's API. Ensure you have the necessary registered application key or have configured permissions in the UI before making this call.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_id",
+        "required": true,
+        "description": "The unique ID of the app to update. Required for creating a new version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the app to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_id"
+      },
+      {
+        "name": "app_update_data",
+        "required": true,
+        "description": "JSON object containing new app definition, such as name, description, components, or queries. Fields not included remain unchanged.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "components": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "events": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "pageChange",
+                                "tableRowClick",
+                                "_tableRowButtonClick",
+                                "change",
+                                "submit",
+                                "click",
+                                "toggleOpen",
+                                "close",
+                                "open",
+                                "executionFinished"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The triggering action for the event."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "custom",
+                                "setComponentState",
+                                "triggerQuery",
+                                "openModal",
+                                "closeModal",
+                                "openUrl",
+                                "downloadFile",
+                                "setStateVariableValue"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The response to the event."
+                            }
+                          },
+                          "description": "Events to listen for on the grid component."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the grid component. This property is deprecated; use `name` to identify individual components instead."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for this grid component. This name is also visible in the app editor."
+                        },
+                        "properties": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "backgroundColor": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The background color of the grid."
+                            },
+                            "children": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "events": {
+                                  "val_type": "array",
+                                  "inner_val_type": "json",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": {
+                                    "name": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "pageChange",
+                                        "tableRowClick",
+                                        "_tableRowButtonClick",
+                                        "change",
+                                        "submit",
+                                        "click",
+                                        "toggleOpen",
+                                        "close",
+                                        "open",
+                                        "executionFinished"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The triggering action for the event."
+                                    },
+                                    "type": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "custom",
+                                        "setComponentState",
+                                        "triggerQuery",
+                                        "openModal",
+                                        "closeModal",
+                                        "openUrl",
+                                        "downloadFile",
+                                        "setStateVariableValue"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The response to the event."
+                                    }
+                                  },
+                                  "description": "Events to listen for on the UI component."
+                                },
+                                "id": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The ID of the UI component. This property is deprecated; use `name` to identify individual components instead."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A unique identifier for this UI component. This name is also visible in the app editor."
+                                },
+                                "properties": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "children": {
+                                      "val_type": "array",
+                                      "inner_val_type": "json",
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": {},
+                                      "description": "The child components of the UI component."
+                                    },
+                                    "isVisible": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "Whether the UI component is visible. If this is a string, it must be a valid JavaScript expression that evaluates to a boolean."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "Properties of a UI component. Different component types can have their own additional unique properties. See the [components documentation](https://docs.datadoghq.com/service_management/app_builder/components/) for more detail on each component type and its properties."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "table",
+                                    "textInput",
+                                    "textArea",
+                                    "button",
+                                    "text",
+                                    "select",
+                                    "modal",
+                                    "schemaForm",
+                                    "checkbox",
+                                    "tabs",
+                                    "vegaChart",
+                                    "radioButtons",
+                                    "numberInput",
+                                    "fileInput",
+                                    "jsonInput",
+                                    "gridCell",
+                                    "dateRangePicker",
+                                    "search",
+                                    "container",
+                                    "calloutValue"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The UI component type."
+                                }
+                              },
+                              "description": "The child components of the grid."
+                            },
+                            "isVisible": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the grid component and its children are visible. If a string, it must be a valid JavaScript expression that evaluates to a boolean."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Properties of a grid component."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "grid"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The grid component type."
+                        }
+                      },
+                      "description": "The new UI components that make up the app. If this field is set, all existing components are replaced with the new components under this field."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new human-readable description for the app."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new name of the app."
+                    },
+                    "queries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "The new array of queries, such as external actions and state variables, that the app uses. If this field is set, all existing queries are replaced with the new queries under this field."
+                    },
+                    "rootInstanceName": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new name of the root component of the app. This must be a `grid` component that contains all other components."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new list of tags for the app, which can be used to filter apps. If this field is set, any existing tags not included in the request are removed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "App definition attributes to be updated, such as name, description, and components."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the app to update. The app ID must match the ID in the URL path."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "appDefinitions"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The app definition type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The data object containing the new app definition. Any fields not included in the request remain unchanged."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateApp'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/app-builder/apps/{app_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "app_id",
+        "tool_parameter_name": "application_id",
+        "description": "The ID of the app to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the app to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "app_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "components": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "events": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "pageChange",
+                                "tableRowClick",
+                                "_tableRowButtonClick",
+                                "change",
+                                "submit",
+                                "click",
+                                "toggleOpen",
+                                "close",
+                                "open",
+                                "executionFinished"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The triggering action for the event."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "custom",
+                                "setComponentState",
+                                "triggerQuery",
+                                "openModal",
+                                "closeModal",
+                                "openUrl",
+                                "downloadFile",
+                                "setStateVariableValue"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The response to the event."
+                            }
+                          },
+                          "description": "Events to listen for on the grid component."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the grid component. This property is deprecated; use `name` to identify individual components instead."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for this grid component. This name is also visible in the app editor."
+                        },
+                        "properties": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "backgroundColor": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The background color of the grid."
+                            },
+                            "children": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "events": {
+                                  "val_type": "array",
+                                  "inner_val_type": "json",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": {
+                                    "name": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "pageChange",
+                                        "tableRowClick",
+                                        "_tableRowButtonClick",
+                                        "change",
+                                        "submit",
+                                        "click",
+                                        "toggleOpen",
+                                        "close",
+                                        "open",
+                                        "executionFinished"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The triggering action for the event."
+                                    },
+                                    "type": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "custom",
+                                        "setComponentState",
+                                        "triggerQuery",
+                                        "openModal",
+                                        "closeModal",
+                                        "openUrl",
+                                        "downloadFile",
+                                        "setStateVariableValue"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The response to the event."
+                                    }
+                                  },
+                                  "description": "Events to listen for on the UI component."
+                                },
+                                "id": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The ID of the UI component. This property is deprecated; use `name` to identify individual components instead."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A unique identifier for this UI component. This name is also visible in the app editor."
+                                },
+                                "properties": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "children": {
+                                      "val_type": "array",
+                                      "inner_val_type": "json",
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": {},
+                                      "description": "The child components of the UI component."
+                                    },
+                                    "isVisible": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "Whether the UI component is visible. If this is a string, it must be a valid JavaScript expression that evaluates to a boolean."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "Properties of a UI component. Different component types can have their own additional unique properties. See the [components documentation](https://docs.datadoghq.com/service_management/app_builder/components/) for more detail on each component type and its properties."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "table",
+                                    "textInput",
+                                    "textArea",
+                                    "button",
+                                    "text",
+                                    "select",
+                                    "modal",
+                                    "schemaForm",
+                                    "checkbox",
+                                    "tabs",
+                                    "vegaChart",
+                                    "radioButtons",
+                                    "numberInput",
+                                    "fileInput",
+                                    "jsonInput",
+                                    "gridCell",
+                                    "dateRangePicker",
+                                    "search",
+                                    "container",
+                                    "calloutValue"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The UI component type."
+                                }
+                              },
+                              "description": "The child components of the grid."
+                            },
+                            "isVisible": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the grid component and its children are visible. If a string, it must be a valid JavaScript expression that evaluates to a boolean."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Properties of a grid component."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "grid"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The grid component type."
+                        }
+                      },
+                      "description": "The new UI components that make up the app. If this field is set, all existing components are replaced with the new components under this field."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new human-readable description for the app."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new name of the app."
+                    },
+                    "queries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "The new array of queries, such as external actions and state variables, that the app uses. If this field is set, all existing queries are replaced with the new queries under this field."
+                    },
+                    "rootInstanceName": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new name of the root component of the app. This must be a `grid` component that contains all other components."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The new list of tags for the app, which can be used to filter apps. If this field is set, any existing tags not included in the request are removed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "App definition attributes to be updated, such as name, description, and components."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the app to update. The app ID must match the ID in the URL path."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "appDefinitions"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The app definition type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The data object containing the new app definition. Any fields not included in the request remain unchanged."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"A request object for updating an existing app.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"components\": [\n                {\n                  \"events\": [],\n                  \"name\": \"grid0\",\n                  \"properties\": {\n                    \"children\": [\n                      {\n                        \"events\": [],\n                        \"name\": \"gridCell0\",\n                        \"properties\": {\n                          \"children\": [\n                            {\n                              \"events\": [],\n                              \"name\": \"calloutValue0\",\n                              \"properties\": {\n                                \"isDisabled\": false,\n                                \"isLoading\": false,\n                                \"isVisible\": true,\n                                \"label\": \"CPU Usage\",\n                                \"size\": \"sm\",\n                                \"style\": \"vivid_yellow\",\n                                \"unit\": \"kB\",\n                                \"value\": \"42\"\n                              },\n                              \"type\": \"calloutValue\"\n                            }\n                          ],\n                          \"isVisible\": \"true\",\n                          \"layout\": {\n                            \"default\": {\n                              \"height\": 8,\n                              \"width\": 2,\n                              \"x\": 0,\n                              \"y\": 0\n                            }\n                          }\n                        },\n                        \"type\": \"gridCell\"\n                      }\n                    ]\n                  },\n                  \"type\": \"grid\"\n                }\n              ],\n              \"description\": \"This is a simple example app\",\n              \"name\": \"Example App\",\n              \"queries\": [],\n              \"rootInstanceName\": \"grid0\"\n            },\n            \"id\": \"9e20cbaf-68da-45a6-9ccf-54193ac29fa5\",\n            \"type\": \"appDefinitions\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The data object containing the new app definition. Any fields not included in the request remain unchanged.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"App definition attributes to be updated, such as name, description, and components.\",\n                \"properties\": {\n                  \"components\": {\n                    \"description\": \"The new UI components that make up the app. If this field is set, all existing components are replaced with the new components under this field.\",\n                    \"items\": {\n                      \"description\": \"A grid component. The grid component is the root canvas for an app and contains all other components.\",\n                      \"properties\": {\n                        \"events\": {\n                          \"description\": \"Events to listen for on the grid component.\",\n                          \"items\": {\n                            \"additionalProperties\": {},\n                            \"description\": \"An event on a UI component that triggers a response or action in an app.\",\n                            \"properties\": {\n                              \"name\": {\n                                \"description\": \"The triggering action for the event.\",\n                                \"enum\": [\n                                  \"pageChange\",\n                                  \"tableRowClick\",\n                                  \"_tableRowButtonClick\",\n                                  \"change\",\n                                  \"submit\",\n                                  \"click\",\n                                  \"toggleOpen\",\n                                  \"close\",\n                                  \"open\",\n                                  \"executionFinished\"\n                                ],\n                                \"example\": \"click\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"PAGECHANGE\",\n                                  \"TABLEROWCLICK\",\n                                  \"TABLEROWBUTTONCLICK\",\n                                  \"CHANGE\",\n                                  \"SUBMIT\",\n                                  \"CLICK\",\n                                  \"TOGGLEOPEN\",\n                                  \"CLOSE\",\n                                  \"OPEN\",\n                                  \"EXECUTIONFINISHED\"\n                                ]\n                              },\n                              \"type\": {\n                                \"description\": \"The response to the event.\",\n                                \"enum\": [\n                                  \"custom\",\n                                  \"setComponentState\",\n                                  \"triggerQuery\",\n                                  \"openModal\",\n                                  \"closeModal\",\n                                  \"openUrl\",\n                                  \"downloadFile\",\n                                  \"setStateVariableValue\"\n                                ],\n                                \"example\": \"triggerQuery\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"CUSTOM\",\n                                  \"SETCOMPONENTSTATE\",\n                                  \"TRIGGERQUERY\",\n                                  \"OPENMODAL\",\n                                  \"CLOSEMODAL\",\n                                  \"OPENURL\",\n                                  \"DOWNLOADFILE\",\n                                  \"SETSTATEVARIABLEVALUE\"\n                                ]\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"id\": {\n                          \"description\": \"The ID of the grid component. This property is deprecated; use `name` to identify individual components instead.\",\n                          \"type\": \"string\"\n                        },\n                        \"name\": {\n                          \"description\": \"A unique identifier for this grid component. This name is also visible in the app editor.\",\n                          \"example\": \"\",\n                          \"type\": \"string\"\n                        },\n                        \"properties\": {\n                          \"description\": \"Properties of a grid component.\",\n                          \"properties\": {\n                            \"backgroundColor\": {\n                              \"default\": \"default\",\n                              \"description\": \"The background color of the grid.\",\n                              \"type\": \"string\"\n                            },\n                            \"children\": {\n                              \"description\": \"The child components of the grid.\",\n                              \"items\": {\n                                \"description\": \"[Definition of a UI component in the app](https://docs.datadoghq.com/service_management/app_builder/components/)\",\n                                \"properties\": {\n                                  \"events\": {\n                                    \"description\": \"Events to listen for on the UI component.\",\n                                    \"items\": {\n                                      \"additionalProperties\": {},\n                                      \"description\": \"An event on a UI component that triggers a response or action in an app.\",\n                                      \"properties\": {\n                                        \"name\": {\n                                          \"description\": \"The triggering action for the event.\",\n                                          \"enum\": [\n                                            \"pageChange\",\n                                            \"tableRowClick\",\n                                            \"_tableRowButtonClick\",\n                                            \"change\",\n                                            \"submit\",\n                                            \"click\",\n                                            \"toggleOpen\",\n                                            \"close\",\n                                            \"open\",\n                                            \"executionFinished\"\n                                          ],\n                                          \"example\": \"click\",\n                                          \"type\": \"string\",\n                                          \"x-enum-varnames\": [\n                                            \"PAGECHANGE\",\n                                            \"TABLEROWCLICK\",\n                                            \"TABLEROWBUTTONCLICK\",\n                                            \"CHANGE\",\n                                            \"SUBMIT\",\n                                            \"CLICK\",\n                                            \"TOGGLEOPEN\",\n                                            \"CLOSE\",\n                                            \"OPEN\",\n                                            \"EXECUTIONFINISHED\"\n                                          ]\n                                        },\n                                        \"type\": {\n                                          \"description\": \"The response to the event.\",\n                                          \"enum\": [\n                                            \"custom\",\n                                            \"setComponentState\",\n                                            \"triggerQuery\",\n                                            \"openModal\",\n                                            \"closeModal\",\n                                            \"openUrl\",\n                                            \"downloadFile\",\n                                            \"setStateVariableValue\"\n                                          ],\n                                          \"example\": \"triggerQuery\",\n                                          \"type\": \"string\",\n                                          \"x-enum-varnames\": [\n                                            \"CUSTOM\",\n                                            \"SETCOMPONENTSTATE\",\n                                            \"TRIGGERQUERY\",\n                                            \"OPENMODAL\",\n                                            \"CLOSEMODAL\",\n                                            \"OPENURL\",\n                                            \"DOWNLOADFILE\",\n                                            \"SETSTATEVARIABLEVALUE\"\n                                          ]\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    },\n                                    \"type\": \"array\"\n                                  },\n                                  \"id\": {\n                                    \"description\": \"The ID of the UI component. This property is deprecated; use `name` to identify individual components instead.\",\n                                    \"nullable\": true,\n                                    \"type\": \"string\"\n                                  },\n                                  \"name\": {\n                                    \"description\": \"A unique identifier for this UI component. This name is also visible in the app editor.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"properties\": {\n                                    \"additionalProperties\": {},\n                                    \"description\": \"Properties of a UI component. Different component types can have their own additional unique properties. See the [components documentation](https://docs.datadoghq.com/service_management/app_builder/components/) for more detail on each component type and its properties.\",\n                                    \"properties\": {\n                                      \"children\": {\n                                        \"description\": \"The child components of the UI component.\",\n                                        \"items\": {\n                                          \"$ref\": \"#/components/schemas/Component\",\n                                          \"has_circular_reference\": true\n                                        },\n                                        \"type\": \"array\"\n                                      },\n                                      \"isVisible\": {\n                                        \"description\": \"Whether the UI component is visible. If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                        \"oneOf\": [\n                                          {\n                                            \"type\": \"boolean\"\n                                          },\n                                          {\n                                            \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                            \"example\": \"${true}\",\n                                            \"type\": \"string\"\n                                          }\n                                        ]\n                                      }\n                                    },\n                                    \"type\": \"object\"\n                                  },\n                                  \"type\": {\n                                    \"description\": \"The UI component type.\",\n                                    \"enum\": [\n                                      \"table\",\n                                      \"textInput\",\n                                      \"textArea\",\n                                      \"button\",\n                                      \"text\",\n                                      \"select\",\n                                      \"modal\",\n                                      \"schemaForm\",\n                                      \"checkbox\",\n                                      \"tabs\",\n                                      \"vegaChart\",\n                                      \"radioButtons\",\n                                      \"numberInput\",\n                                      \"fileInput\",\n                                      \"jsonInput\",\n                                      \"gridCell\",\n                                      \"dateRangePicker\",\n                                      \"search\",\n                                      \"container\",\n                                      \"calloutValue\"\n                                    ],\n                                    \"example\": \"text\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"TABLE\",\n                                      \"TEXTINPUT\",\n                                      \"TEXTAREA\",\n                                      \"BUTTON\",\n                                      \"TEXT\",\n                                      \"SELECT\",\n                                      \"MODAL\",\n                                      \"SCHEMAFORM\",\n                                      \"CHECKBOX\",\n                                      \"TABS\",\n                                      \"VEGACHART\",\n                                      \"RADIOBUTTONS\",\n                                      \"NUMBERINPUT\",\n                                      \"FILEINPUT\",\n                                      \"JSONINPUT\",\n                                      \"GRIDCELL\",\n                                      \"DATERANGEPICKER\",\n                                      \"SEARCH\",\n                                      \"CONTAINER\",\n                                      \"CALLOUTVALUE\"\n                                    ]\n                                  }\n                                },\n                                \"required\": [\n                                  \"name\",\n                                  \"type\",\n                                  \"properties\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"isVisible\": {\n                              \"description\": \"Whether the grid component and its children are visible. If a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                              \"oneOf\": [\n                                {\n                                  \"type\": \"string\"\n                                },\n                                {\n                                  \"default\": true,\n                                  \"type\": \"boolean\"\n                                }\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": {\n                          \"default\": \"grid\",\n                          \"description\": \"The grid component type.\",\n                          \"enum\": [\n                            \"grid\"\n                          ],\n                          \"example\": \"grid\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"GRID\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"name\",\n                        \"type\",\n                        \"properties\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"description\": {\n                    \"description\": \"The new human-readable description for the app.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The new name of the app.\",\n                    \"type\": \"string\"\n                  },\n                  \"queries\": {\n                    \"description\": \"The new array of queries, such as external actions and state variables, that the app uses. If this field is set, all existing queries are replaced with the new queries under this field.\",\n                    \"items\": {\n                      \"description\": \"A data query used by an app. This can take the form of an external action, a data transformation, or a state variable.\",\n                      \"oneOf\": [\n                        {\n                          \"description\": \"An action query. This query type is used to trigger an action, such as sending a HTTP request.\",\n                          \"properties\": {\n                            \"events\": {\n                              \"description\": \"Events to listen for downstream of the action query.\",\n                              \"items\": {\n                                \"additionalProperties\": {},\n                                \"description\": \"An event on a UI component that triggers a response or action in an app.\",\n                                \"properties\": {\n                                  \"name\": {\n                                    \"description\": \"The triggering action for the event.\",\n                                    \"enum\": [\n                                      \"pageChange\",\n                                      \"tableRowClick\",\n                                      \"_tableRowButtonClick\",\n                                      \"change\",\n                                      \"submit\",\n                                      \"click\",\n                                      \"toggleOpen\",\n                                      \"close\",\n                                      \"open\",\n                                      \"executionFinished\"\n                                    ],\n                                    \"example\": \"click\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"PAGECHANGE\",\n                                      \"TABLEROWCLICK\",\n                                      \"TABLEROWBUTTONCLICK\",\n                                      \"CHANGE\",\n                                      \"SUBMIT\",\n                                      \"CLICK\",\n                                      \"TOGGLEOPEN\",\n                                      \"CLOSE\",\n                                      \"OPEN\",\n                                      \"EXECUTIONFINISHED\"\n                                    ]\n                                  },\n                                  \"type\": {\n                                    \"description\": \"The response to the event.\",\n                                    \"enum\": [\n                                      \"custom\",\n                                      \"setComponentState\",\n                                      \"triggerQuery\",\n                                      \"openModal\",\n                                      \"closeModal\",\n                                      \"openUrl\",\n                                      \"downloadFile\",\n                                      \"setStateVariableValue\"\n                                    ],\n                                    \"example\": \"triggerQuery\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"CUSTOM\",\n                                      \"SETCOMPONENTSTATE\",\n                                      \"TRIGGERQUERY\",\n                                      \"OPENMODAL\",\n                                      \"CLOSEMODAL\",\n                                      \"OPENURL\",\n                                      \"DOWNLOADFILE\",\n                                      \"SETSTATEVARIABLEVALUE\"\n                                    ]\n                                  }\n                                },\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"id\": {\n                              \"description\": \"The ID of the action query.\",\n                              \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                              \"format\": \"uuid\",\n                              \"type\": \"string\"\n                            },\n                            \"name\": {\n                              \"description\": \"A unique identifier for this action query. This name is also used to access the query's result throughout the app.\",\n                              \"example\": \"fetchPendingOrders\",\n                              \"type\": \"string\"\n                            },\n                            \"properties\": {\n                              \"description\": \"The properties of the action query.\",\n                              \"properties\": {\n                                \"condition\": {\n                                  \"description\": \"Whether to run this query. If specified, the query will only run if this condition evaluates to `true` in JavaScript and all other conditions are also met.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"boolean\"\n                                    },\n                                    {\n                                      \"example\": \"${true}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"debounceInMs\": {\n                                  \"description\": \"The minimum time in milliseconds that must pass before the query can be triggered again. This is useful for preventing accidental double-clicks from triggering the query multiple times.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"example\": 310.5,\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    },\n                                    {\n                                      \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a number.\",\n                                      \"example\": \"${1000}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"mockedOutputs\": {\n                                  \"description\": \"The mocked outputs of the action query. This is useful for testing the app without actually running the action.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"string\"\n                                    },\n                                    {\n                                      \"description\": \"The mocked outputs of the action query.\",\n                                      \"properties\": {\n                                        \"enabled\": {\n                                          \"description\": \"Whether to enable the mocked outputs for testing.\",\n                                          \"oneOf\": [\n                                            {\n                                              \"type\": \"boolean\"\n                                            },\n                                            {\n                                              \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                              \"example\": \"${true}\",\n                                              \"type\": \"string\"\n                                            }\n                                          ]\n                                        },\n                                        \"outputs\": {\n                                          \"description\": \"The mocked outputs of the action query, serialized as JSON.\",\n                                          \"example\": \"{\\\"status\\\": \\\"success\\\"}\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"required\": [\n                                        \"enabled\"\n                                      ],\n                                      \"type\": \"object\"\n                                    }\n                                  ]\n                                },\n                                \"onlyTriggerManually\": {\n                                  \"description\": \"Determines when this query is executed. If set to `false`, the query will run when the app loads and whenever any query arguments change. If set to `true`, the query will only run when manually triggered from elsewhere in the app.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"boolean\"\n                                    },\n                                    {\n                                      \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                      \"example\": \"${true}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"outputs\": {\n                                  \"description\": \"The post-query transformation function, which is a JavaScript function that changes the query's `.outputs` property after the query's execution.\",\n                                  \"example\": \"${((outputs) => {return outputs.body.data})(self.rawOutputs)}\",\n                                  \"type\": \"string\"\n                                },\n                                \"pollingIntervalInMs\": {\n                                  \"description\": \"If specified, the app will poll the query at the specified interval in milliseconds. The minimum polling interval is 15 seconds. The query will only poll when the app's browser tab is active.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"example\": 30000.0,\n                                      \"format\": \"double\",\n                                      \"minimum\": 15000.0,\n                                      \"type\": \"number\"\n                                    },\n                                    {\n                                      \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a number.\",\n                                      \"example\": \"${15000}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"requiresConfirmation\": {\n                                  \"description\": \"Whether to prompt the user to confirm this query before it runs.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"boolean\"\n                                    },\n                                    {\n                                      \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                      \"example\": \"${true}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"showToastOnError\": {\n                                  \"description\": \"Whether to display a toast to the user when the query returns an error.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"boolean\"\n                                    },\n                                    {\n                                      \"description\": \"If this is a string, it must be a valid JavaScript expression that evaluates to a boolean.\",\n                                      \"example\": \"${true}\",\n                                      \"type\": \"string\"\n                                    }\n                                  ]\n                                },\n                                \"spec\": {\n                                  \"description\": \"The definition of the action query.\",\n                                  \"oneOf\": [\n                                    {\n                                      \"type\": \"string\"\n                                    },\n                                    {\n                                      \"description\": \"The action query spec object.\",\n                                      \"properties\": {\n                                        \"connectionGroup\": {\n                                          \"description\": \"The connection group to use for an action query.\",\n                                          \"properties\": {\n                                            \"id\": {\n                                              \"description\": \"The ID of the connection group.\",\n                                              \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                                              \"format\": \"uuid\",\n                                              \"type\": \"string\"\n                                            },\n                                            \"tags\": {\n                                              \"description\": \"The tags of the connection group.\",\n                                              \"items\": {\n                                                \"type\": \"string\"\n                                              },\n                                              \"type\": \"array\"\n                                            }\n                                          },\n                                          \"type\": \"object\"\n                                        },\n                                        \"connectionId\": {\n                                          \"description\": \"The ID of the custom connection to use for this action query.\",\n                                          \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                                          \"type\": \"string\"\n                                        },\n                                        \"fqn\": {\n                                          \"description\": \"The fully qualified name of the action type.\",\n                                          \"example\": \"com.datadoghq.http.request\",\n                                          \"type\": \"string\"\n                                        },\n                                        \"inputs\": {\n                                          \"description\": \"The inputs to the action query. These are the values that are passed to the action when it is triggered.\",\n                                          \"oneOf\": [\n                                            {\n                                              \"type\": \"string\"\n                                            },\n                                            {\n                                              \"additionalProperties\": {},\n                                              \"description\": \"The inputs to the action query. See the [Actions Catalog](https://docs.datadoghq.com/actions/actions_catalog/) for more detail on each action and its inputs.\",\n                                              \"type\": \"object\"\n                                            }\n                                          ]\n                                        }\n                                      },\n                                      \"required\": [\n                                        \"fqn\"\n                                      ],\n                                      \"type\": \"object\"\n                                    }\n                                  ]\n                                }\n                              },\n                              \"required\": [\n                                \"spec\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": {\n                              \"default\": \"action\",\n                              \"description\": \"The action query type.\",\n                              \"enum\": [\n                                \"action\"\n                              ],\n                              \"example\": \"action\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"ACTION\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"name\",\n                            \"type\",\n                            \"properties\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        {\n                          \"description\": \"A data transformer, which is custom JavaScript code that executes and transforms data when its inputs change.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The ID of the data transformer.\",\n                              \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                              \"format\": \"uuid\",\n                              \"type\": \"string\"\n                            },\n                            \"name\": {\n                              \"description\": \"A unique identifier for this data transformer. This name is also used to access the transformer's result throughout the app.\",\n                              \"example\": \"combineTwoOrders\",\n                              \"type\": \"string\"\n                            },\n                            \"properties\": {\n                              \"description\": \"The properties of the data transformer.\",\n                              \"properties\": {\n                                \"outputs\": {\n                                  \"description\": \"A JavaScript function that returns the transformed data.\",\n                                  \"example\": \"${(() => {return {\\n    allItems: [...fetchOrder1.outputs.items, ...fetchOrder2.outputs.items],\\n}})()}\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"type\": {\n                              \"default\": \"dataTransform\",\n                              \"description\": \"The data transform type.\",\n                              \"enum\": [\n                                \"dataTransform\"\n                              ],\n                              \"example\": \"dataTransform\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"DATATRANSFORM\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"name\",\n                            \"type\",\n                            \"properties\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        {\n                          \"description\": \"A variable, which can be set and read by other components in the app.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The ID of the state variable.\",\n                              \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                              \"format\": \"uuid\",\n                              \"type\": \"string\"\n                            },\n                            \"name\": {\n                              \"description\": \"A unique identifier for this state variable. This name is also used to access the variable's value throughout the app.\",\n                              \"example\": \"ordersToSubmit\",\n                              \"type\": \"string\"\n                            },\n                            \"properties\": {\n                              \"description\": \"The properties of the state variable.\",\n                              \"properties\": {\n                                \"defaultValue\": {\n                                  \"description\": \"The default value of the state variable.\",\n                                  \"example\": \"${['order_3145', 'order_4920']}\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"type\": {\n                              \"default\": \"stateVariable\",\n                              \"description\": \"The state variable type.\",\n                              \"enum\": [\n                                \"stateVariable\"\n                              ],\n                              \"example\": \"stateVariable\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"STATEVARIABLE\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"name\",\n                            \"type\",\n                            \"properties\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"rootInstanceName\": {\n                    \"description\": \"The new name of the root component of the app. This must be a `grid` component that contains all other components.\",\n                    \"type\": \"string\"\n                  },\n                  \"tags\": {\n                    \"description\": \"The new list of tags for the app, which can be used to filter apps. If this field is set, any existing tags not included in the request are removed.\",\n                    \"example\": [\n                      \"service:webshop-backend\",\n                      \"team:webshop\"\n                    ],\n                    \"items\": {\n                      \"description\": \"An individual tag for the app.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the app to update. The app ID must match the ID in the URL path.\",\n                \"example\": \"65bb1f25-52e1-4510-9f8d-22d1516ed693\",\n                \"format\": \"uuid\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"appDefinitions\",\n                \"description\": \"The app definition type.\",\n                \"enum\": [\n                  \"appDefinitions\"\n                ],\n                \"example\": \"appDefinitions\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"APPDEFINITIONS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

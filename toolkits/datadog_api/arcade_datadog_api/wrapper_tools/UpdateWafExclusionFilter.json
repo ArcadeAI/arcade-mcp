@@ -1,0 +1,451 @@
+{
+  "name": "UpdateWafExclusionFilter",
+  "fully_qualified_name": "DatadogApi.UpdateWafExclusionFilter@0.1.0",
+  "description": "Updates a WAF exclusion filter by its identifier.\n\nUse this tool to update a specific Web Application Firewall (WAF) exclusion filter using its ID. It returns the updated exclusion filter object upon a successful request.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "waf_exclusion_filter_identifier",
+        "required": true,
+        "description": "The unique identifier of the WAF exclusion filter to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the WAF exclusion filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclusion_filter_id"
+      },
+      {
+        "name": "exclusion_filter_update",
+        "required": true,
+        "description": "A JSON object containing the WAF exclusion filter details to update, including attributes like description, enabled status, IP list, and matching criteria.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A description for the exclusion filter."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the exclusion filter is enabled."
+                    },
+                    "ip_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The client IP addresses matched by the exclusion filter (CIDR notation is supported)."
+                    },
+                    "on_match": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "monitor"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked."
+                    },
+                    "parameters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character."
+                    },
+                    "path_glob": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The HTTP path glob expression matched by the exclusion filter."
+                    },
+                    "rules_target": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "rule_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Target a single WAF rule based on its identifier."
+                        },
+                        "tags": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "category": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The category of the targeted WAF rules."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The type of the targeted WAF rules."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Target multiple WAF rules based on their tags."
+                        }
+                      },
+                      "description": "The WAF rules targeted by the exclusion filter."
+                    },
+                    "scope": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "env": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Deploy on this environment."
+                        },
+                        "service": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Deploy on this service."
+                        }
+                      },
+                      "description": "The services where the exclusion filter is deployed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for updating a WAF exclusion filter."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "exclusion_filter"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the resource. The value should always be `exclusion_filter`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for updating a single WAF exclusion filter."
+            }
+          },
+          "inner_properties": null,
+          "description": "The exclusion filter to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateApplicationSecurityWafExclusionFilter'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/remote_config/products/asm/waf/exclusion_filters/{exclusion_filter_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "exclusion_filter_id",
+        "tool_parameter_name": "waf_exclusion_filter_identifier",
+        "description": "The identifier of the WAF exclusion filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the WAF exclusion filter."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "exclusion_filter_update",
+        "description": "The exclusion filter to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A description for the exclusion filter."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the exclusion filter is enabled."
+                    },
+                    "ip_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The client IP addresses matched by the exclusion filter (CIDR notation is supported)."
+                    },
+                    "on_match": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "monitor"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked."
+                    },
+                    "parameters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character."
+                    },
+                    "path_glob": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The HTTP path glob expression matched by the exclusion filter."
+                    },
+                    "rules_target": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "rule_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Target a single WAF rule based on its identifier."
+                        },
+                        "tags": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "category": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The category of the targeted WAF rules."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The type of the targeted WAF rules."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Target multiple WAF rules based on their tags."
+                        }
+                      },
+                      "description": "The WAF rules targeted by the exclusion filter."
+                    },
+                    "scope": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "env": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Deploy on this environment."
+                        },
+                        "service": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Deploy on this service."
+                        }
+                      },
+                      "description": "The services where the exclusion filter is deployed."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for updating a WAF exclusion filter."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "exclusion_filter"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the resource. The value should always be `exclusion_filter`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for updating a single WAF exclusion filter."
+            }
+          },
+          "inner_properties": null,
+          "description": "The exclusion filter to update."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object for updating a single WAF exclusion filter.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for updating a single WAF exclusion filter.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for updating a WAF exclusion filter.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"A description for the exclusion filter.\",\n                    \"example\": \"Exclude false positives on a path\",\n                    \"type\": \"string\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"Indicates whether the exclusion filter is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"ip_list\": {\n                    \"description\": \"The client IP addresses matched by the exclusion filter (CIDR notation is supported).\",\n                    \"items\": {\n                      \"example\": \"198.51.100.72\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"on_match\": {\n                    \"description\": \"The action taken when the exclusion filter matches. When set to `monitor`, security traces are emitted but the requests are not blocked. By default, security traces are not emitted and the requests are not blocked.\",\n                    \"enum\": [\n                      \"monitor\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"MONITOR\"\n                    ]\n                  },\n                  \"parameters\": {\n                    \"description\": \"A list of parameters matched by the exclusion filter in the HTTP query string and HTTP request body. Nested parameters can be matched by joining fields with a dot character.\",\n                    \"items\": {\n                      \"example\": \"list.search.query\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"path_glob\": {\n                    \"description\": \"The HTTP path glob expression matched by the exclusion filter.\",\n                    \"example\": \"/accounts/*\",\n                    \"type\": \"string\"\n                  },\n                  \"rules_target\": {\n                    \"description\": \"The WAF rules targeted by the exclusion filter.\",\n                    \"items\": {\n                      \"description\": \"Target WAF rules based either on an identifier or tags.\",\n                      \"properties\": {\n                        \"rule_id\": {\n                          \"description\": \"Target a single WAF rule based on its identifier.\",\n                          \"example\": \"dog-913-009\",\n                          \"type\": \"string\"\n                        },\n                        \"tags\": {\n                          \"additionalProperties\": {\n                            \"type\": \"string\"\n                          },\n                          \"description\": \"Target multiple WAF rules based on their tags.\",\n                          \"properties\": {\n                            \"category\": {\n                              \"description\": \"The category of the targeted WAF rules.\",\n                              \"example\": \"attack_attempt\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"description\": \"The type of the targeted WAF rules.\",\n                              \"example\": \"lfi\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"scope\": {\n                    \"description\": \"The services where the exclusion filter is deployed.\",\n                    \"items\": {\n                      \"description\": \"Deploy on services based on their environment and/or service name.\",\n                      \"properties\": {\n                        \"env\": {\n                          \"description\": \"Deploy on this environment.\",\n                          \"example\": \"www\",\n                          \"type\": \"string\"\n                        },\n                        \"service\": {\n                          \"description\": \"Deploy on this service.\",\n                          \"example\": \"prod\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"description\",\n                  \"enabled\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"exclusion_filter\",\n                \"description\": \"Type of the resource. The value should always be `exclusion_filter`.\",\n                \"enum\": [\n                  \"exclusion_filter\"\n                ],\n                \"example\": \"exclusion_filter\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"EXCLUSION_FILTER\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The exclusion filter to update.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

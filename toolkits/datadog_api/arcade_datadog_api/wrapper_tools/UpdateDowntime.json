@@ -1,0 +1,361 @@
+{
+  "name": "UpdateDowntime",
+  "fully_qualified_name": "DatadogApi.UpdateDowntime@0.1.0",
+  "description": "Update downtime by its ID in Datadog.\n\nUse this tool to modify an existing downtime configuration in Datadog by providing the downtime ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "downtime_id",
+        "required": true,
+        "description": "The unique identifier of the downtime to be updated in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the downtime to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "downtime_id"
+      },
+      {
+        "name": "update_downtime_request_body",
+        "required": true,
+        "description": "JSON object including details like attributes, ID, and type for updating a downtime in Datadog. Ensure to follow the expected format specified in the API.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "display_timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timezone in which to display the downtime's start and end times in Datadog applications. This is not used\nas an offset for scheduling."
+                    },
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A message to include with notifications for this downtime. Email notifications can be sent to specific users\nby using the same `@username` notation as events."
+                    },
+                    "monitor_identifier": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Monitor identifier for the downtime."
+                    },
+                    "mute_first_recovery_notification": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If the first recovery notification during a downtime should be muted."
+                    },
+                    "notify_end_states": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "States that will trigger a monitor notification when the `notify_end_types` action occurs."
+                    },
+                    "notify_end_types": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state."
+                    },
+                    "schedule": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Schedule for the downtime."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the downtime to update."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of this downtime."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "downtime"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Downtime resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to update a downtime."
+            }
+          },
+          "inner_properties": null,
+          "description": "Update a downtime request body."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateDowntime'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/downtime/{downtime_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "downtime_id",
+        "tool_parameter_name": "downtime_id",
+        "description": "ID of the downtime to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the downtime to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_downtime_request_body",
+        "description": "Update a downtime request body.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "display_timezone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timezone in which to display the downtime's start and end times in Datadog applications. This is not used\nas an offset for scheduling."
+                    },
+                    "message": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A message to include with notifications for this downtime. Email notifications can be sent to specific users\nby using the same `@username` notation as events."
+                    },
+                    "monitor_identifier": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Monitor identifier for the downtime."
+                    },
+                    "mute_first_recovery_notification": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If the first recovery notification during a downtime should be muted."
+                    },
+                    "notify_end_states": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "States that will trigger a monitor notification when the `notify_end_types` action occurs."
+                    },
+                    "notify_end_types": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state."
+                    },
+                    "schedule": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Schedule for the downtime."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the downtime to update."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of this downtime."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "downtime"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Downtime resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to update a downtime."
+            }
+          },
+          "inner_properties": null,
+          "description": "Update a downtime request body."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for editing a downtime.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object to update a downtime.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of the downtime to update.\",\n                \"properties\": {\n                  \"display_timezone\": {\n                    \"default\": \"UTC\",\n                    \"description\": \"The timezone in which to display the downtime's start and end times in Datadog applications. This is not used\\nas an offset for scheduling.\",\n                    \"example\": \"America/New_York\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"message\": {\n                    \"description\": \"A message to include with notifications for this downtime. Email notifications can be sent to specific users\\nby using the same `@username` notation as events.\",\n                    \"example\": \"Message about the downtime\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"monitor_identifier\": {\n                    \"description\": \"Monitor identifier for the downtime.\",\n                    \"oneOf\": [\n                      {\n                        \"additionalProperties\": {},\n                        \"description\": \"Object of the monitor identifier.\",\n                        \"properties\": {\n                          \"monitor_id\": {\n                            \"description\": \"ID of the monitor to prevent notifications.\",\n                            \"example\": 123,\n                            \"format\": \"int64\",\n                            \"type\": \"integer\"\n                          }\n                        },\n                        \"required\": [\n                          \"monitor_id\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"additionalProperties\": {},\n                        \"description\": \"Object of the monitor tags.\",\n                        \"properties\": {\n                          \"monitor_tags\": {\n                            \"description\": \"A list of monitor tags. For example, tags that are applied directly to monitors,\\nnot tags that are used in monitor queries (which are filtered by the scope parameter), to which the downtime applies.\\nThe resulting downtime applies to monitors that match **all** provided monitor tags. Setting `monitor_tags`\\nto `[*]` configures the downtime to mute all monitors for the given scope.\",\n                            \"example\": [\n                              \"service:postgres\",\n                              \"team:frontend\"\n                            ],\n                            \"items\": {\n                              \"description\": \"A list of monitor tags.\",\n                              \"example\": \"service:postgres\",\n                              \"type\": \"string\"\n                            },\n                            \"minItems\": 1,\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"monitor_tags\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"mute_first_recovery_notification\": {\n                    \"description\": \"If the first recovery notification during a downtime should be muted.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"notify_end_states\": {\n                    \"description\": \"States that will trigger a monitor notification when the `notify_end_types` action occurs.\",\n                    \"example\": [\n                      \"alert\",\n                      \"warn\"\n                    ],\n                    \"items\": {\n                      \"description\": \"State that will trigger a monitor notification when the `notify_end_types` action occurs.\",\n                      \"enum\": [\n                        \"alert\",\n                        \"no data\",\n                        \"warn\"\n                      ],\n                      \"example\": \"alert\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"ALERT\",\n                        \"NO_DATA\",\n                        \"WARN\"\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"notify_end_types\": {\n                    \"description\": \"Actions that will trigger a monitor notification if the downtime is in the `notify_end_types` state.\",\n                    \"example\": [\n                      \"canceled\",\n                      \"expired\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Action that will trigger a monitor notification if the downtime is in the `notify_end_types` state.\",\n                      \"enum\": [\n                        \"canceled\",\n                        \"expired\"\n                      ],\n                      \"example\": \"canceled\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"CANCELED\",\n                        \"EXPIRED\"\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"schedule\": {\n                    \"description\": \"Schedule for the downtime.\",\n                    \"oneOf\": [\n                      {\n                        \"additionalProperties\": false,\n                        \"description\": \"A recurring downtime schedule definition.\",\n                        \"properties\": {\n                          \"recurrences\": {\n                            \"description\": \"A list of downtime recurrences.\",\n                            \"items\": {\n                              \"additionalProperties\": {},\n                              \"description\": \"An object defining the recurrence of the downtime.\",\n                              \"properties\": {\n                                \"duration\": {\n                                  \"description\": \"The length of the downtime. Must begin with an integer and end with one of 'm', 'h', d', or 'w'.\",\n                                  \"example\": \"123d\",\n                                  \"type\": \"string\"\n                                },\n                                \"rrule\": {\n                                  \"description\": \"The `RRULE` standard for defining recurring events.\\nFor example, to have a recurring event on the first day of each month, set the type to `rrule` and set the `FREQ` to `MONTHLY` and `BYMONTHDAY` to `1`.\\nMost common `rrule` options from the [iCalendar Spec](https://tools.ietf.org/html/rfc5545) are supported.\\n\\n**Note**: Attributes specifying the duration in `RRULE` are not supported (for example, `DTSTART`, `DTEND`, `DURATION`).\\nMore examples available in this [downtime guide](https://docs.datadoghq.com/monitors/guide/suppress-alert-with-downtimes/?tab=api).\",\n                                  \"example\": \"FREQ=MONTHLY;BYSETPOS=3;BYDAY=WE;INTERVAL=1\",\n                                  \"type\": \"string\"\n                                },\n                                \"start\": {\n                                  \"description\": \"ISO-8601 Datetime to start the downtime. Must not include a UTC offset. If not provided, the\\ndowntime starts the moment it is created.\",\n                                  \"example\": \"2020-01-02T03:04\",\n                                  \"nullable\": true,\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"duration\",\n                                \"rrule\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          },\n                          \"timezone\": {\n                            \"default\": \"UTC\",\n                            \"description\": \"The timezone in which to schedule the downtime.\",\n                            \"example\": \"America/New_York\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"additionalProperties\": false,\n                        \"description\": \"A one-time downtime definition.\",\n                        \"properties\": {\n                          \"end\": {\n                            \"description\": \"ISO-8601 Datetime to end the downtime. Must include a UTC offset of zero. If not provided, the\\ndowntime continues forever.\",\n                            \"example\": \"2020-01-02T03:04:00+00:00\",\n                            \"format\": \"date-time\",\n                            \"nullable\": true,\n                            \"type\": \"string\"\n                          },\n                          \"start\": {\n                            \"description\": \"ISO-8601 Datetime to start the downtime. Must include a UTC offset of zero. If not provided, the\\ndowntime starts the moment it is created.\",\n                            \"example\": \"2020-01-02T03:04:00+00:00\",\n                            \"format\": \"date-time\",\n                            \"nullable\": true,\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"scope\": {\n                    \"description\": \"The scope to which the downtime applies. Must follow the [common search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).\",\n                    \"example\": \"env:(staging OR prod) AND datacenter:us-east-1\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of this downtime.\",\n                \"example\": \"00000000-0000-1234-0000-000000000000\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"downtime\",\n                \"description\": \"Downtime resource type.\",\n                \"enum\": [\n                  \"downtime\"\n                ],\n                \"example\": \"downtime\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"DOWNTIME\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Update a downtime request body.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

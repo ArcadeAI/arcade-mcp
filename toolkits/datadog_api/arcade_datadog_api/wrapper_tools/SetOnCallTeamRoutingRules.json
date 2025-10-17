@@ -1,0 +1,504 @@
+{
+  "name": "SetOnCallTeamRoutingRules",
+  "fully_qualified_name": "DatadogApi.SetOnCallTeamRoutingRules@0.1.0",
+  "description": "Set or update a team's On-Call routing rules in Datadog.\n\nUse this tool to configure or modify the On-Call routing rules for a specific team in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team whose routing rules are being set. It should be a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The team ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "routing_rules_request_data",
+        "required": true,
+        "description": "JSON payload for creating or updating routing rules, including rule attributes, ID, and type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "actions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {},
+                          "description": "Specifies the list of actions to perform when the routing rule is matched."
+                        },
+                        "policy_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Identifies the policy to be applied when this routing rule matches."
+                        },
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the query or condition that triggers this routing rule."
+                        },
+                        "time_restriction": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "restrictions": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "end_day": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "monday",
+                                    "tuesday",
+                                    "wednesday",
+                                    "thursday",
+                                    "friday",
+                                    "saturday",
+                                    "sunday"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A day of the week."
+                                },
+                                "end_time": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specifies the ending time for this restriction."
+                                },
+                                "start_day": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "monday",
+                                    "tuesday",
+                                    "wednesday",
+                                    "thursday",
+                                    "friday",
+                                    "saturday",
+                                    "sunday"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A day of the week."
+                                },
+                                "start_time": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specifies the starting time for this restriction."
+                                }
+                              },
+                              "description": "Defines the list of time-based restrictions."
+                            },
+                            "time_zone": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the time zone applicable to the restrictions."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Holds time zone information and a list of time restrictions for a routing rule."
+                        },
+                        "urgency": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "low",
+                            "high",
+                            "dynamic"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Specifies the level of urgency for a routing rule (low, high, or dynamic)."
+                        }
+                      },
+                      "description": "A list of routing rule items that define how incoming pages should be handled."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents the attributes of a request to update or create team routing rules."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies the unique identifier for this set of team routing rules."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team_routing_rules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team routing rules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_relationships",
+        "required": false,
+        "description": "Comma-separated list of relationships to include in the response. Allowed: `rules`, `rules.policy`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SetOnCallTeamRoutingRules'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/on-call/teams/{team_id}/routing-rules",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_relationships",
+        "description": "Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `rules`, `rules.policy`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "The team ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The team ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "routing_rules_request_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "actions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {},
+                          "description": "Specifies the list of actions to perform when the routing rule is matched."
+                        },
+                        "policy_id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Identifies the policy to be applied when this routing rule matches."
+                        },
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the query or condition that triggers this routing rule."
+                        },
+                        "time_restriction": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "restrictions": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "end_day": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "monday",
+                                    "tuesday",
+                                    "wednesday",
+                                    "thursday",
+                                    "friday",
+                                    "saturday",
+                                    "sunday"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A day of the week."
+                                },
+                                "end_time": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specifies the ending time for this restriction."
+                                },
+                                "start_day": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "monday",
+                                    "tuesday",
+                                    "wednesday",
+                                    "thursday",
+                                    "friday",
+                                    "saturday",
+                                    "sunday"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "A day of the week."
+                                },
+                                "start_time": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specifies the starting time for this restriction."
+                                }
+                              },
+                              "description": "Defines the list of time-based restrictions."
+                            },
+                            "time_zone": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the time zone applicable to the restrictions."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Holds time zone information and a list of time restrictions for a routing rule."
+                        },
+                        "urgency": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "low",
+                            "high",
+                            "dynamic"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Specifies the level of urgency for a routing rule (low, high, or dynamic)."
+                        }
+                      },
+                      "description": "A list of routing rule items that define how incoming pages should be handled."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Represents the attributes of a request to update or create team routing rules."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies the unique identifier for this set of team routing rules."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team_routing_rules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team routing rules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Represents a request to create or update team routing rules, including the data payload.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"rules\": [\n                {\n                  \"actions\": null,\n                  \"policy_id\": \"\",\n                  \"query\": \"tags.service:test\",\n                  \"time_restriction\": {\n                    \"restrictions\": [\n                      {\n                        \"end_day\": \"monday\",\n                        \"end_time\": \"17:00:00\",\n                        \"start_day\": \"monday\",\n                        \"start_time\": \"09:00:00\"\n                      },\n                      {\n                        \"end_day\": \"tuesday\",\n                        \"end_time\": \"17:00:00\",\n                        \"start_day\": \"tuesday\",\n                        \"start_time\": \"09:00:00\"\n                      }\n                    ],\n                    \"time_zone\": \"\"\n                  },\n                  \"urgency\": \"high\"\n                },\n                {\n                  \"actions\": [\n                    {\n                      \"channel\": \"channel\",\n                      \"type\": \"send_slack_message\",\n                      \"workspace\": \"workspace\"\n                    }\n                  ],\n                  \"policy_id\": \"fad4eee1-13f5-40d8-886b-4e56d8d5d1c6\",\n                  \"query\": \"\",\n                  \"time_restriction\": null,\n                  \"urgency\": \"low\"\n                }\n              ]\n            },\n            \"id\": \"27590dae-47be-4a7d-9abf-8f4e45124020\",\n            \"type\": \"team_routing_rules\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Holds the data necessary to create or update team routing rules, including attributes, ID, and resource type.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Represents the attributes of a request to update or create team routing rules.\",\n                \"properties\": {\n                  \"rules\": {\n                    \"description\": \"A list of routing rule items that define how incoming pages should be handled.\",\n                    \"items\": {\n                      \"description\": \"Defines an individual routing rule item that contains the rule data for the request.\",\n                      \"properties\": {\n                        \"actions\": {\n                          \"description\": \"Specifies the list of actions to perform when the routing rule is matched.\",\n                          \"items\": {\n                            \"description\": \"Defines an action that is executed when a routing rule matches certain criteria.\",\n                            \"oneOf\": [\n                              {\n                                \"description\": \"Sends a message to a Slack channel.\",\n                                \"properties\": {\n                                  \"channel\": {\n                                    \"description\": \"The channel ID.\",\n                                    \"example\": \"CHANNEL\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": {\n                                    \"default\": \"send_slack_message\",\n                                    \"description\": \"Indicates that the action is a send Slack message action.\",\n                                    \"enum\": [\n                                      \"send_slack_message\"\n                                    ],\n                                    \"example\": \"send_slack_message\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"SEND_SLACK_MESSAGE\"\n                                    ]\n                                  },\n                                  \"workspace\": {\n                                    \"description\": \"The workspace ID.\",\n                                    \"example\": \"WORKSPACE\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"type\",\n                                  \"channel\",\n                                  \"workspace\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              {\n                                \"description\": \"Sends a message to a Microsoft Teams channel.\",\n                                \"properties\": {\n                                  \"channel\": {\n                                    \"description\": \"The channel ID.\",\n                                    \"example\": \"CHANNEL\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"team\": {\n                                    \"description\": \"The team ID.\",\n                                    \"example\": \"TEAM\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"tenant\": {\n                                    \"description\": \"The tenant ID.\",\n                                    \"example\": \"TENANT\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": {\n                                    \"default\": \"send_teams_message\",\n                                    \"description\": \"Indicates that the action is a send Microsoft Teams message action.\",\n                                    \"enum\": [\n                                      \"send_teams_message\"\n                                    ],\n                                    \"example\": \"send_teams_message\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"SEND_TEAMS_MESSAGE\"\n                                    ]\n                                  }\n                                },\n                                \"required\": [\n                                  \"type\",\n                                  \"channel\",\n                                  \"tenant\",\n                                  \"team\"\n                                ],\n                                \"type\": \"object\"\n                              }\n                            ]\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"policy_id\": {\n                          \"description\": \"Identifies the policy to be applied when this routing rule matches.\",\n                          \"type\": \"string\"\n                        },\n                        \"query\": {\n                          \"description\": \"Defines the query or condition that triggers this routing rule.\",\n                          \"type\": \"string\"\n                        },\n                        \"time_restriction\": {\n                          \"description\": \"Holds time zone information and a list of time restrictions for a routing rule.\",\n                          \"properties\": {\n                            \"restrictions\": {\n                              \"description\": \"Defines the list of time-based restrictions.\",\n                              \"items\": {\n                                \"description\": \"Defines a single time restriction rule with start and end times and the applicable weekdays.\",\n                                \"properties\": {\n                                  \"end_day\": {\n                                    \"description\": \"A day of the week.\",\n                                    \"enum\": [\n                                      \"monday\",\n                                      \"tuesday\",\n                                      \"wednesday\",\n                                      \"thursday\",\n                                      \"friday\",\n                                      \"saturday\",\n                                      \"sunday\"\n                                    ],\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"MONDAY\",\n                                      \"TUESDAY\",\n                                      \"WEDNESDAY\",\n                                      \"THURSDAY\",\n                                      \"FRIDAY\",\n                                      \"SATURDAY\",\n                                      \"SUNDAY\"\n                                    ]\n                                  },\n                                  \"end_time\": {\n                                    \"description\": \"Specifies the ending time for this restriction.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"start_day\": {\n                                    \"description\": \"A day of the week.\",\n                                    \"enum\": [\n                                      \"monday\",\n                                      \"tuesday\",\n                                      \"wednesday\",\n                                      \"thursday\",\n                                      \"friday\",\n                                      \"saturday\",\n                                      \"sunday\"\n                                    ],\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"MONDAY\",\n                                      \"TUESDAY\",\n                                      \"WEDNESDAY\",\n                                      \"THURSDAY\",\n                                      \"FRIDAY\",\n                                      \"SATURDAY\",\n                                      \"SUNDAY\"\n                                    ]\n                                  },\n                                  \"start_time\": {\n                                    \"description\": \"Specifies the starting time for this restriction.\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"time_zone\": {\n                              \"description\": \"Specifies the time zone applicable to the restrictions.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"time_zone\",\n                            \"restrictions\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"urgency\": {\n                          \"description\": \"Specifies the level of urgency for a routing rule (low, high, or dynamic).\",\n                          \"enum\": [\n                            \"low\",\n                            \"high\",\n                            \"dynamic\"\n                          ],\n                          \"example\": \"low\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"LOW\",\n                            \"HIGH\",\n                            \"DYNAMIC\"\n                          ]\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"Specifies the unique identifier for this set of team routing rules.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"team_routing_rules\",\n                \"description\": \"Team routing rules resource type.\",\n                \"enum\": [\n                  \"team_routing_rules\"\n                ],\n                \"example\": \"team_routing_rules\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM_ROUTING_RULES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

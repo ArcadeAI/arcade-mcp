@@ -1,0 +1,717 @@
+{
+  "name": "UpdateScanningRule",
+  "fully_qualified_name": "DatadogApi.UpdateScanningRule@0.1.0",
+  "description": "Update a scanning rule in Datadog.\n\nUse this tool to update a scanning rule in Datadog's sensitive data scanner. It's important to note that the request must not attempt to edit the regex attribute of rules that include a standard_pattern relationship, as these are non-editable.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rule_id",
+        "required": true,
+        "description": "The unique identifier for the scanning rule to be updated. This value is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rule_id"
+      },
+      {
+        "name": "update_rule_request_body",
+        "required": true,
+        "description": "A JSON object containing the attributes and relationships for updating a scanning rule. Do not modify standard pattern relationships.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the rule."
+                    },
+                    "excluded_namespaces": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array."
+                    },
+                    "included_keyword_configuration": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "character_count": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The number of characters behind a match detected by Sensitive Data Scanner to look for the keywords defined.\n`character_count` should be greater than the maximum length of a keyword defined for a rule."
+                        },
+                        "keywords": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Keyword list that will be checked during scanning in order to validate a match.\nThe number of keywords in the list must be less than or equal to 30."
+                        },
+                        "use_recommended_keywords": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Should the rule use the underlying standard pattern keyword configuration. If set to `true`, the rule must be tied\nto a standard pattern. If set to `false`, the specified keywords and `character_count` are applied."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Object defining a set of keywords and a number of characters that help reduce noise.\nYou can provide a list of keywords you would like to check within a defined proximity of the matching pattern.\nIf any of the keywords are found within the proximity check, the match is kept.\nIf none are found, the match is discarded."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether or not the rule is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the rule."
+                    },
+                    "namespaces": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\nIf both are missing the whole event is scanned."
+                    },
+                    "pattern": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Not included if there is a relationship to a standard pattern."
+                    },
+                    "priority": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Integer from 1 (high) to 5 (low) indicating rule issue severity."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of tags."
+                    },
+                    "text_replacement": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "number_of_chars": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Required if type == 'partial_replacement_from_beginning'\nor 'partial_replacement_from_end'. It must be > 0."
+                        },
+                        "replacement_string": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Required if type == 'replacement_string'."
+                        },
+                        "should_save_match": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Only valid when type == `replacement_string`. When enabled, matches can be unmasked in logs by users with \u2018Data Scanner Unmask\u2019 permission. As a security best practice, avoid masking for highly-sensitive, long-lived data."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "none",
+                            "hash",
+                            "replacement_string",
+                            "partial_replacement_from_beginning",
+                            "partial_replacement_from_end"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Type of the replacement text. None means no replacement.\nhash means the data will be stubbed. replacement_string means that\none can chose a text to replace the data. partial_replacement_from_beginning\nallows a user to partially replace the data from the beginning, and\npartial_replacement_from_end on the other hand, allows to replace data from\nthe end."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Object describing how the scanned event will be replaced."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the Sensitive Data Scanner rule."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the rule."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "group": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the group."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_group"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner group type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A scanning group."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A scanning group data."
+                    },
+                    "standard_pattern": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the standard pattern."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_standard_pattern"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner standard pattern type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Data containing the standard pattern id."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A standard pattern."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of a scanning rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner rule type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a rule."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateScanningRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/sensitive-data-scanner/config/rules/{rule_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "rule_id",
+        "tool_parameter_name": "rule_id",
+        "description": "The ID of the rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the rule."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_rule_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the rule."
+                    },
+                    "excluded_namespaces": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array."
+                    },
+                    "included_keyword_configuration": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "character_count": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The number of characters behind a match detected by Sensitive Data Scanner to look for the keywords defined.\n`character_count` should be greater than the maximum length of a keyword defined for a rule."
+                        },
+                        "keywords": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Keyword list that will be checked during scanning in order to validate a match.\nThe number of keywords in the list must be less than or equal to 30."
+                        },
+                        "use_recommended_keywords": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Should the rule use the underlying standard pattern keyword configuration. If set to `true`, the rule must be tied\nto a standard pattern. If set to `false`, the specified keywords and `character_count` are applied."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Object defining a set of keywords and a number of characters that help reduce noise.\nYou can provide a list of keywords you would like to check within a defined proximity of the matching pattern.\nIf any of the keywords are found within the proximity check, the match is kept.\nIf none are found, the match is discarded."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether or not the rule is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the rule."
+                    },
+                    "namespaces": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\nIf both are missing the whole event is scanned."
+                    },
+                    "pattern": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Not included if there is a relationship to a standard pattern."
+                    },
+                    "priority": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Integer from 1 (high) to 5 (low) indicating rule issue severity."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of tags."
+                    },
+                    "text_replacement": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "number_of_chars": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Required if type == 'partial_replacement_from_beginning'\nor 'partial_replacement_from_end'. It must be > 0."
+                        },
+                        "replacement_string": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Required if type == 'replacement_string'."
+                        },
+                        "should_save_match": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Only valid when type == `replacement_string`. When enabled, matches can be unmasked in logs by users with \u2018Data Scanner Unmask\u2019 permission. As a security best practice, avoid masking for highly-sensitive, long-lived data."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "none",
+                            "hash",
+                            "replacement_string",
+                            "partial_replacement_from_beginning",
+                            "partial_replacement_from_end"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Type of the replacement text. None means no replacement.\nhash means the data will be stubbed. replacement_string means that\none can chose a text to replace the data. partial_replacement_from_beginning\nallows a user to partially replace the data from the beginning, and\npartial_replacement_from_end on the other hand, allows to replace data from\nthe end."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Object describing how the scanned event will be replaced."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the Sensitive Data Scanner rule."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the rule."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "group": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the group."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_group"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner group type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A scanning group."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A scanning group data."
+                    },
+                    "standard_pattern": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the standard pattern."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_standard_pattern"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner standard pattern type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Data containing the standard pattern id."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A standard pattern."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of a scanning rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner rule type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a rule."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update rule request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data related to the update of a rule.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of the Sensitive Data Scanner rule.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Description of the rule.\",\n                    \"type\": \"string\"\n                  },\n                  \"excluded_namespaces\": {\n                    \"description\": \"Attributes excluded from the scan. If namespaces is provided, it has to be a sub-path of the namespaces array.\",\n                    \"example\": [\n                      \"admin.name\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"included_keyword_configuration\": {\n                    \"description\": \"Object defining a set of keywords and a number of characters that help reduce noise.\\nYou can provide a list of keywords you would like to check within a defined proximity of the matching pattern.\\nIf any of the keywords are found within the proximity check, the match is kept.\\nIf none are found, the match is discarded.\",\n                    \"properties\": {\n                      \"character_count\": {\n                        \"description\": \"The number of characters behind a match detected by Sensitive Data Scanner to look for the keywords defined.\\n`character_count` should be greater than the maximum length of a keyword defined for a rule.\",\n                        \"example\": 30,\n                        \"format\": \"int64\",\n                        \"maximum\": 50,\n                        \"minimum\": 1,\n                        \"type\": \"integer\"\n                      },\n                      \"keywords\": {\n                        \"description\": \"Keyword list that will be checked during scanning in order to validate a match.\\nThe number of keywords in the list must be less than or equal to 30.\",\n                        \"example\": [\n                          \"credit card\",\n                          \"cc\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"use_recommended_keywords\": {\n                        \"description\": \"Should the rule use the underlying standard pattern keyword configuration. If set to `true`, the rule must be tied\\nto a standard pattern. If set to `false`, the specified keywords and `character_count` are applied.\",\n                        \"type\": \"boolean\"\n                      }\n                    },\n                    \"required\": [\n                      \"keywords\",\n                      \"character_count\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"is_enabled\": {\n                    \"description\": \"Whether or not the rule is enabled.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the rule.\",\n                    \"type\": \"string\"\n                  },\n                  \"namespaces\": {\n                    \"description\": \"Attributes included in the scan. If namespaces is empty or missing, all attributes except excluded_namespaces are scanned.\\nIf both are missing the whole event is scanned.\",\n                    \"example\": [\n                      \"admin\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"pattern\": {\n                    \"description\": \"Not included if there is a relationship to a standard pattern.\",\n                    \"type\": \"string\"\n                  },\n                  \"priority\": {\n                    \"description\": \"Integer from 1 (high) to 5 (low) indicating rule issue severity.\",\n                    \"format\": \"int64\",\n                    \"maximum\": 5,\n                    \"minimum\": 1,\n                    \"type\": \"integer\"\n                  },\n                  \"tags\": {\n                    \"description\": \"List of tags.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"text_replacement\": {\n                    \"description\": \"Object describing how the scanned event will be replaced.\",\n                    \"properties\": {\n                      \"number_of_chars\": {\n                        \"description\": \"Required if type == 'partial_replacement_from_beginning'\\nor 'partial_replacement_from_end'. It must be > 0.\",\n                        \"format\": \"int64\",\n                        \"minimum\": 0,\n                        \"type\": \"integer\"\n                      },\n                      \"replacement_string\": {\n                        \"description\": \"Required if type == 'replacement_string'.\",\n                        \"type\": \"string\"\n                      },\n                      \"should_save_match\": {\n                        \"description\": \"Only valid when type == `replacement_string`. When enabled, matches can be unmasked in logs by users with \\u2018Data Scanner Unmask\\u2019 permission. As a security best practice, avoid masking for highly-sensitive, long-lived data.\",\n                        \"type\": \"boolean\"\n                      },\n                      \"type\": {\n                        \"default\": \"none\",\n                        \"description\": \"Type of the replacement text. None means no replacement.\\nhash means the data will be stubbed. replacement_string means that\\none can chose a text to replace the data. partial_replacement_from_beginning\\nallows a user to partially replace the data from the beginning, and\\npartial_replacement_from_end on the other hand, allows to replace data from\\nthe end.\",\n                        \"enum\": [\n                          \"none\",\n                          \"hash\",\n                          \"replacement_string\",\n                          \"partial_replacement_from_beginning\",\n                          \"partial_replacement_from_end\"\n                        ],\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"NONE\",\n                          \"HASH\",\n                          \"REPLACEMENT_STRING\",\n                          \"PARTIAL_REPLACEMENT_FROM_BEGINNING\",\n                          \"PARTIAL_REPLACEMENT_FROM_END\"\n                        ]\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the rule.\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships of a scanning rule.\",\n                \"properties\": {\n                  \"group\": {\n                    \"description\": \"A scanning group data.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"A scanning group.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"ID of the group.\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"sensitive_data_scanner_group\",\n                            \"description\": \"Sensitive Data Scanner group type.\",\n                            \"enum\": [\n                              \"sensitive_data_scanner_group\"\n                            ],\n                            \"example\": \"sensitive_data_scanner_group\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"SENSITIVE_DATA_SCANNER_GROUP\"\n                            ]\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"standard_pattern\": {\n                    \"description\": \"A standard pattern.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Data containing the standard pattern id.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"ID of the standard pattern.\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"sensitive_data_scanner_standard_pattern\",\n                            \"description\": \"Sensitive Data Scanner standard pattern type.\",\n                            \"enum\": [\n                              \"sensitive_data_scanner_standard_pattern\"\n                            ],\n                            \"example\": \"sensitive_data_scanner_standard_pattern\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"SENSITIVE_DATA_SCANNER_STANDARD_PATTERN\"\n                            ]\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"sensitive_data_scanner_rule\",\n                \"description\": \"Sensitive Data Scanner rule type.\",\n                \"enum\": [\n                  \"sensitive_data_scanner_rule\"\n                ],\n                \"example\": \"sensitive_data_scanner_rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SENSITIVE_DATA_SCANNER_RULE\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"meta\": {\n            \"description\": \"Meta payload containing information about the API.\",\n            \"properties\": {\n              \"version\": {\n                \"description\": \"Version of the API (optional).\",\n                \"example\": 0,\n                \"format\": \"int64\",\n                \"minimum\": 0,\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\",\n          \"meta\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

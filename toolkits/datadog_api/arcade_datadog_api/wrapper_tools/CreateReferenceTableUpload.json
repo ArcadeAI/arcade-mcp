@@ -1,0 +1,295 @@
+{
+  "name": "CreateReferenceTableUpload",
+  "fully_qualified_name": "DatadogApi.CreateReferenceTableUpload@0.1.0",
+  "description": "Create a reference table upload for bulk data ingestion.\n\nUse this tool to initiate the creation of a reference table upload in Datadog, facilitating bulk data ingestion for analytics or monitoring purposes.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_upload_headers",
+        "required": false,
+        "description": "An array of strings representing the headers of the file to upload for the reference table.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The headers of the file to upload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.headers"
+      },
+      {
+        "name": "upload_part_count",
+        "required": false,
+        "description": "Specify the number of parts in the upload. Used for multipart uploads.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of parts in the upload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.part_count"
+      },
+      {
+        "name": "part_size_bytes",
+        "required": false,
+        "description": "The size of each part in the upload in bytes. For multipart uploads (part_count > 1), all parts except the last one must be at least 5,000,000 bytes. For single-part uploads, any size is allowed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The size of each part in the upload in bytes. For multipart uploads (part_count > 1), all parts except the last one must be at least 5,000,000 bytes. For single-part uploads (part_count = 1), any size is allowed."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.part_size"
+      },
+      {
+        "name": "reference_table_name",
+        "required": false,
+        "description": "The name of the reference table for the upload.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the reference table."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.table_name"
+      },
+      {
+        "name": "upload_id",
+        "required": false,
+        "description": "The unique ID for the upload process in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the upload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "upload_resource_type",
+        "required": false,
+        "description": "Specifies the resource type for the upload. Must be set to 'upload'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "upload"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Upload resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateReferenceTableUpload'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/reference-tables/uploads",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.headers",
+        "tool_parameter_name": "file_upload_headers",
+        "description": "The headers of the file to upload.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The headers of the file to upload."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.part_count",
+        "tool_parameter_name": "upload_part_count",
+        "description": "The number of parts in the upload.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of parts in the upload."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.part_size",
+        "tool_parameter_name": "part_size_bytes",
+        "description": "The size of each part in the upload in bytes. For multipart uploads (part_count > 1), all parts except the last one must be at least 5,000,000 bytes. For single-part uploads (part_count = 1), any size is allowed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The size of each part in the upload in bytes. For multipart uploads (part_count > 1), all parts except the last one must be at least 5,000,000 bytes. For single-part uploads (part_count = 1), any size is allowed."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.table_name",
+        "tool_parameter_name": "reference_table_name",
+        "description": "The name of the reference table.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the reference table."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "upload_id",
+        "description": "The ID of the upload.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the upload."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "upload_resource_type",
+        "description": "Upload resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "upload"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Upload resource type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "upload",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `CreateUploadRequest` object.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `CreateUploadRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `CreateUploadRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"headers\": {\n                    \"description\": \"The headers of the file to upload.\",\n                    \"example\": [\n                      \"\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"part_count\": {\n                    \"description\": \"The number of parts in the upload.\",\n                    \"example\": 3,\n                    \"format\": \"int32\",\n                    \"maximum\": 20,\n                    \"type\": \"integer\"\n                  },\n                  \"part_size\": {\n                    \"description\": \"The size of each part in the upload in bytes. For multipart uploads (part_count > 1), all parts except the last one must be at least 5,000,000 bytes. For single-part uploads (part_count = 1), any size is allowed.\",\n                    \"example\": 10000000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"table_name\": {\n                    \"description\": \"The name of the reference table.\",\n                    \"example\": \"\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"headers\",\n                  \"table_name\",\n                  \"part_count\",\n                  \"part_size\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the upload.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"upload\",\n                \"description\": \"Upload resource type.\",\n                \"enum\": [\n                  \"upload\"\n                ],\n                \"example\": \"upload\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"UPLOAD\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

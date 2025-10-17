@@ -1,0 +1,328 @@
+{
+  "name": "UpdateCloudflareAccount",
+  "fully_qualified_name": "DatadogApi.UpdateCloudflareAccount@0.1.0",
+  "description": "Update details of a Cloudflare account.\n\nUse this tool to update the information of an existing Cloudflare account linked with Datadog. It should be called whenever modifications to a Cloudflare account are required.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cloudflare_account_id",
+        "required": true,
+        "description": "The unique identifier for the Cloudflare account to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "cloudflare_api_key",
+        "required": false,
+        "description": "The API key for the Cloudflare account, required for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Cloudflare account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.api_key"
+      },
+      {
+        "name": "cloudflare_account_email",
+        "required": false,
+        "description": "The email associated with the Cloudflare account. Required if using an API key instead of a token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.email"
+      },
+      {
+        "name": "cloudflare_account_name",
+        "required": false,
+        "description": "The name of the Cloudflare account to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Cloudflare account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "allowed_resource_types_for_metrics",
+        "required": false,
+        "description": "An array of resource types ('web', 'dns', 'lb', 'worker') to allow for metrics collection.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.resources"
+      },
+      {
+        "name": "zone_allowlist",
+        "required": false,
+        "description": "A list of zone identifiers to restrict which metrics can be pulled for Cloudflare.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An allowlist of zones to restrict pulling metrics for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.zones"
+      },
+      {
+        "name": "json_api_type",
+        "required": false,
+        "description": "The JSON:API type for this API. Always use `cloudflare-accounts`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "cloudflare-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `cloudflare-accounts`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCloudflareAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/cloudflare/accounts/{account_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "cloudflare_account_id",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.api_key",
+        "tool_parameter_name": "cloudflare_api_key",
+        "description": "The API key of the Cloudflare account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Cloudflare account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.email",
+        "tool_parameter_name": "cloudflare_account_email",
+        "description": "The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "cloudflare_account_name",
+        "description": "The name of the Cloudflare account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Cloudflare account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.resources",
+        "tool_parameter_name": "allowed_resource_types_for_metrics",
+        "description": "An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.zones",
+        "tool_parameter_name": "zone_allowlist",
+        "description": "An allowlist of zones to restrict pulling metrics for.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An allowlist of zones to restrict pulling metrics for."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "json_api_type",
+        "description": "The JSON:API type for this API. Should always be `cloudflare-accounts`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "cloudflare-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `cloudflare-accounts`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "cloudflare-accounts",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Payload schema when updating a Cloudflare account.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data object for updating a Cloudflare account.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for updating a Cloudflare account.\",\n                \"properties\": {\n                  \"api_key\": {\n                    \"description\": \"The API key of the Cloudflare account.\",\n                    \"example\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\",\n                    \"type\": \"string\"\n                  },\n                  \"email\": {\n                    \"description\": \"The email associated with the Cloudflare account. If an API key is provided (and not a token), this field is also required.\",\n                    \"example\": \"test-email@example.com\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the Cloudflare account.\",\n                    \"type\": \"string\"\n                  },\n                  \"resources\": {\n                    \"description\": \"An allowlist of resources to restrict pulling metrics for including `'web', 'dns', 'lb' (load balancer), 'worker'`.\",\n                    \"example\": [\n                      \"web\",\n                      \"dns\",\n                      \"lb\",\n                      \"worker\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"zones\": {\n                    \"description\": \"An allowlist of zones to restrict pulling metrics for.\",\n                    \"example\": [\n                      \"zone_id_1\",\n                      \"zone_id_2\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"api_key\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"cloudflare-accounts\",\n                \"description\": \"The JSON:API type for this API. Should always be `cloudflare-accounts`.\",\n                \"enum\": [\n                  \"cloudflare-accounts\"\n                ],\n                \"example\": \"cloudflare-accounts\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CLOUDFLARE_ACCOUNTS\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "name": "CreateFastlyAccount",
+  "fully_qualified_name": "DatadogApi.CreateFastlyAccount@0.1.0",
+  "description": "Create a new Fastly account through Datadog integration.\n\nUse this tool to create a new Fastly account using Datadog's integration service. Ideal for setting up Fastly accounts quickly and efficiently.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "fastly_account_creation_data",
+        "required": true,
+        "description": "JSON object containing the attributes for creating a Fastly account, including API key, account name, and associated services.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "api_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API key for the Fastly account."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Fastly account."
+                    },
+                    "services": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the Fastly service"
+                        },
+                        "tags": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of tags for the Fastly service."
+                        }
+                      },
+                      "description": "A list of services belonging to the parent account."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes object for creating a Fastly account."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "fastly-accounts"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for this API. Should always be `fastly-accounts`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data object for creating a Fastly account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateFastlyAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/fastly/accounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "fastly_account_creation_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "api_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The API key for the Fastly account."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the Fastly account."
+                    },
+                    "services": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The ID of the Fastly service"
+                        },
+                        "tags": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of tags for the Fastly service."
+                        }
+                      },
+                      "description": "A list of services belonging to the parent account."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes object for creating a Fastly account."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "fastly-accounts"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The JSON:API type for this API. Should always be `fastly-accounts`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data object for creating a Fastly account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Payload schema when adding a Fastly account.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data object for creating a Fastly account.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for creating a Fastly account.\",\n                \"properties\": {\n                  \"api_key\": {\n                    \"description\": \"The API key for the Fastly account.\",\n                    \"example\": \"ABCDEFG123\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the Fastly account.\",\n                    \"example\": \"test-name\",\n                    \"type\": \"string\"\n                  },\n                  \"services\": {\n                    \"description\": \"A list of services belonging to the parent account.\",\n                    \"items\": {\n                      \"description\": \"The schema representation of a Fastly service.\",\n                      \"properties\": {\n                        \"id\": {\n                          \"description\": \"The ID of the Fastly service\",\n                          \"example\": \"6abc7de6893AbcDe9fghIj\",\n                          \"type\": \"string\"\n                        },\n                        \"tags\": {\n                          \"description\": \"A list of tags for the Fastly service.\",\n                          \"example\": [\n                            \"myTag\",\n                            \"myTag2:myValue\"\n                          ],\n                          \"items\": {\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        }\n                      },\n                      \"required\": [\n                        \"id\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"api_key\",\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"fastly-accounts\",\n                \"description\": \"The JSON:API type for this API. Should always be `fastly-accounts`.\",\n                \"enum\": [\n                  \"fastly-accounts\"\n                ],\n                \"example\": \"fastly-accounts\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"FASTLY_ACCOUNTS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

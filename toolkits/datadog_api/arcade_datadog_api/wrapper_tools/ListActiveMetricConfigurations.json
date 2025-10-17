@@ -1,0 +1,159 @@
+{
+  "name": "ListActiveMetricConfigurations",
+  "fully_qualified_name": "DatadogApi.ListActiveMetricConfigurations@0.1.0",
+  "description": "Retrieve active metric tags and aggregations for a given metric name.\n\nUse this tool to get the currently active tags and aggregations for dashboards, monitors, and APIs associated with a specified metric name. It helps to understand how metrics are being actively used across various platforms.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metric_name",
+        "required": true,
+        "description": "Specify the name of the metric to retrieve active tags and aggregations for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metric_name"
+      },
+      {
+        "name": "lookback_seconds",
+        "required": false,
+        "description": "Number of seconds to look back from the current time. Defaults to 604800 seconds (1 week). Minimum is 7200 seconds (2 hours), and maximum is 2630000 seconds (1 month).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of seconds of look back (from now).\nDefault value is 604,800 (1 week), minimum value is 7200 (2 hours), maximum value is 2,630,000 (1 month)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "window[seconds]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListActiveMetricConfigurations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics/{metric_name}/active-configurations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "window[seconds]",
+        "tool_parameter_name": "lookback_seconds",
+        "description": "The number of seconds of look back (from now).\nDefault value is 604,800 (1 week), minimum value is 7200 (2 hours), maximum value is 2,630,000 (1 month).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of seconds of look back (from now).\nDefault value is 604,800 (1 week), minimum value is 7200 (2 hours), maximum value is 2,630,000 (1 month)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "metric_name",
+        "tool_parameter_name": "metric_name",
+        "description": "The name of the metric.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

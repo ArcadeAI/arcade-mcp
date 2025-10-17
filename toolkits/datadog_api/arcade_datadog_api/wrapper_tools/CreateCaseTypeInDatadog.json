@@ -1,0 +1,262 @@
+{
+  "name": "CreateCaseTypeInDatadog",
+  "fully_qualified_name": "DatadogApi.CreateCaseTypeInDatadog@0.1.0",
+  "description": "Initiate the creation of a new case type in Datadog.\n\nUse this tool to create a new case type in Datadog, enabling structured classification and management of cases within the platform.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_type_name",
+        "required": true,
+        "description": "Specify the name of the case type to be created in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "case_type_resource_type",
+        "required": true,
+        "description": "Specify the resource type for the case. Must be 'case_type'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case_type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "case_type_deleted_timestamp",
+        "required": false,
+        "description": "Timestamp indicating when the case type was deleted. Format should be a valid ISO 8601 string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp of when the case type was deleted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.deleted_at"
+      },
+      {
+        "name": "case_type_description",
+        "required": false,
+        "description": "A brief textual description of the case type to be created in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type description."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "case_type_emoji",
+        "required": false,
+        "description": "Emoji representing the case type. Use a short, descriptive Unicode emoji.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type emoji."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.emoji"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCaseType'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/types",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.deleted_at",
+        "tool_parameter_name": "case_type_deleted_timestamp",
+        "description": "Timestamp of when the case type was deleted",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp of when the case type was deleted"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "case_type_description",
+        "description": "Case type description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type description."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.emoji",
+        "tool_parameter_name": "case_type_emoji",
+        "description": "Case type emoji.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type emoji."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "case_type_name",
+        "description": "Case type name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type name."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "case_type_resource_type",
+        "description": "Case type resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case_type"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type resource type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "case_type",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case type create request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case type\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Case Type resource attributes\",\n                \"properties\": {\n                  \"deleted_at\": {\n                    \"description\": \"Timestamp of when the case type was deleted\",\n                    \"format\": \"date-time\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"description\": {\n                    \"description\": \"Case type description.\",\n                    \"example\": \"Investigations done in case management\",\n                    \"type\": \"string\"\n                  },\n                  \"emoji\": {\n                    \"description\": \"Case type emoji.\",\n                    \"example\": \"\\ud83d\\udd75\\ud83c\\udffb\\u200d\\u2642\\ufe0f\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Case type name.\",\n                    \"example\": \"Investigation\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case_type\",\n                \"description\": \"Case type resource type\",\n                \"enum\": [\n                  \"case_type\"\n                ],\n                \"example\": \"case_type\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE_TYPE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Case type payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

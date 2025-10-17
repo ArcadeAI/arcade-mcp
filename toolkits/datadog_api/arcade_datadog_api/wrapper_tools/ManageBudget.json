@@ -1,0 +1,456 @@
+{
+  "name": "ManageBudget",
+  "fully_qualified_name": "DatadogApi.ManageBudget@0.1.0",
+  "description": "Create or update a budget in Datadog.\n\nThis tool allows you to create a new budget or update an existing budget using the Datadog API.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "budget_data",
+        "required": true,
+        "description": "A JSON object containing all necessary details for creating or updating a budget. Include attributes like the creation timestamp, user id, budget amounts, start and end months, and any specific tags. Ensure the 'type' field is set to 'budget'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created_at": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the budget was created."
+                    },
+                    "created_by": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the user that created the budget."
+                    },
+                    "end_month": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The month when the budget ends."
+                    },
+                    "entries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "amount": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `amount` of the budget entry."
+                        },
+                        "month": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `month` of the budget entry."
+                        },
+                        "tag_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "tag_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The key of the tag."
+                            },
+                            "tag_value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The value of the tag."
+                            }
+                          },
+                          "description": "The `tag_filters` of the budget entry."
+                        }
+                      },
+                      "description": "The entries of the budget."
+                    },
+                    "metrics_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The cost query used to track against the budget."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the budget."
+                    },
+                    "org_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the org the budget belongs to."
+                    },
+                    "start_month": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The month when the budget starts."
+                    },
+                    "total_amount": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The sum of all budget entries' amounts."
+                    },
+                    "updated_at": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the budget was last updated."
+                    },
+                    "updated_by": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the user that created the budget."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes of a budget."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `BudgetWithEntriesData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object, must be `budget`."
+                }
+              },
+              "inner_properties": null,
+              "description": "A budget and all its entries."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpsertBudget'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/budget",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "budget_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created_at": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the budget was created."
+                    },
+                    "created_by": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the user that created the budget."
+                    },
+                    "end_month": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The month when the budget ends."
+                    },
+                    "entries": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "amount": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `amount` of the budget entry."
+                        },
+                        "month": {
+                          "val_type": "integer",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `month` of the budget entry."
+                        },
+                        "tag_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "tag_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The key of the tag."
+                            },
+                            "tag_value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The value of the tag."
+                            }
+                          },
+                          "description": "The `tag_filters` of the budget entry."
+                        }
+                      },
+                      "description": "The entries of the budget."
+                    },
+                    "metrics_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The cost query used to track against the budget."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the budget."
+                    },
+                    "org_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the org the budget belongs to."
+                    },
+                    "start_month": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The month when the budget starts."
+                    },
+                    "total_amount": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The sum of all budget entries' amounts."
+                    },
+                    "updated_at": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The timestamp when the budget was last updated."
+                    },
+                    "updated_by": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The id of the user that created the budget."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes of a budget."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `BudgetWithEntriesData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object, must be `budget`."
+                }
+              },
+              "inner_properties": null,
+              "description": "A budget and all its entries."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of the `BudgetWithEntries` object.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A budget and all its entries.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes of a budget.\",\n                \"properties\": {\n                  \"created_at\": {\n                    \"description\": \"The timestamp when the budget was created.\",\n                    \"example\": 1738258683590,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"created_by\": {\n                    \"description\": \"The id of the user that created the budget.\",\n                    \"example\": \"00000000-0a0a-0a0a-aaa0-00000000000a\",\n                    \"type\": \"string\"\n                  },\n                  \"end_month\": {\n                    \"description\": \"The month when the budget ends.\",\n                    \"example\": 202502,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"entries\": {\n                    \"description\": \"The entries of the budget.\",\n                    \"items\": {\n                      \"description\": \"The entry of a budget.\",\n                      \"properties\": {\n                        \"amount\": {\n                          \"description\": \"The `amount` of the budget entry.\",\n                          \"example\": 500,\n                          \"format\": \"double\",\n                          \"type\": \"number\"\n                        },\n                        \"month\": {\n                          \"description\": \"The `month` of the budget entry.\",\n                          \"example\": 202501,\n                          \"format\": \"int64\",\n                          \"type\": \"integer\"\n                        },\n                        \"tag_filters\": {\n                          \"description\": \"The `tag_filters` of the budget entry.\",\n                          \"items\": {\n                            \"description\": \"Tag filter for the budget's entries.\",\n                            \"properties\": {\n                              \"tag_key\": {\n                                \"description\": \"The key of the tag.\",\n                                \"example\": \"service\",\n                                \"type\": \"string\"\n                              },\n                              \"tag_value\": {\n                                \"description\": \"The value of the tag.\",\n                                \"example\": \"ec2\",\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"metrics_query\": {\n                    \"description\": \"The cost query used to track against the budget.\",\n                    \"example\": \"aws.cost.amortized{service:ec2} by {service}\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the budget.\",\n                    \"example\": \"my budget\",\n                    \"type\": \"string\"\n                  },\n                  \"org_id\": {\n                    \"description\": \"The id of the org the budget belongs to.\",\n                    \"example\": 123,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"start_month\": {\n                    \"description\": \"The month when the budget starts.\",\n                    \"example\": 202501,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"total_amount\": {\n                    \"description\": \"The sum of all budget entries' amounts.\",\n                    \"example\": 1000,\n                    \"format\": \"double\",\n                    \"type\": \"number\"\n                  },\n                  \"updated_at\": {\n                    \"description\": \"The timestamp when the budget was last updated.\",\n                    \"example\": 1738258683590,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"updated_by\": {\n                    \"description\": \"The id of the user that created the budget.\",\n                    \"example\": \"00000000-0a0a-0a0a-aaa0-00000000000a\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The `BudgetWithEntriesData` `id`.\",\n                \"example\": \"00000000-0a0a-0a0a-aaa0-00000000000a\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"description\": \"The type of the object, must be `budget`.\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

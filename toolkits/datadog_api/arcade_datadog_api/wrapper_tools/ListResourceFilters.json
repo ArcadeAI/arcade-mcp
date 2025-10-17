@@ -1,0 +1,192 @@
+{
+  "name": "ListResourceFilters",
+  "fully_qualified_name": "DatadogApi.ListResourceFilters@0.1.0",
+  "description": "Retrieve Datadog resource evaluation filters.\n\nCall this tool to obtain a list of resource evaluation filters for cloud security management in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cloud_provider_filter",
+        "required": false,
+        "description": "Specifies the cloud provider to filter resource filters, such as aws, gcp, or azure.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter resource filters by cloud provider (e.g. aws, gcp, azure)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cloud_provider"
+      },
+      {
+        "name": "cloud_provider_account_id",
+        "required": false,
+        "description": "Filter resource filters by the cloud provider's account ID. This is valid only when a provider is specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter resource filters by cloud provider account ID. This parameter is only valid when provider is specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "skip_cache_for_resource_filters",
+        "required": false,
+        "description": "Set to true to skip the cache when fetching resource filters. Useful when the latest resource data is needed.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Skip cache for resource filters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "skip_cache"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetResourceEvaluationFilters'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cloud_security_management/resource_filters",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cloud_provider",
+        "tool_parameter_name": "cloud_provider_filter",
+        "description": "Filter resource filters by cloud provider (e.g. aws, gcp, azure).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter resource filters by cloud provider (e.g. aws, gcp, azure)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "cloud_provider_account_id",
+        "description": "Filter resource filters by cloud provider account ID. This parameter is only valid when provider is specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter resource filters by cloud provider account ID. This parameter is only valid when provider is specified."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "skip_cache",
+        "tool_parameter_name": "skip_cache_for_resource_filters",
+        "description": "Skip cache for resource filters.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Skip cache for resource filters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

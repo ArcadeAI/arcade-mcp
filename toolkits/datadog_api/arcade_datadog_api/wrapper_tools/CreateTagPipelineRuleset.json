@@ -1,0 +1,596 @@
+{
+  "name": "CreateTagPipelineRuleset",
+  "fully_qualified_name": "DatadogApi.CreateTagPipelineRuleset@0.1.0",
+  "description": "Create a tag pipeline ruleset with specified rules.\n\nThis tool creates a new tag pipeline ruleset using the specified rules and configurations in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "tag_pipeline_ruleset_data",
+        "required": true,
+        "description": "JSON object defining the rules and configurations for the new tag pipeline ruleset in Datadog. Includes attributes such as enabled status, rules details, type, and ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `enabled`."
+                        },
+                        "mapping": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "destination_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `destination_key`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `source_keys`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsMapping` object."
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `metadata`."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `name`."
+                        },
+                        "query": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "addition": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `value`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsQueryAddition` object."
+                            },
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `case_insensitivity`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `if_not_exists`."
+                            },
+                            "query": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `query`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsQuery` object."
+                        },
+                        "reference_table": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `case_insensitivity`."
+                            },
+                            "field_pairs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "input_column": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `input_column`."
+                                },
+                                "output_key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `output_key`."
+                                }
+                              },
+                              "description": "The `reference_table` `field_pairs`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `source_keys`."
+                            },
+                            "table_name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `table_name`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsReferenceTable` object."
+                        }
+                      },
+                      "description": "The `attributes` `rules`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `CreateRulesetRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `CreateRulesetRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "create_ruleset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Create ruleset resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `CreateRulesetRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateTagPipelinesRuleset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/tags/enrichment",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tag_pipeline_ruleset_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "rules": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `enabled`."
+                        },
+                        "mapping": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "destination_key": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `destination_key`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `mapping` `source_keys`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsMapping` object."
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `metadata`."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `name`."
+                        },
+                        "query": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "addition": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `addition` `value`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsQueryAddition` object."
+                            },
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `case_insensitivity`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `if_not_exists`."
+                            },
+                            "query": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `query` `query`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsQuery` object."
+                        },
+                        "reference_table": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "case_insensitivity": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `case_insensitivity`."
+                            },
+                            "field_pairs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "input_column": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `input_column`."
+                                },
+                                "output_key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `output_key`."
+                                }
+                              },
+                              "description": "The `reference_table` `field_pairs`."
+                            },
+                            "if_not_exists": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `if_not_exists`."
+                            },
+                            "source_keys": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `source_keys`."
+                            },
+                            "table_name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `reference_table` `table_name`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `CreateRulesetRequestDataAttributesRulesItemsReferenceTable` object."
+                        }
+                      },
+                      "description": "The `attributes` `rules`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `CreateRulesetRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `CreateRulesetRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "create_ruleset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Create ruleset resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `CreateRulesetRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `CreateRulesetRequest` object.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"enabled\": true,\n              \"rules\": [\n                {\n                  \"enabled\": true,\n                  \"mapping\": null,\n                  \"metadata\": null,\n                  \"name\": \"Add Cost Center Tag\",\n                  \"query\": {\n                    \"addition\": {\n                      \"key\": \"cost_center\",\n                      \"value\": \"engineering\"\n                    },\n                    \"case_insensitivity\": false,\n                    \"if_not_exists\": true,\n                    \"query\": \"account_id:\\\"123456789\\\" AND service:\\\"web-api\\\"\"\n                  },\n                  \"reference_table\": null\n                }\n              ]\n            },\n            \"id\": \"New Ruleset\",\n            \"type\": \"create_ruleset\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `CreateRulesetRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `CreateRulesetRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"description\": \"The `attributes` `enabled`.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"rules\": {\n                    \"description\": \"The `attributes` `rules`.\",\n                    \"items\": {\n                      \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItems` object.\",\n                      \"properties\": {\n                        \"enabled\": {\n                          \"description\": \"The `items` `enabled`.\",\n                          \"example\": false,\n                          \"type\": \"boolean\"\n                        },\n                        \"mapping\": {\n                          \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItemsMapping` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"destination_key\": {\n                              \"description\": \"The `mapping` `destination_key`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `mapping` `if_not_exists`.\",\n                              \"example\": false,\n                              \"type\": \"boolean\"\n                            },\n                            \"source_keys\": {\n                              \"description\": \"The `mapping` `source_keys`.\",\n                              \"example\": [\n                                \"\"\n                              ],\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"required\": [\n                            \"destination_key\",\n                            \"if_not_exists\",\n                            \"source_keys\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"metadata\": {\n                          \"additionalProperties\": {\n                            \"type\": \"string\"\n                          },\n                          \"description\": \"The `items` `metadata`.\",\n                          \"nullable\": true,\n                          \"type\": \"object\"\n                        },\n                        \"name\": {\n                          \"description\": \"The `items` `name`.\",\n                          \"example\": \"\",\n                          \"type\": \"string\"\n                        },\n                        \"query\": {\n                          \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItemsQuery` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"addition\": {\n                              \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItemsQueryAddition` object.\",\n                              \"nullable\": true,\n                              \"properties\": {\n                                \"key\": {\n                                  \"description\": \"The `addition` `key`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                },\n                                \"value\": {\n                                  \"description\": \"The `addition` `value`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"required\": [\n                                \"key\",\n                                \"value\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"case_insensitivity\": {\n                              \"description\": \"The `query` `case_insensitivity`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `query` `if_not_exists`.\",\n                              \"example\": false,\n                              \"type\": \"boolean\"\n                            },\n                            \"query\": {\n                              \"description\": \"The `query` `query`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"addition\",\n                            \"if_not_exists\",\n                            \"query\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"reference_table\": {\n                          \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItemsReferenceTable` object.\",\n                          \"nullable\": true,\n                          \"properties\": {\n                            \"case_insensitivity\": {\n                              \"description\": \"The `reference_table` `case_insensitivity`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"field_pairs\": {\n                              \"description\": \"The `reference_table` `field_pairs`.\",\n                              \"items\": {\n                                \"description\": \"The definition of `CreateRulesetRequestDataAttributesRulesItemsReferenceTableFieldPairsItems` object.\",\n                                \"properties\": {\n                                  \"input_column\": {\n                                    \"description\": \"The `items` `input_column`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"output_key\": {\n                                    \"description\": \"The `items` `output_key`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"input_column\",\n                                  \"output_key\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"if_not_exists\": {\n                              \"description\": \"The `reference_table` `if_not_exists`.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"source_keys\": {\n                              \"description\": \"The `reference_table` `source_keys`.\",\n                              \"example\": [\n                                \"\"\n                              ],\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"table_name\": {\n                              \"description\": \"The `reference_table` `table_name`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"field_pairs\",\n                            \"source_keys\",\n                            \"table_name\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"required\": [\n                        \"enabled\",\n                        \"name\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"rules\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The `CreateRulesetRequestData` `id`.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"create_ruleset\",\n                \"description\": \"Create ruleset resource type.\",\n                \"enum\": [\n                  \"create_ruleset\"\n                ],\n                \"example\": \"create_ruleset\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CREATE_RULESET\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "name": "ListUserRoles",
+  "fully_qualified_name": "DatadogApi.ListUserRoles@0.1.0",
+  "description": "Retrieve all roles from Datadog.\n\nThis tool fetches all roles from Datadog, providing their names and unique identifiers. It should be called when there's a need to view or manage role information.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "The number of roles to return per page, with a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specific page number to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[number]"
+      },
+      {
+        "name": "sort_roles_by",
+        "required": false,
+        "description": "Sort roles based on a specified field. Use prefixes to set ascending or descending order, e.g., '-name' for descending by name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "-name",
+            "modified_at",
+            "-modified_at",
+            "user_count",
+            "-user_count"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort roles depending on the given field. Sort order is **ascending** by default.\nSort order is **descending** if the field is prefixed by a negative sign, for example:\n`sort=-name`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "role_filter_string",
+        "required": false,
+        "description": "Filter roles using a specific string to match their details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter all roles by the given string."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "role_id_filter",
+        "required": false,
+        "description": "List of role IDs to filter roles by, supporting comma-separated values.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter all roles by the given list of role IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[id]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListRoles'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/roles",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "page_size",
+        "description": "Size for a given page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[number]",
+        "tool_parameter_name": "page_number",
+        "description": "Specific page number to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_roles_by",
+        "description": "Sort roles depending on the given field. Sort order is **ascending** by default.\nSort order is **descending** if the field is prefixed by a negative sign, for example:\n`sort=-name`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "name",
+            "-name",
+            "modified_at",
+            "-modified_at",
+            "user_count",
+            "-user_count"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort roles depending on the given field. Sort order is **ascending** by default.\nSort order is **descending** if the field is prefixed by a negative sign, for example:\n`sort=-name`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "name",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "role_filter_string",
+        "description": "Filter all roles by the given string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter all roles by the given string."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[id]",
+        "tool_parameter_name": "role_id_filter",
+        "description": "Filter all roles by the given list of role IDs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter all roles by the given list of role IDs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

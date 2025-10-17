@@ -1,0 +1,348 @@
+{
+  "name": "ChangeSignalState",
+  "fully_qualified_name": "DatadogApi.ChangeSignalState@0.1.0",
+  "description": "Change the triage state of a security signal.\n\nThis tool is used to modify the triage state of a specific security signal in Datadog's security monitoring system. It is useful for managing signal priorities and responses.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "signal_id",
+        "required": true,
+        "description": "The unique identifier of the security signal to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "signal_id"
+      },
+      {
+        "name": "new_triage_state",
+        "required": true,
+        "description": "The new triage state of the signal. Valid options are 'open', 'archived', or 'under_review'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "archived",
+            "under_review"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new triage state of the signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.state"
+      },
+      {
+        "name": "archive_comment",
+        "required": false,
+        "description": "Optional comment to display on archived signals. Useful for context or documentation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional comment to display on archived signals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.archive_comment"
+      },
+      {
+        "name": "archive_reason",
+        "required": false,
+        "description": "Reason for archiving the signal. Options include 'none', 'false_positive', 'testing_or_maintenance', 'investigated_case_opened', or 'other'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "none",
+            "false_positive",
+            "testing_or_maintenance",
+            "investigated_case_opened",
+            "other"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reason a signal is archived."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.archive_reason"
+      },
+      {
+        "name": "updated_signal_version",
+        "required": false,
+        "description": "The version number of the signal to update. The update is rejected if the server's version is higher.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.version"
+      },
+      {
+        "name": "security_signal_unique_id",
+        "required": false,
+        "description": "The unique identifier for the security signal to be modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID of the security signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "event_type",
+        "required": false,
+        "description": "The type of event, must be 'signal_metadata'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "signal_metadata"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of event."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditSecurityMonitoringSignalState'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/signals/{signal_id}/state",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "signal_id",
+        "tool_parameter_name": "signal_id",
+        "description": "The ID of the signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.archive_comment",
+        "tool_parameter_name": "archive_comment",
+        "description": "Optional comment to display on archived signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional comment to display on archived signals."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.archive_reason",
+        "tool_parameter_name": "archive_reason",
+        "description": "Reason a signal is archived.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "none",
+            "false_positive",
+            "testing_or_maintenance",
+            "investigated_case_opened",
+            "other"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Reason a signal is archived."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.state",
+        "tool_parameter_name": "new_triage_state",
+        "description": "The new triage state of the signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "open",
+            "archived",
+            "under_review"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new triage state of the signal."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.version",
+        "tool_parameter_name": "updated_signal_version",
+        "description": "Version of the updated signal. If server side version is higher, update will be rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "security_signal_unique_id",
+        "description": "The unique ID of the security signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique ID of the security signal."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "event_type",
+        "description": "The type of event.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "signal_metadata"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of event."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "signal_metadata",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request body for changing the state of a given security monitoring signal.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data containing the patch for changing the state of a signal.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes describing the change of state of a security signal.\",\n                \"properties\": {\n                  \"archive_comment\": {\n                    \"description\": \"Optional comment to display on archived signals.\",\n                    \"type\": \"string\"\n                  },\n                  \"archive_reason\": {\n                    \"description\": \"Reason a signal is archived.\",\n                    \"enum\": [\n                      \"none\",\n                      \"false_positive\",\n                      \"testing_or_maintenance\",\n                      \"investigated_case_opened\",\n                      \"other\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"NONE\",\n                      \"FALSE_POSITIVE\",\n                      \"TESTING_OR_MAINTENANCE\",\n                      \"INVESTIGATED_CASE_OPENED\",\n                      \"OTHER\"\n                    ]\n                  },\n                  \"state\": {\n                    \"description\": \"The new triage state of the signal.\",\n                    \"enum\": [\n                      \"open\",\n                      \"archived\",\n                      \"under_review\"\n                    ],\n                    \"example\": \"open\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"OPEN\",\n                      \"ARCHIVED\",\n                      \"UNDER_REVIEW\"\n                    ]\n                  },\n                  \"version\": {\n                    \"description\": \"Version of the updated signal. If server side version is higher, update will be rejected.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"state\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique ID of the security signal.\"\n              },\n              \"type\": {\n                \"default\": \"signal_metadata\",\n                \"description\": \"The type of event.\",\n                \"enum\": [\n                  \"signal_metadata\"\n                ],\n                \"example\": \"signal_metadata\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SIGNAL_METADATA\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Attributes describing the signal update.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

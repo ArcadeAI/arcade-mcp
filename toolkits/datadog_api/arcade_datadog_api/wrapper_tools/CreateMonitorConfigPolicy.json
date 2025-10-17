@@ -1,0 +1,220 @@
+{
+  "name": "CreateMonitorConfigPolicy",
+  "fully_qualified_name": "DatadogApi.CreateMonitorConfigPolicy@0.1.0",
+  "description": "Create a new monitor configuration policy in Datadog.\n\nUse this tool to create monitor configuration policies within Datadog, specifying the desired configurations and parameters.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "monitor_config_policy_request",
+        "required": true,
+        "description": "JSON object defining the monitor configuration policy, including policy attributes and type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "policy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Configuration for the policy."
+                    },
+                    "policy_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "tag"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The monitor configuration policy type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Policy and policy type for a monitor configuration policy."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-config-policy"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor configuration policy resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "A monitor configuration policy data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Create a monitor configuration policy request body."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateMonitorConfigPolicy'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/monitor/policy",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "monitor_config_policy_request",
+        "description": "Create a monitor configuration policy request body.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "policy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Configuration for the policy."
+                    },
+                    "policy_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "tag"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The monitor configuration policy type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Policy and policy type for a monitor configuration policy."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-config-policy"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor configuration policy resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "A monitor configuration policy data."
+            }
+          },
+          "inner_properties": null,
+          "description": "Create a monitor configuration policy request body."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for creating a monitor configuration policy.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A monitor configuration policy data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Policy and policy type for a monitor configuration policy.\",\n                \"properties\": {\n                  \"policy\": {\n                    \"description\": \"Configuration for the policy.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"Tag attributes of a monitor configuration policy.\",\n                        \"properties\": {\n                          \"tag_key\": {\n                            \"description\": \"The key of the tag.\",\n                            \"example\": \"datacenter\",\n                            \"maxLength\": 255,\n                            \"type\": \"string\"\n                          },\n                          \"tag_key_required\": {\n                            \"description\": \"If a tag key is required for monitor creation.\",\n                            \"example\": true,\n                            \"type\": \"boolean\"\n                          },\n                          \"valid_tag_values\": {\n                            \"description\": \"Valid values for the tag.\",\n                            \"example\": [\n                              \"prod\",\n                              \"staging\"\n                            ],\n                            \"items\": {\n                              \"maxLength\": 255,\n                              \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"tag_key\",\n                          \"tag_key_required\",\n                          \"valid_tag_values\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"policy_type\": {\n                    \"default\": \"tag\",\n                    \"description\": \"The monitor configuration policy type.\",\n                    \"enum\": [\n                      \"tag\"\n                    ],\n                    \"example\": \"tag\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"TAG\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"policy_type\",\n                  \"policy\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"monitor-config-policy\",\n                \"description\": \"Monitor configuration policy resource type.\",\n                \"enum\": [\n                  \"monitor-config-policy\"\n                ],\n                \"example\": \"monitor-config-policy\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"MONITOR_CONFIG_POLICY\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Create a monitor configuration policy request body.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

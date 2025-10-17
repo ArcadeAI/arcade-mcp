@@ -1,0 +1,196 @@
+{
+  "name": "AddMemberTeamToSuperTeam",
+  "fully_qualified_name": "DatadogApi.AddMemberTeamToSuperTeam@0.1.0",
+  "description": "Add a member team to a super team.\n\nUse this tool to add a specified team as a member of an existing super team by providing the super team's ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "super_team_identifier",
+        "required": true,
+        "description": "The ID of the super team to which the member team will be added. It is a string value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "super_team_id"
+      },
+      {
+        "name": "member_team_identifier",
+        "required": true,
+        "description": "The unique identifier of the member team to be added to the super team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The member team's identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "member_team_type",
+        "required": true,
+        "description": "Specifies the type of member team to be added. Must be 'member_teams'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "member_teams"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Member team type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AddMemberTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team/{super_team_id}/member_teams",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "super_team_id",
+        "tool_parameter_name": "super_team_identifier",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "member_team_identifier",
+        "description": "The member team's identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The member team's identifier"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "member_team_type",
+        "description": "Member team type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "member_teams"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Member team type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "member_teams",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to add a member team to super team's hierarchy\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"A member team\",\n            \"properties\": {\n              \"id\": {\n                \"description\": \"The member team's identifier\",\n                \"example\": \"aeadc05e-98a8-11ec-ac2c-da7ad0900001\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"member_teams\",\n                \"description\": \"Member team type\",\n                \"enum\": [\n                  \"member_teams\"\n                ],\n                \"example\": \"member_teams\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"MEMBER_TEAMS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

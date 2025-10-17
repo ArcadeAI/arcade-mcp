@@ -1,0 +1,229 @@
+{
+  "name": "UpdateFastlyAccount",
+  "fully_qualified_name": "DatadogApi.UpdateFastlyAccount@0.1.0",
+  "description": "Updates a Fastly account via Datadog integration.\n\nCall this tool to update details of a Fastly account through the Datadog API. Useful for managing Fastly integration settings.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "fastly_account_id",
+        "required": true,
+        "description": "The unique identifier for the Fastly account to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fastly Account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "fastly_api_key",
+        "required": false,
+        "description": "The API key for the Fastly account to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Fastly account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.api_key"
+      },
+      {
+        "name": "fastly_account_name",
+        "required": false,
+        "description": "The name of the Fastly account to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Fastly account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "json_api_type",
+        "required": false,
+        "description": "Specifies the type for the Fastly account API. Must be 'fastly-accounts'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fastly-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `fastly-accounts`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateFastlyAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/fastly/accounts/{account_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "fastly_account_id",
+        "description": "Fastly Account id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fastly Account id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.api_key",
+        "tool_parameter_name": "fastly_api_key",
+        "description": "The API key of the Fastly account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Fastly account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "fastly_account_name",
+        "description": "The name of the Fastly account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Fastly account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "json_api_type",
+        "description": "The JSON:API type for this API. Should always be `fastly-accounts`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fastly-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `fastly-accounts`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "fastly-accounts",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Payload schema when updating a Fastly account.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data object for updating a Fastly account.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for updating a Fastly account.\",\n                \"properties\": {\n                  \"api_key\": {\n                    \"description\": \"The API key of the Fastly account.\",\n                    \"example\": \"ABCDEFG123\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the Fastly account.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"fastly-accounts\",\n                \"description\": \"The JSON:API type for this API. Should always be `fastly-accounts`.\",\n                \"enum\": [\n                  \"fastly-accounts\"\n                ],\n                \"example\": \"fastly-accounts\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"FASTLY_ACCOUNTS\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

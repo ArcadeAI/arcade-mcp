@@ -1,0 +1,363 @@
+{
+  "name": "SearchRumEvents",
+  "fully_qualified_name": "DatadogApi.SearchRumEvents@0.1.0",
+  "description": "Search and filter RUM events based on a query.\n\nThis tool retrieves RUM events that match a specified search query. It's useful for building complex filtering and search operations on RUM events. Results are paginated for easy navigation.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "minimum_event_time",
+        "required": false,
+        "description": "The minimum time for events in ISO 8601 format, math expressions, or milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.from"
+      },
+      {
+        "name": "rum_search_query",
+        "required": false,
+        "description": "The search query following the RUM search syntax to filter events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query following the RUM search syntax."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.query"
+      },
+      {
+        "name": "filter_max_time",
+        "required": false,
+        "description": "Specify the maximum event time in ISO 8601 format, mathematical expressions, or milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.to"
+      },
+      {
+        "name": "time_offset_seconds",
+        "required": false,
+        "description": "The time offset in seconds to apply to the query.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time offset (in seconds) to apply to the query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "options.time_offset"
+      },
+      {
+        "name": "timezone",
+        "required": false,
+        "description": "Specify the timezone as GMT, UTC, an offset (like UTC+1), or a Timezone Database identifier (like America/New_York).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "options.timezone"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Provide the cursor to fetch the next set of results from a previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a cursor provided in the previous query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page.cursor"
+      },
+      {
+        "name": "maximum_events_in_response",
+        "required": false,
+        "description": "Specifies the maximum number of RUM events to return in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of events in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page.limit"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the sort order for events by timestamp. Use 'timestamp' for ascending order and '-timestamp' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort parameters when querying events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchRUMEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/rum/events/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter.from",
+        "tool_parameter_name": "minimum_event_time",
+        "description": "The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "now-15m",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter.query",
+        "tool_parameter_name": "rum_search_query",
+        "description": "The search query following the RUM search syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query following the RUM search syntax."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "*",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter.to",
+        "tool_parameter_name": "filter_max_time",
+        "description": "The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "now",
+        "documentation_urls": []
+      },
+      {
+        "name": "options.time_offset",
+        "tool_parameter_name": "time_offset_seconds",
+        "description": "The time offset (in seconds) to apply to the query.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time offset (in seconds) to apply to the query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "options.timezone",
+        "tool_parameter_name": "timezone",
+        "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "UTC",
+        "documentation_urls": []
+      },
+      {
+        "name": "page.cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "List following results with a cursor provided in the previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a cursor provided in the previous query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page.limit",
+        "tool_parameter_name": "maximum_events_in_response",
+        "description": "Maximum number of events in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of events in the response."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Sort parameters when querying events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort parameters when querying events."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The request for a RUM events list.\",\n        \"properties\": {\n          \"filter\": {\n            \"description\": \"The search and filter query settings.\",\n            \"properties\": {\n              \"from\": {\n                \"default\": \"now-15m\",\n                \"description\": \"The minimum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).\",\n                \"example\": \"now-15m\",\n                \"type\": \"string\"\n              },\n              \"query\": {\n                \"default\": \"*\",\n                \"description\": \"The search query following the RUM search syntax.\",\n                \"example\": \"@type:session AND @session.type:user\",\n                \"type\": \"string\"\n              },\n              \"to\": {\n                \"default\": \"now\",\n                \"description\": \"The maximum time for the requested events; supports date (in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format with full date, hours, minutes, and the `Z` UTC indicator - seconds and fractional seconds are optional), math, and regular timestamps (in milliseconds).\",\n                \"example\": \"now\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"options\": {\n            \"description\": \"Global query options that are used during the query.\\nNote: Only supply timezone or time offset, not both. Otherwise, the query fails.\",\n            \"properties\": {\n              \"time_offset\": {\n                \"description\": \"The time offset (in seconds) to apply to the query.\",\n                \"format\": \"int64\",\n                \"type\": \"integer\"\n              },\n              \"timezone\": {\n                \"default\": \"UTC\",\n                \"description\": \"The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).\",\n                \"example\": \"GMT\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"page\": {\n            \"description\": \"Paging attributes for listing events.\",\n            \"properties\": {\n              \"cursor\": {\n                \"description\": \"List following results with a cursor provided in the previous query.\",\n                \"example\": \"eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==\",\n                \"type\": \"string\"\n              },\n              \"limit\": {\n                \"default\": 10,\n                \"description\": \"Maximum number of events in the response.\",\n                \"example\": 25,\n                \"format\": \"int32\",\n                \"maximum\": 1000,\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"sort\": {\n            \"description\": \"Sort parameters when querying events.\",\n            \"enum\": [\n              \"timestamp\",\n              \"-timestamp\"\n            ],\n            \"type\": \"string\",\n            \"x-enum-varnames\": [\n              \"TIMESTAMP_ASCENDING\",\n              \"TIMESTAMP_DESCENDING\"\n            ]\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

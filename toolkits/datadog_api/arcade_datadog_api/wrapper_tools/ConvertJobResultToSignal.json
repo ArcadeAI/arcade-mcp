@@ -1,0 +1,307 @@
+{
+  "name": "ConvertJobResultToSignal",
+  "fully_qualified_name": "DatadogApi.ConvertJobResultToSignal@0.1.0",
+  "description": "Convert a job result to a signal for detection purposes.\n\nUse this tool to transform a job result into a signal, useful for detection and monitoring in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "request_id",
+        "required": false,
+        "description": "A unique identifier for the request that is used to convert the job result to a signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Request ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.id"
+      },
+      {
+        "name": "job_result_ids",
+        "required": false,
+        "description": "Array of job result IDs to convert into signals.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Job result IDs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.jobResultIds"
+      },
+      {
+        "name": "notifications_sent",
+        "required": false,
+        "description": "List of notification types sent related to the signal.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Notifications sent."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.notifications"
+      },
+      {
+        "name": "signal_message",
+        "required": false,
+        "description": "Message content of the generated signals to be converted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Message of generated signals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.signalMessage"
+      },
+      {
+        "name": "signal_severity",
+        "required": false,
+        "description": "Severity level of the security signal. Accepts values: info, low, medium, high, critical.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Severity of the Security Signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.signalSeverity"
+      },
+      {
+        "name": "payload_type",
+        "required": false,
+        "description": "Type of payload, must be 'historicalDetectionsJobResultSignalConversion'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "historicalDetectionsJobResultSignalConversion"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ConvertJobResultToSignal'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/siem-historical-detections/jobs/signal_convert",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.id",
+        "tool_parameter_name": "request_id",
+        "description": "Request ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Request ID."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.jobResultIds",
+        "tool_parameter_name": "job_result_ids",
+        "description": "Job result IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Job result IDs."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.notifications",
+        "tool_parameter_name": "notifications_sent",
+        "description": "Notifications sent.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Notifications sent."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.signalMessage",
+        "tool_parameter_name": "signal_message",
+        "description": "Message of generated signals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Message of generated signals."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.signalSeverity",
+        "tool_parameter_name": "signal_severity",
+        "description": "Severity of the Security Signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Severity of the Security Signal."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "payload_type",
+        "description": "Type of payload.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "historicalDetectionsJobResultSignalConversion"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of payload."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for converting historical job results to signals.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data for converting historical job results to signals.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for converting historical job results to signals.\",\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Request ID.\",\n                    \"type\": \"string\"\n                  },\n                  \"jobResultIds\": {\n                    \"description\": \"Job result IDs.\",\n                    \"example\": [\n                      \"\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"notifications\": {\n                    \"description\": \"Notifications sent.\",\n                    \"example\": [\n                      \"\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"signalMessage\": {\n                    \"description\": \"Message of generated signals.\",\n                    \"example\": \"A large number of failed login attempts.\",\n                    \"type\": \"string\"\n                  },\n                  \"signalSeverity\": {\n                    \"description\": \"Severity of the Security Signal.\",\n                    \"enum\": [\n                      \"info\",\n                      \"low\",\n                      \"medium\",\n                      \"high\",\n                      \"critical\"\n                    ],\n                    \"example\": \"critical\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"INFO\",\n                      \"LOW\",\n                      \"MEDIUM\",\n                      \"HIGH\",\n                      \"CRITICAL\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"jobResultIds\",\n                  \"signalSeverity\",\n                  \"signalMessage\",\n                  \"notifications\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"Type of payload.\",\n                \"enum\": [\n                  \"historicalDetectionsJobResultSignalConversion\"\n                ],\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"HISTORICALDETECTIONSJOBRESULTSIGNALCONVERSION\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

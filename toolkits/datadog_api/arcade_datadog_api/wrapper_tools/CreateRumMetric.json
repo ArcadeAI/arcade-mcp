@@ -1,0 +1,428 @@
+{
+  "name": "CreateRumMetric",
+  "fully_qualified_name": "DatadogApi.CreateRumMetric@0.1.0",
+  "description": "Create a metric based on RUM data.\n\nUse this tool to create a metric using your organization's RUM data via Datadog. It returns the metric object if successful.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rum_metric_definition",
+        "required": true,
+        "description": "JSON object defining the new RUM-based metric, including attributes like compute rules, event type, and filters.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "compute": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "aggregation_type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "count",
+                            "distribution"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of aggregation to use."
+                        },
+                        "include_percentiles": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Toggle to include or exclude percentile aggregations for distribution metrics.\nOnly present when `aggregation_type` is `distribution`."
+                        },
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the rum-based metric will aggregate on.\nOnly present when `aggregation_type` is `distribution`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The compute rule to compute the rum-based metric."
+                    },
+                    "event_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "session",
+                        "view",
+                        "action",
+                        "error",
+                        "resource",
+                        "long_task",
+                        "vital"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of RUM events to filter on."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The search query - following the RUM search syntax."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The rum-based metric filter. Events matching this filter will be aggregated in this metric."
+                    },
+                    "group_by": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the rum-based metric will be aggregated over."
+                        },
+                        "tag_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Eventual name of the tag that gets created. By default, `path` is used as the tag name."
+                        }
+                      },
+                      "description": "The rules for the group by."
+                    },
+                    "uniqueness": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "when": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "match",
+                            "end"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When to count updatable events. `match` when the event is first seen, or `end` when the event is complete."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The rule to count updatable events. Is only set if `event_type` is `sessions` or `views`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The object describing the Datadog rum-based metric to create."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the rum-based metric."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "rum_metrics"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be rum_metrics."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new rum-based metric properties."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new rum-based metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateRumMetric'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/rum/config/metrics",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "rum_metric_definition",
+        "description": "The definition of the new rum-based metric.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "compute": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "aggregation_type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "count",
+                            "distribution"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of aggregation to use."
+                        },
+                        "include_percentiles": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Toggle to include or exclude percentile aggregations for distribution metrics.\nOnly present when `aggregation_type` is `distribution`."
+                        },
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the rum-based metric will aggregate on.\nOnly present when `aggregation_type` is `distribution`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The compute rule to compute the rum-based metric."
+                    },
+                    "event_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "session",
+                        "view",
+                        "action",
+                        "error",
+                        "resource",
+                        "long_task",
+                        "vital"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of RUM events to filter on."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The search query - following the RUM search syntax."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The rum-based metric filter. Events matching this filter will be aggregated in this metric."
+                    },
+                    "group_by": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the rum-based metric will be aggregated over."
+                        },
+                        "tag_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Eventual name of the tag that gets created. By default, `path` is used as the tag name."
+                        }
+                      },
+                      "description": "The rules for the group by."
+                    },
+                    "uniqueness": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "when": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "match",
+                            "end"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When to count updatable events. `match` when the event is first seen, or `end` when the event is complete."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The rule to count updatable events. Is only set if `event_type` is `sessions` or `views`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The object describing the Datadog rum-based metric to create."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the rum-based metric."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "rum_metrics"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be rum_metrics."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new rum-based metric properties."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new rum-based metric."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The new rum-based metric body.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The new rum-based metric properties.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The object describing the Datadog rum-based metric to create.\",\n                \"properties\": {\n                  \"compute\": {\n                    \"description\": \"The compute rule to compute the rum-based metric.\",\n                    \"properties\": {\n                      \"aggregation_type\": {\n                        \"description\": \"The type of aggregation to use.\",\n                        \"enum\": [\n                          \"count\",\n                          \"distribution\"\n                        ],\n                        \"example\": \"distribution\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"COUNT\",\n                          \"DISTRIBUTION\"\n                        ]\n                      },\n                      \"include_percentiles\": {\n                        \"description\": \"Toggle to include or exclude percentile aggregations for distribution metrics.\\nOnly present when `aggregation_type` is `distribution`.\",\n                        \"example\": true,\n                        \"type\": \"boolean\"\n                      },\n                      \"path\": {\n                        \"description\": \"The path to the value the rum-based metric will aggregate on.\\nOnly present when `aggregation_type` is `distribution`.\",\n                        \"example\": \"@duration\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"aggregation_type\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"event_type\": {\n                    \"description\": \"The type of RUM events to filter on.\",\n                    \"enum\": [\n                      \"session\",\n                      \"view\",\n                      \"action\",\n                      \"error\",\n                      \"resource\",\n                      \"long_task\",\n                      \"vital\"\n                    ],\n                    \"example\": \"session\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"SESSION\",\n                      \"VIEW\",\n                      \"ACTION\",\n                      \"ERROR\",\n                      \"RESOURCE\",\n                      \"LONG_TASK\",\n                      \"VITAL\"\n                    ]\n                  },\n                  \"filter\": {\n                    \"description\": \"The rum-based metric filter. Events matching this filter will be aggregated in this metric.\",\n                    \"properties\": {\n                      \"query\": {\n                        \"default\": \"*\",\n                        \"description\": \"The search query - following the RUM search syntax.\",\n                        \"example\": \"@service:web-ui: \",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"query\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"group_by\": {\n                    \"description\": \"The rules for the group by.\",\n                    \"items\": {\n                      \"description\": \"A group by rule.\",\n                      \"properties\": {\n                        \"path\": {\n                          \"description\": \"The path to the value the rum-based metric will be aggregated over.\",\n                          \"example\": \"@browser.name\",\n                          \"type\": \"string\"\n                        },\n                        \"tag_name\": {\n                          \"description\": \"Eventual name of the tag that gets created. By default, `path` is used as the tag name.\",\n                          \"example\": \"browser_name\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"path\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"uniqueness\": {\n                    \"description\": \"The rule to count updatable events. Is only set if `event_type` is `sessions` or `views`.\",\n                    \"properties\": {\n                      \"when\": {\n                        \"description\": \"When to count updatable events. `match` when the event is first seen, or `end` when the event is complete.\",\n                        \"enum\": [\n                          \"match\",\n                          \"end\"\n                        ],\n                        \"example\": \"match\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"WHEN_MATCH\",\n                          \"WHEN_END\"\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"when\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"event_type\",\n                  \"compute\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The name of the rum-based metric.\",\n                \"example\": \"rum.sessions.webui.count\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"rum_metrics\",\n                \"description\": \"The type of the resource. The value should always be rum_metrics.\",\n                \"enum\": [\n                  \"rum_metrics\"\n                ],\n                \"example\": \"rum_metrics\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"RUM_METRICS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The definition of the new rum-based metric.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

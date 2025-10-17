@@ -1,0 +1,456 @@
+{
+  "name": "ListApps",
+  "fully_qualified_name": "DatadogApi.ListApps@0.1.0",
+  "description": "Retrieve a list of all apps with optional filters and sorting.\n\nThis tool calls the Datadog API to list all registered apps. It supports filtering and sorting options and provides basic information such as app ID, name, and description. Useful for managing and viewing app information through automation.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "The number of apps to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of apps to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to return for paginated results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "filter_by_creator_email",
+        "required": false,
+        "description": "Filter apps by the creator's email address. This is used to narrow down apps created by a specific user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app creator. Usually the user's email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[user_name]"
+      },
+      {
+        "name": "filter_by_creator_uuid",
+        "required": false,
+        "description": "Filter apps by the app creator's UUID. Provide the UUID of the user who created the app to narrow down the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app creator's UUID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[user_uuid]"
+      },
+      {
+        "name": "filter_by_app_name",
+        "required": false,
+        "description": "Filter the list of apps by specifying the app name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by app name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[name]"
+      },
+      {
+        "name": "filter_by_query",
+        "required": false,
+        "description": "Filter apps by the app name or the app creator's name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app name or the app creator."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[query]"
+      },
+      {
+        "name": "filter_by_tags",
+        "required": false,
+        "description": "Filter apps by specifying tags. Separate multiple tags with commas.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by tags."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[tags]"
+      },
+      {
+        "name": "sort_fields_and_directions",
+        "required": false,
+        "description": "An array specifying the fields and directions (e.g., 'name:asc', 'created_at:desc') to sort apps by.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields and direction to sort apps by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "include_published_apps",
+        "required": false,
+        "description": "Set to true to include only published apps, false to exclude them.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether they are published."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[deployed]"
+      },
+      {
+        "name": "show_only_favorite_apps",
+        "required": false,
+        "description": "Set to true to filter and show only apps that you have marked as favorites.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether you have added them to your favorites."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[favorite]"
+      },
+      {
+        "name": "filter_self_service_enabled",
+        "required": false,
+        "description": "Filter apps by self-service enablement. True for enabled, false otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether they are enabled for self-service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[self_service]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListApps'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/app-builder/apps",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "page_size",
+        "description": "The number of apps to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of apps to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "The page number to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[user_name]",
+        "tool_parameter_name": "filter_by_creator_email",
+        "description": "Filter apps by the app creator. Usually the user's email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app creator. Usually the user's email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[user_uuid]",
+        "tool_parameter_name": "filter_by_creator_uuid",
+        "description": "Filter apps by the app creator's UUID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app creator's UUID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[name]",
+        "tool_parameter_name": "filter_by_app_name",
+        "description": "Filter by app name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by app name."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[query]",
+        "tool_parameter_name": "filter_by_query",
+        "description": "Filter apps by the app name or the app creator.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by the app name or the app creator."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[deployed]",
+        "tool_parameter_name": "include_published_apps",
+        "description": "Filter apps by whether they are published.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether they are published."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[tags]",
+        "tool_parameter_name": "filter_by_tags",
+        "description": "Filter apps by tags.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by tags."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[favorite]",
+        "tool_parameter_name": "show_only_favorite_apps",
+        "description": "Filter apps by whether you have added them to your favorites.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether you have added them to your favorites."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[self_service]",
+        "tool_parameter_name": "filter_self_service_enabled",
+        "description": "Filter apps by whether they are enabled for self-service.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter apps by whether they are enabled for self-service."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_fields_and_directions",
+        "description": "The fields and direction to sort apps by.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields and direction to sort apps by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
