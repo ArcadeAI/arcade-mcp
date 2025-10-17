@@ -1,0 +1,365 @@
+{
+  "name": "UpdateSalesOrderBillingAddress",
+  "fully_qualified_name": "ZohoBooksApi.UpdateSalesOrderBillingAddress@0.1.0",
+  "description": "Updates the billing address for a specific sales order.\n\n",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization associated with the sales order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "sales_order_identifier",
+        "required": true,
+        "description": "Unique identifier of the sales order to update the billing address for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_id"
+      },
+      {
+        "name": "billing_address_details",
+        "required": false,
+        "description": "JSON object containing the billing address details such as address, city, state, zip, country, phone, fax, attention, and flags like is_one_off_address, is_update_customer, is_verified.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address"
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "City of the address"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the Address"
+            },
+            "zip": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ZIP Code of the Address"
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Country of the Address"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Phone Number of the Contact Person."
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fax Number"
+            },
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_one_off_address": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag indicating whether customer billing address information should be synchronized with the sales order data. When enabled, updates the customer master record with address modifications, ensuring data consistency across customer relationship management systems."
+            },
+            "is_verified": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Address is verified"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_sales_order_billing_address'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.salesorders.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/salesorders/{salesorder_id}/address/billing",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_id",
+        "tool_parameter_name": "sales_order_identifier",
+        "description": "Unique identifier of the sales order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the sales order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "billing_address_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Address"
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "City of the address"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the Address"
+            },
+            "zip": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ZIP Code of the Address"
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Country of the Address"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Phone Number of the Contact Person."
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fax Number"
+            },
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_one_off_address": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_update_customer": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag indicating whether customer billing address information should be synchronized with the sales order data. When enabled, updates the customer master record with address modifications, ensuring data consistency across customer relationship management systems."
+            },
+            "is_verified": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if the Address is verified"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"address\": {\n            \"description\": \"Address\",\n            \"type\": \"string\",\n            \"example\": \"B-1104, 11F, \\nHorizon International Tower, \\nNo. 6, ZhiChun Road, HaiDian District\"\n          },\n          \"city\": {\n            \"description\": \"City of the address\",\n            \"type\": \"string\",\n            \"example\": \"Beijing\"\n          },\n          \"state\": {\n            \"description\": \"State of the Address\",\n            \"type\": \"string\",\n            \"example\": \"Beijing\"\n          },\n          \"zip\": {\n            \"description\": \"ZIP Code of the Address\",\n            \"type\": \"string\",\n            \"example\": \"1000881\"\n          },\n          \"country\": {\n            \"description\": \"Country of the Address\",\n            \"type\": \"string\",\n            \"example\": \"China\"\n          },\n          \"phone\": {\n            \"description\": \"Phone Number of the Contact Person.\",\n            \"type\": \"string\",\n            \"example\": \"+1-925-921-9201\"\n          },\n          \"fax\": {\n            \"description\": \"Fax Number\",\n            \"type\": \"string\",\n            \"example\": \"+86-10-82637827\"\n          },\n          \"attention\": {\n            \"type\": \"string\"\n          },\n          \"is_one_off_address\": {\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"is_update_customer\": {\n            \"description\": \"Boolean flag indicating whether customer billing address information should be synchronized with the sales order data. When enabled, updates the customer master record with address modifications, ensuring data consistency across customer relationship management systems.\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"is_verified\": {\n            \"description\": \"Check if the Address is verified\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

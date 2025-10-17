@@ -1,0 +1,451 @@
+{
+  "name": "RenderFigmaImages",
+  "fully_qualified_name": "FigmaApi.RenderFigmaImages@0.1.0",
+  "description": "Fetch rendered images from Figma files by node IDs.\n\nUse this tool to render and retrieve images from a Figma file by specifying node IDs. The tool returns a mapping of node IDs to URLs of the rendered images. Note: Some entries may be null if rendering fails for certain nodes. Images expire after 30 days.",
+  "toolkit": {
+    "name": "ArcadeFigmaApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "node_ids_to_render",
+        "required": true,
+        "description": "A comma-separated list of node IDs for images to be rendered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of node IDs to render."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ids"
+      },
+      {
+        "name": "figma_file_key",
+        "required": true,
+        "description": "The key for the Figma file or branch to export images from. Use with the `branch_data` query parameter to obtain branch key if needed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to export images from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_key"
+      },
+      {
+        "name": "version_id",
+        "required": false,
+        "description": "Specify a version ID to retrieve a particular version of a Figma file. If omitted, will use the current version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A specific version ID to get. Omitting this will get the current version of the file."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      },
+      {
+        "name": "image_scale_factor",
+        "required": false,
+        "description": "A number between 0.01 and 4, representing the image scaling factor for rendering.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A number between 0.01 and 4, the image scaling factor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scale"
+      },
+      {
+        "name": "image_output_format",
+        "required": false,
+        "description": "Specify the image format for the output. Options are 'jpg', 'png', 'svg', or 'pdf'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "jpg",
+            "png",
+            "svg",
+            "pdf"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A string enum for the image output format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "format"
+      },
+      {
+        "name": "render_text_as_outlines",
+        "required": false,
+        "description": "Determines if text elements are rendered as outlines in SVGs. Set `true` for visual consistency; `false` for selectable text.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether text elements are rendered as outlines (vector paths) or as `<text>` elements in SVGs.\n\nRendering text elements as outlines guarantees that the text looks exactly the same in the SVG as it does in the browser/inside Figma.\n\nExporting as `<text>` allows text to be selectable inside SVGs and generally makes the SVG easier to read. However, this relies on the browser's rendering engine which can vary between browsers and/or operating systems. As such, visual accuracy is not guaranteed as the result could look different than in Figma."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "svg_outline_text"
+      },
+      {
+        "name": "include_svg_id_attributes",
+        "required": false,
+        "description": "Include id attributes for all SVG elements. Adds the layer name to the 'id' attribute.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include id attributes for all SVG elements. Adds the layer name to the `id` attribute of an svg element."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "svg_include_id"
+      },
+      {
+        "name": "include_node_id_in_svg_elements",
+        "required": false,
+        "description": "Set to true to include node ID attributes for all SVG elements, adding the node ID to a `data-node-id` attribute.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include node id attributes for all SVG elements. Adds the node id to a `data-node-id` attribute of an svg element."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "svg_include_node_id"
+      },
+      {
+        "name": "svg_stroke_simplification_enabled",
+        "required": false,
+        "description": "Set to true to simplify inside/outside strokes in SVG using stroke attributes instead of `<mask>`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to simplify inside/outside strokes and use stroke attribute if possible instead of `<mask>`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "svg_simplify_stroke"
+      },
+      {
+        "name": "exclude_overlapping_content",
+        "required": false,
+        "description": "Set to true to exclude overlapping content from rendering. Set to false to include overlaps, which may increase processing time.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether content that overlaps the node should be excluded from rendering. Passing false (i.e., rendering overlaps) may increase processing time, since more of the document must be included in rendering."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contents_only"
+      },
+      {
+        "name": "use_full_dimensions_without_cropping",
+        "required": false,
+        "description": "Export using full node dimensions, ignoring cropping and empty space. Ensures text nodes are fully visible.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the full dimensions of the node regardless of whether or not it is cropped or the space around it is empty. Use this to export text nodes without cropping."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "use_absolute_bounds"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getImages'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-figma",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "file_content:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the figma API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://api.figma.com/v1/images/{file_key}",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "ids",
+        "tool_parameter_name": "node_ids_to_render",
+        "description": "A comma separated list of node IDs to render.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of node IDs to render."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "version_id",
+        "description": "A specific version ID to get. Omitting this will get the current version of the file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A specific version ID to get. Omitting this will get the current version of the file."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "scale",
+        "tool_parameter_name": "image_scale_factor",
+        "description": "A number between 0.01 and 4, the image scaling factor.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A number between 0.01 and 4, the image scaling factor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "format",
+        "tool_parameter_name": "image_output_format",
+        "description": "A string enum for the image output format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "jpg",
+            "png",
+            "svg",
+            "pdf"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A string enum for the image output format."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "png",
+        "documentation_urls": []
+      },
+      {
+        "name": "svg_outline_text",
+        "tool_parameter_name": "render_text_as_outlines",
+        "description": "Whether text elements are rendered as outlines (vector paths) or as `<text>` elements in SVGs.\n\nRendering text elements as outlines guarantees that the text looks exactly the same in the SVG as it does in the browser/inside Figma.\n\nExporting as `<text>` allows text to be selectable inside SVGs and generally makes the SVG easier to read. However, this relies on the browser's rendering engine which can vary between browsers and/or operating systems. As such, visual accuracy is not guaranteed as the result could look different than in Figma.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether text elements are rendered as outlines (vector paths) or as `<text>` elements in SVGs.\n\nRendering text elements as outlines guarantees that the text looks exactly the same in the SVG as it does in the browser/inside Figma.\n\nExporting as `<text>` allows text to be selectable inside SVGs and generally makes the SVG easier to read. However, this relies on the browser's rendering engine which can vary between browsers and/or operating systems. As such, visual accuracy is not guaranteed as the result could look different than in Figma."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "svg_include_id",
+        "tool_parameter_name": "include_svg_id_attributes",
+        "description": "Whether to include id attributes for all SVG elements. Adds the layer name to the `id` attribute of an svg element.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include id attributes for all SVG elements. Adds the layer name to the `id` attribute of an svg element."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "svg_include_node_id",
+        "tool_parameter_name": "include_node_id_in_svg_elements",
+        "description": "Whether to include node id attributes for all SVG elements. Adds the node id to a `data-node-id` attribute of an svg element.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include node id attributes for all SVG elements. Adds the node id to a `data-node-id` attribute of an svg element."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "svg_simplify_stroke",
+        "tool_parameter_name": "svg_stroke_simplification_enabled",
+        "description": "Whether to simplify inside/outside strokes and use stroke attribute if possible instead of `<mask>`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to simplify inside/outside strokes and use stroke attribute if possible instead of `<mask>`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "contents_only",
+        "tool_parameter_name": "exclude_overlapping_content",
+        "description": "Whether content that overlaps the node should be excluded from rendering. Passing false (i.e., rendering overlaps) may increase processing time, since more of the document must be included in rendering.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether content that overlaps the node should be excluded from rendering. Passing false (i.e., rendering overlaps) may increase processing time, since more of the document must be included in rendering."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": true,
+        "documentation_urls": []
+      },
+      {
+        "name": "use_absolute_bounds",
+        "tool_parameter_name": "use_full_dimensions_without_cropping",
+        "description": "Use the full dimensions of the node regardless of whether or not it is cropped or the space around it is empty. Use this to export text nodes without cropping.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the full dimensions of the node regardless of whether or not it is cropped or the space around it is empty. Use this to export text nodes without cropping."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_key",
+        "tool_parameter_name": "figma_file_key",
+        "description": "File to export images from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "File to export images from. This can be a file key or branch key. Use `GET /v1/files/:key` with the `branch_data` query param to get the branch key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "name": "AddContactAddress",
+  "fully_qualified_name": "ZohoBooksApi.AddContactAddress@0.1.0",
+  "description": "Add an additional address to a contact in Zoho Books.\n\nUse this tool to append a new address to an existing contact in Zoho Books. Suitable when updating contact details with more location information.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization for which the contact address will be added. This is required to specify the target organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "contact_id",
+        "required": true,
+        "description": "The unique identifier for the contact to which an address will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the contact."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact_id"
+      },
+      {
+        "name": "contact_address_details",
+        "required": false,
+        "description": "Provide address details as JSON, including fields like 'attention', 'address', 'street2', 'city', 'state', 'zip', 'country', 'fax', and 'phone'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+            },
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Street 1 address for the contact. Max-length [500]."
+            },
+            "street2": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Street 2 address for the contact. Max-length [255]."
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "City name for the address. Max-length [100]."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State for the address. Max-length [100]."
+            },
+            "zip": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Postal or ZIP code for the address. Max-length [50]."
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Country name for the address. Max-length [100]."
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fax number for the address. Max-length [50]."
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contact phone number associated with the address. Max-length [50]"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'add_contact_address'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.contacts.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/contacts/{contact_id}/address",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact_id",
+        "tool_parameter_name": "contact_id",
+        "description": "Unique identifier of the contact.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the contact."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_address_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Attention for proper delivery and routing of business correspondence. Max-length [100]."
+            },
+            "address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Street 1 address for the contact. Max-length [500]."
+            },
+            "street2": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Street 2 address for the contact. Max-length [255]."
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "City name for the address. Max-length [100]."
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State for the address. Max-length [100]."
+            },
+            "zip": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Postal or ZIP code for the address. Max-length [50]."
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Country name for the address. Max-length [100]."
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fax number for the address. Max-length [50]."
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The contact phone number associated with the address. Max-length [50]"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"attention\": {\n            \"description\": \"Attention for proper delivery and routing of business correspondence. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"Mr.John\"\n          },\n          \"address\": {\n            \"description\": \"Street 1 address for the contact. Max-length [500].\",\n            \"type\": \"string\",\n            \"example\": \"4900 Hopyard Rd\"\n          },\n          \"street2\": {\n            \"description\": \"Street 2 address for the contact. Max-length [255].\",\n            \"type\": \"string\",\n            \"example\": \"Suite 310\"\n          },\n          \"city\": {\n            \"description\": \"City name for the address. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"Pleasanton\"\n          },\n          \"state\": {\n            \"description\": \"State for the address. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"CA\"\n          },\n          \"zip\": {\n            \"description\": \"Postal or ZIP code for the address. Max-length [50].\",\n            \"type\": \"string\",\n            \"example\": 94588\n          },\n          \"country\": {\n            \"description\": \"Country name for the address. Max-length [100].\",\n            \"type\": \"string\",\n            \"example\": \"U.S.A\"\n          },\n          \"fax\": {\n            \"description\": \"Fax number for the address. Max-length [50].\",\n            \"type\": \"string\",\n            \"example\": \"+1-925-924-9600\"\n          },\n          \"phone\": {\n            \"description\": \"The contact phone number associated with the address. Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"+1-925-921-9201\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

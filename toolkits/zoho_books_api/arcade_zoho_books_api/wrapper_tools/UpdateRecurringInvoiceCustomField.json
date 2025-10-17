@@ -1,0 +1,1265 @@
+{
+  "name": "UpdateRecurringInvoiceCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdateRecurringInvoiceCustomField@0.1.0",
+  "description": "Update or create a recurring invoice using a custom field.\n\nThis tool updates an existing recurring invoice or creates a new one using a custom field's unique value. Use when you need to update invoices based on unique custom identifiers. If the unique key isn't found and the upsert option is true, a new invoice is created.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization. This ID is required to update or create a recurring invoice using the custom field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "unique_custom_field_api_name",
+        "required": true,
+        "description": "The unique API name of the custom field used to identify which recurring invoice to update or create.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value for the custom field used to identify and update the recurring invoice. This should be a unique string associated with a custom field configured to reject duplicates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "invoice_request_body",
+        "required": false,
+        "description": "JSON object containing the recurring invoice details such as customer ID, currency ID, start and end dates, recurrence frequency, line items, and other optional fields for customization.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "recurrence_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique name for the recurring profile given by the user. Max-length [100]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Order number of the Recurring Invoice."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer ID of the customer for whom the recurring invoice is raised."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currenct id of the currency"
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the recurring invoice starts."
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the recurring invoice expires."
+            },
+            "recurrence_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "weeks"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The frequency of time interval at which the invoice is to be generated."
+            },
+            "repeat_every": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The period between every recurrency frequency."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the invoices. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the vat treatment for the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE</b>.</br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "cfdi_usage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose CFDI Usage.</br>Allowed values: <code>acquisition_of_merchandise</code>, <code>return_discount_bonus</code>, <code>general_expense</code>, <code>buildings</code>, <code>furniture_office_equipment</code>, <code>transport_equipment</code>, <code>computer_equipmentdye_molds_tools</code>, <code>telephone_communication</code>, <code>satellite_communication</code>, <code>other_machinery_equipment</code>, <code>hospital_expense</code>, <code>medical_expense_disability</code>, <code>funeral_expense</code>, <code>donation</code>, <code>interest_mortage_loans</code>, <code>contribution_sar</code>, <code>medical_expense_insurance_pormium</code>, <code>school_transportation_expense</code>, <code>deposit_saving_account</code>, <code>payment_educational_service</code>, <code>no_tax_effect</code>, <code>payment</code>, <code>payroll</code>."
+            },
+            "allow_partial_payments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose <code>false</code> for PPU-Single Payments and <code>true</code> for PPD-Installment Payments"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the customer."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique string generated for the item for which invoice is to be sent."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the line item. max-length [100]"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A small description about the item. Max-length [2000]"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate of the line item."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Quantity of the item included."
+                },
+                "discount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount applied to the invoice. It can be either in % or in amount. E.g: 12.5% or 190."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the reporting tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the reporting tag's option"
+                    }
+                  },
+                  "description": "Filter all your reports based on the tag"
+                },
+                "tax_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group associated to the recurring invoice."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the TDS tax or TDS tax group associated to the recurring invoice."
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the tax exemption."
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for UAE are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for Bahrain are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for Saudi Arabia are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>."
+                },
+                "avatax_tax_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A tax code is a unique label used to group items together."
+                },
+                "avatax_use_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Total rate raised by this item. This would be the multiplicative product of item price and quantity."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter <code>goods</code> or <code>services</code> .<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add HSN/SAC code for your goods/services"
+                },
+                "sat_item_key_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "unitkey_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                },
+                "header_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the item header"
+                },
+                "header_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the item header"
+                }
+              },
+              "description": "Line items of an invoice."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the customer."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                },
+                "data_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Data type of the custom field."
+                }
+              },
+              "description": null
+            },
+            "tax_id": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group associated to the recurring invoice."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "payment_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "payment_gateways": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "configured": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Boolean check to see if a payment gateway ahs been configured"
+                    },
+                    "additional_field1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>"
+                    },
+                    "gateway_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the payment gateway associated with the invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the tax exemption."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer. Max-length [25]"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "enable_upsert",
+        "required": false,
+        "description": "Set to true to create a new invoice if no existing invoice matches the unique identifier. Set to false to update only without creating a new invoice.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_recurring_invoice_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/recurringinvoices",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "unique_custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "enable_upsert",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "invoice_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "recurrence_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique name for the recurring profile given by the user. Max-length [100]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The Order number of the Recurring Invoice."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer ID of the customer for whom the recurring invoice is raised."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currenct id of the currency"
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person."
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the recurring invoice starts."
+            },
+            "end_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date on which the recurring invoice expires."
+            },
+            "recurrence_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "weeks"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The frequency of time interval at which the invoice is to be generated."
+            },
+            "repeat_every": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The period between every recurrency frequency."
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the invoices. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the vat treatment for the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE</b>.</br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "cfdi_usage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose CFDI Usage.</br>Allowed values: <code>acquisition_of_merchandise</code>, <code>return_discount_bonus</code>, <code>general_expense</code>, <code>buildings</code>, <code>furniture_office_equipment</code>, <code>transport_equipment</code>, <code>computer_equipmentdye_molds_tools</code>, <code>telephone_communication</code>, <code>satellite_communication</code>, <code>other_machinery_equipment</code>, <code>hospital_expense</code>, <code>medical_expense_disability</code>, <code>funeral_expense</code>, <code>donation</code>, <code>interest_mortage_loans</code>, <code>contribution_sar</code>, <code>medical_expense_insurance_pormium</code>, <code>school_transportation_expense</code>, <code>deposit_saving_account</code>, <code>payment_educational_service</code>, <code>no_tax_effect</code>, <code>payment</code>, <code>payroll</code>."
+            },
+            "allow_partial_payments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose <code>false</code> for PPU-Single Payments and <code>true</code> for PPD-Installment Payments"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the customer."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique string generated for the item for which invoice is to be sent."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the line item. max-length [100]"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A small description about the item. Max-length [2000]"
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Rate of the line item."
+                },
+                "quantity": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Quantity of the item included."
+                },
+                "discount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Discount applied to the invoice. It can be either in % or in amount. E.g: 12.5% or 190."
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the reporting tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the reporting tag's option"
+                    }
+                  },
+                  "description": "Filter all your reports based on the tag"
+                },
+                "tax_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax or tax group associated to the recurring invoice."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the TDS tax or TDS tax group associated to the recurring invoice."
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the tax exemption."
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for UAE are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for Bahrain are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for Saudi Arabia are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>."
+                },
+                "avatax_tax_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A tax code is a unique label used to group items together."
+                },
+                "avatax_use_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+                },
+                "item_total": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Total rate raised by this item. This would be the multiplicative product of item price and quantity."
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter <code>goods</code> or <code>services</code> .<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add HSN/SAC code for your goods/services"
+                },
+                "sat_item_key_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "unitkey_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                },
+                "header_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the item header"
+                },
+                "header_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the item header"
+                }
+              },
+              "description": "Line items of an invoice."
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the customer."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                },
+                "data_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Data type of the custom field."
+                }
+              },
+              "description": null
+            },
+            "tax_id": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group associated to the recurring invoice."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "payment_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "payment_gateways": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "configured": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Boolean check to see if a payment gateway ahs been configured"
+                    },
+                    "additional_field1": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>"
+                    },
+                    "gateway_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the payment gateway associated with the invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the tax exemption."
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+            },
+            "avatax_exempt_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exemption certificate number of the customer. Max-length [25]"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"recurrence_name\",\n          \"customer_id\",\n          \"recurrence_frequency\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"recurrence_name\": {\n            \"description\": \"Unique name for the recurring profile given by the user. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"MonthlyInvoice\"\n          },\n          \"reference_number\": {\n            \"description\": \"The Order number of the Recurring Invoice.\",\n            \"type\": \"string\",\n            \"example\": \"12314\"\n          },\n          \"customer_id\": {\n            \"description\": \"Customer ID of the customer for whom the recurring invoice is raised.\",\n            \"type\": \"string\",\n            \"example\": \"903000000000099\"\n          },\n          \"currency_id\": {\n            \"description\": \"The currenct id of the currency\",\n            \"type\": \"string\",\n            \"example\": \"982000000000190\"\n          },\n          \"contact_persons_associated\": {\n            \"description\": \"Contact Persons associated with the transaction.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"contact_person_id\": {\n                  \"description\": \"Unique ID of the Contact Person.\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": 982000000567003\n                },\n                \"communication_preference\": {\n                  \"description\": \"Preferred modes of communication for the contact person at transaction level.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"is_email_enabled\": {\n                      \"description\": \"Used to check if Email communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"is_whatsapp_enabled\": {\n                      \"description\": \"Used to check if WhatsApp communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true,\n                      \"x-node_available_in\": [\n                        \"WhatsApp integration\"\n                      ]\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"start_date\": {\n            \"description\": \"The date on which the recurring invoice starts.\",\n            \"type\": \"string\",\n            \"example\": \"2016-06-12\"\n          },\n          \"end_date\": {\n            \"description\": \"The date on which the recurring invoice expires.\",\n            \"type\": \"string\",\n            \"example\": \"2017-06-12\"\n          },\n          \"recurrence_frequency\": {\n            \"description\": \"The frequency of time interval at which the invoice is to be generated.\",\n            \"type\": \"string\",\n            \"enum\": [\n              \"weeks\"\n            ],\n            \"example\": \"weeks\"\n          },\n          \"repeat_every\": {\n            \"description\": \"The period between every recurrency frequency.\",\n            \"type\": \"integer\",\n            \"example\": 2\n          },\n          \"place_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code><br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"gcc\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"vat_treatment\": {\n            \"description\": \"(Optional) VAT treatment for the invoices. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"example\": \"overseas\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_treatment\": {\n            \"description\": \"Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>.\",\n            \"type\": \"string\",\n            \"example\": \"business_gst\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"Choose whether the vat treatment for the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> supported only for <b>UAE</b>.</br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_reverse_charge_applied\": {\n            \"description\": \"(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not.\",\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"x-node_available_in\": [\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"cfdi_usage\": {\n            \"description\": \"Choose CFDI Usage.</br>Allowed values: <code>acquisition_of_merchandise</code>, <code>return_discount_bonus</code>, <code>general_expense</code>, <code>buildings</code>, <code>furniture_office_equipment</code>, <code>transport_equipment</code>, <code>computer_equipmentdye_molds_tools</code>, <code>telephone_communication</code>, <code>satellite_communication</code>, <code>other_machinery_equipment</code>, <code>hospital_expense</code>, <code>medical_expense_disability</code>, <code>funeral_expense</code>, <code>donation</code>, <code>interest_mortage_loans</code>, <code>contribution_sar</code>, <code>medical_expense_insurance_pormium</code>, <code>school_transportation_expense</code>, <code>deposit_saving_account</code>, <code>payment_educational_service</code>, <code>no_tax_effect</code>, <code>payment</code>, <code>payroll</code>.\",\n            \"type\": \"string\",\n            \"example\": \"acquisition_of_merchandise\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"allow_partial_payments\": {\n            \"description\": \"Choose <code>false</code> for PPU-Single Payments and <code>true</code> for PPD-Installment Payments\",\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15 digit GST identification number of the customer.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"line_items\": {\n            \"description\": \"Line items of an invoice.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"item_id\": {\n                  \"description\": \"Unique string generated for the item for which invoice is to be sent.\",\n                  \"type\": \"string\",\n                  \"example\": \"90300000081501\"\n                },\n                \"name\": {\n                  \"description\": \"The name of the line item. max-length [100]\",\n                  \"type\": \"string\",\n                  \"example\": \"Hard Drive\"\n                },\n                \"description\": {\n                  \"description\": \"A small description about the item. Max-length [2000]\",\n                  \"type\": \"string\",\n                  \"example\": \"prorated amount for items\"\n                },\n                \"rate\": {\n                  \"description\": \"Rate of the line item.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 0\n                },\n                \"quantity\": {\n                  \"description\": \"Quantity of the item included.\",\n                  \"type\": \"integer\",\n                  \"format\": \"int32\",\n                  \"example\": 1\n                },\n                \"discount\": {\n                  \"description\": \"Discount applied to the invoice. It can be either in % or in amount. E.g: 12.5% or 190.\",\n                  \"type\": \"string\",\n                  \"example\": \"30%\"\n                },\n                \"tags\": {\n                  \"description\": \"Filter all your reports based on the tag\",\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"tag_id\": {\n                        \"description\": \"ID of the reporting tag\",\n                        \"type\": \"string\",\n                        \"example\": 982000000009070\n                      },\n                      \"tag_option_id\": {\n                        \"description\": \"ID of the reporting tag's option\",\n                        \"type\": \"string\",\n                        \"example\": 982000000002670\n                      }\n                    }\n                  }\n                },\n                \"tax_id\": {\n                  \"description\": \"ID of the tax or tax group associated to the recurring invoice.\",\n                  \"example\": \"903000000000356\"\n                },\n                \"tds_tax_id\": {\n                  \"description\": \"ID of the TDS tax or TDS tax group associated to the recurring invoice.\",\n                  \"type\": \"string\",\n                  \"example\": \"903000000000357\",\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_id\": {\n                  \"description\": \"Unique ID of the tax exemption.\",\n                  \"type\": \"string\",\n                  \"example\": \"903000006345\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"us\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_treatment_code\": {\n                  \"description\": \"Specify reason for using out of scope.</br>Supported values for UAE are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for Bahrain are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br>Supported values for Saudi Arabia are <code>ksa_pvt_health</code>, <code>ksa_pvt_edu</code>, <code>ksa_reimbursed_expense</code> and <code>ksa_house_sales</code>.\",\n                  \"type\": \"string\",\n                  \"example\": \"uae_others\",\n                  \"x-node_available_in\": [\n                    \"gcc\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"avatax_tax_code\": {\n                  \"description\": \"A tax code is a unique label used to group items together.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"avatax_use_code\": {\n                  \"description\": \"Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"Avalara Integration\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"item_total\": {\n                  \"description\": \"Total rate raised by this item. This would be the multiplicative product of item price and quantity.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 100\n                },\n                \"product_type\": {\n                  \"description\": \"Enter <code>goods</code> or <code>services</code> .<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"goods\"\n                },\n                \"hsn_or_sac\": {\n                  \"description\": \"Add HSN/SAC code for your goods/services\",\n                  \"type\": \"string\",\n                  \"example\": 80540,\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"ke\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"sat_item_key_code\": {\n                  \"description\": \"Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n                  \"type\": \"string\",\n                  \"example\": 71121206,\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"unitkey_code\": {\n                  \"description\": \"Add SAT Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n                  \"type\": \"string\",\n                  \"example\": \"box\",\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"location_id\": {\n                  \"description\": \"Location ID\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"project_id\": {\n                  \"description\": \"ID of the project\",\n                  \"type\": \"string\",\n                  \"example\": 90300000087378\n                },\n                \"header_name\": {\n                  \"description\": \"Name of the item header\",\n                  \"type\": \"string\",\n                  \"example\": \"Electronic devices\"\n                },\n                \"header_id\": {\n                  \"description\": \"ID of the item header\",\n                  \"type\": \"string\",\n                  \"example\": 982000000000670\n                }\n              }\n            }\n          },\n          \"email\": {\n            \"description\": \"Email address of the customer.\",\n            \"type\": \"string\",\n            \"example\": \"benjamin.george@bowmanfurniture.com\"\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"value\": {\n                  \"description\": \"Value of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"129890\"\n                },\n                \"label\": {\n                  \"description\": \"Label of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"label\"\n                },\n                \"data_type\": {\n                  \"description\": \"Data type of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"text\"\n                }\n              }\n            }\n          },\n          \"tax_id\": {\n            \"description\": \"ID of the tax or tax group associated to the recurring invoice.\",\n            \"example\": \"903000000000356\"\n          },\n          \"tax_authority_id\": {\n            \"description\": \"Unique ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority.\",\n            \"type\": \"string\",\n            \"example\": \"903000006345\",\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"payment_options\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"payment_gateways\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"configured\": {\n                      \"description\": \"Boolean check to see if a payment gateway ahs been configured\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"additional_field1\": {\n                      \"description\": \"Paypal payment method. Allowed Values: <code>standard</code> and <code>adaptive</code>\",\n                      \"type\": \"string\",\n                      \"example\": \"standard\"\n                    },\n                    \"gateway_name\": {\n                      \"description\": \"Name of the payment gateway associated with the invoice. E.g. paypal, stripe.Allowed Values: <code>paypal</code>, <code>authorize_net</code>, <code>payflow_pro</code>, <code>stripe</code>, <code>2checkout</code> and <code>braintree</code>\",\n                      \"type\": \"string\",\n                      \"example\": \"paypal\"\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"Unique ID of the tax exemption.\",\n            \"type\": \"string\",\n            \"example\": \"903000006345\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_use_code\": {\n            \"description\": \"Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_exempt_no\": {\n            \"description\": \"Exemption certificate number of the customer. Max-length [25]\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,723 @@
+{
+  "name": "UpdateProjectWithCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdateProjectWithCustomField@0.1.0",
+  "description": "Update or create projects using a unique custom field.\n\nThis tool updates an existing project or creates a new one if no match is found, using a unique custom field value in Zoho Books. Utilize it when you need to modify projects with specific identifiers.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "A string representing the organization's ID required to update or create a project using the custom field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "unique_custom_field_api_name",
+        "required": true,
+        "description": "The API name of the unique custom field used to identify the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value for the custom field used to identify or create a project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "project_update_data",
+        "required": false,
+        "description": "JSON object containing project details like name, customer ID, currency, description, billing type, rate, budget info, users, and tasks.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "project_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project. <code>Max-length [100]</code>"
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project description. <code>Max-length [500]</code>"
+            },
+            "billing_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The way you bill your customer. Allowed Values: <code>fixed_cost_for_project</code>, <code>based_on_project_hours</code>, <code>based_on_staff_hours</code> and <code>based_on_task_hours</code>"
+            },
+            "rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Hourly rate for a task."
+            },
+            "budget_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The way you budget. Allowed Values: <code>total_project_cost</code>, <code>total_project_hours</code>, <code>hours_per_task</code> and <code>hours_per_staff</code>"
+            },
+            "budget_hours": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task budget hours"
+            },
+            "budget_amount": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Give value, if you are estimating total project revenue."
+            },
+            "cost_budget_amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Budgeted Cost to complete this project"
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user to be added to the project."
+            },
+            "tasks": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "task_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the task. <code>Max-length [100]</code>"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task description. <code>Max-length [500]</code>"
+                },
+                "rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hourly rate of a task."
+                },
+                "budget_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task budgeting."
+                }
+              },
+              "description": null
+            },
+            "users": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the user to be added to the project."
+                },
+                "is_current_user": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "user_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the user. <code>Max-length [200]</code>"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email of the user. <code>Max-length [100]</code>"
+                },
+                "user_role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Role to be assigned. Allowed Values: <code>staff</code>, <code>admin</code> and <code>timesheetstaff</code>"
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hourly rate for a task."
+                },
+                "budget_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task budget hours"
+                },
+                "total_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "billed_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "un_billed_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "cost_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "create_new_project_if_not_found",
+        "required": false,
+        "description": "Set to true to create a new project if no existing project matches the unique custom field value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_projects_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.projects.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/projects",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "unique_custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "create_new_project_if_not_found",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "project_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project. <code>Max-length [100]</code>"
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project description. <code>Max-length [500]</code>"
+            },
+            "billing_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The way you bill your customer. Allowed Values: <code>fixed_cost_for_project</code>, <code>based_on_project_hours</code>, <code>based_on_staff_hours</code> and <code>based_on_task_hours</code>"
+            },
+            "rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Hourly rate for a task."
+            },
+            "budget_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The way you budget. Allowed Values: <code>total_project_cost</code>, <code>total_project_hours</code>, <code>hours_per_task</code> and <code>hours_per_staff</code>"
+            },
+            "budget_hours": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task budget hours"
+            },
+            "budget_amount": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Give value, if you are estimating total project revenue."
+            },
+            "cost_budget_amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Budgeted Cost to complete this project"
+            },
+            "user_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user to be added to the project."
+            },
+            "tasks": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "task_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the task. <code>Max-length [100]</code>"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task description. <code>Max-length [500]</code>"
+                },
+                "rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hourly rate of a task."
+                },
+                "budget_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task budgeting."
+                }
+              },
+              "description": null
+            },
+            "users": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "user_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the user to be added to the project."
+                },
+                "is_current_user": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "user_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the user. <code>Max-length [200]</code>"
+                },
+                "email": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Email of the user. <code>Max-length [100]</code>"
+                },
+                "user_role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Role to be assigned. Allowed Values: <code>staff</code>, <code>admin</code> and <code>timesheetstaff</code>"
+                },
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Hourly rate for a task."
+                },
+                "budget_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Task budget hours"
+                },
+                "total_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "billed_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "un_billed_hours": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "cost_rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"project_name\",\n          \"customer_id\",\n          \"billing_type\",\n          \"user_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"project_name\": {\n            \"description\": \"Name of the project. <code>Max-length [100]</code>\",\n            \"type\": \"string\",\n            \"example\": \"Network Distribution\"\n          },\n          \"customer_id\": {\n            \"description\": \"ID of the customer.\",\n            \"type\": \"string\",\n            \"example\": \"460000000044001\"\n          },\n          \"currency_id\": {\n            \"type\": \"string\",\n            \"example\": \"460000000098001\"\n          },\n          \"description\": {\n            \"description\": \"Project description. <code>Max-length [500]</code>\",\n            \"type\": \"string\",\n            \"example\": \"Distribution for the system of intermediaries between the producer of goods and/or services and the final user\"\n          },\n          \"billing_type\": {\n            \"description\": \"The way you bill your customer. Allowed Values: <code>fixed_cost_for_project</code>, <code>based_on_project_hours</code>, <code>based_on_staff_hours</code> and <code>based_on_task_hours</code>\",\n            \"type\": \"string\",\n            \"example\": \"based_on_task_hours\"\n          },\n          \"rate\": {\n            \"description\": \"Hourly rate for a task.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"budget_type\": {\n            \"description\": \"The way you budget. Allowed Values: <code>total_project_cost</code>, <code>total_project_hours</code>, <code>hours_per_task</code> and <code>hours_per_staff</code>\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"budget_hours\": {\n            \"description\": \"Task budget hours\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"budget_amount\": {\n            \"description\": \"Give value, if you are estimating total project revenue.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"cost_budget_amount\": {\n            \"description\": \"Budgeted Cost to complete this project\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": \"1000.00\"\n          },\n          \"user_id\": {\n            \"description\": \"ID of the user to be added to the project.\",\n            \"type\": \"string\",\n            \"example\": \"INV-00003\"\n          },\n          \"tasks\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"task_name\"\n              ],\n              \"properties\": {\n                \"task_name\": {\n                  \"description\": \"Name of the task. <code>Max-length [100]</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"INV-00003\"\n                },\n                \"description\": {\n                  \"description\": \"Task description. <code>Max-length [500]</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"INV-00003\"\n                },\n                \"rate\": {\n                  \"description\": \"Hourly rate of a task.\",\n                  \"type\": \"string\",\n                  \"example\": \"INV-00003\"\n                },\n                \"budget_hours\": {\n                  \"description\": \"Task budgeting.\",\n                  \"type\": \"string\",\n                  \"example\": \"INV-00003\"\n                }\n              }\n            }\n          },\n          \"users\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"user_id\": {\n                  \"description\": \"ID of the user to be added to the project.\",\n                  \"type\": \"string\",\n                  \"example\": \"INV-00003\"\n                },\n                \"is_current_user\": {\n                  \"type\": \"boolean\",\n                  \"example\": true\n                },\n                \"user_name\": {\n                  \"description\": \"Name of the user. <code>Max-length [200]</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"John David\"\n                },\n                \"email\": {\n                  \"description\": \"Email of the user. <code>Max-length [100]</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"johndavid@zilliuminc.com\"\n                },\n                \"user_role\": {\n                  \"description\": \"Role to be assigned. Allowed Values: <code>staff</code>, <code>admin</code> and <code>timesheetstaff</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"admin\"\n                },\n                \"status\": {\n                  \"type\": \"string\",\n                  \"example\": \"active\"\n                },\n                \"rate\": {\n                  \"description\": \"Hourly rate for a task.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"budget_hours\": {\n                  \"description\": \"Task budget hours\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"total_hours\": {\n                  \"type\": \"string\",\n                  \"example\": \"12:26\"\n                },\n                \"billed_hours\": {\n                  \"type\": \"string\",\n                  \"example\": \"12:27\"\n                },\n                \"un_billed_hours\": {\n                  \"type\": \"string\",\n                  \"example\": \"00:00\"\n                },\n                \"cost_rate\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": \"10.00\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

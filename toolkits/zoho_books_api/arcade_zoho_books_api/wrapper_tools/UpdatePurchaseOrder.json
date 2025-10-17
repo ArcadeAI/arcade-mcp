@@ -1,0 +1,1437 @@
+{
+  "name": "UpdatePurchaseOrder",
+  "fully_qualified_name": "ZohoBooksApi.UpdatePurchaseOrder@0.1.0",
+  "description": "Update an existing purchase order in Zoho Books.\n\nUse this tool to update details of a specific purchase order in Zoho Books. It should be called when changes to a purchase order need to be made.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization for which the purchase order is being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "purchase_order_identifier",
+        "required": true,
+        "description": "Unique identifier for the specific purchase order to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the purchase order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "purchase_order_id"
+      },
+      {
+        "name": "attachment_file_path",
+        "required": false,
+        "description": "File path of the attachment with extensions: gif, png, jpeg, jpg, bmp, pdf, xls, xlsx, doc, docx.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allowed Extensions: <code>gif</code>, <code>png</code>, <code>jpeg</code>, <code>jpg</code>, <code>bmp</code>, <code>pdf</code>, <code>xls</code>, <code>xlsx</code>, <code>doc</code> and <code>docx</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachment"
+      },
+      {
+        "name": "purchase_order_details",
+        "required": false,
+        "description": "JSON object containing details to update a purchase order, such as vendor information, currency, items, and terms.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the vendor for whom the purchase order is being created. This value is mandatory to associate the purchase order with a specific vendor in your organization. You can obtain the vendor ID by listing all vendors using the contacts API. Ensure the vendor exists before referencing their ID here."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the currency for the purchase order. This value is mandatory to specify the currency in which the purchase order amounts will be displayed and processed. You can obtain the currency ID by listing all available currencies using the GET /settings/currencies API. Ensure the currency exists and is properly configured in your organization before referencing its ID here."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person"
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "purchaseorder_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the purchase order. This field is mandatory when auto number generation is disabled for your organization. If auto numbering is enabled, this field can be left empty as the system will automatically generate a sequential purchase order number. When manually specifying a number, ensure it follows your organization's numbering convention and is unique across all purchase orders."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the purchase order. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the pricebook to be used for this purchase order. The pricebook contains predefined pricing information for items and services. This field is optional and if not specified, the default pricebook will be used. You can obtain the pricebook ID by listing all available pricebooks in your organization. Ensure the pricebook exists and contains the relevant pricing information before referencing its ID here."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "External reference number or identifier for the purchase order. This field is optional and can be used to store additional reference information such as vendor order numbers, internal tracking codes, or any other external system identifiers. This reference number will be displayed on the purchase order document and can be used for cross-referencing with external systems or internal tracking purposes."
+            },
+            "discount": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The discount amount or percentage to be applied to the purchase order total. This can be specified as a fixed amount or percentage value. Discounts are typically offered by vendors for bulk purchases, early payments, or promotional purposes. The discount reduces the total amount payable and affects the final purchase order total."
+            },
+            "discount_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the accounting account where the discount amount will be recorded. This account is used to track and categorize discount expenses in your general ledger. The discount account should be configured as an expense or contra-revenue account to properly reflect the impact of discounts on your financial statements."
+            },
+            "is_discount_before_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag that determines whether the discount is applied before or after tax calculations. When set to true, the discount is applied to the subtotal before tax is calculated, resulting in tax being calculated on the discounted amount. When set to false, the discount is applied after tax calculations, which may affect the final total differently depending on your tax configuration."
+            },
+            "billing_address_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the billing address to be used for this purchase order. The billing address determines where invoices and related documents will be sent. This field is optional and if not specified, the default billing address from your organization settings will be used. You can obtain the billing address ID by listing all available addresses in your organization. Ensure the address exists and contains the correct billing information before referencing its ID here."
+            },
+            "crm_owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the CRM owner assigned to this purchase order. This field links the purchase order to a specific CRM user who is responsible for managing the vendor relationship and overseeing the procurement process. The CRM owner can track, follow up, and manage all aspects of this purchase order within the CRM system."
+            },
+            "crm_custom_reference_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of CRM Custom Reference"
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the PDF template linked to the purchase order. Obtain this value from the `template_id` field in the response of the GET `/purchaseorders/templates` API for your organization. Determines which template is used for the purchase order PDF document, controlling the layout, formatting, and visual appearance of the generated purchase order."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date when the purchase order was created or issued. This is the official date that appears on the purchase order document and is used for record-keeping, reporting, and tracking purposes. The date should be in YYYY-MM-DD format and typically represents when the purchase order was authorized and sent to the vendor."
+            },
+            "delivery_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format and is typically communicated to the vendor as part of the purchase order terms."
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency exchange rate used to convert the purchase order amounts from the vendor's currency to your organization's base currency. This rate is applied when the purchase order is created in a foreign currency. A value of 1 indicates the same currency as your base currency. This rate affects all monetary calculations and reporting for this purchase order."
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag that specifies whether the line item rates include or exclude tax amounts. When set to true, the specified rates are inclusive of tax, meaning the tax amount is already included in the rate. When set to false, the rates are exclusive of tax, and tax will be calculated and added separately. This setting affects how tax calculations are performed and displayed on the purchase order."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional information, instructions, or comments to be displayed on the purchase order document. This field is typically used for delivery instructions, special requirements, vendor communications, or any other information relevant to the purchase order. The notes appear on the purchase order PDF and are visible to the vendor."
+            },
+            "notes_default": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default notes for purchase order"
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Terms and conditions text to be displayed on the purchase order document. This field is used to specify payment terms, delivery conditions, return policies, warranty information, or any other legal or business terms that apply to this transaction. The terms appear on the purchase order PDF and form part of the contractual agreement with the vendor."
+            },
+            "terms_default": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default terms for Purchase Orders"
+            },
+            "ship_via": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipment Preference"
+            },
+            "delivery_org_address_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the organization address where the goods or services from this purchase order should be delivered. This field specifies the delivery location within your organization, such as a warehouse, office, or branch location. The address details are retrieved from your organization's address book and displayed on the purchase order for vendor reference."
+            },
+            "delivery_customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the customer for whom the goods or services in this purchase order are being procured. This field is used when the purchase order is created on behalf of a customer, such as in drop-shipping scenarios or when procuring items for specific customer projects. The customer information may be displayed on the purchase order for vendor reference."
+            },
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name or designation of the specific person who should be contacted or notified regarding the delivery of goods or services from this purchase order. This field is typically used to specify the primary contact person at the delivery location, such as a warehouse manager, office administrator, or project coordinator who will receive and process the delivered items."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the purchase order. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "is_update_customer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if customer should be updated"
+            },
+            "salesorder_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the sales order that is linked to this purchase order. This field establishes a connection between the sales order and purchase order, typically used in drop-shipping scenarios where you need to procure items to fulfill a customer's sales order. The linked sales order information may be displayed on the purchase order for vendor reference and internal tracking purposes."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the line item. Mandatory if the existing line item has to be updated. If empty, a new line item will be created."
+                },
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the item or service in the line item. Mandatory field that links to the item catalog. Determines item details, pricing, and inventory tracking. Obtain from GET /items API."
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the accounting account for the line item. Mandatory for non-inventory items/services. Determines expense categorization in general ledger."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display name of the line item on the purchase order. Auto-populated from item catalog when item_id is specified. Can be customized. Used for vendor reference and documentation."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Additional details, specifications, or notes about the line item. Can include technical specs, requirements, delivery instructions. Appears on purchase order document for vendor reference."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the quantity (e.g., Nos, kgs, hours, meters). Should match vendor pricing structure. Used for quantity calculations and pricing."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN or SAC Code for the Item"
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the reverse charge tax for the line item. Used when buyer is responsible for paying tax instead of vendor. Applicable for unregistered vendors or specific tax regulations. Must reference valid reverse charge tax configuration."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price per item/service. Used to calculate total line item amount. Must be in purchase order currency. Tax inclusion depends on is_inclusive_tax setting. Affects pricing calculations and vendor billing."
+                },
+                "quantity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units being ordered. Used with rate to calculate total line item amount. Must match unit of measurement. Represents actual order quantity for delivery."
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order of line item within purchase order. Determines display order on documents and reports. Typically numbered sequentially from 0 or 1. Maintains consistency across related documents."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the tax for the line item. Determines tax rate, name, and treatment for calculations. Used in tax amount computation and display on purchase order. Obtain from taxes API."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>."
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the VAT Acquistion"
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Reverse Charge"
+                },
+                "item_custom_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "index": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Index of the Custom Field"
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value of the Custom Field"
+                    }
+                  },
+                  "description": null
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Id of the Tag Option"
+                    }
+                  },
+                  "description": null
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                }
+              },
+              "description": "Line items of purchase order."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": "Custom fields for purchase order."
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system."
+                }
+              },
+              "description": "Array of documents attached to the purchase order."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "ignore_auto_number_generation",
+        "required": false,
+        "description": "If true, ignore automatic purchase order number generation and manually specify the order number.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto purchase order number generation for this purchase order. This mandates the purchase order number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ignore_auto_number_generation"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_purchase_order'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.purchaseorders.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/purchaseorders/{purchase_order_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachment",
+        "tool_parameter_name": "attachment_file_path",
+        "description": "Allowed Extensions: <code>gif</code>, <code>png</code>, <code>jpeg</code>, <code>jpg</code>, <code>bmp</code>, <code>pdf</code>, <code>xls</code>, <code>xlsx</code>, <code>doc</code> and <code>docx</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allowed Extensions: <code>gif</code>, <code>png</code>, <code>jpeg</code>, <code>jpg</code>, <code>bmp</code>, <code>pdf</code>, <code>xls</code>, <code>xlsx</code>, <code>doc</code> and <code>docx</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "ignore_auto_number_generation",
+        "tool_parameter_name": "ignore_auto_number_generation",
+        "description": "Ignore auto purchase order number generation for this purchase order. This mandates the purchase order number.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ignore auto purchase order number generation for this purchase order. This mandates the purchase order number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "purchase_order_id",
+        "tool_parameter_name": "purchase_order_identifier",
+        "description": "Unique identifier of the purchase order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the purchase order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "purchase_order_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the vendor for whom the purchase order is being created. This value is mandatory to associate the purchase order with a specific vendor in your organization. You can obtain the vendor ID by listing all vendors using the contacts API. Ensure the vendor exists before referencing their ID here."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the currency for the purchase order. This value is mandatory to specify the currency in which the purchase order amounts will be displayed and processed. You can obtain the currency ID by listing all available currencies using the GET /settings/currencies API. Ensure the currency exists and is properly configured in your organization before referencing its ID here."
+            },
+            "contact_persons_associated": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "contact_person_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the Contact Person"
+                },
+                "communication_preference": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_email_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if Email communication preference is enabled for the contact person at transaction level."
+                    },
+                    "is_whatsapp_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Used to check if WhatsApp communication preference is enabled for the contact person at transaction level."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Preferred modes of communication for the contact person at transaction level."
+                }
+              },
+              "description": "Contact Persons associated with the transaction."
+            },
+            "purchaseorder_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the purchase order. This field is mandatory when auto number generation is disabled for your organization. If auto numbering is enabled, this field can be left empty as the system will automatically generate a sequential purchase order number. When manually specifying a number, ensure it follows your organization's numbering convention and is unique across all purchase orders."
+            },
+            "gst_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>."
+            },
+            "tax_treatment": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the purchase order. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "pricebook_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the pricebook to be used for this purchase order. The pricebook contains predefined pricing information for items and services. This field is optional and if not specified, the default pricebook will be used. You can obtain the pricebook ID by listing all available pricebooks in your organization. Ensure the pricebook exists and contains the relevant pricing information before referencing its ID here."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "External reference number or identifier for the purchase order. This field is optional and can be used to store additional reference information such as vendor order numbers, internal tracking codes, or any other external system identifiers. This reference number will be displayed on the purchase order document and can be used for cross-referencing with external systems or internal tracking purposes."
+            },
+            "discount": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The discount amount or percentage to be applied to the purchase order total. This can be specified as a fixed amount or percentage value. Discounts are typically offered by vendors for bulk purchases, early payments, or promotional purposes. The discount reduces the total amount payable and affects the final purchase order total."
+            },
+            "discount_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the accounting account where the discount amount will be recorded. This account is used to track and categorize discount expenses in your general ledger. The discount account should be configured as an expense or contra-revenue account to properly reflect the impact of discounts on your financial statements."
+            },
+            "is_discount_before_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag that determines whether the discount is applied before or after tax calculations. When set to true, the discount is applied to the subtotal before tax is calculated, resulting in tax being calculated on the discounted amount. When set to false, the discount is applied after tax calculations, which may affect the final total differently depending on your tax configuration."
+            },
+            "billing_address_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the billing address to be used for this purchase order. The billing address determines where invoices and related documents will be sent. This field is optional and if not specified, the default billing address from your organization settings will be used. You can obtain the billing address ID by listing all available addresses in your organization. Ensure the address exists and contains the correct billing information before referencing its ID here."
+            },
+            "crm_owner_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the CRM owner assigned to this purchase order. This field links the purchase order to a specific CRM user who is responsible for managing the vendor relationship and overseeing the procurement process. The CRM owner can track, follow up, and manage all aspects of this purchase order within the CRM system."
+            },
+            "crm_custom_reference_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of CRM Custom Reference"
+            },
+            "template_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the PDF template linked to the purchase order. Obtain this value from the `template_id` field in the response of the GET `/purchaseorders/templates` API for your organization. Determines which template is used for the purchase order PDF document, controlling the layout, formatting, and visual appearance of the generated purchase order."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The date when the purchase order was created or issued. This is the official date that appears on the purchase order document and is used for record-keeping, reporting, and tracking purposes. The date should be in YYYY-MM-DD format and typically represents when the purchase order was authorized and sent to the vendor."
+            },
+            "delivery_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format and is typically communicated to the vendor as part of the purchase order terms."
+            },
+            "due_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency exchange rate used to convert the purchase order amounts from the vendor's currency to your organization's base currency. This rate is applied when the purchase order is created in a foreign currency. A value of 1 indicates the same currency as your base currency. This rate affects all monetary calculations and reporting for this purchase order."
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean flag that specifies whether the line item rates include or exclude tax amounts. When set to true, the specified rates are inclusive of tax, meaning the tax amount is already included in the rate. When set to false, the rates are exclusive of tax, and tax will be calculated and added separately. This setting affects how tax calculations are performed and displayed on the purchase order."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional information, instructions, or comments to be displayed on the purchase order document. This field is typically used for delivery instructions, special requirements, vendor communications, or any other information relevant to the purchase order. The notes appear on the purchase order PDF and are visible to the vendor."
+            },
+            "notes_default": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default notes for purchase order"
+            },
+            "terms": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Terms and conditions text to be displayed on the purchase order document. This field is used to specify payment terms, delivery conditions, return policies, warranty information, or any other legal or business terms that apply to this transaction. The terms appear on the purchase order PDF and form part of the contractual agreement with the vendor."
+            },
+            "terms_default": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Default terms for Purchase Orders"
+            },
+            "ship_via": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipment Preference"
+            },
+            "delivery_org_address_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the organization address where the goods or services from this purchase order should be delivered. This field specifies the delivery location within your organization, such as a warehouse, office, or branch location. The address details are retrieved from your organization's address book and displayed on the purchase order for vendor reference."
+            },
+            "delivery_customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the customer for whom the goods or services in this purchase order are being procured. This field is used when the purchase order is created on behalf of a customer, such as in drop-shipping scenarios or when procuring items for specific customer projects. The customer information may be displayed on the purchase order for vendor reference."
+            },
+            "attention": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name or designation of the specific person who should be contacted or notified regarding the delivery of goods or services from this purchase order. This field is typically used to specify the primary contact person at the delivery location, such as a warehouse manager, office administrator, or project coordinator who will receive and process the delivered items."
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the purchase order. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "is_update_customer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if customer should be updated"
+            },
+            "salesorder_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the sales order that is linked to this purchase order. This field establishes a connection between the sales order and purchase order, typically used in drop-shipping scenarios where you need to procure items to fulfill a customer's sales order. The linked sales order information may be displayed on the purchase order for vendor reference and internal tracking purposes."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received."
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the line item. Mandatory if the existing line item has to be updated. If empty, a new line item will be created."
+                },
+                "item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the item or service in the line item. Mandatory field that links to the item catalog. Determines item details, pricing, and inventory tracking. Obtain from GET /items API."
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the accounting account for the line item. Mandatory for non-inventory items/services. Determines expense categorization in general ledger."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display name of the line item on the purchase order. Auto-populated from item catalog when item_id is specified. Can be customized. Used for vendor reference and documentation."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Additional details, specifications, or notes about the line item. Can include technical specs, requirements, delivery instructions. Appears on purchase order document for vendor reference."
+                },
+                "unit": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit of measurement for the quantity (e.g., Nos, kgs, hours, meters). Should match vendor pricing structure. Used for quantity calculations and pricing."
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received."
+                },
+                "hsn_or_sac": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "HSN or SAC Code for the Item"
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the reverse charge tax for the line item. Used when buyer is responsible for paying tax instead of vendor. Applicable for unregistered vendors or specific tax regulations. Must reference valid reverse charge tax configuration."
+                },
+                "rate": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price per item/service. Used to calculate total line item amount. Must be in purchase order currency. Tax inclusion depends on is_inclusive_tax setting. Affects pricing calculations and vendor billing."
+                },
+                "quantity": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of units being ordered. Used with rate to calculate total line item amount. Must match unit of measurement. Represents actual order quantity for delivery."
+                },
+                "item_order": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sequential order of line item within purchase order. Determines display order on documents and reports. Typically numbered sequentially from 0 or 1. Maintains consistency across related documents."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the tax for the line item. Determines tax rate, name, and treatment for calculations. Used in tax amount computation and display on purchase order. Obtain from taxes API."
+                },
+                "tds_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tax_treatment_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>."
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Code of the Tax Exemption"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tax Exemption"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the VAT Acquistion"
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Reverse Charge"
+                },
+                "item_custom_fields": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "index": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Index of the Custom Field"
+                    },
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value of the Custom Field"
+                    }
+                  },
+                  "description": null
+                },
+                "tags": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "tag_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "ID of the Tag"
+                    },
+                    "tag_option_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Id of the Tag Option"
+                    }
+                  },
+                  "description": null
+                },
+                "project_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the project"
+                }
+              },
+              "description": "Line items of purchase order."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": "Custom fields for purchase order."
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system."
+                }
+              },
+              "description": "Array of documents attached to the purchase order."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"vendor_id\",\n          \"line_items\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"vendor_id\": {\n            \"description\": \"Unique identifier of the vendor for whom the purchase order is being created. This value is mandatory to associate the purchase order with a specific vendor in your organization. You can obtain the vendor ID by listing all vendors using the contacts API. Ensure the vendor exists before referencing their ID here.\",\n            \"type\": \"string\",\n            \"example\": \"460000000026049\"\n          },\n          \"currency_id\": {\n            \"description\": \"Unique identifier of the currency for the purchase order. This value is mandatory to specify the currency in which the purchase order amounts will be displayed and processed. You can obtain the currency ID by listing all available currencies using the GET /settings/currencies API. Ensure the currency exists and is properly configured in your organization before referencing its ID here.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000099\"\n          },\n          \"contact_persons_associated\": {\n            \"description\": \"Contact Persons associated with the transaction.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"contact_person_id\": {\n                  \"description\": \"Unique ID of the Contact Person\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": 460000000031001\n                },\n                \"communication_preference\": {\n                  \"description\": \"Preferred modes of communication for the contact person at transaction level.\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"is_email_enabled\": {\n                      \"description\": \"Used to check if Email communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true\n                    },\n                    \"is_whatsapp_enabled\": {\n                      \"description\": \"Used to check if WhatsApp communication preference is enabled for the contact person at transaction level.\",\n                      \"type\": \"boolean\",\n                      \"example\": true,\n                      \"x-node_available_in\": [\n                        \"WhatsApp integration\"\n                      ]\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"purchaseorder_number\": {\n            \"description\": \"Unique identifier for the purchase order. This field is mandatory when auto number generation is disabled for your organization. If auto numbering is enabled, this field can be left empty as the system will automatically generate a sequential purchase order number. When manually specifying a number, ensure it follows your organization's numbering convention and is unique across all purchase orders.\",\n            \"type\": \"string\",\n            \"example\": \"PO-00001\"\n          },\n          \"gst_treatment\": {\n            \"description\": \"Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are <code> business_gst </code> , <code> business_none </code> , <code> overseas </code> , <code> consumer </code>.\",\n            \"type\": \"string\",\n            \"example\": \"business_gst\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the purchase order. Choose whether the vendor falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.</b></br><code>home_country_mexico</code>,<code>border_region_mexico</code>,<code>non_mexico</code> supported only for <b>MX</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15 digit GST identification number of the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"source_of_supply\": {\n            \"description\": \"Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"AP\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"destination_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"place_of_supply\": {\n            \"description\": \"The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"example\": \"DU\",\n            \"x-node_available_in\": [\n              \"gcc\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"pricebook_id\": {\n            \"description\": \"Unique identifier of the pricebook to be used for this purchase order. The pricebook contains predefined pricing information for items and services. This field is optional and if not specified, the default pricebook will be used. You can obtain the pricebook ID by listing all available pricebooks in your organization. Ensure the pricebook exists and contains the relevant pricing information before referencing its ID here.\",\n            \"type\": \"string\",\n            \"example\": 460000000026089\n          },\n          \"reference_number\": {\n            \"description\": \"External reference number or identifier for the purchase order. This field is optional and can be used to store additional reference information such as vendor order numbers, internal tracking codes, or any other external system identifiers. This reference number will be displayed on the purchase order document and can be used for cross-referencing with external systems or internal tracking purposes.\",\n            \"type\": \"string\",\n            \"example\": \"ER/0034\"\n          },\n          \"discount\": {\n            \"description\": \"The discount amount or percentage to be applied to the purchase order total. This can be specified as a fixed amount or percentage value. Discounts are typically offered by vendors for bulk purchases, early payments, or promotional purposes. The discount reduces the total amount payable and affects the final purchase order total.\",\n            \"type\": \"string\",\n            \"example\": \"10\"\n          },\n          \"discount_account_id\": {\n            \"description\": \"Unique identifier of the accounting account where the discount amount will be recorded. This account is used to track and categorize discount expenses in your general ledger. The discount account should be configured as an expense or contra-revenue account to properly reflect the impact of discounts on your financial statements.\",\n            \"type\": \"string\",\n            \"example\": \"460000000011105\"\n          },\n          \"is_discount_before_tax\": {\n            \"description\": \"Boolean flag that determines whether the discount is applied before or after tax calculations. When set to true, the discount is applied to the subtotal before tax is calculated, resulting in tax being calculated on the discounted amount. When set to false, the discount is applied after tax calculations, which may affect the final total differently depending on your tax configuration.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"billing_address_id\": {\n            \"description\": \"Unique identifier of the billing address to be used for this purchase order. The billing address determines where invoices and related documents will be sent. This field is optional and if not specified, the default billing address from your organization settings will be used. You can obtain the billing address ID by listing all available addresses in your organization. Ensure the address exists and contains the correct billing information before referencing its ID here.\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": \"460000000017491\"\n          },\n          \"crm_owner_id\": {\n            \"description\": \"Unique identifier of the CRM owner assigned to this purchase order. This field links the purchase order to a specific CRM user who is responsible for managing the vendor relationship and overseeing the procurement process. The CRM owner can track, follow up, and manage all aspects of this purchase order within the CRM system.\",\n            \"type\": \"string\"\n          },\n          \"crm_custom_reference_id\": {\n            \"description\": \"ID of CRM Custom Reference\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"template_id\": {\n            \"description\": \"Unique identifier of the PDF template linked to the purchase order. Obtain this value from the `template_id` field in the response of the GET `/purchaseorders/templates` API for your organization. Determines which template is used for the purchase order PDF document, controlling the layout, formatting, and visual appearance of the generated purchase order.\",\n            \"type\": \"string\",\n            \"example\": \"460000000011003\"\n          },\n          \"date\": {\n            \"description\": \"The date when the purchase order was created or issued. This is the official date that appears on the purchase order document and is used for record-keeping, reporting, and tracking purposes. The date should be in YYYY-MM-DD format and typically represents when the purchase order was authorized and sent to the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"2014-02-10\"\n          },\n          \"delivery_date\": {\n            \"description\": \"The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format and is typically communicated to the vendor as part of the purchase order terms.\",\n            \"type\": \"string\",\n            \"example\": \"2014-02-10\"\n          },\n          \"due_date\": {\n            \"description\": \"The expected delivery date when the goods or services ordered in this purchase order should be received. This date is used for planning, scheduling, and tracking deliveries. It helps in managing inventory, coordinating with vendors, and ensuring timely receipt of ordered items. The date should be in YYYY-MM-DD format.\",\n            \"type\": \"string\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"The currency exchange rate used to convert the purchase order amounts from the vendor's currency to your organization's base currency. This rate is applied when the purchase order is created in a foreign currency. A value of 1 indicates the same currency as your base currency. This rate affects all monetary calculations and reporting for this purchase order.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"is_inclusive_tax\": {\n            \"description\": \"Boolean flag that specifies whether the line item rates include or exclude tax amounts. When set to true, the specified rates are inclusive of tax, meaning the tax amount is already included in the rate. When set to false, the rates are exclusive of tax, and tax will be calculated and added separately. This setting affects how tax calculations are performed and displayed on the purchase order.\",\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\"\n            ]\n          },\n          \"notes\": {\n            \"description\": \"Additional information, instructions, or comments to be displayed on the purchase order document. This field is typically used for delivery instructions, special requirements, vendor communications, or any other information relevant to the purchase order. The notes appear on the purchase order PDF and are visible to the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"Please deliver as soon as possible.\"\n          },\n          \"notes_default\": {\n            \"description\": \"Default notes for purchase order\",\n            \"type\": \"string\"\n          },\n          \"terms\": {\n            \"description\": \"Terms and conditions text to be displayed on the purchase order document. This field is used to specify payment terms, delivery conditions, return policies, warranty information, or any other legal or business terms that apply to this transaction. The terms appear on the purchase order PDF and form part of the contractual agreement with the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"Thanks for your business.\"\n          },\n          \"terms_default\": {\n            \"description\": \"Default terms for Purchase Orders\",\n            \"type\": \"string\"\n          },\n          \"ship_via\": {\n            \"description\": \"Shipment Preference\",\n            \"type\": \"string\"\n          },\n          \"delivery_org_address_id\": {\n            \"description\": \"Unique identifier of the organization address where the goods or services from this purchase order should be delivered. This field specifies the delivery location within your organization, such as a warehouse, office, or branch location. The address details are retrieved from your organization's address book and displayed on the purchase order for vendor reference.\",\n            \"type\": \"string\"\n          },\n          \"delivery_customer_id\": {\n            \"description\": \"Unique identifier of the customer for whom the goods or services in this purchase order are being procured. This field is used when the purchase order is created on behalf of a customer, such as in drop-shipping scenarios or when procuring items for specific customer projects. The customer information may be displayed on the purchase order for vendor reference.\",\n            \"type\": \"string\"\n          },\n          \"attention\": {\n            \"description\": \"The name or designation of the specific person who should be contacted or notified regarding the delivery of goods or services from this purchase order. This field is typically used to specify the primary contact person at the delivery location, such as a warehouse manager, office administrator, or project coordinator who will receive and process the delivered items.\",\n            \"type\": \"string\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"(Optional) VAT treatment for the purchase order. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code>(For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_update_customer\": {\n            \"description\": \"Check if customer should be updated\",\n            \"type\": \"string\"\n          },\n          \"salesorder_id\": {\n            \"description\": \"Unique identifier of the sales order that is linked to this purchase order. This field establishes a connection between the sales order and purchase order, typically used in drop-shipping scenarios where you need to procure items to fulfill a customer's sales order. The linked sales order information may be displayed on the purchase order for vendor reference and internal tracking purposes.\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": \"460000124728314\"\n          },\n          \"location_id\": {\n            \"description\": \"Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received.\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"line_items\": {\n            \"description\": \"Line items of purchase order.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"line_item_id\": {\n                  \"description\": \"ID of the line item. Mandatory if the existing line item has to be updated. If empty, a new line item will be created.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000074009\"\n                },\n                \"item_id\": {\n                  \"description\": \"Unique identifier of the item or service in the line item. Mandatory field that links to the item catalog. Determines item details, pricing, and inventory tracking. Obtain from GET /items API.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000027009\"\n                },\n                \"account_id\": {\n                  \"description\": \"Unique identifier of the accounting account for the line item. Mandatory for non-inventory items/services. Determines expense categorization in general ledger.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000074003\"\n                },\n                \"name\": {\n                  \"description\": \"Display name of the line item on the purchase order. Auto-populated from item catalog when item_id is specified. Can be customized. Used for vendor reference and documentation.\",\n                  \"type\": \"string\",\n                  \"example\": \"Hard Drive\"\n                },\n                \"description\": {\n                  \"description\": \"Additional details, specifications, or notes about the line item. Can include technical specs, requirements, delivery instructions. Appears on purchase order document for vendor reference.\",\n                  \"type\": \"string\"\n                },\n                \"unit\": {\n                  \"description\": \"Unit of measurement for the quantity (e.g., Nos, kgs, hours, meters). Should match vendor pricing structure. Used for quantity calculations and pricing.\",\n                  \"type\": \"string\",\n                  \"example\": \"Nos\"\n                },\n                \"location_id\": {\n                  \"description\": \"Unique identifier of the business location or branch where this purchase order is being created and managed. This field is used to associate the purchase order with a specific location within your organization, enabling location-based reporting, inventory tracking, and multi-location business operations. The location information affects how the purchase order is processed and where inventory is received.\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"hsn_or_sac\": {\n                  \"description\": \"HSN or SAC Code for the Item\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"ke\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_tax_id\": {\n                  \"description\": \"Unique identifier of the reverse charge tax for the line item. Used when buyer is responsible for paying tax instead of vendor. Applicable for unregistered vendors or specific tax regulations. Must reference valid reverse charge tax configuration.\",\n                  \"type\": \"string\",\n                  \"example\": 460000000026068\n                },\n                \"rate\": {\n                  \"description\": \"Unit price per item/service. Used to calculate total line item amount. Must be in purchase order currency. Tax inclusion depends on is_inclusive_tax setting. Affects pricing calculations and vendor billing.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 112\n                },\n                \"quantity\": {\n                  \"description\": \"Number of units being ordered. Used with rate to calculate total line item amount. Must match unit of measurement. Represents actual order quantity for delivery.\",\n                  \"type\": \"string\",\n                  \"example\": 1\n                },\n                \"item_order\": {\n                  \"description\": \"Sequential order of line item within purchase order. Determines display order on documents and reports. Typically numbered sequentially from 0 or 1. Maintains consistency across related documents.\",\n                  \"type\": \"integer\",\n                  \"example\": 0\n                },\n                \"tax_id\": {\n                  \"description\": \"Unique identifier of the tax for the line item. Determines tax rate, name, and treatment for calculations. Used in tax amount computation and display on purchase order. Obtain from taxes API.\",\n                  \"type\": \"string\"\n                },\n                \"tds_tax_id\": {\n                  \"type\": \"string\",\n                  \"example\": 90300000087370,\n                  \"x-node_available_in\": [\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_treatment_code\": {\n                  \"description\": \"Specify reason for using out of scope.</br>Supported values for <b>UAE</b> are <code>uae_same_tax_group</code>, <code>uae_reimbursed_expense</code> and <code>uae_others</code>.</br> Supported values for <b>Bahrain</b> are <code>bahrain_same_tax_group</code>, <code>bahrain_transfer_of_concern</code>, <code>bahrain_disbursement</code>, <code>bahrain_head_to_branch_transaction</code>, <code>bahrain_warranty_repair_services</code> and <code>bahrain_others</code>.</br> Supported values for <b>KSA</b> are <code>ksa_reimbursed_expense</code>.\",\n                  \"type\": \"string\",\n                  \"example\": \"uae_others\",\n                  \"x-node_available_in\": [\n                    \"gcc\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_code\": {\n                  \"description\": \"Code of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"au\",\n                    \"ca\",\n                    \"mx\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_id\": {\n                  \"description\": \"ID of the Tax Exemption\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\",\n                    \"au\",\n                    \"ca\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"acquisition_vat_id\": {\n                  \"description\": \"ID of the VAT Acquistion\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"eu\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_vat_id\": {\n                  \"description\": \"ID of the Reverse Charge\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"eu\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"item_custom_fields\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"index\": {\n                        \"description\": \"Index of the Custom Field\",\n                        \"type\": \"integer\",\n                        \"example\": 1\n                      },\n                      \"value\": {\n                        \"description\": \"Value of the Custom Field\",\n                        \"type\": \"string\",\n                        \"example\": \"Normal\"\n                      }\n                    }\n                  }\n                },\n                \"tags\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"tag_id\": {\n                        \"description\": \"ID of the Tag\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      },\n                      \"tag_option_id\": {\n                        \"description\": \"Id of the Tag Option\",\n                        \"type\": \"integer\",\n                        \"format\": \"int64\"\n                      }\n                    }\n                  }\n                },\n                \"project_id\": {\n                  \"description\": \"ID of the project\",\n                  \"type\": \"string\",\n                  \"example\": 90300000087378\n                }\n              }\n            }\n          },\n          \"custom_fields\": {\n            \"description\": \"Custom fields for purchase order.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": \"46000000012845\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"Normal\"\n                }\n              }\n            }\n          },\n          \"documents\": {\n            \"description\": \"Array of documents attached to the purchase order.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"document_id\": {\n                  \"description\": \"ID of the Document\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"file_name\": {\n                  \"description\": \"Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system.\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
