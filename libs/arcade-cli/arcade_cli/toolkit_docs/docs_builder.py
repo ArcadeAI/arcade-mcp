@@ -334,7 +334,7 @@ def build_tool_parameters(
         if schema.enum:
             enum_name, enum_class = find_enum_by_options(enums, schema.enum)
             referenced_enums.append((enum_name, enum_class))
-            param_definition = f"`Enum` [{enum_name}](/mcp-servers/{docs_section}/{toolkit_name}/reference#{enum_name})"
+            param_definition = f"`Enum` [{enum_name}](#{enum_name.lower().replace(' ', '-')})"
         else:
             if schema.inner_val_type:
                 param_definition = f"`{schema.val_type}[{schema.inner_val_type}]`"

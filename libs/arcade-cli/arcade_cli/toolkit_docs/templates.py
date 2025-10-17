@@ -163,7 +163,7 @@ Below is a reference of enumerations used by some of the tools in the {toolkit_n
 {enum_items}
 """
 
-ENUM_ITEM = """## {enum_name}
+ENUM_ITEM = """### {enum_name}
 
 {enum_values}
 """
