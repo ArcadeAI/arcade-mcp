@@ -53,10 +53,7 @@ class BrightDataClient:
             self.endpoint, headers=self.headers, data=json.dumps(payload), timeout=30
         )
 
-        if response.status_code != 200:
-            msg = f"Failed to scrape: {response.status_code} - {response.text}"
-            raise Exception(msg)  # noqa: TRY002
-
+        response.raise_for_status()
         result: str = response.text
         return result
 
