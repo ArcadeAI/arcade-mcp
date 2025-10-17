@@ -1,7 +1,7 @@
 import json
 import time
 from enum import Enum
-from typing import Annotated, Any, Optional, cast
+from typing import Annotated, Any, cast
 
 import requests
 from arcade_core.errors import RetryableToolError
@@ -76,13 +76,13 @@ def search_engine(  # noqa: C901
     context: ToolContext,
     query: Annotated[str, "Search query"],
     engine: Annotated[SearchEngine, "Search engine to use"] = SearchEngine.GOOGLE,
-    language: Annotated[Optional[str], "Two-letter language code"] = None,
-    country_code: Annotated[Optional[str], "Two-letter country code"] = None,
-    search_type: Annotated[Optional[SearchType], "Type of search"] = None,
-    start: Annotated[Optional[int], "Results pagination offset"] = None,
+    language: Annotated[str | None, "Two-letter language code"] = None,
+    country_code: Annotated[str | None, "Two-letter country code"] = None,
+    search_type: Annotated[SearchType | None, "Type of search"] = None,
+    start: Annotated[int | None, "Results pagination offset"] = None,
     num_results: Annotated[int, "Number of results to return. The default is 10"] = 10,
-    location: Annotated[Optional[str], "Location for search results"] = None,
-    device: Annotated[Optional[DeviceType], "Device type"] = None,
+    location: Annotated[str | None, "Location for search results"] = None,
+    device: Annotated[DeviceType | None, "Device type"] = None,
     return_json: Annotated[bool, "Return JSON instead of Markdown"] = False,
 ) -> Annotated[str, "Search results as Markdown or JSON"]:
     """
@@ -173,7 +173,7 @@ def web_data_feed(
     source_type: Annotated[SourceType, "Type of data source"],
     url: Annotated[str, "URL of the web resource to extract data from"],
     num_of_reviews: Annotated[
-        Optional[int],
+        int | None,
         "Number of reviews to retrieve. Only applicable for facebook_company_reviews. Default is None",
     ] = None,
     timeout: Annotated[int, "Maximum time in seconds to wait for data retrieval"] = 600,
@@ -201,9 +201,10 @@ def web_data_feed(
     api_key = context.get_secret("BRIGHTDATA_API_KEY")
     client = BrightDataClient.create_client(api_key=api_key)
     if num_of_reviews is not None and source_type != SourceType.FACEBOOK_COMPANY_REVIEWS:
+        msg = f"num_of_reviews parameter is only applicable for facebook_company_reviews, not for {source_type.value}"  # noqa: E501
         raise RetryableToolError(
-            f"num_of_reviews parameter is only applicable for facebook_company_reviews, not for {source_type.value}",
-            additional_prompt_content="The num_of_reviews parameter should only be used with facebook_company_reviews source type.",
+            msg,
+            additional_prompt_content="The num_of_reviews parameter should only be used with facebook_company_reviews source type.",  # noqa: E501
         )
     data = _extract_structured_data(
         client=client,
@@ -220,7 +221,7 @@ def _extract_structured_data(
     client: BrightDataClient,
     source_type: SourceType,
     url: str,
-    num_of_reviews: Optional[int] = None,
+    num_of_reviews: int | None = None,
     timeout: int = 600,
     polling_interval: int = 1,
 ) -> dict[str, Any]:
@@ -264,7 +265,7 @@ def _extract_structured_data(
     if not trigger_data.get("snapshot_id"):
         raise RetryableToolError(
             "No snapshot ID returned from trigger request",
-            additional_prompt_content="Invalid input provided, use search_engine to get the relevant data first ",
+            additional_prompt_content="Invalid input provided, use search_engine to get the relevant data first",  # noqa: E501
         )
 
     snapshot_id = trigger_data["snapshot_id"]
@@ -297,4 +298,5 @@ def _extract_structured_data(
             attempts += 1
             time.sleep(polling_interval)
 
-    raise TimeoutError(f"Timeout after {max_attempts} seconds waiting for {source_type.value} data")
+    msg = f"Timeout after {max_attempts} seconds waiting for {source_type.value} data"
+    raise TimeoutError(msg)

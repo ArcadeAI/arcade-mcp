@@ -54,7 +54,8 @@ class BrightDataClient:
         )
 
         if response.status_code != 200:
-            raise Exception(f"Failed to scrape: {response.status_code} - {response.text}")  # noqa: TRY002
+            msg = f"Failed to scrape: {response.status_code} - {response.text}"
+            raise Exception(msg)  # noqa: TRY002
 
         result: str = response.text
         return result
