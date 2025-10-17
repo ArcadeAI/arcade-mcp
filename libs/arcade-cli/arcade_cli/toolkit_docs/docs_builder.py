@@ -283,8 +283,6 @@ def build_tool_spec(
     )
     referenced_enums, parameters = build_tool_parameters(
         tool_input=tool.input,
-        docs_section=docs_section,
-        toolkit_name=tool.toolkit.name.lower(),
         enums=enums,
         tool_parameter_template=tool_parameter_template,
     )
@@ -322,8 +320,6 @@ def build_tool_secrets(
 
 def build_tool_parameters(
     tool_input: ToolInput,
-    docs_section: str,
-    toolkit_name: str,
     enums: dict[str, type[Enum]],
     tool_parameter_template: str = TOOL_PARAMETER,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
