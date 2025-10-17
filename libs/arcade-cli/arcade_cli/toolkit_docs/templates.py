@@ -66,7 +66,7 @@ TOOL_SPEC = """## {tool_fully_qualified_name}
 
 TOOL_SPEC_SECRETS = """**Secrets**
 
-This tool requires the following secrets: {secrets} (learn how to [configure secrets](/home/build-tools/create-a-tool-with-secrets#set-the-secret-in-the-arcade-dashboard))
+This tool requires the following secrets: {secrets} (learn how to [configure secrets](/home/build-tools/create-a-tool-with-secrets))
 """
 
 TABBED_EXAMPLES_LIST = """<TabbedCodeBlock
