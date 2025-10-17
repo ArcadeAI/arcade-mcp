@@ -1,0 +1,137 @@
+{
+  "name": "UpdateApplicant",
+  "fully_qualified_name": "FreshteamApi.UpdateApplicant@0.1.0",
+  "description": "Update an applicant's details in Freshteam.\n\nUse this tool to update information about an applicant in the Freshteam system. It should be called when modifications to an applicant's profile are needed.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "applicant_id",
+        "required": true,
+        "description": "The unique identifier for the applicant to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the applicant identifier, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "custom_field_column_name",
+        "required": false,
+        "description": "Specify the column name of the custom field to update for the applicant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_fields.column_name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_applicant'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/applicants/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "applicant_id",
+        "description": "the applicant identifier, as id",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the applicant identifier, as id"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_fields.column_name",
+        "tool_parameter_name": "custom_field_column_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"column_name\": {\n                \"type\": \"string\",\n                \"example\": \"redundant\"\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"custom_fields\": {\n            \"cf_234234\": 19,\n            \"cf_ee\": \"242wee\",\n            \"cf_eeo_gender\": 3,\n            \"cf_gutsofwe\": 22\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

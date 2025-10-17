@@ -1,0 +1,679 @@
+{
+  "name": "ListActiveEmployees",
+  "fully_qualified_name": "FreshteamApi.ListActiveEmployees@0.1.0",
+  "description": "Retrieve a list of active employees from the directory.\n\nThis tool is used to obtain a list of all currently active employees from the directory. It is useful for getting up-to-date employee information in situations such as team management and organizational planning.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "employee_status_keys",
+        "required": false,
+        "description": "An array of status keys to filter employees by. For example, use 'active', 'inactive', etc.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_by_first_name",
+        "required": false,
+        "description": "Filter active employees by their first name. Provide the first name to query specific users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": " First Name of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "first_name"
+      },
+      {
+        "name": "user_last_name",
+        "required": false,
+        "description": "The last name of users to filter the employee directory search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Name of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_name"
+      },
+      {
+        "name": "query_by_personal_email",
+        "required": false,
+        "description": "The personal email address used to filter employees.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Personal Email of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "personal_email"
+      },
+      {
+        "name": "official_email_to_query",
+        "required": false,
+        "description": "Official email address of the employee to be queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Official Email of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "official_email"
+      },
+      {
+        "name": "employee_type",
+        "required": false,
+        "description": "Specify the type of employee to query, such as full-time, part-time, or contractor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Employee type of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "employee_type"
+      },
+      {
+        "name": "department_ids",
+        "required": false,
+        "description": "An array of department IDs to filter the employees by. Each ID should be an integer.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of users departments to query, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "department"
+      },
+      {
+        "name": "business_unit_ids",
+        "required": false,
+        "description": "Identifiers of user business units to query, as a list of integers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of users business units to query, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "business_unit"
+      },
+      {
+        "name": "location_ids",
+        "required": false,
+        "description": "An array of integer IDs representing user locations to query.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user location, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location"
+      },
+      {
+        "name": "reporting_manager_ids",
+        "required": false,
+        "description": "A list of reporting manager IDs to filter employees by. Each ID should be an integer.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user reporting manager, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reporting_manager"
+      },
+      {
+        "name": "employee_id",
+        "required": false,
+        "description": "Specify the Employee ID to query information about a particular employee.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Employee Id of users to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "employee_id"
+      },
+      {
+        "name": "updated_since_timestamp",
+        "required": false,
+        "description": "A timestamp to filter employees updated since a specific date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user updated_since"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_since"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to fetch in the list of active employees.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Specify the attribute to sort the employee list by, such as first_name, last_name, or employee_id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "first_name",
+            "last_name",
+            "employee_id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "order_direction",
+        "required": false,
+        "description": "Determines the order of sorting: 'asc' for ascending, 'desc' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_type"
+      },
+      {
+        "name": "include_draft_employees",
+        "required": false,
+        "description": "Include draft employees in the results when set to true.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user draft"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "draft"
+      },
+      {
+        "name": "include_deleted_users",
+        "required": false,
+        "description": "Set to True to include deleted users in the results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user deleted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deleted"
+      },
+      {
+        "name": "include_terminated",
+        "required": false,
+        "description": "Set to true to include terminated employees in the results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user terminated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "terminated"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_employees'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/employees",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "employee_status_keys",
+        "description": "the status key",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "first_name",
+        "tool_parameter_name": "filter_by_first_name",
+        "description": " First Name of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": " First Name of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_name",
+        "tool_parameter_name": "user_last_name",
+        "description": "Last Name of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Name of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "personal_email",
+        "tool_parameter_name": "query_by_personal_email",
+        "description": "Personal Email of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Personal Email of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "official_email",
+        "tool_parameter_name": "official_email_to_query",
+        "description": "Official Email of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Official Email of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "employee_type",
+        "tool_parameter_name": "employee_type",
+        "description": "Employee type of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Employee type of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "department",
+        "tool_parameter_name": "department_ids",
+        "description": "the identifier of users departments to query, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of users departments to query, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "business_unit",
+        "tool_parameter_name": "business_unit_ids",
+        "description": "the identifier of users business units to query, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of users business units to query, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location",
+        "tool_parameter_name": "location_ids",
+        "description": "the identifier of user location, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user location, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reporting_manager",
+        "tool_parameter_name": "reporting_manager_ids",
+        "description": "the identifier of user reporting manager, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user reporting manager, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "employee_id",
+        "tool_parameter_name": "employee_id",
+        "description": "Employee Id of users to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Employee Id of users to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_since",
+        "tool_parameter_name": "updated_since_timestamp",
+        "description": "the identifier of user updated_since",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user updated_since"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "draft",
+        "tool_parameter_name": "include_draft_employees",
+        "description": "the identifier of user draft",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user draft"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deleted",
+        "tool_parameter_name": "include_deleted_users",
+        "description": "the identifier of user deleted",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user deleted"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "terminated",
+        "tool_parameter_name": "include_terminated",
+        "description": "the identifier of user terminated",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user terminated"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "page number",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by",
+        "description": "Sort By",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "first_name",
+            "last_name",
+            "employee_id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_type",
+        "tool_parameter_name": "order_direction",
+        "description": "Sort Type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

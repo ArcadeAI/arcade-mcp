@@ -1,0 +1,1046 @@
+{
+  "name": "FetchApplicantsForJobPosting",
+  "fully_qualified_name": "FreshteamApi.FetchApplicantsForJobPosting@0.1.0",
+  "description": "Retrieve applicants for a specified job posting.\n\nUse this tool to get all applicants for a particular job posting by providing the job posting ID.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "job_posting_id",
+        "required": true,
+        "description": "The unique identifier for the job posting. Use this to fetch applicants related to a specific job.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the job_posting identifier, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "applicant_status_keys",
+        "required": false,
+        "description": "List of status keys to filter applicants by their current status.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "applicant_stage_ids",
+        "required": false,
+        "description": "Array of integers representing the identifiers of applicant stages.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of Stage of applicants, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "stage"
+      },
+      {
+        "name": "follower_ids",
+        "required": false,
+        "description": "List of follower IDs to filter applicants by their followers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of followers of applicant, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "followers_id"
+      },
+      {
+        "name": "query_candidate_first_name",
+        "required": false,
+        "description": "Specify the first name of the candidate to filter the applicants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": " First Name of candidate to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_first_name"
+      },
+      {
+        "name": "candidate_last_name",
+        "required": false,
+        "description": "Filter applicants by the last name of a candidate to query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Name of candidate to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_last_name"
+      },
+      {
+        "name": "candidate_email",
+        "required": false,
+        "description": "Email address of the candidate to query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email of candidate to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_email"
+      },
+      {
+        "name": "candidate_source_ids",
+        "required": false,
+        "description": "Array of integers representing the IDs of candidate or job application sources.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of source of candidate or source of the candidate's job application, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_source"
+      },
+      {
+        "name": "candidate_source_categories",
+        "required": false,
+        "description": "Identifiers for the source categories of candidates or their job applications as IDs.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of source_category of candidate or source_category of the candidate's job application, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_source_category"
+      },
+      {
+        "name": "candidate_owner_ids",
+        "required": false,
+        "description": "An array of integers representing the candidate owner IDs to query.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of owner of candidate, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_owner"
+      },
+      {
+        "name": "candidate_city_queries",
+        "required": false,
+        "description": "List of cities to filter applicant search by city name.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate city to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_city"
+      },
+      {
+        "name": "candidate_country_codes",
+        "required": false,
+        "description": "List of country codes to filter candidates by location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate country code to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_country_code"
+      },
+      {
+        "name": "candidate_tags_to_query",
+        "required": false,
+        "description": "A list of tags associated with candidates to filter by.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate tags to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_tags"
+      },
+      {
+        "name": "candidate_skills",
+        "required": false,
+        "description": "List of skills to filter the candidates. Each skill should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate skills to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_skills"
+      },
+      {
+        "name": "candidate_companies_to_query",
+        "required": false,
+        "description": "List of company names to filter candidates by their past or current positions.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate companies to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_positions_company"
+      },
+      {
+        "name": "candidate_positions_titles",
+        "required": false,
+        "description": "An array of job titles to filter candidates by their position titles.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate positions title to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_positions_title"
+      },
+      {
+        "name": "candidate_rating_filter",
+        "required": false,
+        "description": "An array of strings representing the ratings of candidates to filter the applicants list.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate rating to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_rating"
+      },
+      {
+        "name": "candidate_referred_by_ids",
+        "required": false,
+        "description": "Array of integer IDs representing the identifiers of individuals who referred the candidate.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of referred_by of candidate, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_referred_by"
+      },
+      {
+        "name": "requisition_identifiers",
+        "required": false,
+        "description": "List of requisition IDs to filter applicants.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of requisition of applicants, as Id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requisition_id"
+      },
+      {
+        "name": "applicant_creation_date",
+        "required": false,
+        "description": "Date when the applicant was created. Use format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant created_at"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "applicant_created_since",
+        "required": false,
+        "description": "The start date to filter applicants created since, in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant created_since"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_since"
+      },
+      {
+        "name": "applicant_updated_since",
+        "required": false,
+        "description": "Filter applicants updated since a specific date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant updated_since"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_since"
+      },
+      {
+        "name": "applicant_list_page_number",
+        "required": false,
+        "description": "The page number to retrieve a specific subset of applicants in paginated results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Field to sort the applicants by, such as first name, last name, rating, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "first_name",
+            "last_name",
+            "rating",
+            "created_at",
+            "updated_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_type",
+        "required": false,
+        "description": "Defines the order in which applicants are sorted, either ascending ('asc') or descending ('desc').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_type"
+      },
+      {
+        "name": "filter_candidates_by_email_existence",
+        "required": false,
+        "description": "Specify true for candidates with an email address; false for those without.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate email exists"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_has_email"
+      },
+      {
+        "name": "filter_by_candidate_response",
+        "required": false,
+        "description": "Filter applicants based on their response status. Use 'true' if the candidate has responded, 'false' otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "has candidate responded"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_responded"
+      },
+      {
+        "name": "is_candidate_blocked",
+        "required": false,
+        "description": "Indicates if the candidate is blocked. Accepts true for blocked candidates.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "blocked candidate"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "candidate_spam"
+      },
+      {
+        "name": "fetch_deleted_applicants",
+        "required": false,
+        "description": "Set to true to fetch applicants marked as deleted.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of applicant deleted"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deleted"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_applicants'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/job_postings/{id}/applicants",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "applicant_status_keys",
+        "description": "the status key",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "stage",
+        "tool_parameter_name": "applicant_stage_ids",
+        "description": "the identifier of Stage of applicants, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of Stage of applicants, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "followers_id",
+        "tool_parameter_name": "follower_ids",
+        "description": "the identifier of followers of applicant, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of followers of applicant, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_first_name",
+        "tool_parameter_name": "query_candidate_first_name",
+        "description": " First Name of candidate to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": " First Name of candidate to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_last_name",
+        "tool_parameter_name": "candidate_last_name",
+        "description": "Last Name of candidate to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Name of candidate to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_email",
+        "tool_parameter_name": "candidate_email",
+        "description": "Email of candidate to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email of candidate to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_source",
+        "tool_parameter_name": "candidate_source_ids",
+        "description": "the identifier of source of candidate or source of the candidate's job application, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of source of candidate or source of the candidate's job application, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_source_category",
+        "tool_parameter_name": "candidate_source_categories",
+        "description": "the identifier of source_category of candidate or source_category of the candidate's job application, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of source_category of candidate or source_category of the candidate's job application, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_owner",
+        "tool_parameter_name": "candidate_owner_ids",
+        "description": "the identifier of owner of candidate, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of owner of candidate, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_city",
+        "tool_parameter_name": "candidate_city_queries",
+        "description": "candidate city to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate city to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_country_code",
+        "tool_parameter_name": "candidate_country_codes",
+        "description": "candidate country code to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate country code to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_tags",
+        "tool_parameter_name": "candidate_tags_to_query",
+        "description": "candidate tags to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate tags to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_skills",
+        "tool_parameter_name": "candidate_skills",
+        "description": "candidate skills to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate skills to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_positions_company",
+        "tool_parameter_name": "candidate_companies_to_query",
+        "description": "candidate companies to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate companies to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_positions_title",
+        "tool_parameter_name": "candidate_positions_titles",
+        "description": "candidate positions title to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate positions title to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_rating",
+        "tool_parameter_name": "candidate_rating_filter",
+        "description": "candidate rating to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate rating to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_referred_by",
+        "tool_parameter_name": "candidate_referred_by_ids",
+        "description": "the identifier of referred_by of candidate, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of referred_by of candidate, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_has_email",
+        "tool_parameter_name": "filter_candidates_by_email_existence",
+        "description": "candidate email exists",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "candidate email exists"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_responded",
+        "tool_parameter_name": "filter_by_candidate_response",
+        "description": "has candidate responded",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "has candidate responded"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "candidate_spam",
+        "tool_parameter_name": "is_candidate_blocked",
+        "description": "blocked candidate",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "blocked candidate"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requisition_id",
+        "tool_parameter_name": "requisition_identifiers",
+        "description": "the identifier of requisition of applicants, as Id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of requisition of applicants, as Id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "applicant_creation_date",
+        "description": "applicant created_at",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant created_at"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_since",
+        "tool_parameter_name": "applicant_created_since",
+        "description": "applicant created_since",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant created_since"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_since",
+        "tool_parameter_name": "applicant_updated_since",
+        "description": "applicant updated_since",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "applicant updated_since"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deleted",
+        "tool_parameter_name": "fetch_deleted_applicants",
+        "description": "the identifier of applicant deleted",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of applicant deleted"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "applicant_list_page_number",
+        "description": "page number",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by",
+        "description": "Sort By",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "first_name",
+            "last_name",
+            "rating",
+            "created_at",
+            "updated_at"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_type",
+        "tool_parameter_name": "sort_type",
+        "description": "Sort Type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "job_posting_id",
+        "description": "the job_posting identifier, as id",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the job_posting identifier, as id"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

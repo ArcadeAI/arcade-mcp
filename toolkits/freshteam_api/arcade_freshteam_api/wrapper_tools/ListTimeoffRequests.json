@@ -1,0 +1,378 @@
+{
+  "name": "ListTimeoffRequests",
+  "fully_qualified_name": "FreshteamApi.ListTimeoffRequests@0.1.0",
+  "description": "Retrieve a list of employee time-off requests from Freshteam.\n\nThis tool fetches a list of time-off requests from Freshteam, allowing users to view pending or approved time-offs for employees.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "timeoff_statuses",
+        "required": false,
+        "description": "A list of status keys to filter time-off requests, such as 'pending', 'approved'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "user_ids",
+        "required": false,
+        "description": "A list of user identifiers (IDs) to filter time-off requests.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user, id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "leave_type_ids",
+        "required": false,
+        "description": "Array of leave type identifiers (IDs) to filter time-off requests by specific leave types.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of leave_type, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "leave_type"
+      },
+      {
+        "name": "user_location_ids",
+        "required": false,
+        "description": "An array of location identifiers as strings to filter time-off requests by user location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user location, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location"
+      },
+      {
+        "name": "timeoff_start_date",
+        "required": false,
+        "description": "The start date for the time-off request. Must be used with `end_date`. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the timeoff request. Must be used together with `end_date`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "end_date",
+        "required": false,
+        "description": "The end date for the time-off request in YYYY-MM-DD format. Must be greater than `start_date`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date for the timeoff request. Must be used together with `start_date` and should be greater than `start date`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The current page number of results to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Specifies the attribute to sort employee time-off requests. Current option: 'start_date'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "start_date"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sorting_order",
+        "required": false,
+        "description": "Specifies the sorting order for the time-off list. Use 'asc' for ascending or 'desc' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_timeoffs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/time_offs",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "timeoff_statuses",
+        "description": "the status key",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "user_ids",
+        "description": "the identifier of user, id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user, id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "leave_type",
+        "tool_parameter_name": "leave_type_ids",
+        "description": "the identifier of leave_type, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of leave_type, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location",
+        "tool_parameter_name": "user_location_ids",
+        "description": "the identifier of user location, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of user location, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_date",
+        "tool_parameter_name": "timeoff_start_date",
+        "description": "The start date for the timeoff request. Must be used together with `end_date`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date for the timeoff request. Must be used together with `end_date`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "end_date",
+        "description": "The end date for the timeoff request. Must be used together with `start_date` and should be greater than `start date`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date for the timeoff request. Must be used together with `start_date` and should be greater than `start date`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "page number",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by",
+        "description": "Sort By",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "start_date"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_type",
+        "tool_parameter_name": "sorting_order",
+        "description": "Sort Type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

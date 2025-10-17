@@ -1,0 +1,269 @@
+{
+  "name": "CreateApplicantEmail",
+  "fully_qualified_name": "FreshteamApi.CreateApplicantEmail@0.1.0",
+  "description": "Create an email for an applicant.\n\nUse this tool to create and send an email to a specific applicant using their ID. Ideal for recruitment and communication purposes.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "applicant_id",
+        "required": true,
+        "description": "The unique identifier for the applicant. Use this ID to specify the recipient of the email.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the applicant identifier, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "email_body_content",
+        "required": true,
+        "description": "The main content of the email to be sent to the applicant. Should be a string containing the message you want to convey.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "body"
+      },
+      {
+        "name": "email_subject",
+        "required": true,
+        "description": "The subject of the email to be sent to the applicant.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subject"
+      },
+      {
+        "name": "carbon_copy_recipient_ids",
+        "required": false,
+        "description": "An array of integer IDs representing additional recipients to be CC'd in the email.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cc_ids"
+      },
+      {
+        "name": "bcc_recipient_ids",
+        "required": false,
+        "description": "List of applicant IDs to include as BCC in the email. These IDs should be integers.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bcc_ids"
+      },
+      {
+        "name": "make_email_private",
+        "required": false,
+        "description": "Set to true to mark the email as private, or false to not mark it as private.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "private"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_applicant_email'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/applicants/{id}/emails",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "applicant_id",
+        "description": "the applicant identifier, as id",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the applicant identifier, as id"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "body",
+        "tool_parameter_name": "email_body_content",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "private",
+        "tool_parameter_name": "make_email_private",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subject",
+        "tool_parameter_name": "email_subject",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cc_ids",
+        "tool_parameter_name": "carbon_copy_recipient_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "bcc_ids",
+        "tool_parameter_name": "bcc_recipient_ids",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"body\",\n          \"subject\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"body\": {\n            \"type\": \"string\",\n            \"example\": \"Engineer\"\n          },\n          \"private\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"subject\": {\n            \"type\": \"string\",\n            \"example\": \"Assessment Test\"\n          },\n          \"cc_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\",\n              \"example\": 15711\n            }\n          },\n          \"bcc_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\",\n              \"example\": 15711\n            }\n          }\n        },\n        \"example\": {\n          \"body\": \"Email Description\",\n          \"subject\": \"Email Subject\",\n          \"private\": false,\n          \"cc_ids\": [\n            10\n          ],\n          \"bcc_ids\": [\n            11\n          ]\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

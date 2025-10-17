@@ -1,0 +1,911 @@
+{
+  "name": "UpdateEmployeeInfo",
+  "fully_qualified_name": "FreshteamApi.UpdateEmployeeInfo@0.1.0",
+  "description": "Updates an employee's information in the system.\n\nThis tool is used to update the details of an existing employee in the Freshteam system. Call this tool when you need to modify an employee's information such as name, position, or contact details.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "employee_id",
+        "required": true,
+        "description": "The unique identifier for the employee whose information is being updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the employee identifier, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "employee_update_details",
+        "required": true,
+        "description": "A JSON object containing updated employee details such as names, emails, contacts, and IDs. Use appropriate structures for nested fields like addresses and phone numbers. Refer to the detailed schema for possible fields and types.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "middle_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "official_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "role_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "employee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "employee_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "personal_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "work_numbers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Mobile",
+                    "Fax",
+                    "Others",
+                    "Work"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "phone_numbers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Home",
+                    "Main",
+                    "Others",
+                    "Mobile"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "date_of_birth": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "designation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "joining_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "branch_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "hr_incharge_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "reporting_to_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sub_department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "shift_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "job_role_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "level_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "blood_group": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A\u2212",
+                "B\u2212",
+                "O\u2212",
+                "B+",
+                "O+",
+                "A+",
+                "A1+",
+                "A1B-",
+                "AB+",
+                "AB-",
+                "A1B+",
+                "A2+",
+                "A2B-",
+                "A2B+",
+                "A1-"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "gender": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "male",
+                "female"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "zip_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "communication_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "zip_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "column_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "draft": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "send_invite_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_employee'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/employees/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "employee_id",
+        "description": "the employee identifier, as id",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the employee identifier, as id"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "employee_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "middle_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "official_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "role_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "employee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "employee_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "personal_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "work_numbers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Mobile",
+                    "Fax",
+                    "Others",
+                    "Work"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "phone_numbers": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Home",
+                    "Main",
+                    "Others",
+                    "Mobile"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "date_of_birth": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "designation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "joining_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "branch_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "hr_incharge_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "reporting_to_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "sub_department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "shift_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "job_role_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "team_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "level_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "blood_group": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A\u2212",
+                "B\u2212",
+                "O\u2212",
+                "B+",
+                "O+",
+                "A+",
+                "A1+",
+                "A1B-",
+                "AB+",
+                "AB-",
+                "A1B+",
+                "A2+",
+                "A2B-",
+                "A2B+",
+                "A1-"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "gender": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "male",
+                "female"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "zip_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "communication_address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "zip_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "column_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "draft": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "send_invite_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"*/*\": {\n      \"schema\": {\n        \"required\": [\n          \"first_name\",\n          \"last_name\",\n          \"official_email\",\n          \"role_ids\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"first_name\": {\n            \"maxLength\": 128,\n            \"minLength\": 2,\n            \"type\": \"string\",\n            \"example\": \"Engineer\"\n          },\n          \"middle_name\": {\n            \"maxLength\": 128,\n            \"type\": \"string\",\n            \"example\": \"quantify\"\n          },\n          \"last_name\": {\n            \"maxLength\": 128,\n            \"minLength\": 1,\n            \"type\": \"string\",\n            \"example\": \"firmware\"\n          },\n          \"official_email\": {\n            \"type\": \"string\",\n            \"example\": \"Towels\"\n          },\n          \"role_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\",\n              \"example\": 15711\n            }\n          },\n          \"employee_id\": {\n            \"type\": \"string\",\n            \"example\": \"digital\"\n          },\n          \"employee_type\": {\n            \"type\": \"string\",\n            \"example\": \"functionalities\"\n          },\n          \"personal_email\": {\n            \"type\": \"string\",\n            \"example\": \"Manager\"\n          },\n          \"work_numbers\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\",\n                  \"example\": \"THX\",\n                  \"enum\": [\n                    \"Mobile\",\n                    \"Fax\",\n                    \"Others\",\n                    \"Work\"\n                  ]\n                },\n                \"number\": {\n                  \"type\": \"string\",\n                  \"example\": \"drive\"\n                }\n              },\n              \"example\": {\n                \"name\": \"Work\",\n                \"number\": \"999999999\"\n              }\n            }\n          },\n          \"phone_numbers\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"name\": {\n                  \"type\": \"string\",\n                  \"example\": \"intuitive\",\n                  \"enum\": [\n                    \"Home\",\n                    \"Main\",\n                    \"Others\",\n                    \"Mobile\"\n                  ]\n                },\n                \"number\": {\n                  \"type\": \"string\",\n                  \"example\": \"Cotton\"\n                }\n              },\n              \"example\": {\n                \"name\": \"Mobile\",\n                \"number\": \"999999999\"\n              }\n            }\n          },\n          \"date_of_birth\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"designation\": {\n            \"maxLength\": 128,\n            \"type\": \"string\",\n            \"example\": \"e-business\"\n          },\n          \"joining_date\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"branch_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 58979\n          },\n          \"hr_incharge_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 13334\n          },\n          \"reporting_to_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 81833\n          },\n          \"department_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 60776\n          },\n          \"sub_department_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 21393\n          },\n          \"shift_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 84583\n          },\n          \"job_role_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 49020\n          },\n          \"team_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 97154\n          },\n          \"level_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 58376\n          },\n          \"blood_group\": {\n            \"type\": \"string\",\n            \"example\": \"Kwacha\",\n            \"enum\": [\n              \"A\\u2212\",\n              \"B\\u2212\",\n              \"O\\u2212\",\n              \"B+\",\n              \"O+\",\n              \"A+\",\n              \"A1+\",\n              \"A1B-\",\n              \"AB+\",\n              \"AB-\",\n              \"A1B+\",\n              \"A2+\",\n              \"A2B-\",\n              \"A2B+\",\n              \"A1-\"\n            ]\n          },\n          \"gender\": {\n            \"type\": \"string\",\n            \"example\": \"Operations\",\n            \"enum\": [\n              \"male\",\n              \"female\"\n            ]\n          },\n          \"address\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"street\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"infomediaries\"\n              },\n              \"city\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"Ethiopia\"\n              },\n              \"state\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"SDR\"\n              },\n              \"country\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"cross-platform\"\n              },\n              \"zip_code\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"Consultant\"\n              }\n            },\n            \"example\": {\n              \"street\": \"communication address\",\n              \"city\": \"communication city\",\n              \"state\": \"communication state\",\n              \"country\": \"India\",\n              \"zip_code\": \"7001\"\n            }\n          },\n          \"communication_address\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"street\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"infomediaries\"\n              },\n              \"city\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"Ethiopia\"\n              },\n              \"state\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"SDR\"\n              },\n              \"country\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"cross-platform\"\n              },\n              \"zip_code\": {\n                \"maxLength\": 120,\n                \"minLength\": 2,\n                \"type\": \"string\",\n                \"example\": \"Consultant\"\n              }\n            },\n            \"example\": {\n              \"street\": \"communication address\",\n              \"city\": \"communication city\",\n              \"state\": \"communication state\",\n              \"country\": \"India\",\n              \"zip_code\": \"7001\"\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"column_name\": {\n                \"type\": \"string\",\n                \"example\": \"repurpose\"\n              }\n            }\n          },\n          \"draft\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"send_invite_email\": {\n            \"type\": \"boolean\",\n            \"example\": true\n          }\n        },\n        \"example\": {\n          \"first_name\": \"John\",\n          \"middle_name\": \"L\",\n          \"last_name\": \"Smith\",\n          \"official_email\": \"john@freshteam.com\",\n          \"role_ids\": [\n            1\n          ],\n          \"employee_id\": \"E001\",\n          \"employee_type\": \"full_time\",\n          \"personal_email\": \"john@new.com\",\n          \"work_numbers\": [\n            {\n              \"name\": \"Work\",\n              \"number\": \"(416)022-3562\"\n            },\n            {\n              \"name\": \"Others\",\n              \"number\": \"(416)099-8899\"\n            }\n          ],\n          \"phone_numbers\": [],\n          \"date_of_birth\": \"03-08-1997\",\n          \"designation\": \"Developer\",\n          \"joining_date\": \"25-06-2018\",\n          \"branch_id\": 2,\n          \"hr_incharge_id\": 3,\n          \"reporting_to_id\": 4,\n          \"department_id\": 1,\n          \"sub_department_id\": 1,\n          \"shift_id\": 1,\n          \"job_role_id\": 1,\n          \"team_id\": 1,\n          \"level_id\": 1,\n          \"blood_group\": \"A-\",\n          \"gender\": \"male\",\n          \"address\": {\n            \"street\": \"communication address\",\n            \"city\": \"communication city\",\n            \"state\": \"communication state\",\n            \"country\": \"India\",\n            \"zip_code\": \"7001\"\n          },\n          \"communication_address\": {\n            \"street\": \"communication address\",\n            \"city\": \"communication city\",\n            \"state\": \"communication state\",\n            \"country\": \"India\",\n            \"zip_code\": \"7001\",\n            \"same_as_residential\": true\n          },\n          \"custom_fields\": {\n            \"text_field_cf_str01\": \"Text\"\n          },\n          \"draft\": false,\n          \"send_invite_email\": false\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

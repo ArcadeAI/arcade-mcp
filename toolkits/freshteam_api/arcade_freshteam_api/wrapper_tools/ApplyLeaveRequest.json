@@ -1,0 +1,335 @@
+{
+  "name": "ApplyLeaveRequest",
+  "fully_qualified_name": "FreshteamApi.ApplyLeaveRequest@0.1.0",
+  "description": "Apply leave request for the logged-in user.\n\n",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "leave_start_date",
+        "required": true,
+        "description": "The start date for the leave request in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_date"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "The end date for the leave request in YYYY-MM-DD format. It marks the final day of the requested time off.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_date"
+      },
+      {
+        "name": "leave_type_id",
+        "required": true,
+        "description": "The ID representing the type of leave requested. It should be an integer that matches a predefined leave type in the system.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "leave_type_id"
+      },
+      {
+        "name": "leave_request_comments",
+        "required": true,
+        "description": "Comments or notes about the leave request. Useful for providing additional information or context.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "comments"
+      },
+      {
+        "name": "exclude_leave_days",
+        "required": false,
+        "description": "An array of specific weekdays to exclude from the time-off request, e.g., ['Monday', 'Wednesday'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "optional_leave_days"
+      },
+      {
+        "name": "emails_to_notify",
+        "required": false,
+        "description": "A list of email addresses to notify about the leave request. Each email should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notify_to"
+      },
+      {
+        "name": "add_to_calendar",
+        "required": false,
+        "description": "Specify whether to add the leave to the user's calendar. Use true to add.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "add_to_calendar"
+      },
+      {
+        "name": "auto_decline_events",
+        "required": false,
+        "description": "Set to true to automatically decline conflicting calendar events during the leave period. Expect a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auto_decline_events"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTimeOff'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/time_offs",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start_date",
+        "tool_parameter_name": "leave_start_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_date",
+        "tool_parameter_name": "end_date",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "optional_leave_days",
+        "tool_parameter_name": "exclude_leave_days",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notify_to",
+        "tool_parameter_name": "emails_to_notify",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "add_to_calendar",
+        "tool_parameter_name": "add_to_calendar",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "auto_decline_events",
+        "tool_parameter_name": "auto_decline_events",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "leave_type_id",
+        "tool_parameter_name": "leave_type_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "comments",
+        "tool_parameter_name": "leave_request_comments",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"*/*\": {\n      \"schema\": {\n        \"required\": [\n          \"comments\",\n          \"end_date\",\n          \"leave_type_id\",\n          \"start_date\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"start_date\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"end_date\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"optional_leave_days\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"date\"\n            }\n          },\n          \"notify_to\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"example\": \"Austria\"\n            }\n          },\n          \"add_to_calendar\": {\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"auto_decline_events\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"leave_type_id\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 83070\n          },\n          \"comments\": {\n            \"minLength\": 5,\n            \"type\": \"string\",\n            \"example\": \"Account\"\n          }\n        },\n        \"example\": {\n          \"start_date\": \"2019-06-29\",\n          \"end_date\": \"2019-07-01\",\n          \"optional_leave_days\": [\n            \"2019-06-30\"\n          ],\n          \"notify_to\": [\n            \"freshteam@freshworks.com\"\n          ],\n          \"add_to_calendar\": false,\n          \"auto_decline_events\": false,\n          \"leave_type_id\": 2,\n          \"comments\": \"to pick up the parcel from store\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

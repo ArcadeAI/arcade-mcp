@@ -1,0 +1,209 @@
+{
+  "name": "CreateCustomEmployeeField",
+  "fully_qualified_name": "FreshteamApi.CreateCustomEmployeeField@0.1.0",
+  "description": "Create a custom field in the employee form.\n\nThis tool is used to create a new custom field in the employee form for managing employee data. Use it when you need to add specific information fields that are not predefined in the system.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "field_label",
+        "required": false,
+        "description": "The name or title for the custom field to be created in the employee form.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "label"
+      },
+      {
+        "name": "employee_form_section_name",
+        "required": false,
+        "description": "Specifies the section of the employee form where the custom field will be added. Expecting a string value that matches existing section names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "section_name"
+      },
+      {
+        "name": "field_type",
+        "required": false,
+        "description": "Specifies the type of the custom field. Options are 'text' or 'number'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "text",
+            "number"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "field_type"
+      },
+      {
+        "name": "is_field_required",
+        "required": false,
+        "description": "Indicate if the custom field is mandatory in the employee form. Use true for mandatory and false for optional.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "required"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_employee_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/employee_fields",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "label",
+        "tool_parameter_name": "field_label",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "required",
+        "tool_parameter_name": "is_field_required",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "section_name",
+        "tool_parameter_name": "employee_form_section_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "field_type",
+        "tool_parameter_name": "field_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "text",
+            "number"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"*/*\": {\n      \"schema\": {\n        \"required\": [\n          \"field_type\",\n          \"label\",\n          \"section_name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"label\": {\n            \"type\": \"string\"\n          },\n          \"required\": {\n            \"type\": \"boolean\"\n          },\n          \"section_name\": {\n            \"type\": \"string\"\n          },\n          \"field_type\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"text\",\n              \"number\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

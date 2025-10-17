@@ -1,0 +1,477 @@
+{
+  "name": "ListJobOpenings",
+  "fully_qualified_name": "FreshteamApi.ListJobOpenings@0.1.0",
+  "description": "Retrieve a list of current job openings.\n\nThis tool is used to fetch and display a list of job openings. It should be called when needing a comprehensive view of available positions.",
+  "toolkit": {
+    "name": "ArcadeFreshteamApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "job_status_keys",
+        "required": false,
+        "description": "List of status keys to filter the job openings. E.g., ['open', 'closed'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "job_title_filter",
+        "required": false,
+        "description": "Specify the job title to filter the job listings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title of jobs to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "job_type",
+        "required": false,
+        "description": "Specify the type of jobs to query, such as 'full-time', 'part-time', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "type of jobs to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "department_ids",
+        "required": false,
+        "description": "Array of department IDs to filter job listings by specific departments.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of jobs department to query, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "department"
+      },
+      {
+        "name": "location_ids",
+        "required": false,
+        "description": "List of location identifiers (IDs) for querying job openings by specific locations.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of jobs location to query, as id"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location"
+      },
+      {
+        "name": "include_remote_jobs",
+        "required": false,
+        "description": "Boolean flag to include or exclude remote job positions from the query.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "boolean",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "remote flag of jobs to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "remote"
+      },
+      {
+        "name": "job_city_filters",
+        "required": false,
+        "description": "List of city names to filter job openings by location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs city to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_city"
+      },
+      {
+        "name": "country_filters",
+        "required": false,
+        "description": "A list of country identifiers for job locations to filter the query.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs country to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_country"
+      },
+      {
+        "name": "query_job_location_states",
+        "required": false,
+        "description": "A list of states to filter job listings by. Each entry should be a string representing a state.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs state to query"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_state"
+      },
+      {
+        "name": "current_page_number",
+        "required": false,
+        "description": "Specifies the current page number in the pagination of job listings.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Specify the field to sort the job listings by. Currently supports sorting by 'title'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "title"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the order for sorting the results: 'asc' for ascending or 'desc' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_jobs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHTEAM_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the freshteam API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "https://adityasharma2519.freshteam.com/api/job_postings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "job_status_keys",
+        "description": "the status key",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the status key"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "job_title_filter",
+        "description": "Title of jobs to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title of jobs to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "job_type",
+        "description": "type of jobs to query",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "type of jobs to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "department",
+        "tool_parameter_name": "department_ids",
+        "description": "the identifier of jobs department to query, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of jobs department to query, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location",
+        "tool_parameter_name": "location_ids",
+        "description": "the identifier of jobs location to query, as id",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the identifier of jobs location to query, as id"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "remote",
+        "tool_parameter_name": "include_remote_jobs",
+        "description": "remote flag of jobs to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "boolean",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "remote flag of jobs to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_city",
+        "tool_parameter_name": "job_city_filters",
+        "description": "jobs city to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs city to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_country",
+        "tool_parameter_name": "country_filters",
+        "description": "jobs country to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs country to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_state",
+        "tool_parameter_name": "query_job_location_states",
+        "description": "jobs state to query",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "jobs state to query"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "current_page_number",
+        "description": "page number",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "page number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_by",
+        "description": "Sort By",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "title"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort By"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_type",
+        "tool_parameter_name": "sort_order",
+        "description": "Sort Type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort Type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHTEAM_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
