@@ -4,8 +4,9 @@ from unittest.mock import Mock, patch
 import pytest
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import ToolExecutionError
-from brightdata.bright_data_client import BrightDataClient
-from brightdata.tools.bright_data_tools import (
+
+from arcade_brightdata.bright_data_client import BrightDataClient
+from arcade_brightdata.tools.bright_data_tools import (
     DeviceType,
     SourceType,
     scrape_as_markdown,
@@ -90,7 +91,7 @@ class TestBrightDataClient:
 
 
 class TestScrapeAsMarkdown:
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_scrape_as_markdown_success(self, mock_engine_class, mock_context):
         mock_client = Mock()
         mock_client.make_request.return_value = "# Test Page\n\nContent here"
@@ -111,7 +112,7 @@ class TestScrapeAsMarkdown:
 
 
 class TestSearchEngine:
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_search_engine_google_basic(self, mock_engine_class, mock_context):
         mock_client = Mock()
         mock_client.make_request.return_value = "# Search Results\n\nResult 1\nResult 2"
@@ -125,7 +126,7 @@ class TestSearchEngine:
             api_key=BRIGHTDATA_API_KEY, zone=BRIGHTDATA_ZONE
         )
 
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_search_engine_bing(self, mock_engine_class, mock_context):
         mock_client = Mock()
         mock_client.make_request.return_value = "# Bing Results"
@@ -143,7 +144,7 @@ class TestSearchEngine:
         }
         mock_client.make_request.assert_called_once_with(expected_payload)
 
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_search_engine_google_with_parameters(self, mock_engine_class, mock_context):
         mock_client = Mock()
         mock_client.make_request.return_value = "# Google Results with params"
@@ -179,7 +180,7 @@ class TestSearchEngine:
         with pytest.raises(ToolExecutionError):
             search_engine(mock_context, "test query", engine="invalid_engine")
 
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_search_engine_google_jobs(self, mock_engine_class, mock_context):
         mock_client = Mock()
         mock_client.make_request.return_value = "# Job Results"
@@ -194,8 +195,8 @@ class TestSearchEngine:
 
 
 class TestWebDataFeed:
-    @patch("brightdata.tools.bright_data_tools._extract_structured_data")
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools._extract_structured_data")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_web_data_feed_success(self, mock_engine_class, mock_extract, mock_context):
         mock_client = Mock()
         mock_engine_class.create_client.return_value = mock_client
@@ -216,8 +217,8 @@ class TestWebDataFeed:
             polling_interval=1,
         )
 
-    @patch("brightdata.tools.bright_data_tools._extract_structured_data")
-    @patch("brightdata.tools.bright_data_tools.BrightDataClient")
+    @patch("arcade_brightdata.tools.bright_data_tools._extract_structured_data")
+    @patch("arcade_brightdata.tools.bright_data_tools.BrightDataClient")
     def test_web_data_feed_with_reviews(self, mock_engine_class, mock_extract, mock_context):
         mock_client = Mock()
         mock_engine_class.create_client.return_value = mock_client
@@ -249,7 +250,7 @@ class TestExtractStructuredData:
     @patch("requests.get")
     @patch("requests.post")
     def test_extract_structured_data_success(self, mock_post, mock_get):
-        from brightdata.tools.bright_data_tools import _extract_structured_data
+        from arcade_brightdata.tools.bright_data_tools import _extract_structured_data
 
         client = BrightDataClient("test_key", "test_zone")
 
@@ -282,7 +283,7 @@ class TestExtractStructuredData:
     @patch("requests.get")
     @patch("requests.post")
     def test_extract_structured_data_with_polling(self, mock_post, mock_get):
-        from brightdata.tools.bright_data_tools import _extract_structured_data
+        from arcade_brightdata.tools.bright_data_tools import _extract_structured_data
 
         client = BrightDataClient("test_key", "test_zone")
 
@@ -311,7 +312,7 @@ class TestExtractStructuredData:
 
     @patch("requests.post")
     def test_extract_structured_data_invalid_source_type(self, mock_post):
-        from brightdata.tools.bright_data_tools import _extract_structured_data
+        from arcade_brightdata.tools.bright_data_tools import _extract_structured_data
 
         client = BrightDataClient("test_key", "test_zone")
 
@@ -327,7 +328,7 @@ class TestExtractStructuredData:
     @patch("requests.get")
     @patch("requests.post")
     def test_extract_structured_data_no_snapshot_id(self, mock_post, mock_get):
-        from brightdata.tools.bright_data_tools import _extract_structured_data
+        from arcade_brightdata.tools.bright_data_tools import _extract_structured_data
 
         client = BrightDataClient("test_key", "test_zone")
 
@@ -349,7 +350,7 @@ class TestExtractStructuredData:
     @patch("requests.post")
     @patch("time.sleep")
     def test_extract_structured_data_timeout(self, mock_sleep, mock_post, mock_get):
-        from brightdata.tools.bright_data_tools import _extract_structured_data
+        from arcade_brightdata.tools.bright_data_tools import _extract_structured_data
 
         client = BrightDataClient("test_key", "test_zone")
 

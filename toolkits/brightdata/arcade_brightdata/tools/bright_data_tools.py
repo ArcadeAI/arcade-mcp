@@ -7,7 +7,7 @@ import requests
 from arcade_core.errors import RetryableToolError
 from arcade_tdk import ToolContext, tool
 
-from ..bright_data_client import BrightDataClient
+from arcade_brightdata.bright_data_client import BrightDataClient
 
 
 class DeviceType(str, Enum):

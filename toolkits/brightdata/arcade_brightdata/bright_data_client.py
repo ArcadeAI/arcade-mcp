@@ -56,7 +56,8 @@ class BrightDataClient:
         if response.status_code != 200:
             raise Exception(f"Failed to scrape: {response.status_code} - {response.text}")  # noqa: TRY002
 
-        return response.text
+        result: str = response.text
+        return result
 
     @staticmethod
     def encode_query(query: str) -> str:

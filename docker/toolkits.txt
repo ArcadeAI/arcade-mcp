@@ -1,5 +1,6 @@
 arcade-airtable-api
 arcade-box-api
+arcade-brightdata
 arcade-calendly-api
 arcade-cursor-agents-api
 arcade-freshservice-api
