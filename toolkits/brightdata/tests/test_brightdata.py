@@ -2,6 +2,7 @@ from os import environ
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import ToolExecutionError
 
@@ -80,14 +81,15 @@ class TestBrightDataClient:
         mock_response = Mock()
         mock_response.status_code = 400
         mock_response.text = "Bad Request"
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "400 Client Error"
+        )
         mock_post.return_value = mock_response
 
         client = BrightDataClient("test_key", "test_zone")
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(requests.exceptions.HTTPError):
             client.make_request({"url": "https://example.com"})
-
-        assert "Failed to scrape: 400 - Bad Request" in str(exc_info.value)
 
 
 class TestScrapeAsMarkdown:
