@@ -58,4 +58,3 @@ skip_empty = true
 
 [tool.hatch.build.targets.wheel]
 packages = [ "arcade_brightdata",]
-

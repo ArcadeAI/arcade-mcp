@@ -174,7 +174,10 @@ def web_data_feed(
     url: Annotated[str, "URL of the web resource to extract data from"],
     num_of_reviews: Annotated[
         int | None,
-        "Number of reviews to retrieve. Only applicable for facebook_company_reviews. Default is None",
+        (
+            "Number of reviews to retrieve. Only applicable for "
+            "facebook_company_reviews. Default is None"
+        ),
     ] = None,
     timeout: Annotated[int, "Maximum time in seconds to wait for data retrieval"] = 600,
     polling_interval: Annotated[int, "Time in seconds between polling attempts"] = 1,
@@ -194,18 +197,26 @@ def web_data_feed(
     - youtube_videos
 
     Examples:
-        web_data_feed("amazon_product", "https://amazon.com/dp/B08N5WRWNW") -> "{\"title\": \"Product Name\", ...}"
-        web_data_feed("linkedin_person_profile", "https://linkedin.com/in/johndoe") -> "{\"name\": \"John Doe\", ...}"
-        web_data_feed("facebook_company_reviews", "https://facebook.com/company", num_of_reviews=50) -> "[{\"review\": \"...\", ...}]"
+        web_data_feed("amazon_product", "https://amazon.com/dp/B08N5WRWNW")
+            -> "{\"title\": \"Product Name\", ...}"
+        web_data_feed("linkedin_person_profile", "https://linkedin.com/in/johndoe")
+            -> "{\"name\": \"John Doe\", ...}"
+        web_data_feed(
+            "facebook_company_reviews", "https://facebook.com/company", num_of_reviews=50
+        ) -> "[{\"review\": \"...\", ...}]"
     """
     api_key = context.get_secret("BRIGHTDATA_API_KEY")
     client = BrightDataClient.create_client(api_key=api_key)
     if num_of_reviews is not None and source_type != SourceType.FACEBOOK_COMPANY_REVIEWS:
-        msg = f"num_of_reviews parameter is only applicable for facebook_company_reviews, not for {source_type.value}"  # noqa: E501
-        raise RetryableToolError(
-            msg,
-            additional_prompt_content="The num_of_reviews parameter should only be used with facebook_company_reviews source type.",  # noqa: E501
+        msg = (
+            f"num_of_reviews parameter is only applicable for facebook_company_reviews, "
+            f"not for {source_type.value}"
         )
+        prompt = (
+            "The num_of_reviews parameter should only be used with "
+            "facebook_company_reviews source type."
+        )
+        raise RetryableToolError(msg, additional_prompt_content=prompt)
     data = _extract_structured_data(
         client=client,
         source_type=source_type,
@@ -263,10 +274,9 @@ def _extract_structured_data(
 
     trigger_data = trigger_response.json()
     if not trigger_data.get("snapshot_id"):
-        raise RetryableToolError(
-            "No snapshot ID returned from trigger request",
-            additional_prompt_content="Invalid input provided, use search_engine to get the relevant data first",  # noqa: E501
-        )
+        msg = "No snapshot ID returned from trigger request"
+        prompt = "Invalid input provided, use search_engine to get the relevant data first"
+        raise RetryableToolError(msg, additional_prompt_content=prompt)
 
     snapshot_id = trigger_data["snapshot_id"]
 

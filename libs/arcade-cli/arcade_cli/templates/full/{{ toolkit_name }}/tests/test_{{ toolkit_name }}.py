@@ -11,4 +11,3 @@ def test_hello() -> None:
 def test_hello_raises_error() -> None:
     with pytest.raises(ToolExecutionError):
         say_hello(1)
-
