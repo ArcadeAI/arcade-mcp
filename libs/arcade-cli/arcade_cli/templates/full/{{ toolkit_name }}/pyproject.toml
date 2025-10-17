@@ -75,4 +75,3 @@ skip_empty = true
 
 [tool.hatch.build.targets.wheel]
 packages = [ "{{ package_name }}",]
-

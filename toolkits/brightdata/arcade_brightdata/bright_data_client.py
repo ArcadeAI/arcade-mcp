@@ -53,10 +53,9 @@ class BrightDataClient:
             self.endpoint, headers=self.headers, data=json.dumps(payload), timeout=30
         )
 
-        if response.status_code != 200:
-            raise Exception(f"Failed to scrape: {response.status_code} - {response.text}")  # noqa: TRY002
-
-        return response.text
+        response.raise_for_status()
+        result: str = response.text
+        return result
 
     @staticmethod
     def encode_query(query: str) -> str:
