@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import io
 import os
@@ -6,13 +7,20 @@ import subprocess
 import sys
 import tarfile
 import time
+from collections import deque
 from pathlib import Path
 from typing import cast
 
 import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from rich.console import Console
+from rich.columns import Columns
+from rich.console import Console, Group
+from rich.live import Live
+from rich.prompt import Confirm
+from rich.spinner import Spinner
+from rich.text import Text
+from typing_extensions import Literal
 
 from arcade_cli.secret import load_env_file
 from arcade_cli.utils import compute_base_url, validate_and_get_config
@@ -63,7 +71,7 @@ class DeploymentToolkits(BaseModel):
     packages: list[str] = Field(default_factory=list)
 
 
-class DeploymentRequest(BaseModel):
+class CreateDeploymentRequest(BaseModel):
     """Deployment request payload for /v1/deployments endpoint."""
 
     name: str
@@ -71,7 +79,207 @@ class DeploymentRequest(BaseModel):
     toolkits: DeploymentToolkits
 
 
-# Functions
+class UpdateDeploymentRequest(BaseModel):
+    """Deployment request payload for /v1/deployments/{deployment_name} endpoint."""
+
+    description: str
+    toolkits: DeploymentToolkits
+
+
+# Deployment Status Functions
+
+
+def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> str:
+    """
+    Get the status of a deployment.
+
+    Args:
+        engine_url: The base URL of the Arcade Engine
+        server_name: The name of the server to get the status of
+
+    Returns:
+        The status of the deployment.
+        Possible values are: "pending", "unknown", "running", "failed".
+    """
+    client = httpx.Client(
+        base_url=engine_url,
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=360,
+    )
+    response = client.get(f"/v1/deployments/{server_name}/status")
+    response.raise_for_status()
+    status = cast(str, response.json().get("status", "unknown"))
+    return status
+
+
+async def _poll_deployment_status(
+    engine_url: str,
+    api_key: str,
+    server_name: str,
+    state: dict,
+    debug: bool = False,
+) -> None:
+    """Poll deployment status until it's running or failed."""
+    while state["status"] in ["pending", "unknown"]:
+        try:
+            status = get_deployment_status(engine_url, api_key, server_name)
+            state["status"] = status
+            if status in ["running", "failed"]:
+                break
+        except Exception as e:
+            if debug:
+                console.print(f"Error polling status: {e}", style="dim red")
+        await asyncio.sleep(5)
+
+
+async def _stream_deployment_logs_to_deque(
+    engine_url: str,
+    api_key: str,
+    server_name: str,
+    log_deque: deque,
+    state: dict,
+    debug: bool = False,
+) -> None:
+    """Stream deployment logs into a deque with retry logic."""
+    stream_url = f"{engine_url}/v1/deployments/{server_name}/logs/stream"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    while state["status"] in ["pending", "unknown"]:
+        try:
+            async with (
+                httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
+                client.stream("GET", stream_url, headers=headers) as response,
+            ):
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    if line.strip():
+                        log_deque.append(line)
+                    # End state check
+                    if state["status"] not in ["pending", "unknown"]:
+                        break
+        except httpx.HTTPStatusError as e:
+            if debug:
+                console.print(f"Failed to stream logs: {e.response.status_code}", style="dim red")
+            await asyncio.sleep(3)
+        except Exception as e:
+            if debug:
+                console.print(f"Error streaming logs: {e}", style="dim red")
+            await asyncio.sleep(3)
+
+
+async def _monitor_deployment_with_logs(
+    engine_url: str,
+    api_key: str,
+    server_name: str,
+    debug: bool = False,
+) -> tuple[Literal["running", "failed"], list[str]]:
+    """
+    Monitor deployment with live status and streaming logs display.
+
+    Returns:
+        Tuple of (final status, list of all logs collected)
+    """
+    state = {"status": "pending"}
+    log_deque: deque[str] = deque(maxlen=1000)
+
+    # Friendly messages that rotate while waiting for logs
+    waiting_messages = [
+        "Waiting for logs...",
+        "Still getting logs ready...",
+        "Build environment warming up...",
+        "Preparing deployment resources...",
+    ]
+
+    status_task = asyncio.create_task(
+        _poll_deployment_status(engine_url, api_key, server_name, state, debug)
+    )
+    logs_task = asyncio.create_task(
+        _stream_deployment_logs_to_deque(engine_url, api_key, server_name, log_deque, state, debug)
+    )
+
+    # Live display with spinner and logs
+    spinner = Spinner("dots", style="green")
+    log_spinner = Spinner("dots", style="dim")
+
+    start_time = time.time()
+
+    with Live(console=console, refresh_per_second=4) as live:
+        while state["status"] in ["pending", "unknown"]:
+            elapsed = int(time.time() - start_time)
+
+            status_text = Text(
+                "Deployment in progress (this may take a few minutes)...", style="bold green"
+            )
+            status_line = Columns([spinner, status_text], padding=(0, 1))
+
+            logs_header = Text("\nRecent logs:", style="dim")
+
+            if log_deque:
+                # Get the last logs and ensure we only show 6 lines total
+                recent_logs = list(log_deque)[-6:]
+                log_lines_text = Text()
+                for log_line in recent_logs:
+                    log_lines_text.append(f"  {log_line}\n", style="dim")
+                # Pad with empty lines if we have fewer than 6 logs
+                for _ in range(6 - len(recent_logs)):
+                    log_lines_text.append("\n")
+
+                footer = Text(
+                    "\nYou can safely exit with Ctrl+C at any time. The deployment will continue normally.",
+                    style="green",
+                )
+                display = Group(Text("\n"), status_line, logs_header, log_lines_text, footer)
+            else:
+                # Rotate message every 7 seconds while waiting for logs
+                message_index = (elapsed // 7) % len(waiting_messages)
+                current_message = waiting_messages[message_index]
+                waiting_line = Columns(
+                    [log_spinner, Text(current_message, style="dim italic")], padding=(0, 1)
+                )
+                padding = Text("\n" * 5)
+                footer = Text(
+                    "\nYou can safely exit with Ctrl+C at any time. The deployment will continue normally.",
+                    style="green",
+                )
+                display = Group(
+                    Text("\n"), status_line, logs_header, Text("  "), waiting_line, padding, footer
+                )
+
+            live.update(display)
+            await asyncio.sleep(0.25)
+
+    status_task.cancel()
+    logs_task.cancel()
+    await asyncio.gather(status_task, logs_task, return_exceptions=True)
+
+    all_logs = list(log_deque)
+
+    return cast(Literal["running", "failed"], state["status"]), all_logs
+
+
+# Create Deployment Functions
+
+
+def server_already_exists(engine_url: str, api_key: str, server_name: str) -> bool:
+    """Check if a server already exists in the Arcade Engine."""
+    client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
+    response = client.get(f"/v1/workers/{server_name}")
+    if response.status_code == 404:
+        return False
+
+    response.raise_for_status()
+
+    # TODO: Return response.json().get("managed") == True once Engine-side bug is fixed
+    return True
+
+
+def update_deployment(
+    engine_url: str, api_key: str, server_name: str, update_deployment_request: dict
+) -> None:
+    """Update a deployment in the Arcade Engine."""
+    client = httpx.Client(base_url=engine_url, headers={"Authorization": f"Bearer {api_key}"})
+    response = client.put(f"/v1/deployments/{server_name}", json=update_deployment_request)
+    response.raise_for_status()
 
 
 def create_package_archive(package_dir: Path) -> str:
@@ -152,7 +360,7 @@ def start_server_process(entrypoint: str, debug: bool = False) -> tuple[subproce
     """
     port = random.randint(8000, 9000)  # noqa: S311
 
-    # override app.run() settings
+    # override MCPApp.run() settings
     env = {
         **os.environ,
         "ARCADE_SERVER_HOST": "localhost",
@@ -448,8 +656,10 @@ def deploy_server_to_engine(
         response.raise_for_status()
         return cast(dict, response.json())
     except httpx.ConnectError as e:
+        print(e)
         raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
     except httpx.HTTPStatusError as e:
+        print(e)
         error_detail = ""
         try:
             error_json = e.response.json()
@@ -496,7 +706,8 @@ def deploy_server_logic(
     console.print("\nValidating user is logged in...", style="dim")
     config = validate_and_get_config()
     engine_url = compute_base_url(force_tls, force_no_tls, host, port)
-    console.print(f"✓ {config.user.email} is logged in", style="green")
+    user_email = config.user.email if config.user else "User"
+    console.print(f"✓ {user_email} is logged in", style="green")
 
     # Step 2: Validate pyproject.toml exists in current directory
     console.print("\nValidating pyproject.toml exists in current directory...", style="dim")
@@ -517,13 +728,13 @@ def deploy_server_logic(
         load_dotenv(env_path, override=False)
         console.print(f"✓ Loaded environment from {env_path}", style="green")
     else:
-        console.print(f"⚠️  No .env file found at {env_path}", style="yellow")
+        console.print(f"[!] No .env file found at {env_path}", style="yellow")
 
     # Step 4: Verify server and extract metadata (or skip if --skip-validate)
     required_secrets_from_validation: set[str] = set()
 
     if skip_validate:
-        console.print("\n⚠️  Skipping server validation (--skip-validate set)", style="yellow")
+        console.print("\n[!] Skipping server validation (--skip-validate set)", style="yellow")
         # Use the provided server_name and server_version
         # These are guaranteed to be set due to validation in main.py
         if server_name is None:
@@ -551,7 +762,7 @@ def deploy_server_logic(
     secrets_to_upsert: set[str] = set()
 
     if secrets == "skip":
-        console.print("\n⚠️  Skipping secret upload (--secrets skip)", style="yellow")
+        console.print("\n[!] Skipping secret upload (--secrets skip)", style="yellow")
     elif secrets == "all":
         console.print("\nUploading ALL secrets from .env file...", style="dim")
         secrets_to_upsert = set(load_env_file(str(env_path)).keys())
@@ -559,7 +770,7 @@ def deploy_server_logic(
             console.print(f"✓ Found {len(secrets_to_upsert)} secret(s) in .env file", style="green")
             upsert_secrets_to_engine(engine_url, config.api.key, secrets_to_upsert, debug)
         else:
-            console.print("⚠️  No secrets found in .env file", style="yellow")
+            console.print("[!] No secrets found in .env file", style="yellow")
     elif secrets == "auto":
         # Only upload required secrets discovered during validation
         if required_secrets_from_validation:
@@ -582,50 +793,46 @@ def deploy_server_logic(
     except Exception as e:
         raise ValueError(f"Failed to create package archive: {e}") from e
 
-    # Step 7: Build deployment request payload
-    deployment_request = DeploymentRequest(
-        name=server_name,
-        description="MCP Server deployed via CLI",
-        toolkits=DeploymentToolkits(
-            bundles=[
-                ToolkitBundle(
-                    name=server_name,
-                    version=server_version,
-                    bytes=archive_base64,
-                    type="mcp",
-                    entrypoint=entrypoint,
-                )
-            ],
-        ),
-    )
-
-    # Step 8: Send deployment request to engine
-    console.print("\nDeploying to Arcade Engine...", style="dim")
+    # Step 7: Send deployment request to engine
     try:
-        response = deploy_server_to_engine(
-            engine_url, config.api.key, deployment_request.model_dump(), debug
+        toolkit_bundle = ToolkitBundle(
+            name=server_name,
+            version=server_version,
+            bytes=archive_base64,
+            type="mcp",
+            entrypoint=entrypoint,
         )
+        deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
+
+        if server_already_exists(engine_url, config.api.key, server_name):
+            request = UpdateDeploymentRequest(
+                description="MCP Server deployed via CLI",
+                toolkits=deployment_toolkits,
+            )
+            update_deployment(engine_url, config.api.key, server_name, request.model_dump())
+        else:
+            request = CreateDeploymentRequest(
+                name=server_name,
+                description="MCP Server deployed via CLI",
+                toolkits=deployment_toolkits,
+            )
+            deploy_server_to_engine(engine_url, config.api.key, request.model_dump(), debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 
-    console.print(
-        f"✓ Server '{server_name}' v{server_version} deployed successfully", style="bold green"
+    # Step 8: Monitor deployment with live status and logs
+    final_status, all_logs = asyncio.run(
+        _monitor_deployment_with_logs(engine_url, config.api.key, server_name, debug)
     )
 
-    deployment_id = response.get("id", "N/A")
-    deployment_uri = response.get("http", {}).get("uri", "N/A")
-    deployment_secret = response.get("http", {}).get("secret", "N/A").get("value", "N/A")
+    if final_status == "running":
+        console.print("\n✓ Deployment successful! Server is running.", style="bold green")
+    elif final_status == "failed":
+        console.print("\n✗ Deployment failed. Check logs for details.", style="bold red")
 
-    console.print("\n[bold]Deployment Details:[/bold]")
-    console.print(f"  • Server ID: [cyan]{deployment_id}[/cyan]")
-    console.print(f"  • Server URI: [cyan]{deployment_uri}[/cyan]")
-    console.print(f"  • Server Secret: [cyan]{deployment_secret}[/cyan]")
-    console.print("\n[yellow]⚠ Note:[/yellow] Your server is now starting up...", style="bold")
-    console.print(
-        "\n  This process may take a few minutes. Your server will be available at the URI above once ready."
-    )
-
-    console.print(
-        "\nView and manage your servers: [link]https://api.arcade.dev/dashboard/[/link]",
-        style="dim",
-    )
+    # Offer to view full deployment logs
+    if all_logs and Confirm.ask("\nView full deployment logs?", default=False):  # type: ignore[arg-type]
+        with console.pager(styles=True):
+            console.print("[bold]Full Deployment Logs[/bold]\n", style="cyan")
+            for i, log_line in enumerate(all_logs, 1):
+                console.print(f"{i:4d} | {log_line}", style="dim")
