@@ -282,6 +282,9 @@ def run_arcade_mcp(
 ) -> None:
     """
     Run the integrated Arcade MCP server with uvicorn.
+
+    This is used for module execution (`arcade mcp` and `python -m arcade_mcp_server`) only.
+    MCPApp has its own reload mechanism.
     """
     import os
 
