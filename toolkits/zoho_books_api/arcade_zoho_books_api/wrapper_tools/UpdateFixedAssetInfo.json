@@ -1,0 +1,593 @@
+{
+  "name": "UpdateFixedAssetInfo",
+  "fully_qualified_name": "ZohoBooksApi.UpdateFixedAssetInfo@0.1.0",
+  "description": "Update fixed asset details in Zoho Books.\n\nUse this tool to update the information of a specific fixed asset in Zoho Books by providing the necessary asset details.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization whose fixed asset you wish to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "fixed_asset_identifier",
+        "required": true,
+        "description": "Unique identifier for the specific fixed asset to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fixed_asset_id"
+      },
+      {
+        "name": "asset_update_details",
+        "required": false,
+        "description": "JSON object containing all the information needed to update a fixed asset, including fields like asset name, type, cost, and depreciation details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "asset_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the name of the fixed asset."
+            },
+            "fixed_asset_type_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Associate the fixed asset with a fixed asset type by specifying fixed asset type id."
+            },
+            "asset_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the fixed asset."
+            },
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "depreciation_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the asset\u2019s depreciation over time."
+            },
+            "depreciation_method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>"
+            },
+            "depreciation_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>"
+            },
+            "depreciation_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100"
+            },
+            "total_life": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the total life of the asset (in months)"
+            },
+            "salvage_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the remaining amount of the asset after its useful life or the value after it\u2019s fully depreciated"
+            },
+            "depreciation_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation start date of the asset"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the asset"
+            },
+            "asset_cost": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the purchase cost of the asset"
+            },
+            "computation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>"
+            },
+            "warranty_expiry_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the warranty expiration date of the asset"
+            },
+            "asset_purchase_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the Purchase date of the asset"
+            },
+            "serial_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "serial number of the asset"
+            },
+            "dep_start_value": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the value from which depreciation will be calculated."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Provide notes for the asset, if required"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tag"
+                },
+                "tag_option_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Option ID of the tag"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_fixed_asset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.fixedasset.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fixed_asset_id",
+        "tool_parameter_name": "fixed_asset_identifier",
+        "description": "Unique identifier of the fixed asset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "asset_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "asset_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the name of the fixed asset."
+            },
+            "fixed_asset_type_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Associate the fixed asset with a fixed asset type by specifying fixed asset type id."
+            },
+            "asset_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the fixed asset."
+            },
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "depreciation_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the asset\u2019s depreciation over time."
+            },
+            "depreciation_method": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>"
+            },
+            "depreciation_frequency": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>"
+            },
+            "depreciation_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100"
+            },
+            "total_life": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the total life of the asset (in months)"
+            },
+            "salvage_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the remaining amount of the asset after its useful life or the value after it\u2019s fully depreciated"
+            },
+            "depreciation_start_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the depreciation start date of the asset"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the asset"
+            },
+            "asset_cost": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the purchase cost of the asset"
+            },
+            "computation_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>"
+            },
+            "warranty_expiry_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the warranty expiration date of the asset"
+            },
+            "asset_purchase_date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the Purchase date of the asset"
+            },
+            "serial_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "serial number of the asset"
+            },
+            "dep_start_value": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the value from which depreciation will be calculated."
+            },
+            "notes": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Provide notes for the asset, if required"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tag"
+                },
+                "tag_option_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Option ID of the tag"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"asset_name\",\n          \"fixed_asset_type_id\",\n          \"asset_account_id\",\n          \"asset_cost\",\n          \"asset_purchase_date\"\n        ],\n        \"properties\": {\n          \"asset_name\": {\n            \"description\": \"Enter the name of the fixed asset.\",\n            \"type\": \"string\",\n            \"example\": \"Laptop\"\n          },\n          \"fixed_asset_type_id\": {\n            \"description\": \"Associate the fixed asset with a fixed asset type by specifying fixed asset type id.\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000319008\"\n          },\n          \"asset_account_id\": {\n            \"description\": \"Enter the account id to track the fixed asset.\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000367\"\n          },\n          \"expense_account_id\": {\n            \"description\": \"Enter the account id to track the expenses associated with the asset\\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000421\"\n          },\n          \"depreciation_account_id\": {\n            \"description\": \"Enter the account id to track the asset\\u2019s depreciation over time.\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000367\"\n          },\n          \"depreciation_method\": {\n            \"description\": \"Enter the depreciation method for your asset.The available methods are: <code>declining_method</code> and <code>straight_line</code>. <br/><b>For US and GLobal Edition:</b> <code>declining_method</code>, <code>straight_line</code>, <code>200_declining_method</code> and <code>150_declining_method</code>\",\n            \"type\": \"string\",\n            \"example\": \"declining_method\"\n          },\n          \"depreciation_frequency\": {\n            \"description\": \"Enter the frequency of depreciation. The available frequencies are: <code>yearly</code> and <code>monthly</code>\",\n            \"type\": \"string\",\n            \"example\": \"yearly\"\n          },\n          \"depreciation_percentage\": {\n            \"description\": \"Enter the depreciation percentage only if the entered depreciation method is a declining method. The entered percentage should be within the range of 0 to 100\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 12\n          },\n          \"total_life\": {\n            \"description\": \"Enter the total life of the asset (in months)\",\n            \"type\": \"number\",\n            \"example\": 60\n          },\n          \"salvage_value\": {\n            \"description\": \"Enter the remaining amount of the asset after its useful life or the value after it\\u2019s fully depreciated\",\n            \"type\": \"string\",\n            \"format\": \"double\",\n            \"example\": 100\n          },\n          \"depreciation_start_date\": {\n            \"description\": \"Enter the depreciation start date of the asset\",\n            \"type\": \"string\",\n            \"example\": \"2024-12-17\"\n          },\n          \"description\": {\n            \"description\": \"Description of the asset\",\n            \"type\": \"string\"\n          },\n          \"asset_cost\": {\n            \"description\": \"Enter the purchase cost of the asset\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1000\n          },\n          \"computation_type\": {\n            \"description\": \"Enter the computation types of assets. The available types are: <code>prorata_basis</code> and <code>no_prorata</code>\",\n            \"type\": \"string\",\n            \"example\": \"prorata_basis\"\n          },\n          \"warranty_expiry_date\": {\n            \"description\": \"Enter the warranty expiration date of the asset\",\n            \"type\": \"string\",\n            \"example\": \"2027-12-17\"\n          },\n          \"asset_purchase_date\": {\n            \"description\": \"Enter the Purchase date of the asset\",\n            \"type\": \"string\",\n            \"example\": \"2024-12-17\"\n          },\n          \"serial_no\": {\n            \"description\": \"serial number of the asset\",\n            \"type\": \"string\",\n            \"example\": \"SN-0001\"\n          },\n          \"dep_start_value\": {\n            \"description\": \"Enter the value from which depreciation will be calculated.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1000\n          },\n          \"notes\": {\n            \"description\": \"Provide notes for the asset, if required\",\n            \"type\": \"string\",\n            \"example\": \"This is a laptop Model 2024\"\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the tag\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000094001\"\n                },\n                \"tag_option_id\": {\n                  \"description\": \"Option ID of the tag\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000048001\"\n                }\n              }\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"description\": \"ID of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000098001\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"Normal\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

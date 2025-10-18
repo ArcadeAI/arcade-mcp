@@ -1,0 +1,781 @@
+{
+  "name": "ListVendorCredits",
+  "fully_qualified_name": "ZohoBooksApi.ListVendorCredits@0.1.0",
+  "description": "Retrieve and filter vendor credits from Zoho Books.\n\nRetrieve a paginated list of vendor credits using various filtering, sorting, and search capabilities, such as by date, status, amount, vendor details, items, taxes, and custom fields.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "vendor_credit_number_filter",
+        "required": false,
+        "description": "Filter vendor credits by specific vendor credit number. Supports partial matching with options like 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by specific vendor credit number. Supports variants <code>vendor_credit_number_startswith</code> and <code>vendor_credit_number_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_credit_number"
+      },
+      {
+        "name": "filter_by_creation_date",
+        "required": false,
+        "description": "Filter vendor credits by creation date using yyyy-mm-dd format. Supports date_start, date_end, date_before, and date_after for range filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by creation date. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code> for range-based filtering."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "vendor_credit_status",
+        "required": false,
+        "description": "Filter vendor credits by their current status. Allowed values: 'open', 'closed', 'void', or 'draft'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "total_amount_filter",
+        "required": false,
+        "description": "Filter vendor credits by total amount. Use variants: total_start, total_end, total_less_than, total_less_equals, total_greater_than, total_greater_equals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their total amount. Supports variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code> and <code>total_greater_equals</code> for comparison-based filtering."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "reference_number_filter",
+        "required": false,
+        "description": "Filter vendor credits by their reference number, supporting 'startswith' and 'contains' for partial matches.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their reference number. Supports variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "filter_by_vendor_name",
+        "required": false,
+        "description": "Filter vendor credits by vendor name, supporting partial matches with 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by vendor name. Supports variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "filter_by_item_name",
+        "required": false,
+        "description": "Filter vendor credits by item name. Use 'startswith:' or 'contains:' as prefixes for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item name. Supports variants: <code>item_name_startswith</code> and <code>item_name_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "item_description_filter",
+        "required": false,
+        "description": "Filter vendor credits by item description. Supports partial matching with 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item description. Supports variants: <code>item_description_startswith</code> and <code>item_description_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "filter_by_notes_content",
+        "required": false,
+        "description": "Filter vendor credits by notes content. Use partial matching with variants: notes_startswith or notes_contains.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by notes content. Supports variants: <code>notes_startswith</code> and <code>notes_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notes"
+      },
+      {
+        "name": "filter_by_custom_field",
+        "required": false,
+        "description": "Filter vendor credits by custom field values. Use 'custom_field_startswith' or 'custom_field_contains' for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by custom field values. Supports variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code> for partial matching."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "filter_by_last_modified_time",
+        "required": false,
+        "description": "Filter vendor credits by last modified time using ISO 8601 format (yyyy-mm-ddThh:mm:ss-hh:mm).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by last modified time. Use ISO 8601 format (yyyy-mm-ddThh:mm:ss-hh:mm) to search for vendor credits modified at specific times."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "filter_by_customer_id",
+        "required": false,
+        "description": "Filter vendor credits by a specific customer ID to find credits associated with that customer. Retrieve customer IDs from the contacts API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by customer ID. Use this parameter to search for vendor credits associated with a specific customer. Retrieve customer IDs from the contacts API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "filter_by_line_item_id",
+        "required": false,
+        "description": "Filter vendor credits by a specific line item ID to find credits containing the item.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by line item ID. Use this parameter to search for vendor credits containing a specific line item within the vendor credit."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "line_item_id"
+      },
+      {
+        "name": "filter_by_item_id",
+        "required": false,
+        "description": "Filter vendor credits by a specific item ID. Use this to find vendor credits containing the item. Retrieve item IDs from the items API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item ID. Use this parameter to search for vendor credits containing a specific item. Retrieve item IDs from the items API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "filter_by_tax_id",
+        "required": false,
+        "description": "Filter vendor credits by specific tax ID to find credits with that tax applied. Tax IDs are retrieved from the taxes API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by tax ID. Use this parameter to search for vendor credits with a specific tax applied. Retrieve tax IDs from the taxes API."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tax_id"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Filter vendor credits by status using predefined values: Status.All, Status.Open, Status.Draft, Status.Closed, Status.Void.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_text",
+        "required": false,
+        "description": "Enter text to search vendor credits by credit number, vendor name, and reference number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search vendor credits using text search across multiple fields. Searches vendor credit number, vendor name, and reference number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Specify which column to sort vendor credits by. Options: vendor_name, vendor_credit_number, balance, total, date, created_time, last_modified_time, reference_number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort vendor credits by specified column. Allowed values: <code>vendor_name</code>, <code>vendor_credit_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, <code>created_time</code>, <code>last_modified_time</code>, and <code>reference_number</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "pagination_page_number",
+        "required": false,
+        "description": "Specify the page number to retrieve results from for pagination. Default is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "pagination_records_per_page",
+        "required": false,
+        "description": "Specify the number of vendor credit records to return per page. The default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records per page for pagination. Controls how many vendor credits are returned in each page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_vendor_credits'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.debitnotes.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/vendorcredits",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_credit_number",
+        "tool_parameter_name": "vendor_credit_number_filter",
+        "description": "Filter vendor credits by specific vendor credit number. Supports variants <code>vendor_credit_number_startswith</code> and <code>vendor_credit_number_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by specific vendor credit number. Supports variants <code>vendor_credit_number_startswith</code> and <code>vendor_credit_number_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "filter_by_creation_date",
+        "description": "Filter vendor credits by creation date. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code> for range-based filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by creation date. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code> for range-based filtering."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "vendor_credit_status",
+        "description": "Filter vendor credits by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their current status. Allowed values: <code>open</code>, <code>closed</code>, <code>void</code>, or <code>draft</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "total_amount_filter",
+        "description": "Filter vendor credits by their total amount. Supports variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code> and <code>total_greater_equals</code> for comparison-based filtering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their total amount. Supports variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code> and <code>total_greater_equals</code> for comparison-based filtering."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "reference_number_filter",
+        "description": "Filter vendor credits by their reference number. Supports variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by their reference number. Supports variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "filter_by_vendor_name",
+        "description": "Filter vendor credits by vendor name. Supports variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by vendor name. Supports variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "filter_by_item_name",
+        "description": "Filter vendor credits by item name. Supports variants: <code>item_name_startswith</code> and <code>item_name_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item name. Supports variants: <code>item_name_startswith</code> and <code>item_name_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "item_description_filter",
+        "description": "Filter vendor credits by item description. Supports variants: <code>item_description_startswith</code> and <code>item_description_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item description. Supports variants: <code>item_description_startswith</code> and <code>item_description_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notes",
+        "tool_parameter_name": "filter_by_notes_content",
+        "description": "Filter vendor credits by notes content. Supports variants: <code>notes_startswith</code> and <code>notes_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by notes content. Supports variants: <code>notes_startswith</code> and <code>notes_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "filter_by_custom_field",
+        "description": "Filter vendor credits by custom field values. Supports variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code> for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by custom field values. Supports variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code> for partial matching."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "filter_by_last_modified_time",
+        "description": "Filter vendor credits by last modified time. Use ISO 8601 format (yyyy-mm-ddThh:mm:ss-hh:mm) to search for vendor credits modified at specific times.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by last modified time. Use ISO 8601 format (yyyy-mm-ddThh:mm:ss-hh:mm) to search for vendor credits modified at specific times."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "filter_by_customer_id",
+        "description": "Filter vendor credits by customer ID. Use this parameter to search for vendor credits associated with a specific customer. Retrieve customer IDs from the contacts API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by customer ID. Use this parameter to search for vendor credits associated with a specific customer. Retrieve customer IDs from the contacts API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "line_item_id",
+        "tool_parameter_name": "filter_by_line_item_id",
+        "description": "Filter vendor credits by line item ID. Use this parameter to search for vendor credits containing a specific line item within the vendor credit.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by line item ID. Use this parameter to search for vendor credits containing a specific line item within the vendor credit."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "filter_by_item_id",
+        "description": "Filter vendor credits by item ID. Use this parameter to search for vendor credits containing a specific item. Retrieve item IDs from the items API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by item ID. Use this parameter to search for vendor credits containing a specific item. Retrieve item IDs from the items API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tax_id",
+        "tool_parameter_name": "filter_by_tax_id",
+        "description": "Filter vendor credits by tax ID. Use this parameter to search for vendor credits with a specific tax applied. Retrieve tax IDs from the taxes API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by tax ID. Use this parameter to search for vendor credits with a specific tax applied. Retrieve tax IDs from the taxes API."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Filter vendor credits by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter vendor credits by status using predefined status values. Allowed values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.Closed</code>, and <code>Status.Void</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_text",
+        "description": "Search vendor credits using text search across multiple fields. Searches vendor credit number, vendor name, and reference number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search vendor credits using text search across multiple fields. Searches vendor credit number, vendor name, and reference number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "Sort vendor credits by specified column. Allowed values: <code>vendor_name</code>, <code>vendor_credit_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, <code>created_time</code>, <code>last_modified_time</code>, and <code>reference_number</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort vendor credits by specified column. Allowed values: <code>vendor_name</code>, <code>vendor_credit_number</code>, <code>balance</code>, <code>total</code>, <code>date</code>, <code>created_time</code>, <code>last_modified_time</code>, and <code>reference_number</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "pagination_page_number",
+        "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number for pagination. Specify which page of results to retrieve. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "pagination_records_per_page",
+        "description": "Number of records per page for pagination. Controls how many vendor credits are returned in each page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records per page for pagination. Controls how many vendor credits are returned in each page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

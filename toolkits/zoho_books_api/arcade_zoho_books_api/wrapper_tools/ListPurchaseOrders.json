@@ -1,0 +1,649 @@
+{
+  "name": "ListPurchaseOrders",
+  "fully_qualified_name": "ZohoBooksApi.ListPurchaseOrders@0.1.0",
+  "description": "Retrieve a list of all purchase orders.\n\n",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization to filter purchase orders.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "search_by_purchaseorder_number",
+        "required": false,
+        "description": "Search purchase order by number. Supports exact, starts with, and contains variants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by purchase order number. Variants: <code>purchaseorder_number_startswith</code> and <code>purchaseorder_number_contains</code>. Example: Locate specific PO by number or partial match."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "purchaseorder_number"
+      },
+      {
+        "name": "reference_number_search",
+        "required": false,
+        "description": "Search for a purchase order using the exact or partial reference number. Supports 'startswith' and 'contains' methods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by reference number. Variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Example: Monitor external vendor order numbers."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "creation_date",
+        "required": false,
+        "description": "Creation date for purchase order search in YYYY-MM-DD format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by creation date. Use YYYY-MM-DD format for exact date matching. Example: Retrieve POs created on specific date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "purchase_order_status",
+        "required": false,
+        "description": "Filter purchase orders by status. Options: draft, open, billed, cancelled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by status. Allowed values: <code>draft</code>, <code>open</code>, <code>billed</code>, <code>cancelled</code>. Example: Filter POs by current workflow state."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "search_by_item_description",
+        "required": false,
+        "description": "Search purchase orders by item description. Use partial matches or specific description. Includes variants like 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>. Example: Discover POs containing specific items."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "vendor_name",
+        "required": false,
+        "description": "Search purchase orders by vendor name with optional 'startswith' or 'contains' variants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_name"
+      },
+      {
+        "name": "total_amount_filter",
+        "required": false,
+        "description": "Filter purchase orders by total amount. Use options like 'start', 'end', 'less_than', 'less_equals', 'greater_than', 'greater_equals' to specify the range or comparison.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by total amount. Variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, <code>total_greater_equals</code>. Example: Identify POs within price range."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "vendor_identifier",
+        "required": false,
+        "description": "Specify the unique ID of the vendor to filter purchase orders. Useful for grouping POs by a specific vendor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by vendor ID. Use the unique identifier of the vendor to filter purchase orders. Example: Group POs by specific vendor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_id"
+      },
+      {
+        "name": "search_by_last_modified_time",
+        "required": false,
+        "description": "ISO 8601 format (YYYY-MM-DDTHH:MM:SS\u00b1HH:MM) to filter POs by last modified time. For finding recently updated POs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by last modified time. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS\u00b1HH:MM). Example: Identify recently updated POs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "search_by_item_id",
+        "required": false,
+        "description": "Search purchase orders using the unique item ID to find POs containing a specific item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by item ID. Use the unique identifier of the specific item. Example: Locate all POs containing particular item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "status_filter",
+        "required": false,
+        "description": "Filter purchase orders by status. Use 'Status.All', 'Status.Draft', 'Status.Open', 'Status.Billed', or 'Status.Cancelled'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter purchase order by status. Allowed values: <code>Status.All</code>, <code>Status.Draft</code>, <code>Status.Open</code>, <code>Status.Billed</code>, <code>Status.Cancelled</code>. Example: Bulk status filtering for reporting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_purchase_order_text",
+        "required": false,
+        "description": "Search for purchase orders by number, reference, or vendor name. Allows general searching across multiple fields for quick lookup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by number, reference, or vendor name. General search across multiple fields. Example: Quick PO lookup without specific field."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Column to sort purchase orders by. Options: vendor_name, purchaseorder_number, date, delivery_date, total, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort purchase orders by column. Allowed values: <code>vendor_name</code>, <code>purchaseorder_number</code>, <code>date</code>, <code>delivery_date</code>, <code>total</code>, <code>created_time</code>. Example: Organize results for analysis."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "search_by_custom_field",
+        "required": false,
+        "description": "Search purchase orders using custom field criteria. Supports 'startswith' and 'contains' variants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by purchase order\u2019s custom field. Variants: <code>custom_field_startswith</code>, <code>custom_field_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number to fetch, with a default value of 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specifies the number of purchase orders to retrieve per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_purchase_orders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.purchaseorders.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/purchaseorders",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "purchaseorder_number",
+        "tool_parameter_name": "search_by_purchaseorder_number",
+        "description": "Search purchase order by purchase order number. Variants: <code>purchaseorder_number_startswith</code> and <code>purchaseorder_number_contains</code>. Example: Locate specific PO by number or partial match.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by purchase order number. Variants: <code>purchaseorder_number_startswith</code> and <code>purchaseorder_number_contains</code>. Example: Locate specific PO by number or partial match."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "reference_number_search",
+        "description": "Search purchase order by reference number. Variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Example: Monitor external vendor order numbers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by reference number. Variants: <code>reference_number_startswith</code> and <code>reference_number_contains</code>. Example: Monitor external vendor order numbers."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "creation_date",
+        "description": "Search purchase order by creation date. Use YYYY-MM-DD format for exact date matching. Example: Retrieve POs created on specific date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by creation date. Use YYYY-MM-DD format for exact date matching. Example: Retrieve POs created on specific date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "purchase_order_status",
+        "description": "Search purchase order by status. Allowed values: <code>draft</code>, <code>open</code>, <code>billed</code>, <code>cancelled</code>. Example: Filter POs by current workflow state.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by status. Allowed values: <code>draft</code>, <code>open</code>, <code>billed</code>, <code>cancelled</code>. Example: Filter POs by current workflow state."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "search_by_item_description",
+        "description": "Search purchase order by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>. Example: Discover POs containing specific items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by item description. Variants: <code>item_description_startswith</code> and <code>item_description_contains</code>. Example: Discover POs containing specific items."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_name",
+        "tool_parameter_name": "vendor_name",
+        "description": "Search purchase order by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by vendor name. Variants: <code>vendor_name_startswith</code> and <code>vendor_name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "total_amount_filter",
+        "description": "Search purchase order by total amount. Variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, <code>total_greater_equals</code>. Example: Identify POs within price range.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by total amount. Variants: <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, <code>total_greater_equals</code>. Example: Identify POs within price range."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_id",
+        "tool_parameter_name": "vendor_identifier",
+        "description": "Search purchase order by vendor ID. Use the unique identifier of the vendor to filter purchase orders. Example: Group POs by specific vendor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by vendor ID. Use the unique identifier of the vendor to filter purchase orders. Example: Group POs by specific vendor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "search_by_last_modified_time",
+        "description": "Search purchase order by last modified time. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS\u00b1HH:MM). Example: Identify recently updated POs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by last modified time. Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS\u00b1HH:MM). Example: Identify recently updated POs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "search_by_item_id",
+        "description": "Search purchase order by item ID. Use the unique identifier of the specific item. Example: Locate all POs containing particular item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by item ID. Use the unique identifier of the specific item. Example: Locate all POs containing particular item."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "status_filter",
+        "description": "Filter purchase order by status. Allowed values: <code>Status.All</code>, <code>Status.Draft</code>, <code>Status.Open</code>, <code>Status.Billed</code>, <code>Status.Cancelled</code>. Example: Bulk status filtering for reporting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter purchase order by status. Allowed values: <code>Status.All</code>, <code>Status.Draft</code>, <code>Status.Open</code>, <code>Status.Billed</code>, <code>Status.Cancelled</code>. Example: Bulk status filtering for reporting."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_purchase_order_text",
+        "description": "Search purchase order by number, reference, or vendor name. General search across multiple fields. Example: Quick PO lookup without specific field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by number, reference, or vendor name. General search across multiple fields. Example: Quick PO lookup without specific field."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "Sort purchase orders by column. Allowed values: <code>vendor_name</code>, <code>purchaseorder_number</code>, <code>date</code>, <code>delivery_date</code>, <code>total</code>, <code>created_time</code>. Example: Organize results for analysis.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort purchase orders by column. Allowed values: <code>vendor_name</code>, <code>purchaseorder_number</code>, <code>date</code>, <code>delivery_date</code>, <code>total</code>, <code>created_time</code>. Example: Organize results for analysis."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "search_by_custom_field",
+        "description": "Search purchase order by purchase order\u2019s custom field. Variants: <code>custom_field_startswith</code>, <code>custom_field_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search purchase order by purchase order\u2019s custom field. Variants: <code>custom_field_startswith</code>, <code>custom_field_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

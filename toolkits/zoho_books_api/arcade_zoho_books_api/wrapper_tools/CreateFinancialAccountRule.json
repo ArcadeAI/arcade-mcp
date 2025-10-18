@@ -1,0 +1,462 @@
+{
+  "name": "CreateFinancialAccountRule",
+  "fully_qualified_name": "ZohoBooksApi.CreateFinancialAccountRule@0.1.0",
+  "description": "Create and apply rules for banking and credit accounts.\n\nThis tool allows you to create a rule for deposits, withdrawals, refunds, or charges on bank and credit card accounts. It should be called when you need to automate financial processes by setting specific rules for account transactions.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization. Used to specify which organization's account rules are being altered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "financial_rule_details",
+        "required": false,
+        "description": "A JSON object detailing the rule specifics such as rule name, target account ID, application type (deposits, withdrawals, refunds, or charges), criteria, and relevant transaction details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "rule_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Rule"
+            },
+            "target_account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account on which the rule has to be applied."
+            },
+            "apply_to": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Rule applies to either deposits or withdrawals for bank accounts and to refunds or charges for credit card account. Allowed Values : <code>withdrawals</code>, <code>deposits</code>, <code>refunds</code> and <code>charges</code>."
+            },
+            "criteria_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether all the criteria have to be satisfied or not. Allowed Values : <code>and</code> and <code>or</code>"
+            },
+            "criterion": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Field involved in the Criteria"
+                },
+                "comparator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Comparator used in Criteria"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value to be compared with"
+                }
+              },
+              "description": null
+            },
+            "record_as": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Record transaction based on value specified in apply_to node. For bank accounts: If apply_to is deposits: sales_without_invoices, transfer_fund, interest_income, other_income, expense_refund, deposit. If apply_to is withdrawals: expense, transfer_fund, card_payment, owner_drawings. For credit_card accounts: If apply_to is refunds: card_payment, transfer_fund, expense_refund, refund. If apply_to is charges: expense, transfer_fund. Allowed Values: <code>expense</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>card_payment</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>interest_income</code>, <code>other_income</code> and <code>owner_drawings</code>"
+            },
+            "account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Account which is involved in the rule with the target account."
+            },
+            "customer_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer.(Applicable for sales_without_invoices,deposit, expense)"
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID involved in the transaction."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if Reference number is manual or generated from the statement. Allowed Values: <code>manual</code> and <code>from_statement</code>"
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the bank rules. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling/purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Product Type associated with the Rule. Allowed values:<br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Authority Associated with the Rule"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption Associated with the Rule"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_bank_account_rule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/bankaccounts/rules",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "financial_rule_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "rule_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Rule"
+            },
+            "target_account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account on which the rule has to be applied."
+            },
+            "apply_to": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Rule applies to either deposits or withdrawals for bank accounts and to refunds or charges for credit card account. Allowed Values : <code>withdrawals</code>, <code>deposits</code>, <code>refunds</code> and <code>charges</code>."
+            },
+            "criteria_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether all the criteria have to be satisfied or not. Allowed Values : <code>and</code> and <code>or</code>"
+            },
+            "criterion": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "field": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Field involved in the Criteria"
+                },
+                "comparator": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Comparator used in Criteria"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value to be compared with"
+                }
+              },
+              "description": null
+            },
+            "record_as": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Record transaction based on value specified in apply_to node. For bank accounts: If apply_to is deposits: sales_without_invoices, transfer_fund, interest_income, other_income, expense_refund, deposit. If apply_to is withdrawals: expense, transfer_fund, card_payment, owner_drawings. For credit_card accounts: If apply_to is refunds: card_payment, transfer_fund, expense_refund, refund. If apply_to is charges: expense, transfer_fund. Allowed Values: <code>expense</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>card_payment</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>interest_income</code>, <code>other_income</code> and <code>owner_drawings</code>"
+            },
+            "account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Account which is involved in the rule with the target account."
+            },
+            "customer_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer.(Applicable for sales_without_invoices,deposit, expense)"
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax ID involved in the transaction."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies if Reference number is manual or generated from the statement. Allowed Values: <code>manual</code> and <code>from_statement</code>"
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Optional) VAT treatment for the bank rules. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling/purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "is_reverse_charge_applied": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not."
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Product Type associated with the Rule. Allowed values:<br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>."
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Authority Associated with the Rule"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption Associated with the Rule"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"rule_name\",\n          \"target_account_id\",\n          \"apply_to\",\n          \"criteria_type\",\n          \"criterion\",\n          \"record_as\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"rule_name\": {\n            \"description\": \"Name of the Rule\",\n            \"type\": \"string\",\n            \"example\": \"Minimum Deposit Rule\"\n          },\n          \"target_account_id\": {\n            \"description\": \"The account on which the rule has to be applied.\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 460000000048001\n          },\n          \"apply_to\": {\n            \"description\": \"Rule applies to either deposits or withdrawals for bank accounts and to refunds or charges for credit card account. Allowed Values : <code>withdrawals</code>, <code>deposits</code>, <code>refunds</code> and <code>charges</code>.\",\n            \"type\": \"string\",\n            \"example\": \"deposits\"\n          },\n          \"criteria_type\": {\n            \"description\": \"Specifies whether all the criteria have to be satisfied or not. Allowed Values : <code>and</code> and <code>or</code>\",\n            \"type\": \"string\",\n            \"example\": \"and\"\n          },\n          \"criterion\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"field\": {\n                  \"description\": \"Field involved in the Criteria\",\n                  \"type\": \"string\",\n                  \"example\": \"amount\"\n                },\n                \"comparator\": {\n                  \"description\": \"Comparator used in Criteria\",\n                  \"type\": \"string\",\n                  \"example\": \"greater_than_or_equals\"\n                },\n                \"value\": {\n                  \"description\": \"Value to be compared with\",\n                  \"type\": \"string\",\n                  \"example\": \"500.00\"\n                }\n              }\n            }\n          },\n          \"record_as\": {\n            \"description\": \"Record transaction based on value specified in apply_to node. For bank accounts: If apply_to is deposits: sales_without_invoices, transfer_fund, interest_income, other_income, expense_refund, deposit. If apply_to is withdrawals: expense, transfer_fund, card_payment, owner_drawings. For credit_card accounts: If apply_to is refunds: card_payment, transfer_fund, expense_refund, refund. If apply_to is charges: expense, transfer_fund. Allowed Values: <code>expense</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>card_payment</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>interest_income</code>, <code>other_income</code> and <code>owner_drawings</code>\",\n            \"type\": \"string\",\n            \"example\": \"deposit\"\n          },\n          \"account_id\": {\n            \"description\": \"Account which is involved in the rule with the target account.\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 460000000049001\n          },\n          \"customer_id\": {\n            \"description\": \"ID of the customer.(Applicable for sales_without_invoices,deposit, expense)\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": 46000000000111\n          },\n          \"tax_id\": {\n            \"description\": \"Tax ID involved in the transaction.\",\n            \"type\": \"string\",\n            \"example\": \"460000000048238\"\n          },\n          \"reference_number\": {\n            \"description\": \"Specifies if Reference number is manual or generated from the statement. Allowed Values: <code>manual</code> and <code>from_statement</code>\",\n            \"type\": \"string\",\n            \"example\": \"manual\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"(Optional) VAT treatment for the bank rules. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is <code>uk</code>. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling/purchasing Goods then his VAT treatment is <code>eu_vat_registered</code>, if he resides outside of the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the bank transaction.Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>.<br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_reverse_charge_applied\": {\n            \"description\": \"(Required if customer tax treatment is <code>vat_registered</code>)<br/>Used to specify whether the transaction is applicable for Domestic Reverse Charge (DRC) or not.\",\n            \"type\": \"boolean\",\n            \"example\": true,\n            \"x-node_available_in\": [\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"product_type\": {\n            \"description\": \"Product Type associated with the Rule. Allowed values:<br/> <b>For UK and Europe: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"za\",\n              \"eu\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_authority_id\": {\n            \"description\": \"ID of the Tax Authority Associated with the Rule\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"ID of the Tax Exemption Associated with the Rule\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\"\n            ],\n            \"x-node_unavailable_in\": []\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

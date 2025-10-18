@@ -1,0 +1,595 @@
+{
+  "name": "UpdatePaymentByCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdatePaymentByCustomField@0.1.0",
+  "description": "Update or upsert a customer payment using a unique custom field.\n\nUse this tool to update an existing customer payment or create a new one if it doesn't exist, by specifying a unique value from a custom field. The unique custom field value helps identify the payment to update. If upsert is enabled, a new payment will be created when the unique value is not found.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization whose payment is being updated or created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "unique_custom_field_api_name",
+        "required": true,
+        "description": "API name of the unique custom field used to identify the payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value of the custom field used to identify or create a payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "payment_details",
+        "required": false,
+        "description": "JSON object containing payment details such as customer_id, payment_mode, amount, date, reference_number, description, invoices, exchange_rate, payment_form, bank_charges, custom_fields, invoice_id, amount_applied, tax_amount_withheld, location_id, account_id, and retainerinvoice_id.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer ID of the customer involved in the payment."
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode through which payment is made. This can be <code>check</code>, <code>cash</code>, <code>creditcard</code>, <code>banktransfer</code>, <code>bankremittance</code>, <code>autotransaction</code> or <code>others</code>. Max-length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid in the respective payment."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which payment is made. Format [yyyy-mm-dd]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the payment."
+            },
+            "invoices": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "invoice_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Invoice ID of the required invoice."
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount paid for the invoice."
+                }
+              },
+              "description": "List of invoices associated with the payment. Each invoice object contains <code>invoice_id</code>, <code>invoice_number</code>, <code>date</code>, <code>invoice_amount</code>, <code>amount_applied</code> and <code>balance_amount</code>."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "bank_charges": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Denotes any additional bank charges."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                }
+              },
+              "description": "Additional fields for the payments."
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Invoice ID of the required invoice."
+            },
+            "amount_applied": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid for the invoice."
+            },
+            "tax_amount_withheld": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount withheld for tax."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the cash/bank account the payment has to be deposited."
+            },
+            "retainerinvoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the retainer invoice associated with the payment"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "create_new_payment_if_not_found",
+        "required": false,
+        "description": "Set to true to create a new payment when no matching unique custom field value is found.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_customer_payment_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.customerpayments.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/customerpayments",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "unique_custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "create_new_payment_if_not_found",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "payment_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Customer ID of the customer involved in the payment."
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode through which payment is made. This can be <code>check</code>, <code>cash</code>, <code>creditcard</code>, <code>banktransfer</code>, <code>bankremittance</code>, <code>autotransaction</code> or <code>others</code>. Max-length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid in the respective payment."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date on which payment is made. Format [yyyy-mm-dd]"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description about the payment."
+            },
+            "invoices": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "invoice_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Invoice ID of the required invoice."
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount paid for the invoice."
+                }
+              },
+              "description": "List of invoices associated with the payment. Each invoice object contains <code>invoice_id</code>, <code>invoice_number</code>, <code>date</code>, <code>invoice_amount</code>, <code>amount_applied</code> and <code>balance_amount</code>."
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate."
+            },
+            "payment_form": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Vendor Payment"
+            },
+            "bank_charges": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Denotes any additional bank charges."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the custom field."
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the custom field."
+                }
+              },
+              "description": "Additional fields for the payments."
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Invoice ID of the required invoice."
+            },
+            "amount_applied": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount paid for the invoice."
+            },
+            "tax_amount_withheld": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount withheld for tax."
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the cash/bank account the payment has to be deposited."
+            },
+            "retainerinvoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the retainer invoice associated with the payment"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"customer_id\",\n          \"payment_mode\",\n          \"amount\",\n          \"invoices\",\n          \"invoice_id\",\n          \"amount_applied\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"customer_id\": {\n            \"description\": \"Customer ID of the customer involved in the payment.\",\n            \"type\": \"string\",\n            \"example\": \"903000000000099\"\n          },\n          \"payment_mode\": {\n            \"description\": \"Mode through which payment is made. This can be <code>check</code>, <code>cash</code>, <code>creditcard</code>, <code>banktransfer</code>, <code>bankremittance</code>, <code>autotransaction</code> or <code>others</code>. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"cash\"\n          },\n          \"amount\": {\n            \"description\": \"Amount paid in the respective payment.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 450\n          },\n          \"date\": {\n            \"description\": \"Date on which payment is made. Format [yyyy-mm-dd]\",\n            \"type\": \"string\",\n            \"example\": \"2016-06-05\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference number generated for the payment. A string of your choice can also be used as the reference number. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"INV-384\"\n          },\n          \"description\": {\n            \"description\": \"Description about the payment.\",\n            \"type\": \"string\",\n            \"example\": \"Payment has been added to INV-384\"\n          },\n          \"invoices\": {\n            \"description\": \"List of invoices associated with the payment. Each invoice object contains <code>invoice_id</code>, <code>invoice_number</code>, <code>date</code>, <code>invoice_amount</code>, <code>amount_applied</code> and <code>balance_amount</code>.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"invoice_id\": {\n                  \"description\": \"Invoice ID of the required invoice.\",\n                  \"type\": \"string\",\n                  \"example\": \"90300000079426\"\n                },\n                \"amount_applied\": {\n                  \"description\": \"Amount paid for the invoice.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 450\n                }\n              }\n            }\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate for the currency used in the invoices and customer's currency. The payment amount would be the multiplicative product of the original amount and the exchange rate.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1,\n            \"default\": 1\n          },\n          \"payment_form\": {\n            \"description\": \"Mode of Vendor Payment\",\n            \"type\": \"string\",\n            \"example\": \"cash\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"bank_charges\": {\n            \"description\": \"Denotes any additional bank charges.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 10\n          },\n          \"custom_fields\": {\n            \"description\": \"Additional fields for the payments.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"label\": {\n                  \"description\": \"Label of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": \"label\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the custom field.\",\n                  \"type\": \"string\",\n                  \"example\": 129890\n                }\n              }\n            }\n          },\n          \"invoice_id\": {\n            \"description\": \"Invoice ID of the required invoice.\",\n            \"type\": \"string\",\n            \"example\": \"90300000079426\"\n          },\n          \"amount_applied\": {\n            \"description\": \"Amount paid for the invoice.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 450\n          },\n          \"tax_amount_withheld\": {\n            \"description\": \"Amount withheld for tax.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 0\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"account_id\": {\n            \"description\": \"ID of the cash/bank account the payment has to be deposited.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"retainerinvoice_id\": {\n            \"description\": \"ID of the retainer invoice associated with the payment\",\n            \"type\": \"string\",\n            \"example\": \"982000000567114\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

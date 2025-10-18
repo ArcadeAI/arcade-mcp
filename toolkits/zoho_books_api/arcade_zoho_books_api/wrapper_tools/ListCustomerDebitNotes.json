@@ -1,0 +1,748 @@
+{
+  "name": "ListCustomerDebitNotes",
+  "fully_qualified_name": "ZohoBooksApi.ListCustomerDebitNotes@0.1.0",
+  "description": "Retrieve and organize customer debit notes easily.\n\nUse this tool to access customer debit notes with options for pagination, filtering, searching, and sorting, allowing you to view and organize debit note data efficiently.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique ID of the organization for this request. Required for identifying the organization whose debit notes are being queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Organization ID for the request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "search_item_name",
+        "required": false,
+        "description": "Search debit notes based on product or service names. Supports 'item_name_startswith' and 'item_name_contains'. Max length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item name. Filters debit notes based on product or service names in debit note line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific products or services."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "search_by_item_id",
+        "required": false,
+        "description": "Search for customer debit notes using a specific item ID to filter based on product or service identifiers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item ID. Filters debit notes based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all debit notes containing a specific product or service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "item_description_filter",
+        "required": false,
+        "description": "Filter debit notes by item description using detailed descriptions of products or services. Supports 'startswith' and 'contains' variants. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item description. Filters debit notes based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific item descriptions or technical specifications."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "search_by_customer_name",
+        "required": false,
+        "description": "Search debit notes by customer name. Filters based on the business or individual name. Maximum 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer name. Filters debit notes based on the business or individual name associated with the debit note. Maximum length is 100 characters. Useful for finding all debit notes for a specific customer or generating customer reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "customer_email_filter",
+        "required": false,
+        "description": "Filter debit notes by customer email address, with a maximum length of 100 characters, to find specific customers or generate segment reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer email address. Filters debit notes based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding debit notes for specific customers or generating customer segment reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "search_by_total_amount",
+        "required": false,
+        "description": "Filter debit notes by the total amount, including taxes, discounts, and adjustments. Useful for finding specific price ranges or high-value transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by total amount. Filters debit notes based on the final debit note amount including taxes, discounts, and adjustments. Useful for finding debit notes within specific price ranges or identifying high-value transactions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "search_by_outstanding_balance",
+        "required": false,
+        "description": "Filter debit notes by the remaining unpaid amount owed by the customer. Useful for finding overdue debit notes, tracking receivables, or generating aging reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by outstanding balance. Filters debit notes based on the remaining unpaid amount owed by the customer. Useful for finding overdue debit notes, tracking receivables, or generating aging reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "balance"
+      },
+      {
+        "name": "search_by_custom_field",
+        "required": false,
+        "description": "Filter debit notes using custom fields. Supports 'custom_field_startswith' and 'custom_field_contains' for searching specific text patterns.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "search_date_range",
+        "required": false,
+        "description": "Filter debit notes by creation date using yyyy-mm-dd format. Supports variants: date_start, date_end, date_before, date_after.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by debit note date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding debit notes within date ranges or specific time periods."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "filter_due_date",
+        "required": false,
+        "description": "Search debit notes by due date using yyyy-mm-dd format. Supports 'due_date_start', 'due_date_end', 'due_date_before', and 'due_date_after' variants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by due date. Filters debit notes based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue debit notes or debit notes due within specific periods."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "creation_date_filter",
+        "required": false,
+        "description": "Filter debit notes by creation date. Use formats: 'yyyy-mm-dd', 'created_date_start', 'created_date_end', 'created_date_before', or 'created_date_after'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by creation date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding debit notes created within specific time periods or date ranges."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_date"
+      },
+      {
+        "name": "last_modified_timestamp",
+        "required": false,
+        "description": "Filter debit notes modified after this timestamp in YYYY-MM-DDTHH:MM:SS-UTC format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes modified after a specific time. Filters debit notes based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated debit notes or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "status_filter",
+        "required": false,
+        "description": "Filter debit notes by their status. Allowed values: sent, draft, overdue, paid, void, unpaid, partially_paid, viewed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by status. Filters debit notes based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding debit notes in specific stages of the billing process."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "search_by_customer_id",
+        "required": false,
+        "description": "Search debit notes by the customer's unique identifier. Use the customer ID from the Contacts API to find all corresponding debit notes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer ID. Filters debit notes based on the unique identifier of the customer for whom the debit note was created. Use the customer ID returned by the Contacts API to find all debit notes for a specific customer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "filter_by_debit_note_type",
+        "required": false,
+        "description": "Set to 'Type.DebitNote' to filter debit notes specifically. Required for this search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter needs to be  <code>Type.DebitNote</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "general_search_text",
+        "required": false,
+        "description": "Search debit notes by number, purchase order, or customer name. Max 100 characters. Useful for quick searches across multiple fields.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by debit note number, purchase order, or customer name. This parameter performs a general search across multiple debit note fields. Maximum length is 100 characters. Useful for quick searches when you know part of the debit note information but are unsure which specific field to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_debit_notes_by_column",
+        "required": false,
+        "description": "Sort debit notes by a specific column. Allowed values: customer_name, debit_note_number, date, due_date, total, balance, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort debit notes by specific column. Allowed values: <code>customer_name</code>, <code>debit_note_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize debit note results in a specific order for better data analysis and reporting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "Page number to retrieve from paginated results. Default is 1. Use with `per_page` to navigate extensive debit note data efficiently.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of debit note data. Useful for implementing pagination in your application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of records to retrieve per page, up to a maximum of 200. The default value is 200. This helps manage data transfer efficiency.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_customer_debit_notes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/customerdebitnotes",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "Organization ID for the request",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Organization ID for the request"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "search_item_name",
+        "description": "Search debit notes by item name. Filters debit notes based on product or service names in debit note line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific products or services.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item name. Filters debit notes based on product or service names in debit note line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific products or services."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "search_by_item_id",
+        "description": "Search debit notes by item ID. Filters debit notes based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all debit notes containing a specific product or service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item ID. Filters debit notes based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all debit notes containing a specific product or service."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "item_description_filter",
+        "description": "Search debit notes by item description. Filters debit notes based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific item descriptions or technical specifications.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by item description. Filters debit notes based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding debit notes with specific item descriptions or technical specifications."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "search_by_customer_name",
+        "description": "Search debit notes by customer name. Filters debit notes based on the business or individual name associated with the debit note. Maximum length is 100 characters. Useful for finding all debit notes for a specific customer or generating customer reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer name. Filters debit notes based on the business or individual name associated with the debit note. Maximum length is 100 characters. Useful for finding all debit notes for a specific customer or generating customer reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "customer_email_filter",
+        "description": "Search debit notes by customer email address. Filters debit notes based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding debit notes for specific customers or generating customer segment reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer email address. Filters debit notes based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding debit notes for specific customers or generating customer segment reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "search_by_total_amount",
+        "description": "Search debit notes by total amount. Filters debit notes based on the final debit note amount including taxes, discounts, and adjustments. Useful for finding debit notes within specific price ranges or identifying high-value transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by total amount. Filters debit notes based on the final debit note amount including taxes, discounts, and adjustments. Useful for finding debit notes within specific price ranges or identifying high-value transactions."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "balance",
+        "tool_parameter_name": "search_by_outstanding_balance",
+        "description": "Search debit notes by outstanding balance. Filters debit notes based on the remaining unpaid amount owed by the customer. Useful for finding overdue debit notes, tracking receivables, or generating aging reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by outstanding balance. Filters debit notes based on the remaining unpaid amount owed by the customer. Useful for finding overdue debit notes, tracking receivables, or generating aging reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "search_by_custom_field",
+        "description": "Search debit notes by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "search_date_range",
+        "description": "Search debit notes by debit note date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding debit notes within date ranges or specific time periods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by debit note date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding debit notes within date ranges or specific time periods."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "filter_due_date",
+        "description": "Search debit notes by due date. Filters debit notes based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue debit notes or debit notes due within specific periods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by due date. Filters debit notes based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue debit notes or debit notes due within specific periods."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_date",
+        "tool_parameter_name": "creation_date_filter",
+        "description": "Search debit notes by creation date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding debit notes created within specific time periods or date ranges.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by creation date. Filters debit notes based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding debit notes created within specific time periods or date ranges."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "last_modified_timestamp",
+        "description": "Search debit notes modified after a specific time. Filters debit notes based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated debit notes or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes modified after a specific time. Filters debit notes based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated debit notes or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "status_filter",
+        "description": "Search debit notes by status. Filters debit notes based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding debit notes in specific stages of the billing process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by status. Filters debit notes based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding debit notes in specific stages of the billing process."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "search_by_customer_id",
+        "description": "Search debit notes by customer ID. Filters debit notes based on the unique identifier of the customer for whom the debit note was created. Use the customer ID returned by the Contacts API to find all debit notes for a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by customer ID. Filters debit notes based on the unique identifier of the customer for whom the debit note was created. Use the customer ID returned by the Contacts API to find all debit notes for a specific customer."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_by_debit_note_type",
+        "description": "Filter needs to be  <code>Type.DebitNote</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter needs to be  <code>Type.DebitNote</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "general_search_text",
+        "description": "Search debit notes by debit note number, purchase order, or customer name. This parameter performs a general search across multiple debit note fields. Maximum length is 100 characters. Useful for quick searches when you know part of the debit note information but are unsure which specific field to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search debit notes by debit note number, purchase order, or customer name. This parameter performs a general search across multiple debit note fields. Maximum length is 100 characters. Useful for quick searches when you know part of the debit note information but are unsure which specific field to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_debit_notes_by_column",
+        "description": "Sort debit notes by specific column. Allowed values: <code>customer_name</code>, <code>debit_note_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize debit note results in a specific order for better data analysis and reporting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort debit notes by specific column. Allowed values: <code>customer_name</code>, <code>debit_note_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize debit note results in a specific order for better data analysis and reporting."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of debit note data. Useful for implementing pagination in your application.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of debit note data. Useful for implementing pagination in your application."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

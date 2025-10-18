@@ -1,0 +1,415 @@
+{
+  "name": "UpdateContactPerson",
+  "fully_qualified_name": "ZohoBooksApi.UpdateContactPerson@0.1.0",
+  "description": "Update an existing contact person's details.\n\nUse this tool to update the details of an existing contact person in the system. This is useful when changes to contact information are needed.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique ID representing the organization whose contact person is being updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "contact_person_identifier",
+        "required": true,
+        "description": "Unique identifier for the contact person to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the contact person."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "contact_person_id"
+      },
+      {
+        "name": "contact_person_details",
+        "required": false,
+        "description": "JSON object containing the updated details for the contact person. Includes fields such as contact_id, salutation, first name, last name, email, phone, mobile, skype, designation, department, enable portal, is primary contact, and communication preferences. Each field has specific constraints like max length and expected data types.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact id of the contact"
+            },
+            "salutation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Salutation for the contact. Max-length [25]"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First name of the contact person. Max-length [100]"
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last name of the contact person. Max-length [100]"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the contact person.  Max-length [100]"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Max-length [50]"
+            },
+            "mobile": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Max-length [50]"
+            },
+            "skype": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "skype address. Max-length [50]"
+            },
+            "designation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "designation of a person. Max-length [50]"
+            },
+            "department": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "department on which a person belongs. Max-length [50]"
+            },
+            "enable_portal": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "option to enable the portal access. allowed values <code>true</code>,<code>false</code>"
+            },
+            "is_primary_contact": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To mark contact person as primary for contact"
+            },
+            "communication_preference": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "is_whatsapp_enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used to check if WhatsApp communication preference is enabled for the contact person."
+                }
+              },
+              "inner_properties": null,
+              "description": "Preferred modes of communication for the contact person."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_contact_person'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.contacts.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/contacts/contactpersons/{contact_person_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "contact_person_id",
+        "tool_parameter_name": "contact_person_identifier",
+        "description": "Unique identifier of the contact person.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the contact person."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "contact_person_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contact_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact id of the contact"
+            },
+            "salutation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Salutation for the contact. Max-length [25]"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First name of the contact person. Max-length [100]"
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last name of the contact person. Max-length [100]"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the contact person.  Max-length [100]"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Max-length [50]"
+            },
+            "mobile": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Max-length [50]"
+            },
+            "skype": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "skype address. Max-length [50]"
+            },
+            "designation": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "designation of a person. Max-length [50]"
+            },
+            "department": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "department on which a person belongs. Max-length [50]"
+            },
+            "enable_portal": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "option to enable the portal access. allowed values <code>true</code>,<code>false</code>"
+            },
+            "is_primary_contact": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To mark contact person as primary for contact"
+            },
+            "communication_preference": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "is_whatsapp_enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used to check if WhatsApp communication preference is enabled for the contact person."
+                }
+              },
+              "inner_properties": null,
+              "description": "Preferred modes of communication for the contact person."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"contact_id\",\n          \"first_name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"contact_id\": {\n            \"description\": \"Contact id of the contact\",\n            \"type\": \"string\",\n            \"example\": 460000000026049\n          },\n          \"salutation\": {\n            \"description\": \"Salutation for the contact. Max-length [25]\",\n            \"type\": \"string\",\n            \"example\": \"Mr\"\n          },\n          \"first_name\": {\n            \"description\": \"First name of the contact person. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"Will\"\n          },\n          \"last_name\": {\n            \"description\": \"Last name of the contact person. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"Smith\"\n          },\n          \"email\": {\n            \"description\": \"Email address of the contact person.  Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"willsmith@bowmanfurniture.com\"\n          },\n          \"phone\": {\n            \"description\": \"Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"+1-925-921-9201\"\n          },\n          \"mobile\": {\n            \"description\": \"Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"+1-4054439562\"\n          },\n          \"skype\": {\n            \"description\": \"skype address. Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"zoho\"\n          },\n          \"designation\": {\n            \"description\": \"designation of a person. Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"Sales Engineer\"\n          },\n          \"department\": {\n            \"description\": \"department on which a person belongs. Max-length [50]\",\n            \"type\": \"string\",\n            \"example\": \"Sales\"\n          },\n          \"enable_portal\": {\n            \"description\": \"option to enable the portal access. allowed values <code>true</code>,<code>false</code>\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"is_primary_contact\": {\n            \"description\": \"To mark contact person as primary for contact\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"communication_preference\": {\n            \"description\": \"Preferred modes of communication for the contact person.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"is_whatsapp_enabled\": {\n                \"description\": \"Used to check if WhatsApp communication preference is enabled for the contact person.\",\n                \"type\": \"boolean\",\n                \"example\": true,\n                \"x-node_available_in\": [\n                  \"WhatsApp integration\"\n                ]\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

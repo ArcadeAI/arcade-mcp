@@ -1,0 +1,446 @@
+{
+  "name": "CreateZohoBookLocation",
+  "fully_qualified_name": "ZohoBooksApi.CreateZohoBookLocation@0.1.0",
+  "description": "Create a new location in Zoho Books.\n\nUse this tool to create a new business location within Zoho Books. It handles the setup of location data, allowing integration of new physical or digital locations into the Zoho Books system.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization for which the location is being created in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "location_details",
+        "required": false,
+        "description": "A JSON object containing details for a new location, including name, type, contact details, address, and optionally, tax and user settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the location"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email id for the location"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile number for location"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City Name of the location."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State Name of the location."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country Name of the location."
+                },
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention of the location."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State code of the location."
+                },
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street Name of the location."
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street Name of the location."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "location_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the location"
+            },
+            "tax_settings_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Settings ID"
+            },
+            "parent_location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Parent Location ID"
+            },
+            "associated_series_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "auto_number_generation_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Autonumber generation group ID"
+            },
+            "is_all_users_selected": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether all users are selected or not"
+            },
+            "user_ids": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Comma separated user ids."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_location'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/locations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "location_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the location"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email id for the location"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile number for location"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City Name of the location."
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State Name of the location."
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country Name of the location."
+                },
+                "attention": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Attention of the location."
+                },
+                "state_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State code of the location."
+                },
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street Name of the location."
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street Name of the location."
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "location_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the location"
+            },
+            "tax_settings_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tax Settings ID"
+            },
+            "parent_location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Parent Location ID"
+            },
+            "associated_series_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "auto_number_generation_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Autonumber generation group ID"
+            },
+            "is_all_users_selected": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether all users are selected or not"
+            },
+            "user_ids": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Comma separated user ids."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"location_name\",\n          \"country\",\n          \"tax_settings_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"type\": {\n            \"description\": \"Type of the location\",\n            \"type\": \"string\",\n            \"example\": \"general / line_item_only\"\n          },\n          \"email\": {\n            \"description\": \"Email id for the location\",\n            \"type\": \"string\",\n            \"example\": \"willsmith@bowmanfurniture.com\"\n          },\n          \"phone\": {\n            \"description\": \"Mobile number for location\",\n            \"type\": \"string\",\n            \"example\": \"+1-925-921-9201\"\n          },\n          \"address\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"city\": {\n                \"description\": \"City Name of the location.\",\n                \"type\": \"string\",\n                \"example\": \"New York City\"\n              },\n              \"state\": {\n                \"description\": \"State Name of the location.\",\n                \"type\": \"string\",\n                \"example\": \"New York\"\n              },\n              \"country\": {\n                \"description\": \"Country Name of the location.\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              },\n              \"attention\": {\n                \"description\": \"Attention of the location.\",\n                \"type\": \"string\"\n              },\n              \"state_code\": {\n                \"description\": \"State code of the location.\",\n                \"type\": \"string\",\n                \"example\": \"NY\"\n              },\n              \"street_address1\": {\n                \"description\": \"Street Name of the location.\",\n                \"type\": \"string\",\n                \"example\": \"No:234,90 Church Street\"\n              },\n              \"street_address2\": {\n                \"description\": \"Street Name of the location.\",\n                \"type\": \"string\",\n                \"example\": \"McMillan Avenue\"\n              }\n            }\n          },\n          \"location_name\": {\n            \"description\": \"Name of the location\",\n            \"type\": \"string\",\n            \"example\": \"Head Office\"\n          },\n          \"tax_settings_id\": {\n            \"description\": \"Tax Settings ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"parent_location_id\": {\n            \"description\": \"Parent Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000041010\"\n          },\n          \"associated_series_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"982000000870911\",\n              \"982000000870915\"\n            ]\n          },\n          \"auto_number_generation_id\": {\n            \"description\": \"Autonumber generation group ID\",\n            \"type\": \"string\",\n            \"example\": \"982000000870911\"\n          },\n          \"is_all_users_selected\": {\n            \"description\": \"Whether all users are selected or not\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"user_ids\": {\n            \"description\": \"Comma separated user ids.\",\n            \"type\": \"string\",\n            \"example\": \"460000000036868,460000000036869\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

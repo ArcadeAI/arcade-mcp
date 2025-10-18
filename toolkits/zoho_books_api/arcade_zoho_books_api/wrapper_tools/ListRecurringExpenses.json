@@ -1,0 +1,616 @@
+{
+  "name": "ListRecurringExpenses",
+  "fully_qualified_name": "ZohoBooksApi.ListRecurringExpenses@0.1.0",
+  "description": "Retrieve all recurring expenses from your records.\n\nUse this tool to fetch a list of all recurring expenses. Ideal for situations where you need to review or manage periodic expenses systematically.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier of the organization whose recurring expenses need to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "recurring_expense_name_filter",
+        "required": false,
+        "description": "Filter recurring expenses by name using either 'startswith' or 'contains'. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by recurring expense name. Variants: <code>recurrence_name_startswith</code> and <code>recurrence_name_contains</code>. Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recurrence_name"
+      },
+      {
+        "name": "search_by_last_created_date",
+        "required": false,
+        "description": "Filter recurring expenses based on last generated expense date. Use formats: <code>last_created_date_start</code>, <code>last_created_date_end</code>, <code>last_created_date_before</code>, <code>last_created_date_after</code> with date [yyyy-mm-dd].",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by date on when last expense was generated. Variants: <code>last_created_date_start</code>, <code>last_created_date_end</code>, <code>last_created_date_before</code> and <code>last_created_date_after</code> . Format [yyyy-mm-dd]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_created_date"
+      },
+      {
+        "name": "filter_by_next_expense_date",
+        "required": false,
+        "description": "Filter recurring expenses by dates related to the next expected expense. Options include 'next_expense_date_start', 'next_expense_date_end', 'next_expense_date_before', and 'next_expense_date_after'. Format is 'yyyy-mm-dd'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by date on which next expense will be generated. Variants: <code>next_expense_date_start</code>, <code>next_expense_date_end</code>, <code>next_expense_date_before</code> and <code>next_expense_date_after</code> . Format [yyyy-mm-dd]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_expense_date"
+      },
+      {
+        "name": "expense_status",
+        "required": false,
+        "description": "Specify the status of expenses to search for. Allowed values are 'active', 'stopped', and 'expired'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense status. Allowed Values <code>active</code>, <code>stopped</code> and <code>expired</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "account_id_for_expense",
+        "required": false,
+        "description": "Specify the unique identifier for the expense account to filter expenses associated with it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "filter_by_account_name",
+        "required": false,
+        "description": "Search expenses by account name with options for exact match or partial match using 'startswith' and 'contains'. Max-length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code> . Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_name"
+      },
+      {
+        "name": "amount_filter",
+        "required": false,
+        "description": "Specify a filter for expense amounts, such as 'amount_less_than', 'amount_less_equals', 'amount_greater_than', or 'amount_greater_than'.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount"
+      },
+      {
+        "name": "search_by_customer_name",
+        "required": false,
+        "description": "Search recurring expenses by customer name. Use variants 'customer_name_startswith' or 'customer_name_contains'. Max 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> . Max-length [100]"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "search_by_customer_id",
+        "required": false,
+        "description": "Specify the customer ID to search expenses associated with that customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "paid_through_account_id",
+        "required": false,
+        "description": "ID of the account through which the expense was paid. Used to filter expenses.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by paid through account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "paid_through_account_id"
+      },
+      {
+        "name": "expense_status_filter",
+        "required": false,
+        "description": "Filter recurring expenses by their status. Use 'Status.All', 'Status.Active', 'Status.Expired', or 'Status.Stopped'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Active</code>, <code>Status.Expired</code> and <code>Status.Stopped</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "search_expenses_by_text",
+        "required": false,
+        "description": "Specify text to search expenses by account name, description, customer name, or vendor name. Maximum length is 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100] ."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_expenses_by_column",
+        "required": false,
+        "description": "Specify the column to sort expenses by. Allowed values: next_expense_date, account_name, total, last_created_date, recurrence_name, customer_name, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort expenses.Allowed Values <code>next_expense_date</code>, <code>account_name</code>, <code>total</code>, <code>last_created_date</code>, <code>recurrence_name</code>, <code>customer_name</code> and <code>created_time</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "page_number_to_fetch",
+        "required": false,
+        "description": "The page number of records to retrieve, starting from 1. Default is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify how many records to retrieve per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_recurring_expenses'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.expenses.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/recurringexpenses",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recurrence_name",
+        "tool_parameter_name": "recurring_expense_name_filter",
+        "description": "Search recurring expenses by recurring expense name. Variants: <code>recurrence_name_startswith</code> and <code>recurrence_name_contains</code>. Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by recurring expense name. Variants: <code>recurrence_name_startswith</code> and <code>recurrence_name_contains</code>. Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_created_date",
+        "tool_parameter_name": "search_by_last_created_date",
+        "description": "Search recurring expenses by date on when last expense was generated. Variants: <code>last_created_date_start</code>, <code>last_created_date_end</code>, <code>last_created_date_before</code> and <code>last_created_date_after</code> . Format [yyyy-mm-dd]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by date on when last expense was generated. Variants: <code>last_created_date_start</code>, <code>last_created_date_end</code>, <code>last_created_date_before</code> and <code>last_created_date_after</code> . Format [yyyy-mm-dd]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_expense_date",
+        "tool_parameter_name": "filter_by_next_expense_date",
+        "description": "Search recurring expenses by date on which next expense will be generated. Variants: <code>next_expense_date_start</code>, <code>next_expense_date_end</code>, <code>next_expense_date_before</code> and <code>next_expense_date_after</code> . Format [yyyy-mm-dd]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search recurring expenses by date on which next expense will be generated. Variants: <code>next_expense_date_start</code>, <code>next_expense_date_end</code>, <code>next_expense_date_before</code> and <code>next_expense_date_after</code> . Format [yyyy-mm-dd]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "expense_status",
+        "description": "Search expenses by expense status. Allowed Values <code>active</code>, <code>stopped</code> and <code>expired</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense status. Allowed Values <code>active</code>, <code>stopped</code> and <code>expired</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_id_for_expense",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_name",
+        "tool_parameter_name": "filter_by_account_name",
+        "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code> . Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by expense account name. Variants <code>account_name_startswith</code> and <code>account_name_contains</code> . Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount",
+        "tool_parameter_name": "amount_filter",
+        "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by amount. Variants: <code>amount_less_than</code>, <code>amount_less_equals</code>, <code>amount_greater_than</code> and <code>amount_greater_than</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "search_by_customer_name",
+        "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> . Max-length [100]",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer name. Variants: <code>customer_name_startswith</code> and <code>customer_name_contains</code> . Max-length [100]"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "search_by_customer_id",
+        "description": "Search expenses by customer id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by customer id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "paid_through_account_id",
+        "tool_parameter_name": "paid_through_account_id",
+        "description": "Search expenses by paid through account id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by paid through account id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "expense_status_filter",
+        "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Active</code>, <code>Status.Expired</code> and <code>Status.Stopped</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter expenses by expense status. Allowed Values <code>Status.All</code>, <code>Status.Active</code>, <code>Status.Expired</code> and <code>Status.Stopped</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_expenses_by_text",
+        "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100] .",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search expenses by account name or description or <code>customer name</code>  or <code>vendor name</code>. Max-length [100] ."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_expenses_by_column",
+        "description": "Sort expenses.Allowed Values <code>next_expense_date</code>, <code>account_name</code>, <code>total</code>, <code>last_created_date</code>, <code>recurrence_name</code>, <code>customer_name</code> and <code>created_time</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort expenses.Allowed Values <code>next_expense_date</code>, <code>account_name</code>, <code>total</code>, <code>last_created_date</code>, <code>recurrence_name</code>, <code>customer_name</code> and <code>created_time</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_fetch",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,253 @@
+{
+  "name": "SellFixedAsset",
+  "fully_qualified_name": "ZohoBooksApi.SellFixedAsset@0.1.0",
+  "description": "Initiate the sale of a specified fixed asset.\n\nUse this tool to sell a specific fixed asset by providing its asset ID. It should be called when confirming or completing the sale process of a fixed asset in Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier of the organization within Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "fixed_asset_identifier",
+        "required": true,
+        "description": "Unique identifier of the fixed asset to be sold.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fixed_asset_id"
+      },
+      {
+        "name": "asset_sale_details",
+        "required": false,
+        "description": "JSON object containing details of the asset sale, including expense account ID, invoice ID, line item ID, and reason for selling.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the invoice id associated with selling the fixed asset."
+            },
+            "line_item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the line item id that is associated with the fixed asset account."
+            },
+            "reason": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the reason for selling the fixed asset"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'sell_fixed_asset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.fixedasset.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/fixedassets/{fixed_asset_id}/sell",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fixed_asset_id",
+        "tool_parameter_name": "fixed_asset_identifier",
+        "description": "Unique identifier of the fixed asset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the fixed asset."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "asset_sale_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "expense_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the account id to track the expenses associated with the asset\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>"
+            },
+            "invoice_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the invoice id associated with selling the fixed asset."
+            },
+            "line_item_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the line item id that is associated with the fixed asset account."
+            },
+            "reason": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Enter the reason for selling the fixed asset"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"invoice_id\",\n          \"line_item_id\",\n          \"reason\",\n          \"expense_account_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"expense_account_id\": {\n            \"description\": \"Enter the account id to track the expenses associated with the asset\\u2019s depreciation.The available account types are <b>Expense</b>  and <b>Other Expense</b>\",\n            \"type\": \"string\",\n            \"example\": \"3640355000000000421\"\n          },\n          \"invoice_id\": {\n            \"type\": \"string\",\n            \"description\": \"Enter the invoice id associated with selling the fixed asset.\",\n            \"example\": \"3640355000000319008\"\n          },\n          \"line_item_id\": {\n            \"type\": \"string\",\n            \"description\": \"Enter the line item id that is associated with the fixed asset account.\",\n            \"example\": \"3640355000000319008\"\n          },\n          \"reason\": {\n            \"type\": \"string\",\n            \"description\": \"Enter the reason for selling the fixed asset\",\n            \"example\": \"Asset is no longer required\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

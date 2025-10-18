@@ -1,0 +1,462 @@
+{
+  "name": "CreateOrganizationInZohoBooks",
+  "fully_qualified_name": "ZohoBooksApi.CreateOrganizationInZohoBooks@0.1.0",
+  "description": "Create a new organization in Zoho Books.\n\nUse this tool to create a new organization in the Zoho Books platform. It is called when there's a need to add organizational details to Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization to be created in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "organization_details",
+        "required": false,
+        "description": "JSON object containing details such as name, fiscal year start month, currency code, time zone, date format, field separator, language code, industry type, industry size, portal name, org address, remit to address, and address fields (street address, city, state, country, zip).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project."
+            },
+            "fiscal_year_start_month": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>"
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Standard code for currency."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone in with the organization is located geographically."
+            },
+            "date_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for representing the date."
+            },
+            "field_separator": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field separator for components in date."
+            },
+            "language_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "language code for organization.For instance <code>en</code> represents english."
+            },
+            "industry_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Business type"
+            },
+            "industry_size": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The size of the industry. The possibe values could be \"small scale\", \"medium scale\", \"large scale\""
+            },
+            "portal_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Poratal name for the organisation. Length of the portal name should be greater than 4 and less than 31. Allowed chars [a-z][A-Z][0-9]"
+            },
+            "org_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "remit_to_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipping address of the organisation"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street name of the Billing address of the Organisation"
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Continyed billing address of the organisation"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City of the organisation"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State where the organisation is located"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country of the Organisation"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ZIP/Postal code of the organisation's location"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_organization'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/organizations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "organization_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project."
+            },
+            "fiscal_year_start_month": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>"
+            },
+            "currency_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Standard code for currency."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone in with the organization is located geographically."
+            },
+            "date_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for representing the date."
+            },
+            "field_separator": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field separator for components in date."
+            },
+            "language_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "language code for organization.For instance <code>en</code> represents english."
+            },
+            "industry_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Business type"
+            },
+            "industry_size": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The size of the industry. The possibe values could be \"small scale\", \"medium scale\", \"large scale\""
+            },
+            "portal_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Poratal name for the organisation. Length of the portal name should be greater than 4 and less than 31. Allowed chars [a-z][A-Z][0-9]"
+            },
+            "org_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "remit_to_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipping address of the organisation"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street name of the Billing address of the Organisation"
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Continyed billing address of the organisation"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City of the organisation"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State where the organisation is located"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country of the Organisation"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ZIP/Postal code of the organisation's location"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"name\",\n          \"currency_code\",\n          \"time_zone\",\n          \"portal_name\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"description\": \"Name of the project.\",\n            \"type\": \"string\",\n            \"example\": \"Zillium Inc\"\n          },\n          \"fiscal_year_start_month\": {\n            \"description\": \"Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>\",\n            \"type\": \"string\",\n            \"example\": \"january\"\n          },\n          \"currency_code\": {\n            \"description\": \"Standard code for currency.\",\n            \"type\": \"string\",\n            \"example\": \"USD\"\n          },\n          \"time_zone\": {\n            \"description\": \"Time zone in with the organization is located geographically.\",\n            \"type\": \"string\",\n            \"example\": \"PST\"\n          },\n          \"date_format\": {\n            \"description\": \"Format for representing the date.\",\n            \"type\": \"string\",\n            \"example\": \"dd MMM yyyy\"\n          },\n          \"field_separator\": {\n            \"description\": \"Field separator for components in date.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"language_code\": {\n            \"description\": \"language code for organization.For instance <code>en</code> represents english.\",\n            \"type\": \"string\",\n            \"example\": \"en\"\n          },\n          \"industry_type\": {\n            \"description\": \"Business type\",\n            \"type\": \"string\",\n            \"example\": \"Services\"\n          },\n          \"industry_size\": {\n            \"description\": \"The size of the industry. The possibe values could be \\\"small scale\\\", \\\"medium scale\\\", \\\"large scale\\\"\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"portal_name\": {\n            \"description\": \"Poratal name for the organisation. Length of the portal name should be greater than 4 and less than 31. Allowed chars [a-z][A-Z][0-9]\",\n            \"type\": \"string\",\n            \"example\": \"zilluminc\"\n          },\n          \"org_address\": {\n            \"description\": \"Billing address of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"remit_to_address\": {\n            \"description\": \"Shipping address of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"address\": {\n            \"description\": \"Billing address of the organisation\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"street_address1\": {\n                \"description\": \"Street name of the Billing address of the Organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"street_address2\": {\n                \"description\": \"Continyed billing address of the organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"city\": {\n                \"description\": \"City of the organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"state\": {\n                \"description\": \"State where the organisation is located\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"country\": {\n                \"description\": \"Country of the Organisation\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              },\n              \"zip\": {\n                \"description\": \"ZIP/Postal code of the organisation's location\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

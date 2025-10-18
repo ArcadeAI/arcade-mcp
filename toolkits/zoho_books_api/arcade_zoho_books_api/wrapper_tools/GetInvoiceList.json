@@ -1,0 +1,913 @@
+{
+  "name": "GetInvoiceList",
+  "fully_qualified_name": "ZohoBooksApi.GetInvoiceList@0.1.0",
+  "description": "Retrieve and organize a list of invoices from Zoho Books.\n\nThis tool fetches a list of invoices using Zoho Books' API with options for pagination, filtering, searching, and sorting. Useful for finding specific invoices or browsing records systematically.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier of the organization for which invoices are being queried. This ID is crucial for accessing the correct set of invoices within Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "search_by_invoice_number",
+        "required": false,
+        "description": "Search for invoices using their unique invoice number. Supports 'startswith' and 'contains' variants. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number. Filters invoices based on their unique identifier. Supports <code>invoice_number_startswith</code> and <code>invoice_number_contains</code> variants. Maximum length is 100 characters. Useful for finding specific invoices or invoices with similar numbering patterns."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invoice_number"
+      },
+      {
+        "name": "search_invoice_by_item_name",
+        "required": false,
+        "description": "Filters invoices by product or service name in line items. Supports 'item_name_startswith' and 'item_name_contains'. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item name. Filters invoices based on product or service names in invoice line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific products or services."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "search_by_item_id",
+        "required": false,
+        "description": "Search invoices by item ID. Use the unique identifier of a product or service to filter invoices that include specific line items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item ID. Filters invoices based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all invoices containing a specific product or service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "item_description_filter",
+        "required": false,
+        "description": "Filter invoices by item description using keywords. Supports 'startswith' and 'contains' variants. Max 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item description. Filters invoices based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific item descriptions or technical specifications."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "search_reference_number",
+        "required": false,
+        "description": "Search invoices by reference number, such as purchase order or project codes, to find invoices associated with specific projects or transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by reference number. Filters invoices based on external reference identifiers like purchase order numbers, contract numbers, or project codes. Useful for finding invoices associated with specific projects or business transactions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "search_by_customer_name",
+        "required": false,
+        "description": "Search for invoices using the customer's name, with a maximum length of 100 characters, to generate customer-specific reports or find all invoices for a customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer name. Filters invoices based on the business or individual name associated with the invoice. Maximum length is 100 characters. Useful for finding all invoices for a specific customer or generating customer reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "recurring_invoice_id",
+        "required": false,
+        "description": "ID of the recurring invoice from which the invoice is created. Use to filter invoices tied to specific recurring billing cycles.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the recurring invoice from which the invoice is created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recurring_invoice_id"
+      },
+      {
+        "name": "customer_email_filter",
+        "required": false,
+        "description": "Filter invoices by the customer's email address. Maximum length is 100 characters. Ideal for finding specific customer invoices or customer segment analysis.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer email address. Filters invoices based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding invoices for specific customers or generating customer segment reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "search_by_total_amount",
+        "required": false,
+        "description": "Search and filter invoices based on the final total amount, including taxes, discounts, and adjustments. Useful for finding invoices within specific price ranges or identifying high-value transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by total amount. Filters invoices based on the final invoice amount including taxes, discounts, and adjustments. Useful for finding invoices within specific price ranges or identifying high-value transactions."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "search_by_outstanding_balance",
+        "required": false,
+        "description": "Filter invoices by outstanding balance to find overdue invoices, track receivables, or generate aging reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by outstanding balance. Filters invoices based on the remaining unpaid amount owed by the customer. Useful for finding overdue invoices, tracking receivables, or generating aging reports."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "balance"
+      },
+      {
+        "name": "search_by_custom_field",
+        "required": false,
+        "description": "Search invoices using custom fields. Supports 'custom_field_startswith' and 'custom_field_contains' for partial matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "invoice_date_filter",
+        "required": false,
+        "description": "Filter invoices by invoice date using yyyy-mm-dd format. Supports variants like date_start, date_end, date_before, and date_after to find invoices within specific date ranges.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding invoices within date ranges or specific time periods."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "invoice_due_date_filter",
+        "required": false,
+        "description": "Filter invoices by due date using yyyy-mm-dd format. Supports start, end, before, and after variants for flexible searching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by due date. Filters invoices based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue invoices or invoices due within specific periods."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "due_date"
+      },
+      {
+        "name": "filter_by_creation_date",
+        "required": false,
+        "description": "Filter invoices by creation date with yyyy-mm-dd format. Supports variants: start, end, before, and after.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by creation date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding invoices created within specific time periods or date ranges."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_date"
+      },
+      {
+        "name": "filter_by_last_modified_time",
+        "required": false,
+        "description": "Filters invoices modified after a specific timestamp in YYYY-MM-DDTHH:MM:SS-UTC format. Useful for identifying recently updated invoices.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices modified after a specific time. Filters invoices based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated invoices or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "invoice_status",
+        "required": false,
+        "description": "Filter invoices by their current status (e.g., sent, draft, overdue, etc.).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by status. Filters invoices based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding invoices in specific stages of the billing process."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "search_by_customer_id",
+        "required": false,
+        "description": "Filters invoices using the unique customer ID. Use the ID from the Contacts API to find all invoices for a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer ID. Filters invoices based on the unique identifier of the customer for whom the invoice was created. Use the customer ID returned by the Contacts API to find all invoices for a specific customer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "filter_invoices_by_criteria",
+        "required": false,
+        "description": "Filter invoices by status (e.g., Status.Sent, Status.Paid) or payment expected date using Date.PaymentExpectedDate.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter invoices by status or payment expected date. Use <code>Status.*</code> for status-based filtering (e.g., Status.Sent, Status.Paid) or <code>Date.PaymentExpectedDate</code> for date-based filtering. Provides advanced filtering options beyond basic search parameters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "general_search_text",
+        "required": false,
+        "description": "General search for invoices by invoice number, purchase order, or customer name. Accepts up to 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number, purchase order, or customer name. This parameter performs a general search across multiple invoice fields. Maximum length is 100 characters. Useful for quick searches when you know part of the invoice information but are unsure which specific field to search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_by_column",
+        "required": false,
+        "description": "Specify the column to sort invoices by. Options: customer_name, invoice_number, date, due_date, total, balance, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort invoices by specific column. Allowed values: <code>customer_name</code>, <code>invoice_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize invoice results in a specific order for better data analysis and reporting."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "search_by_crm_potential_id",
+        "required": false,
+        "description": "Find invoices linked to a specific CRM deal or opportunity using its potential ID from Zoho CRM.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by CRM potential ID. This parameter allows you to find invoices associated with a specific deal or opportunity in your Zoho CRM system. Use the potential ID from your CRM to link invoices to sales opportunities and track revenue from specific deals."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_potential_id"
+      },
+      {
+        "name": "response_format_type",
+        "required": false,
+        "description": "Specifies the desired response format: 0 for all invoices, 1 for all invoices with counts and totals, 2 for count only, 3 for count and totals, 4 for invoices and totals.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To get desired response format. There are 5 formats of responses: 0 (Includes all invoices), 1 (Includes all invoices, the number of invoices, and the sum of their total and balance amounts), 2 (Includes only the number of invoices), 3 (Includes the number of invoices and the sum of their total and balance amounts), and 4 (Includes all invoices and the sum of their total and balance amounts)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "response_option"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Page number to fetch from paginated results. Default is 1. Use with 'per_page' for navigating large data sets.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of invoice data. Useful for implementing pagination in your application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of records to fetch per page. Default is 200, maximum is 200. Use to control result size for performance optimization.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_invoices'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.invoices.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/invoices",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "invoice_number",
+        "tool_parameter_name": "search_by_invoice_number",
+        "description": "Search invoices by invoice number. Filters invoices based on their unique identifier. Supports <code>invoice_number_startswith</code> and <code>invoice_number_contains</code> variants. Maximum length is 100 characters. Useful for finding specific invoices or invoices with similar numbering patterns.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number. Filters invoices based on their unique identifier. Supports <code>invoice_number_startswith</code> and <code>invoice_number_contains</code> variants. Maximum length is 100 characters. Useful for finding specific invoices or invoices with similar numbering patterns."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "search_invoice_by_item_name",
+        "description": "Search invoices by item name. Filters invoices based on product or service names in invoice line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific products or services.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item name. Filters invoices based on product or service names in invoice line items. Supports <code>item_name_startswith</code> and <code>item_name_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific products or services."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "search_by_item_id",
+        "description": "Search invoices by item ID. Filters invoices based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all invoices containing a specific product or service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item ID. Filters invoices based on the unique identifier of specific products or services in line items. Use the GET `/items` API to find available item IDs. Useful for finding all invoices containing a specific product or service."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "item_description_filter",
+        "description": "Search invoices by item description. Filters invoices based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific item descriptions or technical specifications.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by item description. Filters invoices based on detailed descriptions of products or services in line items. Supports <code>item_description_startswith</code> and <code>item_description_contains</code> variants. Maximum length is 100 characters. Useful for finding invoices with specific item descriptions or technical specifications."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "search_reference_number",
+        "description": "Search invoices by reference number. Filters invoices based on external reference identifiers like purchase order numbers, contract numbers, or project codes. Useful for finding invoices associated with specific projects or business transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by reference number. Filters invoices based on external reference identifiers like purchase order numbers, contract numbers, or project codes. Useful for finding invoices associated with specific projects or business transactions."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "search_by_customer_name",
+        "description": "Search invoices by customer name. Filters invoices based on the business or individual name associated with the invoice. Maximum length is 100 characters. Useful for finding all invoices for a specific customer or generating customer reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer name. Filters invoices based on the business or individual name associated with the invoice. Maximum length is 100 characters. Useful for finding all invoices for a specific customer or generating customer reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recurring_invoice_id",
+        "tool_parameter_name": "recurring_invoice_id",
+        "description": "ID of the recurring invoice from which the invoice is created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the recurring invoice from which the invoice is created."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "customer_email_filter",
+        "description": "Search invoices by customer email address. Filters invoices based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding invoices for specific customers or generating customer segment reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer email address. Filters invoices based on the email address of the customer or contact person. Maximum length is 100 characters. Useful for finding invoices for specific customers or generating customer segment reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "search_by_total_amount",
+        "description": "Search invoices by total amount. Filters invoices based on the final invoice amount including taxes, discounts, and adjustments. Useful for finding invoices within specific price ranges or identifying high-value transactions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by total amount. Filters invoices based on the final invoice amount including taxes, discounts, and adjustments. Useful for finding invoices within specific price ranges or identifying high-value transactions."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "balance",
+        "tool_parameter_name": "search_by_outstanding_balance",
+        "description": "Search invoices by outstanding balance. Filters invoices based on the remaining unpaid amount owed by the customer. Useful for finding overdue invoices, tracking receivables, or generating aging reports.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by outstanding balance. Filters invoices based on the remaining unpaid amount owed by the customer. Useful for finding overdue invoices, tracking receivables, or generating aging reports."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "search_by_custom_field",
+        "description": "Search invoices by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by custom fields.Variants: <code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "invoice_date_filter",
+        "description": "Search invoices by invoice date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding invoices within date ranges or specific time periods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>. Useful for finding invoices within date ranges or specific time periods."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "due_date",
+        "tool_parameter_name": "invoice_due_date_filter",
+        "description": "Search invoices by due date. Filters invoices based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue invoices or invoices due within specific periods.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by due date. Filters invoices based on the payment due date. Use yyyy-mm-dd format. Supports variants: <code>due_date_start</code>, <code>due_date_end</code>, <code>due_date_before</code> and <code>due_date_after</code>. Useful for finding overdue invoices or invoices due within specific periods."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_date",
+        "tool_parameter_name": "filter_by_creation_date",
+        "description": "Search invoices by creation date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding invoices created within specific time periods or date ranges.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by creation date. Filters invoices based on the date they were created. Use yyyy-mm-dd format. Supports variants: <code>created_date_start</code>, <code>created_date_end</code>, <code>created_date_before</code> and <code>created_date_after</code>. Useful for finding invoices created within specific time periods or date ranges."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "filter_by_last_modified_time",
+        "description": "Search invoices modified after a specific time. Filters invoices based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated invoices or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices modified after a specific time. Filters invoices based on their last modification timestamp. Use YYYY-MM-DDTHH:MM:SS-UTC format. Useful for finding recently updated invoices or syncing data changes. Example : 2023-11-18T02:02:51-0800, 2025-19-19T02:02:51%2B0800"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "invoice_status",
+        "description": "Search invoices by status. Filters invoices based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding invoices in specific stages of the billing process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by status. Filters invoices based on their current state in the billing workflow. Allowed values: <code>sent</code>, <code>draft</code>, <code>overdue</code>, <code>paid</code>, <code>void</code>, <code>unpaid</code>, <code>partially_paid</code> and <code>viewed</code>. Useful for finding invoices in specific stages of the billing process."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "search_by_customer_id",
+        "description": "Search invoices by customer ID. Filters invoices based on the unique identifier of the customer for whom the invoice was created. Use the customer ID returned by the Contacts API to find all invoices for a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by customer ID. Filters invoices based on the unique identifier of the customer for whom the invoice was created. Use the customer ID returned by the Contacts API to find all invoices for a specific customer."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_invoices_by_criteria",
+        "description": "Filter invoices by status or payment expected date. Use <code>Status.*</code> for status-based filtering (e.g., Status.Sent, Status.Paid) or <code>Date.PaymentExpectedDate</code> for date-based filtering. Provides advanced filtering options beyond basic search parameters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter invoices by status or payment expected date. Use <code>Status.*</code> for status-based filtering (e.g., Status.Sent, Status.Paid) or <code>Date.PaymentExpectedDate</code> for date-based filtering. Provides advanced filtering options beyond basic search parameters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "general_search_text",
+        "description": "Search invoices by invoice number, purchase order, or customer name. This parameter performs a general search across multiple invoice fields. Maximum length is 100 characters. Useful for quick searches when you know part of the invoice information but are unsure which specific field to search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by invoice number, purchase order, or customer name. This parameter performs a general search across multiple invoice fields. Maximum length is 100 characters. Useful for quick searches when you know part of the invoice information but are unsure which specific field to search."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by_column",
+        "description": "Sort invoices by specific column. Allowed values: <code>customer_name</code>, <code>invoice_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize invoice results in a specific order for better data analysis and reporting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort invoices by specific column. Allowed values: <code>customer_name</code>, <code>invoice_number</code>, <code>date</code>, <code>due_date</code>, <code>total</code>, <code>balance</code> and <code>created_time</code>. Use this parameter to organize invoice results in a specific order for better data analysis and reporting."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_potential_id",
+        "tool_parameter_name": "search_by_crm_potential_id",
+        "description": "Search invoices by CRM potential ID. This parameter allows you to find invoices associated with a specific deal or opportunity in your Zoho CRM system. Use the potential ID from your CRM to link invoices to sales opportunities and track revenue from specific deals.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search invoices by CRM potential ID. This parameter allows you to find invoices associated with a specific deal or opportunity in your Zoho CRM system. Use the potential ID from your CRM to link invoices to sales opportunities and track revenue from specific deals."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "response_option",
+        "tool_parameter_name": "response_format_type",
+        "description": "To get desired response format. There are 5 formats of responses: 0 (Includes all invoices), 1 (Includes all invoices, the number of invoices, and the sum of their total and balance amounts), 2 (Includes only the number of invoices), 3 (Includes the number of invoices and the sum of their total and balance amounts), and 4 (Includes all invoices and the sum of their total and balance amounts).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To get desired response format. There are 5 formats of responses: 0 (Includes all invoices), 1 (Includes all invoices, the number of invoices, and the sum of their total and balance amounts), 2 (Includes only the number of invoices), 3 (Includes the number of invoices and the sum of their total and balance amounts), and 4 (Includes all invoices and the sum of their total and balance amounts)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of invoice data. Useful for implementing pagination in your application.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched from the paginated results. Default value is 1. Use this parameter along with per_page to navigate through large sets of invoice data. Useful for implementing pagination in your application."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200. Use this parameter to control the size of each page of results. Maximum value is 200. Useful for optimizing data transfer and improving application performance."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

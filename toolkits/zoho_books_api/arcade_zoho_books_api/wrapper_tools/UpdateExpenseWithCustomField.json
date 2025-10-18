@@ -1,0 +1,1139 @@
+{
+  "name": "UpdateExpenseWithCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdateExpenseWithCustomField@0.1.0",
+  "description": "Update or create an expense using custom field values.\n\nThis tool updates an existing expense based on a unique custom field value. If the unique value doesn't match any existing expenses, and the X-Upsert header is true, a new expense will be created if all required details are provided.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization for which the expense update is intended. It is required to identify the target organization in the API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "custom_field_api_name",
+        "required": true,
+        "description": "API name of the unique custom field used to identify the expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value for the custom field used to update or create an expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "expense_request_data",
+        "required": false,
+        "description": "JSON object containing detailed information for updating or creating an expense. Includes fields such as account_id, date, amount, line_items, taxes, and various other metadata about the expense.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the expense account."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date of the expense"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the Expense."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "hsn_or_sac": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add HSN/SAC code for your goods/services"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "reverse_charge_tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the reverse charge tax"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the expense account."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the expense. Max-length [100]"
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of the Expense."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "item_order": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported."
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reverse charge tax"
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter tax exemption code"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter tax exemption ID"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                }
+              },
+              "description": null
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "taxes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tax_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number of the expense. Max-length [100]"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the expense. Max-length [100]"
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the expense account."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project associated with the customer."
+            },
+            "mileage_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the expense. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the expense .Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "acquisition_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported."
+            },
+            "reverse_charge_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported."
+            },
+            "start_reading": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>."
+            },
+            "end_reading": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>."
+            },
+            "distance": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Distance travelled for a particular mileage expense where <code>mileage_type</code> is <code>manual</code>"
+            },
+            "mileage_unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of the distance travelled. Allowed Values: <code>km</code> and <code>mile</code>"
+            },
+            "mileage_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mileage rate for a particular mileage expense."
+            },
+            "employee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the employee who has submitted this mileage expense."
+            },
+            "vehicle_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Vehicle type for a particular mileage expense. Allowed Values: <code>car</code>, <code>van</code>, <code>motorcycle</code> and <code>bike</code>"
+            },
+            "can_reclaim_vat_on_mileage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To specify if tax can be reclaimed for this mileage expense."
+            },
+            "fuel_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fuel type for a particular mileage expense. Allowed Values: <code>petrol</code>, <code>lpg</code> and <code>diesel</code>"
+            },
+            "engine_capacity_range": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Engine capacity range for a particular mileage expense. Allowed Values: <code>less_than_1400cc</code>, <code>between_1400cc_and_1600cc</code>, <code>between_1600cc_and_2000cc</code> and <code>more_than_2000cc</code>"
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search expenses by paid through account id."
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the vendor the expense is made."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields for an expense."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "allow_upsert_new_expense",
+        "required": false,
+        "description": "Set to true to create a new expense if no matching unique custom field value is found.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_expense_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.expenses.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/expenses",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "allow_upsert_new_expense",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "expense_request_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the expense account."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date of the expense"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the Expense."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "source_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)"
+            },
+            "destination_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)"
+            },
+            "place_of_supply": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>."
+            },
+            "hsn_or_sac": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add HSN/SAC code for your goods/services"
+            },
+            "gst_no": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "15 digit GST identification number of the vendor."
+            },
+            "reverse_charge_tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the reverse charge tax"
+            },
+            "line_items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "line_item_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "account_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the expense account."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the expense. Max-length [100]"
+                },
+                "amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount of the Expense."
+                },
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "item_order": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "product_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+                },
+                "acquisition_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported."
+                },
+                "reverse_charge_vat_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported."
+                },
+                "reverse_charge_tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the reverse charge tax"
+                },
+                "tax_exemption_code": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter tax exemption code"
+                },
+                "tax_exemption_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enter tax exemption ID"
+                },
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                }
+              },
+              "description": null
+            },
+            "location_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Location ID"
+            },
+            "taxes": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tax_amount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "is_billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference number of the expense. Max-length [100]"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the expense. Max-length [100]"
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the expense account."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "project_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the project associated with the customer."
+            },
+            "mileage_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "vat_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the expense. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>)."
+            },
+            "tax_treatment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "VAT treatment for the expense .Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica)."
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "acquisition_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported."
+            },
+            "reverse_charge_vat_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported."
+            },
+            "start_reading": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>."
+            },
+            "end_reading": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>."
+            },
+            "distance": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Distance travelled for a particular mileage expense where <code>mileage_type</code> is <code>manual</code>"
+            },
+            "mileage_unit": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unit of the distance travelled. Allowed Values: <code>km</code> and <code>mile</code>"
+            },
+            "mileage_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mileage rate for a particular mileage expense."
+            },
+            "employee_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the employee who has submitted this mileage expense."
+            },
+            "vehicle_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Vehicle type for a particular mileage expense. Allowed Values: <code>car</code>, <code>van</code>, <code>motorcycle</code> and <code>bike</code>"
+            },
+            "can_reclaim_vat_on_mileage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To specify if tax can be reclaimed for this mileage expense."
+            },
+            "fuel_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fuel type for a particular mileage expense. Allowed Values: <code>petrol</code>, <code>lpg</code> and <code>diesel</code>"
+            },
+            "engine_capacity_range": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Engine capacity range for a particular mileage expense. Allowed Values: <code>less_than_1400cc</code>, <code>between_1400cc_and_1600cc</code>, <code>between_1600cc_and_2000cc</code> and <code>more_than_2000cc</code>"
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Search expenses by paid through account id."
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the vendor the expense is made."
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields for an expense."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"date\",\n          \"account_id\",\n          \"amount\",\n          \"paid_through_account_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"account_id\": {\n            \"description\": \"ID of the expense account.\",\n            \"type\": \"string\",\n            \"example\": 982000000561057\n          },\n          \"date\": {\n            \"description\": \"Date of the expense\",\n            \"type\": \"string\",\n            \"example\": \"2013-11-18\"\n          },\n          \"amount\": {\n            \"description\": \"Amount of the Expense.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 120.5\n          },\n          \"tax_id\": {\n            \"type\": \"string\",\n            \"example\": 982000000566007\n          },\n          \"source_of_supply\": {\n            \"description\": \"Place from where the goods/services are supplied. (If not given, <code>place of contact</code> given for the contact will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"AP\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"destination_of_supply\": {\n            \"description\": \"Place where the goods/services are supplied to. (If not given, organisation's home state will be taken)\",\n            \"type\": \"string\",\n            \"example\": \"TN\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"place_of_supply\": {\n            \"description\": \"The place of supply is where a transaction is considered to have occurred for VAT purposes. For the supply of goods, the place of supply is the location of the goods when the supply occurs. For the supply of services, the place of supply should be where the supplier is established. (If not given, <code>place of contact</code> given for the contact will be taken)<br/>Supported codes for UAE emirates are : </br>Abu Dhabi - <code>AB</code>,</br>Ajman - <code>AJ</code>,</br>Dubai - <code>DU</code>,</br>Fujairah - <code>FU</code>,</br>Ras al-Khaimah - <code>RA</code>,</br>Sharjah - <code>SH</code>,</br>Umm al-Quwain - <code>UM</code>.<br/>Supported codes for the GCC countries are : </br>United Arab Emirates - <code>AE</code>,</br>Saudi Arabia - <code>SA</code>,</br>Bahrain - <code>BH</code>,</br>Kuwait - <code>KW</code>,</br>Oman - <code>OM</code>,</br>Qatar - <code>QA</code>.\",\n            \"type\": \"string\",\n            \"example\": \"DU\",\n            \"x-node_available_in\": [\n              \"gcc\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"hsn_or_sac\": {\n            \"description\": \"Add HSN/SAC code for your goods/services\",\n            \"type\": \"string\",\n            \"example\": 80540,\n            \"x-node_available_in\": [\n              \"in\",\n              \"ke\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"gst_no\": {\n            \"description\": \"15 digit GST identification number of the vendor.\",\n            \"type\": \"string\",\n            \"example\": \"22AAAAA0000A1Z5\",\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"reverse_charge_tax_id\": {\n            \"description\": \"ID of the reverse charge tax\",\n            \"type\": \"string\",\n            \"example\": 982000000561063\n          },\n          \"line_items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"line_item_id\": {\n                  \"type\": \"string\",\n                  \"example\": 10763000000140068\n                },\n                \"account_id\": {\n                  \"description\": \"ID of the expense account.\",\n                  \"type\": \"string\",\n                  \"example\": 982000000561057\n                },\n                \"description\": {\n                  \"description\": \"Description of the expense. Max-length [100]\",\n                  \"type\": \"string\",\n                  \"example\": \"Marketing\"\n                },\n                \"amount\": {\n                  \"description\": \"Amount of the Expense.\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 112.5\n                },\n                \"tax_id\": {\n                  \"type\": \"string\",\n                  \"example\": 982000000566007\n                },\n                \"item_order\": {\n                  \"type\": \"string\",\n                  \"example\": 1\n                },\n                \"product_type\": {\n                  \"description\": \"Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n                  \"type\": \"string\",\n                  \"example\": \"goods\",\n                  \"x-node_available_in\": [\n                    \"uk\",\n                    \"za\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"acquisition_vat_id\": {\n                  \"description\": \"This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"example\": \" \",\n                  \"x-node_available_in\": [\n                    \"uk\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_vat_id\": {\n                  \"description\": \"This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported.\",\n                  \"type\": \"string\",\n                  \"example\": \" \",\n                  \"x-node_available_in\": [\n                    \"uk\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"reverse_charge_tax_id\": {\n                  \"description\": \"ID of the reverse charge tax\",\n                  \"type\": \"string\",\n                  \"example\": 982000000561063\n                },\n                \"tax_exemption_code\": {\n                  \"description\": \"Enter tax exemption code\",\n                  \"type\": \"string\",\n                  \"x-node_available_in\": [\n                    \"in\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_exemption_id\": {\n                  \"description\": \"Enter tax exemption ID\",\n                  \"type\": \"string\",\n                  \"example\": 982000000561067,\n                  \"x-node_available_in\": [\n                    \"in\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"location_id\": {\n                  \"description\": \"Location ID\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                }\n              }\n            }\n          },\n          \"location_id\": {\n            \"description\": \"Location ID\",\n            \"type\": \"string\",\n            \"example\": \"460000000038080\"\n          },\n          \"taxes\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tax_id\": {\n                  \"type\": \"string\",\n                  \"example\": 982000000566007\n                },\n                \"tax_amount\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 11.85\n                }\n              }\n            },\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_inclusive_tax\": {\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"is_billable\": {\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"reference_number\": {\n            \"description\": \"Reference number of the expense. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": null\n          },\n          \"description\": {\n            \"description\": \"Description of the expense. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"Marketing\"\n          },\n          \"customer_id\": {\n            \"description\": \"ID of the expense account.\",\n            \"type\": \"string\",\n            \"example\": 982000000567001\n          },\n          \"currency_id\": {\n            \"type\": \"string\",\n            \"example\": 982000000567001\n          },\n          \"exchange_rate\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"project_id\": {\n            \"description\": \"ID of the project associated with the customer.\",\n            \"type\": \"string\",\n            \"example\": 982000000567226\n          },\n          \"mileage_type\": {\n            \"type\": \"string\",\n            \"example\": \"non_mileage\"\n          },\n          \"vat_treatment\": {\n            \"description\": \"VAT treatment for the expense. VAT treatment denotes the location of the vendor, if the vendor resides in UK then the VAT treatment is <code>uk</code>. If the vendor is in an EU country & VAT registered, you are resides in Northen Ireland and purchasing Goods then his VAT treatment is <code>eu_vat_registered</code> and if he resides outside the UK then his VAT treatment is <code>overseas</code> (For Pre Brexit, this can be split as <code>eu_vat_registered</code>, <code>eu_vat_not_registered</code> and <code>non_eu</code>).\",\n            \"type\": \"string\",\n            \"example\": \"eu_vat_not_registered\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_treatment\": {\n            \"description\": \"VAT treatment for the expense .Choose whether the contact falls under: <code>vat_registered</code>,<code>vat_not_registered</code>,<code>gcc_vat_not_registered</code>,<code>gcc_vat_registered</code>,<code>non_gcc</code>.</br><code>dz_vat_registered</code> and <code>dz_vat_not_registered</code> are supported only for <b>UAE</b>. <br/><b>For Kenya Edition:</b> <code>vat_registered</code> ,<code>vat_not_registered</code> ,<code>non_kenya</code>(A business that is located outside Kenya).<br/><b>For SouthAfrica Edition:</b> <code>vat_registered</code>, <code>vat_not_registered</code>, <code>overseas</code>(A business that is located outside SouthAfrica).\",\n            \"type\": \"string\",\n            \"example\": \"vat_registered\",\n            \"x-node_available_in\": [\n              \"gcc\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"product_type\": {\n            \"description\": \"Type of the expense. This denotes whether the expense is to be treated as a goods or service or capital asset purchase. Allowed Values:<br/> <b>For UK: </b><code>digital_service</code>, <code>goods</code> and <code>service</code>.<br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n            \"type\": \"string\",\n            \"example\": \"goods\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"acquisition_vat_id\": {\n            \"description\": \"This is the ID of the tax applied in case this is an EU - goods expense and acquisition VAT needs to be reported.\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"reverse_charge_vat_id\": {\n            \"description\": \"This is the ID of the tax applied in case this is a non UK - service expense and reverse charge VAT needs to be reported.\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"start_reading\": {\n            \"description\": \"Start reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": \" \"\n          },\n          \"end_reading\": {\n            \"description\": \"End reading of odometer when creating a mileage expense where <code>mileage_type</code> is <code>odometer</code>.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": \" \"\n          },\n          \"distance\": {\n            \"description\": \"Distance travelled for a particular mileage expense where <code>mileage_type</code> is <code>manual</code>\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"mileage_unit\": {\n            \"description\": \"Unit of the distance travelled. Allowed Values: <code>km</code> and <code>mile</code>\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"mileage_rate\": {\n            \"description\": \"Mileage rate for a particular mileage expense.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": \" \"\n          },\n          \"employee_id\": {\n            \"description\": \"ID of the employee who has submitted this mileage expense.\",\n            \"type\": \"string\",\n            \"example\": \"982000000030040\",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"vehicle_type\": {\n            \"description\": \"Vehicle type for a particular mileage expense. Allowed Values: <code>car</code>, <code>van</code>, <code>motorcycle</code> and <code>bike</code>\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"can_reclaim_vat_on_mileage\": {\n            \"description\": \"To specify if tax can be reclaimed for this mileage expense.\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"fuel_type\": {\n            \"description\": \"Fuel type for a particular mileage expense. Allowed Values: <code>petrol</code>, <code>lpg</code> and <code>diesel</code>\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"engine_capacity_range\": {\n            \"description\": \"Engine capacity range for a particular mileage expense. Allowed Values: <code>less_than_1400cc</code>, <code>between_1400cc_and_1600cc</code>, <code>between_1600cc_and_2000cc</code> and <code>more_than_2000cc</code>\",\n            \"type\": \"string\",\n            \"example\": \" \",\n            \"x-node_available_in\": [\n              \"uk\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"paid_through_account_id\": {\n            \"description\": \"Search expenses by paid through account id.\",\n            \"type\": \"string\",\n            \"example\": 982000000567250\n          },\n          \"vendor_id\": {\n            \"description\": \"ID of the vendor the expense is made.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"custom_fields\": {\n            \"description\": \"Custom fields for an expense.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": []\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

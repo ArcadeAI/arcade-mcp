@@ -1,0 +1,880 @@
+{
+  "name": "ListSalesOrders",
+  "fully_qualified_name": "ZohoBooksApi.ListSalesOrders@0.1.0",
+  "description": "Retrieve a list of all sales orders.\n\nUse this tool to get a complete list of sales orders. It helps in managing and reviewing sales transactions efficiently.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization for which sales orders are to be listed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "sort_column",
+        "required": false,
+        "description": "Column field to sort sales order results. Options: customer_name, salesorder_number, shipment_date, last_modified_time, reference_number, total, date, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column field for sorting sales order results. Available options include <code>customer_name</code>, <code>salesorder_number</code>, <code>shipment_date</code>, <code>last_modified_time</code>, <code>reference_number</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "cross_field_search_text",
+        "required": false,
+        "description": "A general search term for matching text across fields like sales order number, reference number, and customer name for quick identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "General search parameter for cross-field text matching across sales order number, reference number, and customer name fields. Enables unified search functionality for quick order identification and customer order lookup operations."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "filter_sales_order_by_status",
+        "required": false,
+        "description": "Filter sales orders by status. Options: All, Open, Draft, OverDue, PartiallyInvoiced, Invoiced, Void, Closed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales order by status. Allowed Values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.OverDue</code>, <code>Status.PartiallyInvoiced</code>, <code>Status.Invoiced</code>, <code>Status.Void</code> and <code>Status.Closed</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "filter_by_sales_order_number",
+        "required": false,
+        "description": "Filter sales orders by sales order number with operators: startswith, not_in, in, or contains. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by sales order number using various matching operators. Available variants include <code>salesorder_number_startswith</code>, <code>salesorder_number_not_in</code>, <code>salesorder_number_in</code>, and <code>salesorder_number_contains</code>. Maximum search length: 100 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_number"
+      },
+      {
+        "name": "filter_by_item_name",
+        "required": false,
+        "description": "Filter sales orders by line item name. Use matching operators like startswith, not_in, in, and contains. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by line item name using various matching operators. Available variants include <code>item_name_startswith</code>, <code>item_name_not_in</code>, <code>item_name_in</code>, and <code>item_name_contains</code>. Maximum search length: 100 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "filter_by_item_id",
+        "required": false,
+        "description": "Filter sales orders by a specific line item identifier to retrieve orders containing a particular product or service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific line item identifier. Retrieves all sales orders containing a particular product or service item based on its unique identifier for inventory tracking and item-based reporting purposes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "filter_by_item_description",
+        "required": false,
+        "description": "Filter sales orders by line item description. Supports variants like startswith, not_in, in, and contains. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by line item description text using various matching operators. Available variants include <code>item_description_startswith</code>, <code>item_description_not_in</code>, <code>item_description_in</code>, and <code>item_description_contains</code>. Maximum search length: 100 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "filter_by_reference_number",
+        "required": false,
+        "description": "Filter sales orders by external reference number using operators like `startswith`, `not_in`, `in`, and `contains`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by external reference number using various matching operators. Available variants include <code>reference_number_startswith</code>, <code>reference_number_not_in</code>, <code>reference_number_in</code>, and <code>reference_number_contains</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "customer_name_filter",
+        "required": false,
+        "description": "Filter sales orders by customer name with operators like startswith, not_in, in, and contains. Max length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by customer name using various matching operators. Available variants include <code>customer_name_startswith</code>, <code>customer_name_not_in</code>, <code>customer_name_in</code>, and <code>customer_name_contains</code>. Maximum search length: 100 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "filter_by_total",
+        "required": false,
+        "description": "Specify range operators to filter sales orders by total. Use total_start, total_end, total_less_than, total_greater_than, etc.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by total amount using various range operators. Available variants include <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "creation_date_filter",
+        "required": false,
+        "description": "Filter sales orders by creation date using operators like `date_start`, `date_end`, `date_before`, `date_after`. Format: `yyyy-mm-dd`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by creation date using various date range operators. Available variants include <code>date_start</code>, <code>date_end</code>, <code>date_before</code>, and <code>date_after</code>. Default date format: <code>yyyy-mm-dd</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "shipment_date_filter",
+        "required": false,
+        "description": "Specify the shipment date filter for sales orders. Use variants such as 'shipment_date_start', 'shipment_date_end', 'shipment_date_before', and 'shipment_date_after' in 'yyyy-mm-dd' format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search sales order by sales order shipment date. Variants: <code>shipment_date_start</code>, <code>shipment_date_end</code>, <code>shipment_date_before</code> and <code>shipment_date_after</code>. Default date format : <code>yyyy-mm-dd</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shipment_date"
+      },
+      {
+        "name": "sales_order_status",
+        "required": false,
+        "description": "Filter sales orders by their status. Allowed values: draft, open, invoiced, partially_invoiced, void, and overdue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search sales order by sales order status. Allowed Values: <code>draft</code>, <code>open</code>, <code>invoiced</code>, <code>partially_invoiced</code>, <code>void</code> and <code>overdue</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_by_customer_id",
+        "required": false,
+        "description": "Filter sales orders by specific customer ID. Retrieves orders associated with a customer for CRM and reporting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific customer identifier. Retrieves all sales orders associated with a particular customer account for customer relationship management, order history tracking, and customer-specific reporting and analysis purposes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "sales_representative_id",
+        "required": false,
+        "description": "Filter sales orders by specific sales representative ID for tracking and reporting purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific sales representative identifier. Retrieves all sales orders assigned to a particular salesperson for performance tracking, commission calculations, sales territory management, and individual sales reporting purposes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesperson_id"
+      },
+      {
+        "name": "sales_order_ids",
+        "required": false,
+        "description": "Comma-separated list of sales order IDs to filter results. Maximum length is 200 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID's of the salesorder [Comma seperated values] . <code>Maximum Length : 200</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "salesorder_ids"
+      },
+      {
+        "name": "last_modified_time",
+        "required": false,
+        "description": "Specify the last modified time of the sales order to filter results. Use the format 'yyyy-mm-dd'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Modified time of the Sales Order"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "last_modified_time"
+      },
+      {
+        "name": "response_format",
+        "required": false,
+        "description": "Specifies the format for sales order details. Must be one of: json, csv, xml, xls, xlsx, pdf, jhtml, or html. Default is json.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accept"
+      },
+      {
+        "name": "custom_view_id",
+        "required": false,
+        "description": "ID of the custom view to filter sales orders based on predefined criteria.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the customview"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customview_id"
+      },
+      {
+        "name": "deal_crm_potential_id",
+        "required": false,
+        "description": "Potential ID of a Deal in CRM. Used to filter sales orders associated with a specific deal.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Potential ID of a Deal in CRM."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_potential_id"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number for retrieving paginated sales order results. Default is 1 for the first page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the page number for paginated results retrieval. Controls which subset of sales order records to return, enabling efficient data handling for large result sets. Default value is 1 for the first page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "max_sales_orders_per_page",
+        "required": false,
+        "description": "Specify the maximum number of sales order records to return per page. Default is 200 for optimal performance and memory usage.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the maximum number of sales order records to return per page. Controls result set size for optimal performance, memory usage, and user experience. Default value is 200 records per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "enable_printing",
+        "required": false,
+        "description": "Enable printing of the exported PDF. Use when 'accept' is set to 'pdf' and 'salesorder_ids' includes values.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Print the exported pdf. <code> It will be used when accept = pdf and atleast one value in salesorder_ids  </code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "print"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_sales_orders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.salesorders.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/salesorders",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_column",
+        "description": "Specify the column field for sorting sales order results. Available options include <code>customer_name</code>, <code>salesorder_number</code>, <code>shipment_date</code>, <code>last_modified_time</code>, <code>reference_number</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the column field for sorting sales order results. Available options include <code>customer_name</code>, <code>salesorder_number</code>, <code>shipment_date</code>, <code>last_modified_time</code>, <code>reference_number</code>, <code>total</code>, <code>date</code>, and <code>created_time</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "cross_field_search_text",
+        "description": "General search parameter for cross-field text matching across sales order number, reference number, and customer name fields. Enables unified search functionality for quick order identification and customer order lookup operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "General search parameter for cross-field text matching across sales order number, reference number, and customer name fields. Enables unified search functionality for quick order identification and customer order lookup operations."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_sales_order_by_status",
+        "description": "Filter sales order by status. Allowed Values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.OverDue</code>, <code>Status.PartiallyInvoiced</code>, <code>Status.Invoiced</code>, <code>Status.Void</code> and <code>Status.Closed</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales order by status. Allowed Values: <code>Status.All</code>, <code>Status.Open</code>, <code>Status.Draft</code>, <code>Status.OverDue</code>, <code>Status.PartiallyInvoiced</code>, <code>Status.Invoiced</code>, <code>Status.Void</code> and <code>Status.Closed</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_number",
+        "tool_parameter_name": "filter_by_sales_order_number",
+        "description": "Filter sales orders by sales order number using various matching operators. Available variants include <code>salesorder_number_startswith</code>, <code>salesorder_number_not_in</code>, <code>salesorder_number_in</code>, and <code>salesorder_number_contains</code>. Maximum search length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by sales order number using various matching operators. Available variants include <code>salesorder_number_startswith</code>, <code>salesorder_number_not_in</code>, <code>salesorder_number_in</code>, and <code>salesorder_number_contains</code>. Maximum search length: 100 characters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "filter_by_item_name",
+        "description": "Filter sales orders by line item name using various matching operators. Available variants include <code>item_name_startswith</code>, <code>item_name_not_in</code>, <code>item_name_in</code>, and <code>item_name_contains</code>. Maximum search length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by line item name using various matching operators. Available variants include <code>item_name_startswith</code>, <code>item_name_not_in</code>, <code>item_name_in</code>, and <code>item_name_contains</code>. Maximum search length: 100 characters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "filter_by_item_id",
+        "description": "Filter sales orders by specific line item identifier. Retrieves all sales orders containing a particular product or service item based on its unique identifier for inventory tracking and item-based reporting purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific line item identifier. Retrieves all sales orders containing a particular product or service item based on its unique identifier for inventory tracking and item-based reporting purposes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "filter_by_item_description",
+        "description": "Filter sales orders by line item description text using various matching operators. Available variants include <code>item_description_startswith</code>, <code>item_description_not_in</code>, <code>item_description_in</code>, and <code>item_description_contains</code>. Maximum search length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by line item description text using various matching operators. Available variants include <code>item_description_startswith</code>, <code>item_description_not_in</code>, <code>item_description_in</code>, and <code>item_description_contains</code>. Maximum search length: 100 characters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "filter_by_reference_number",
+        "description": "Filter sales orders by external reference number using various matching operators. Available variants include <code>reference_number_startswith</code>, <code>reference_number_not_in</code>, <code>reference_number_in</code>, and <code>reference_number_contains</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by external reference number using various matching operators. Available variants include <code>reference_number_startswith</code>, <code>reference_number_not_in</code>, <code>reference_number_in</code>, and <code>reference_number_contains</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "customer_name_filter",
+        "description": "Filter sales orders by customer name using various matching operators. Available variants include <code>customer_name_startswith</code>, <code>customer_name_not_in</code>, <code>customer_name_in</code>, and <code>customer_name_contains</code>. Maximum search length: 100 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by customer name using various matching operators. Available variants include <code>customer_name_startswith</code>, <code>customer_name_not_in</code>, <code>customer_name_in</code>, and <code>customer_name_contains</code>. Maximum search length: 100 characters."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "filter_by_total",
+        "description": "Filter sales orders by total amount using various range operators. Available variants include <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code>.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by total amount using various range operators. Available variants include <code>total_start</code>, <code>total_end</code>, <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "creation_date_filter",
+        "description": "Filter sales orders by creation date using various date range operators. Available variants include <code>date_start</code>, <code>date_end</code>, <code>date_before</code>, and <code>date_after</code>. Default date format: <code>yyyy-mm-dd</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by creation date using various date range operators. Available variants include <code>date_start</code>, <code>date_end</code>, <code>date_before</code>, and <code>date_after</code>. Default date format: <code>yyyy-mm-dd</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shipment_date",
+        "tool_parameter_name": "shipment_date_filter",
+        "description": "Search sales order by sales order shipment date. Variants: <code>shipment_date_start</code>, <code>shipment_date_end</code>, <code>shipment_date_before</code> and <code>shipment_date_after</code>. Default date format : <code>yyyy-mm-dd</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search sales order by sales order shipment date. Variants: <code>shipment_date_start</code>, <code>shipment_date_end</code>, <code>shipment_date_before</code> and <code>shipment_date_after</code>. Default date format : <code>yyyy-mm-dd</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "sales_order_status",
+        "description": "Search sales order by sales order status. Allowed Values: <code>draft</code>, <code>open</code>, <code>invoiced</code>, <code>partially_invoiced</code>, <code>void</code> and <code>overdue</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search sales order by sales order status. Allowed Values: <code>draft</code>, <code>open</code>, <code>invoiced</code>, <code>partially_invoiced</code>, <code>void</code> and <code>overdue</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "filter_by_customer_id",
+        "description": "Filter sales orders by specific customer identifier. Retrieves all sales orders associated with a particular customer account for customer relationship management, order history tracking, and customer-specific reporting and analysis purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific customer identifier. Retrieves all sales orders associated with a particular customer account for customer relationship management, order history tracking, and customer-specific reporting and analysis purposes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesperson_id",
+        "tool_parameter_name": "sales_representative_id",
+        "description": "Filter sales orders by specific sales representative identifier. Retrieves all sales orders assigned to a particular salesperson for performance tracking, commission calculations, sales territory management, and individual sales reporting purposes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter sales orders by specific sales representative identifier. Retrieves all sales orders assigned to a particular salesperson for performance tracking, commission calculations, sales territory management, and individual sales reporting purposes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "salesorder_ids",
+        "tool_parameter_name": "sales_order_ids",
+        "description": "ID's of the salesorder [Comma seperated values] . <code>Maximum Length : 200</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID's of the salesorder [Comma seperated values] . <code>Maximum Length : 200</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "last_modified_time",
+        "tool_parameter_name": "last_modified_time",
+        "description": "Last Modified time of the Sales Order",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Last Modified time of the Sales Order"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accept",
+        "tool_parameter_name": "response_format",
+        "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get the details of a particular sales order in formats such as json/ pdf/ html. Default format is json. Allowed Values: <code>json</code>, <code>csv</code> , <code>xml</code>, <code>xls</code>, <code>xlsx</code>, <code>pdf</code>, <code>jhtml</code> and <code>html</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "print",
+        "tool_parameter_name": "enable_printing",
+        "description": "Print the exported pdf. <code> It will be used when accept = pdf and atleast one value in salesorder_ids  </code>",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Print the exported pdf. <code> It will be used when accept = pdf and atleast one value in salesorder_ids  </code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customview_id",
+        "tool_parameter_name": "custom_view_id",
+        "description": "ID of the customview",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the customview"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_potential_id",
+        "tool_parameter_name": "deal_crm_potential_id",
+        "description": "Potential ID of a Deal in CRM.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Potential ID of a Deal in CRM."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Specify the page number for paginated results retrieval. Controls which subset of sales order records to return, enabling efficient data handling for large result sets. Default value is 1 for the first page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the page number for paginated results retrieval. Controls which subset of sales order records to return, enabling efficient data handling for large result sets. Default value is 1 for the first page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "max_sales_orders_per_page",
+        "description": "Specify the maximum number of sales order records to return per page. Controls result set size for optimal performance, memory usage, and user experience. Default value is 200 records per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specify the maximum number of sales order records to return per page. Controls result set size for optimal performance, memory usage, and user experience. Default value is 200 records per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
