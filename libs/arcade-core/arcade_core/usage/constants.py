@@ -7,6 +7,7 @@ PROP_DURATION_MS = "duration_ms"
 PROP_ERROR_MESSAGE = "error_message"
 PROP_DEVICE_MONOTONIC_START = "device_start_timestamp"
 PROP_DEVICE_MONOTONIC_END = "device_end_timestamp"
+PROP_DEVICE_TIMESTAMP = "device_timestamp"
 # Only used for anonymous usage
 PROP_PROCESS_PERSON_PROFILE = "$process_person_profile"
 
