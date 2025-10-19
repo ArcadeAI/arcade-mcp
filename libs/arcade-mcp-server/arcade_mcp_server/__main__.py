@@ -114,6 +114,7 @@ async def run_stdio_server(
     catalog: ToolCatalog,
     debug: bool = False,
     env_file: str | None = None,
+    settings: MCPSettings | None = None,
     **kwargs: Any,
 ) -> None:
     """Run MCP server with stdio transport."""
@@ -124,7 +125,11 @@ async def run_stdio_server(
     if env_file:
         load_dotenv(env_file)
         logger.debug(f"Loaded environment variables from --env-file={env_file}")
-    settings = MCPSettings.from_env()
+
+    # Use provided settings or load from environment
+    if settings is None:
+        settings = MCPSettings.from_env()
+
     if debug:
         settings.debug = True
         settings.middleware.enable_logging = True
