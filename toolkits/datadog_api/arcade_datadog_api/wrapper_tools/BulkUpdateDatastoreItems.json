@@ -1,0 +1,255 @@
+{
+  "name": "BulkUpdateDatastoreItems",
+  "fully_qualified_name": "DatadogApi.BulkUpdateDatastoreItems@0.1.0",
+  "description": "Perform bulk creation or replacement of datastore items.\n\nUse this tool to create or replace multiple items in a Datadog datastore in a single operation by specifying their keys.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_identifier",
+        "required": true,
+        "description": "The unique identifier for the datastore where items will be updated or replaced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "datastore_id"
+      },
+      {
+        "name": "bulk_datastore_items_request",
+        "required": true,
+        "description": "A JSON object containing the configuration and items for bulk insertion or replacement in the datastore. This includes the conflict mode and an array of items to process.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conflict_mode": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "fail_on_conflict",
+                        "overwrite_on_conflict"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "How to handle conflicts when inserting items that already exist in the datastore."
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "An array of items to add to the datastore, where each item is a set of key-value pairs representing the item's data. Up to 100 items can be updated in a single request."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Configuration for bulk inserting multiple items into a datastore."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resource type for datastore items."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data wrapper containing the items to insert and their configuration for the bulk insert operation."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BulkWriteDatastoreItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores/{datastore_id}/items/bulk",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "datastore_id",
+        "tool_parameter_name": "datastore_identifier",
+        "description": "The unique identifier of the datastore to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "bulk_datastore_items_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conflict_mode": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "fail_on_conflict",
+                        "overwrite_on_conflict"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "How to handle conflicts when inserting items that already exist in the datastore."
+                    },
+                    "values": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "An array of items to add to the datastore, where each item is a set of key-value pairs representing the item's data. Up to 100 items can be updated in a single request."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Configuration for bulk inserting multiple items into a datastore."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resource type for datastore items."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data wrapper containing the items to insert and their configuration for the bulk insert operation."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to insert multiple items into a datastore in a single operation.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data wrapper containing the items to insert and their configuration for the bulk insert operation.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Configuration for bulk inserting multiple items into a datastore.\",\n                \"properties\": {\n                  \"conflict_mode\": {\n                    \"description\": \"How to handle conflicts when inserting items that already exist in the datastore.\",\n                    \"enum\": [\n                      \"fail_on_conflict\",\n                      \"overwrite_on_conflict\"\n                    ],\n                    \"example\": \"overwrite_on_conflict\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"FAIL_ON_CONFLICT\",\n                      \"OVERWRITE_ON_CONFLICT\"\n                    ]\n                  },\n                  \"values\": {\n                    \"description\": \"An array of items to add to the datastore, where each item is a set of key-value pairs representing the item's data. Up to 100 items can be updated in a single request.\",\n                    \"example\": [\n                      {\n                        \"data\": \"example data\",\n                        \"key\": \"value\"\n                      },\n                      {\n                        \"data\": \"example data2\",\n                        \"key\": \"value2\"\n                      }\n                    ],\n                    \"items\": {\n                      \"additionalProperties\": {},\n                      \"description\": \"A single item's data as key-value pairs. Key names cannot exceed 63 characters.\",\n                      \"type\": \"object\"\n                    },\n                    \"maxItems\": 100,\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"values\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"items\",\n                \"description\": \"The resource type for datastore items.\",\n                \"enum\": [\n                  \"items\"\n                ],\n                \"example\": \"items\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ITEMS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

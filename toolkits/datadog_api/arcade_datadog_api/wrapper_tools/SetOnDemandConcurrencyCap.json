@@ -1,0 +1,126 @@
+{
+  "name": "SetOnDemandConcurrencyCap",
+  "fully_qualified_name": "DatadogApi.SetOnDemandConcurrencyCap@0.1.0",
+  "description": "Update the on-demand concurrency cap setting in Datadog.\n\nUse this tool to save a new value for the on-demand concurrency cap in the Datadog Synthetics settings. This updates the maximum number of on-demand tests that can run concurrently.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "on_demand_concurrency_cap_value",
+        "required": false,
+        "description": "Specify the new value for the on-demand concurrency cap in Datadog.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Value of the on-demand concurrency cap."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "on_demand_concurrency_cap"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SetOnDemandConcurrencyCap'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/synthetics/settings/on_demand_concurrency_cap",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "on_demand_concurrency_cap",
+        "tool_parameter_name": "on_demand_concurrency_cap_value",
+        "description": "Value of the on-demand concurrency cap.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Value of the on-demand concurrency cap."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"On-demand concurrency cap attributes.\",\n        \"properties\": {\n          \"on_demand_concurrency_cap\": {\n            \"description\": \"Value of the on-demand concurrency cap.\",\n            \"format\": \"double\",\n            \"type\": \"number\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \".\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

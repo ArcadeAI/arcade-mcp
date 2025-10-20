@@ -1,0 +1,839 @@
+{
+  "name": "UpdateCustomAllocationRule",
+  "fully_qualified_name": "DatadogApi.UpdateCustomAllocationRule@0.1.0",
+  "description": "Update custom allocation rules with new filters and strategies.\n\nThis tool updates an existing custom allocation rule in Datadog by modifying filters and allocation strategies. It supports various allocation strategies like PROPORTIONAL, EVEN, TIMESERIES, PERCENT, and USAGE_METRIC. Users should specify strategy methods and filter conditions to redefine the allocation. Appropriate strategy fields and filter operators must be used according to the needs.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_allocation_rule_id",
+        "required": true,
+        "description": "The unique identifier for the custom allocation rule to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the custom allocation rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rule_id"
+      },
+      {
+        "name": "allocation_rule_request_body",
+        "required": true,
+        "description": "JSON payload containing filters, strategy, and attributes for updating the custom allocation rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "costs_to_allocate": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "condition": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `condition`."
+                        },
+                        "tag": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `tag`."
+                        },
+                        "value": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `value`."
+                        },
+                        "values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `values`."
+                        }
+                      },
+                      "description": "The `attributes` `costs_to_allocate`."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "order_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `order_id`."
+                    },
+                    "provider": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `provider`."
+                    },
+                    "rejected": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `rejected`."
+                    },
+                    "rule_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `rule_name`."
+                    },
+                    "strategy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "allocated_by": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "allocated_tags": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `value`."
+                                }
+                              },
+                              "description": "The `items` `allocated_tags`."
+                            },
+                            "percentage": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `percentage`. The numeric value format should be a 32bit float value."
+                            }
+                          },
+                          "description": "The `strategy` `allocated_by`."
+                        },
+                        "allocated_by_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `allocated_by_filters`."
+                        },
+                        "allocated_by_tag_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `allocated_by_tag_keys`."
+                        },
+                        "based_on_costs": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `based_on_costs`."
+                        },
+                        "based_on_timeseries": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `based_on_timeseries`."
+                        },
+                        "evaluate_grouped_by_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `evaluate_grouped_by_filters`."
+                        },
+                        "evaluate_grouped_by_tag_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `evaluate_grouped_by_tag_keys`."
+                        },
+                        "granularity": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `granularity`."
+                        },
+                        "method": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `method`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `ArbitraryCostUpsertRequestDataAttributesStrategy` object."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `type`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `ArbitraryCostUpsertRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `ArbitraryCostUpsertRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "upsert_arbitrary_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Upsert arbitrary rule resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `ArbitraryCostUpsertRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCustomAllocationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/arbitrary_rule/{rule_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "rule_id",
+        "tool_parameter_name": "custom_allocation_rule_id",
+        "description": "The unique identifier of the custom allocation rule",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the custom allocation rule"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "allocation_rule_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "costs_to_allocate": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "condition": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `condition`."
+                        },
+                        "tag": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `tag`."
+                        },
+                        "value": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `value`."
+                        },
+                        "values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `items` `values`."
+                        }
+                      },
+                      "description": "The `attributes` `costs_to_allocate`."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `enabled`."
+                    },
+                    "order_id": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `order_id`."
+                    },
+                    "provider": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `provider`."
+                    },
+                    "rejected": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `rejected`."
+                    },
+                    "rule_name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `rule_name`."
+                    },
+                    "strategy": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "allocated_by": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "allocated_tags": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "key": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `key`."
+                                },
+                                "value": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `items` `value`."
+                                }
+                              },
+                              "description": "The `items` `allocated_tags`."
+                            },
+                            "percentage": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `percentage`. The numeric value format should be a 32bit float value."
+                            }
+                          },
+                          "description": "The `strategy` `allocated_by`."
+                        },
+                        "allocated_by_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `allocated_by_filters`."
+                        },
+                        "allocated_by_tag_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `allocated_by_tag_keys`."
+                        },
+                        "based_on_costs": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `based_on_costs`."
+                        },
+                        "based_on_timeseries": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `based_on_timeseries`."
+                        },
+                        "evaluate_grouped_by_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "condition": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `condition`."
+                            },
+                            "tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `tag`."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `value`."
+                            },
+                            "values": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `items` `values`."
+                            }
+                          },
+                          "description": "The `strategy` `evaluate_grouped_by_filters`."
+                        },
+                        "evaluate_grouped_by_tag_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `evaluate_grouped_by_tag_keys`."
+                        },
+                        "granularity": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `granularity`."
+                        },
+                        "method": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The `strategy` `method`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `ArbitraryCostUpsertRequestDataAttributesStrategy` object."
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The `attributes` `type`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `ArbitraryCostUpsertRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The `ArbitraryCostUpsertRequestData` `id`."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "upsert_arbitrary_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Upsert arbitrary rule resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `ArbitraryCostUpsertRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `ArbitraryCostUpsertRequest` object.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"costs_to_allocate\": [\n                {\n                  \"condition\": \"is\",\n                  \"tag\": \"account_id\",\n                  \"value\": \"123456789\",\n                  \"values\": null\n                },\n                {\n                  \"condition\": \"in\",\n                  \"tag\": \"environment\",\n                  \"value\": \"\",\n                  \"values\": [\n                    \"production\",\n                    \"staging\"\n                  ]\n                }\n              ],\n              \"enabled\": true,\n              \"order_id\": 1,\n              \"provider\": [\n                \"aws\",\n                \"gcp\"\n              ],\n              \"rule_name\": \"example-arbitrary-cost-rule\",\n              \"strategy\": {\n                \"allocated_by_tag_keys\": [\n                  \"team\",\n                  \"environment\"\n                ],\n                \"based_on_costs\": [\n                  {\n                    \"condition\": \"is\",\n                    \"tag\": \"service\",\n                    \"value\": \"web-api\",\n                    \"values\": null\n                  },\n                  {\n                    \"condition\": \"not in\",\n                    \"tag\": \"team\",\n                    \"value\": \"\",\n                    \"values\": [\n                      \"legacy\",\n                      \"deprecated\"\n                    ]\n                  }\n                ],\n                \"granularity\": \"daily\",\n                \"method\": \"proportional\"\n              },\n              \"type\": \"shared\"\n            },\n            \"type\": \"upsert_arbitrary_rule\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `ArbitraryCostUpsertRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"costs_to_allocate\": {\n                    \"description\": \"The `attributes` `costs_to_allocate`.\",\n                    \"items\": {\n                      \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesCostsToAllocateItems` object.\",\n                      \"properties\": {\n                        \"condition\": {\n                          \"description\": \"The `items` `condition`.\",\n                          \"example\": \"\",\n                          \"type\": \"string\"\n                        },\n                        \"tag\": {\n                          \"description\": \"The `items` `tag`.\",\n                          \"example\": \"\",\n                          \"type\": \"string\"\n                        },\n                        \"value\": {\n                          \"description\": \"The `items` `value`.\",\n                          \"type\": \"string\"\n                        },\n                        \"values\": {\n                          \"description\": \"The `items` `values`.\",\n                          \"items\": {\n                            \"type\": \"string\"\n                          },\n                          \"nullable\": true,\n                          \"type\": \"array\"\n                        }\n                      },\n                      \"required\": [\n                        \"condition\",\n                        \"tag\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"The `attributes` `enabled`.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"order_id\": {\n                    \"description\": \"The `attributes` `order_id`.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"provider\": {\n                    \"description\": \"The `attributes` `provider`.\",\n                    \"example\": [\n                      \"\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"rejected\": {\n                    \"description\": \"The `attributes` `rejected`.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"rule_name\": {\n                    \"description\": \"The `attributes` `rule_name`.\",\n                    \"example\": \"\",\n                    \"type\": \"string\"\n                  },\n                  \"strategy\": {\n                    \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategy` object.\",\n                    \"properties\": {\n                      \"allocated_by\": {\n                        \"description\": \"The `strategy` `allocated_by`.\",\n                        \"items\": {\n                          \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategyAllocatedByItems` object.\",\n                          \"properties\": {\n                            \"allocated_tags\": {\n                              \"description\": \"The `items` `allocated_tags`.\",\n                              \"items\": {\n                                \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategyAllocatedByItemsAllocatedTagsItems` object.\",\n                                \"properties\": {\n                                  \"key\": {\n                                    \"description\": \"The `items` `key`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"value\": {\n                                    \"description\": \"The `items` `value`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"key\",\n                                  \"value\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"percentage\": {\n                              \"description\": \"The `items` `percentage`. The numeric value format should be a 32bit float value.\",\n                              \"example\": 0.0,\n                              \"format\": \"double\",\n                              \"type\": \"number\"\n                            }\n                          },\n                          \"required\": [\n                            \"allocated_tags\",\n                            \"percentage\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"allocated_by_filters\": {\n                        \"description\": \"The `strategy` `allocated_by_filters`.\",\n                        \"items\": {\n                          \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategyAllocatedByFiltersItems` object.\",\n                          \"properties\": {\n                            \"condition\": {\n                              \"description\": \"The `items` `condition`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"tag\": {\n                              \"description\": \"The `items` `tag`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"value\": {\n                              \"description\": \"The `items` `value`.\",\n                              \"type\": \"string\"\n                            },\n                            \"values\": {\n                              \"description\": \"The `items` `values`.\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"nullable\": true,\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"required\": [\n                            \"condition\",\n                            \"tag\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"allocated_by_tag_keys\": {\n                        \"description\": \"The `strategy` `allocated_by_tag_keys`.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"based_on_costs\": {\n                        \"description\": \"The `strategy` `based_on_costs`.\",\n                        \"items\": {\n                          \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategyBasedOnCostsItems` object.\",\n                          \"properties\": {\n                            \"condition\": {\n                              \"description\": \"The `items` `condition`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"tag\": {\n                              \"description\": \"The `items` `tag`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"value\": {\n                              \"description\": \"The `items` `value`.\",\n                              \"type\": \"string\"\n                            },\n                            \"values\": {\n                              \"description\": \"The `items` `values`.\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"nullable\": true,\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"required\": [\n                            \"condition\",\n                            \"tag\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"based_on_timeseries\": {\n                        \"additionalProperties\": {},\n                        \"description\": \"The `strategy` `based_on_timeseries`.\",\n                        \"type\": \"object\"\n                      },\n                      \"evaluate_grouped_by_filters\": {\n                        \"description\": \"The `strategy` `evaluate_grouped_by_filters`.\",\n                        \"items\": {\n                          \"description\": \"The definition of `ArbitraryCostUpsertRequestDataAttributesStrategyEvaluateGroupedByFiltersItems` object.\",\n                          \"properties\": {\n                            \"condition\": {\n                              \"description\": \"The `items` `condition`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"tag\": {\n                              \"description\": \"The `items` `tag`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"value\": {\n                              \"description\": \"The `items` `value`.\",\n                              \"type\": \"string\"\n                            },\n                            \"values\": {\n                              \"description\": \"The `items` `values`.\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"nullable\": true,\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"required\": [\n                            \"condition\",\n                            \"tag\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"evaluate_grouped_by_tag_keys\": {\n                        \"description\": \"The `strategy` `evaluate_grouped_by_tag_keys`.\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"granularity\": {\n                        \"description\": \"The `strategy` `granularity`.\",\n                        \"type\": \"string\"\n                      },\n                      \"method\": {\n                        \"description\": \"The `strategy` `method`.\",\n                        \"example\": \"\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"method\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"type\": {\n                    \"description\": \"The `attributes` `type`.\",\n                    \"example\": \"\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"costs_to_allocate\",\n                  \"provider\",\n                  \"rule_name\",\n                  \"strategy\",\n                  \"type\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The `ArbitraryCostUpsertRequestData` `id`.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"upsert_arbitrary_rule\",\n                \"description\": \"Upsert arbitrary rule resource type.\",\n                \"enum\": [\n                  \"upsert_arbitrary_rule\"\n                ],\n                \"example\": \"upsert_arbitrary_rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"UPSERT_ARBITRARY_RULE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

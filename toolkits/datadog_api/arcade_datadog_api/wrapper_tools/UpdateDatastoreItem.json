@@ -1,0 +1,299 @@
+{
+  "name": "UpdateDatastoreItem",
+  "fully_qualified_name": "DatadogApi.UpdateDatastoreItem@0.1.0",
+  "description": "Partially update an item in a datastore by its key.\n\nUse this tool to modify an existing item in a datastore by specifying its key. It's ideal for making incremental changes without altering the entire record, leveraging Datadog's API.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_identifier",
+        "required": true,
+        "description": "The unique identifier for the datastore that contains the item to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "datastore_id"
+      },
+      {
+        "name": "update_details",
+        "required": true,
+        "description": "JSON object containing the item key, item identifier, and the changes to apply. Include key-value pairs to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier of the item being updated."
+                    },
+                    "item_changes": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "ops_set": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Set operation that contains key-value pairs to set on the datastore item."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Changes to apply to a datastore item using set operations."
+                    },
+                    "item_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The primary key that identifies the item to update. Cannot exceed 256 characters."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for updating a datastore item, including the item key and changes to apply."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the datastore item."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resource type for datastore items."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data wrapper containing the item identifier and the changes to apply during the update operation."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateDatastoreItem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores/{datastore_id}/items",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "datastore_id",
+        "tool_parameter_name": "datastore_identifier",
+        "description": "The unique identifier of the datastore to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The unique identifier of the item being updated."
+                    },
+                    "item_changes": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "ops_set": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Set operation that contains key-value pairs to set on the datastore item."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Changes to apply to a datastore item using set operations."
+                    },
+                    "item_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The primary key that identifies the item to update. Cannot exceed 256 characters."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for updating a datastore item, including the item key and changes to apply."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the datastore item."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The resource type for datastore items."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data wrapper containing the item identifier and the changes to apply during the update operation."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to update specific fields on an existing datastore item.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data wrapper containing the item identifier and the changes to apply during the update operation.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for updating a datastore item, including the item key and changes to apply.\",\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"The unique identifier of the item being updated.\",\n                    \"type\": \"string\"\n                  },\n                  \"item_changes\": {\n                    \"description\": \"Changes to apply to a datastore item using set operations.\",\n                    \"properties\": {\n                      \"ops_set\": {\n                        \"additionalProperties\": {},\n                        \"description\": \"Set operation that contains key-value pairs to set on the datastore item.\",\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"item_key\": {\n                    \"description\": \"The primary key that identifies the item to update. Cannot exceed 256 characters.\",\n                    \"example\": \"\",\n                    \"maxLength\": 256,\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"item_changes\",\n                  \"item_key\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the datastore item.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"items\",\n                \"description\": \"The resource type for datastore items.\",\n                \"enum\": [\n                  \"items\"\n                ],\n                \"example\": \"items\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ITEMS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

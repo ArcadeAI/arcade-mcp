@@ -1,0 +1,264 @@
+{
+  "name": "ManageIncidentAttachments",
+  "fully_qualified_name": "DatadogApi.ManageIncidentAttachments@0.1.0",
+  "description": "Manage attachments for a specific incident in bulk.\n\nUse this tool to create, update, or delete multiple attachments related to a specific incident. It is called when adjustments to the attachments of an incident are needed.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_uuid",
+        "required": true,
+        "description": "The UUID of the incident to manage its attachments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "incident_attachments_payload",
+        "required": true,
+        "description": "A JSON array specifying attachments to create, update, or delete. Use without 'id' to create, without 'attributes' to delete, and both 'id' and 'attributes' to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident attachment attributes."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier that represents the incident attachment."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_attachments"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident attachment resource type."
+                }
+              },
+              "description": "An array of incident attachments. An attachment object without an \"id\" key indicates that you want to\ncreate that attachment. An attachment object without an \"attributes\" key indicates that you want to\ndelete that attachment. An attachment object with both the \"id\" key and a populated \"attributes\" object\nindicates that you want to update that attachment."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident Attachment Payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "related_objects_inclusion",
+        "required": false,
+        "description": "List of related object types to include in the response (e.g., comments, attachments).",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects are included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIncidentAttachments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/{incident_id}/attachments",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "related_objects_inclusion",
+        "description": "Specifies which types of related objects are included in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects are included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_uuid",
+        "description": "The UUID of the incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_attachments_payload",
+        "description": "Incident Attachment Payload.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident attachment attributes."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A unique identifier that represents the incident attachment."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_attachments"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident attachment resource type."
+                }
+              },
+              "description": "An array of incident attachments. An attachment object without an \"id\" key indicates that you want to\ncreate that attachment. An attachment object without an \"attributes\" key indicates that you want to\ndelete that attachment. An attachment object with both the \"id\" key and a populated \"attributes\" object\nindicates that you want to update that attachment."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident Attachment Payload."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The update request for an incident's attachments.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"An array of incident attachments. An attachment object without an \\\"id\\\" key indicates that you want to\\ncreate that attachment. An attachment object without an \\\"attributes\\\" key indicates that you want to\\ndelete that attachment. An attachment object with both the \\\"id\\\" key and a populated \\\"attributes\\\" object\\nindicates that you want to update that attachment.\",\n            \"example\": [\n              {\n                \"attributes\": {\n                  \"attachment\": {\n                    \"documentUrl\": \"https://app.datadoghq.com/notebook/123\",\n                    \"title\": \"Postmortem IR-123\"\n                  },\n                  \"attachment_type\": \"postmortem\"\n                },\n                \"id\": \"00000000-abcd-0002-0000-000000000000\",\n                \"type\": \"incident_attachments\"\n              },\n              {\n                \"attributes\": {\n                  \"attachment\": {\n                    \"documentUrl\": \"https://www.example.com/webstore-failure-runbook\",\n                    \"title\": \"Runbook for webstore service failures\"\n                  },\n                  \"attachment_type\": \"link\"\n                },\n                \"type\": \"incident_attachments\"\n              },\n              {\n                \"id\": \"00000000-abcd-0003-0000-000000000000\",\n                \"type\": \"incident_attachments\"\n              }\n            ],\n            \"items\": {\n              \"description\": \"A single incident attachment.\",\n              \"properties\": {\n                \"attributes\": {\n                  \"description\": \"Incident attachment attributes.\",\n                  \"oneOf\": [\n                    {\n                      \"description\": \"The attributes object for a postmortem attachment.\",\n                      \"properties\": {\n                        \"attachment\": {\n                          \"description\": \"The postmortem attachment.\",\n                          \"properties\": {\n                            \"documentUrl\": {\n                              \"description\": \"The URL of this notebook attachment.\",\n                              \"example\": \"https://app.datadoghq.com/notebook/123\",\n                              \"type\": \"string\"\n                            },\n                            \"title\": {\n                              \"description\": \"The title of this postmortem attachment.\",\n                              \"example\": \"Postmortem IR-123\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"documentUrl\",\n                            \"title\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"attachment_type\": {\n                          \"default\": \"postmortem\",\n                          \"description\": \"The type of postmortem attachment attributes.\",\n                          \"enum\": [\n                            \"postmortem\"\n                          ],\n                          \"example\": \"postmortem\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"POSTMORTEM\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"attachment_type\",\n                        \"attachment\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    {\n                      \"description\": \"The attributes object for a link attachment.\",\n                      \"properties\": {\n                        \"attachment\": {\n                          \"description\": \"The link attachment.\",\n                          \"properties\": {\n                            \"documentUrl\": {\n                              \"description\": \"The URL of this link attachment.\",\n                              \"example\": \"https://www.example.com/webstore-failure-runbook\",\n                              \"type\": \"string\"\n                            },\n                            \"title\": {\n                              \"description\": \"The title of this link attachment.\",\n                              \"example\": \"Runbook for webstore service failures\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"documentUrl\",\n                            \"title\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"attachment_type\": {\n                          \"default\": \"link\",\n                          \"description\": \"The type of link attachment attributes.\",\n                          \"enum\": [\n                            \"link\"\n                          ],\n                          \"example\": \"link\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"LINK\"\n                          ]\n                        },\n                        \"modified\": {\n                          \"description\": \"Timestamp when the incident attachment link was last modified.\",\n                          \"format\": \"date-time\",\n                          \"readOnly\": true,\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"attachment_type\",\n                        \"attachment\"\n                      ],\n                      \"type\": \"object\"\n                    }\n                  ]\n                },\n                \"id\": {\n                  \"description\": \"A unique identifier that represents the incident attachment.\",\n                  \"example\": \"00000000-abcd-0001-0000-000000000000\",\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"default\": \"incident_attachments\",\n                  \"description\": \"The incident attachment resource type.\",\n                  \"enum\": [\n                    \"incident_attachments\"\n                  ],\n                  \"example\": \"incident_attachments\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"INCIDENT_ATTACHMENTS\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"type\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident Attachment Payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

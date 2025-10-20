@@ -1,0 +1,299 @@
+{
+  "name": "EditDataset",
+  "fully_qualified_name": "DatadogApi.EditDataset@0.1.0",
+  "description": "Edit the dataset using the specified ID.\n\nCall this tool to edit the details of a dataset in Datadog using its ID. It updates the dataset's configuration or metadata.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "dataset_id",
+        "required": true,
+        "description": "The unique ID of the dataset to be edited in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a defined dataset."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dataset_id"
+      },
+      {
+        "name": "dataset_payload",
+        "required": true,
+        "description": "JSON object containing dataset metadata and configurations. Includes attributes like 'name', 'principals', and 'product_filters'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the dataset."
+                    },
+                    "principals": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of access principals, formatted as `principal_type:id`. Principal can be 'team' or 'role'."
+                    },
+                    "product_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filters": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the list of tag-based filters used to restrict access to telemetry data for a specific product.\nThese filters act as access control rules. Each filter must follow the tag query syntax used by\nDatadog (such as `@tag.key:value`), and only one tag or attribute may be used to define the access strategy\nper telemetry type."
+                        },
+                        "product": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Name of the product the dataset is for. Possible values are 'apm', 'rum',\n'metrics', 'logs', 'error_tracking', and 'cloud_cost'."
+                        }
+                      },
+                      "description": "List of product-specific filters."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Dataset metadata and configurations."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "dataset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Resource type, always set to `dataset`."
+                }
+              },
+              "inner_properties": null,
+              "description": "**Datasets Object Constraints**\n- **Tag limit per dataset**:\n  - Each restricted dataset supports a maximum of 10 key:value pairs per product.\n\n- **Tag key rules per telemetry type**:\n  - Only one tag key or attribute may be used to define access within a single telemetry type.\n  - The same or different tag key may be used across different telemetry types.\n\n- **Tag value uniqueness**:\n  - Tag values must be unique within a single dataset.\n  - A tag value used in one dataset cannot be reused in another dataset of the same telemetry type."
+            }
+          },
+          "inner_properties": null,
+          "description": "Dataset payload"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateDataset'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/datasets/{dataset_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "dataset_id",
+        "tool_parameter_name": "dataset_id",
+        "description": "The ID of a defined dataset.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a defined dataset."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dataset_payload",
+        "description": "Dataset payload",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the dataset."
+                    },
+                    "principals": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of access principals, formatted as `principal_type:id`. Principal can be 'team' or 'role'."
+                    },
+                    "product_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filters": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Defines the list of tag-based filters used to restrict access to telemetry data for a specific product.\nThese filters act as access control rules. Each filter must follow the tag query syntax used by\nDatadog (such as `@tag.key:value`), and only one tag or attribute may be used to define the access strategy\nper telemetry type."
+                        },
+                        "product": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Name of the product the dataset is for. Possible values are 'apm', 'rum',\n'metrics', 'logs', 'error_tracking', and 'cloud_cost'."
+                        }
+                      },
+                      "description": "List of product-specific filters."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Dataset metadata and configurations."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "dataset"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Resource type, always set to `dataset`."
+                }
+              },
+              "inner_properties": null,
+              "description": "**Datasets Object Constraints**\n- **Tag limit per dataset**:\n  - Each restricted dataset supports a maximum of 10 key:value pairs per product.\n\n- **Tag key rules per telemetry type**:\n  - Only one tag key or attribute may be used to define access within a single telemetry type.\n  - The same or different tag key may be used across different telemetry types.\n\n- **Tag value uniqueness**:\n  - Tag values must be unique within a single dataset.\n  - A tag value used in one dataset cannot be reused in another dataset of the same telemetry type."
+            }
+          },
+          "inner_properties": null,
+          "description": "Dataset payload"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Edit request for a dataset.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"**Datasets Object Constraints**\\n- **Tag limit per dataset**:\\n  - Each restricted dataset supports a maximum of 10 key:value pairs per product.\\n\\n- **Tag key rules per telemetry type**:\\n  - Only one tag key or attribute may be used to define access within a single telemetry type.\\n  - The same or different tag key may be used across different telemetry types.\\n\\n- **Tag value uniqueness**:\\n  - Tag values must be unique within a single dataset.\\n  - A tag value used in one dataset cannot be reused in another dataset of the same telemetry type.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Dataset metadata and configurations.\",\n                \"properties\": {\n                  \"name\": {\n                    \"description\": \"Name of the dataset.\",\n                    \"example\": \"Security Audit Dataset\",\n                    \"type\": \"string\"\n                  },\n                  \"principals\": {\n                    \"description\": \"List of access principals, formatted as `principal_type:id`. Principal can be 'team' or 'role'.\",\n                    \"example\": [\n                      \"role:94172442-be03-11e9-a77a-3b7612558ac1\"\n                    ],\n                    \"items\": {\n                      \"example\": \"role:94172442-be03-11e9-a77a-3b7612558ac1\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"product_filters\": {\n                    \"description\": \"List of product-specific filters.\",\n                    \"items\": {\n                      \"description\": \"Product-specific filters for the dataset.\",\n                      \"properties\": {\n                        \"filters\": {\n                          \"description\": \"Defines the list of tag-based filters used to restrict access to telemetry data for a specific product.\\nThese filters act as access control rules. Each filter must follow the tag query syntax used by\\nDatadog (such as `@tag.key:value`), and only one tag or attribute may be used to define the access strategy\\nper telemetry type.\",\n                          \"example\": [\n                            \"@application.id:ABCD\"\n                          ],\n                          \"items\": {\n                            \"example\": \"@application.id:ABCD\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"product\": {\n                          \"description\": \"Name of the product the dataset is for. Possible values are 'apm', 'rum',\\n'metrics', 'logs', 'error_tracking', and 'cloud_cost'.\",\n                          \"example\": \"logs\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"product\",\n                        \"filters\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"product_filters\",\n                  \"principals\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"dataset\",\n                \"description\": \"Resource type, always set to `dataset`.\",\n                \"enum\": [\n                  \"dataset\"\n                ],\n                \"example\": \"dataset\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"DATASET\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Dataset payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

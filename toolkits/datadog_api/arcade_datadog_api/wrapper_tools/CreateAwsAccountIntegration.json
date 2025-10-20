@@ -1,0 +1,640 @@
+{
+  "name": "CreateAwsAccountIntegration",
+  "fully_qualified_name": "DatadogApi.CreateAwsAccountIntegration@0.1.0",
+  "description": "Create a new AWS Account Integration Config in Datadog.\n\nThis tool should be called when you need to integrate an AWS account with Datadog. It will set up a new AWS account configuration for monitoring and managing AWS services through Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "aws_account_config",
+        "required": true,
+        "description": "JSON structure detailing the AWS account integration configuration, including account tags, authentication, region, logs, metrics, resources, and trace settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags to apply to all hosts and metrics reporting for this account. Defaults to `[]`."
+                    },
+                    "auth_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Authentication config."
+                    },
+                    "aws_account_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Account ID."
+                    },
+                    "aws_partition": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "aws",
+                        "aws-cn",
+                        "aws-us-gov"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS partition your AWS account is scoped to. Defaults to `aws`.\nSee [Partitions](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html) in the AWS documentation for more information."
+                    },
+                    "aws_regions": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Regions to collect data from. Defaults to `include_all`."
+                    },
+                    "logs_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "lambda_forwarder": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "lambdas": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of Datadog Lambda Log Forwarder ARNs in your AWS account. Defaults to `[]`."
+                            },
+                            "log_source_config": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "tag_filters": {
+                                  "val_type": "array",
+                                  "inner_val_type": "json",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": {
+                                    "source": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The AWS log source to which the tag filters defined in `tags` are applied."
+                                    },
+                                    "tags": {
+                                      "val_type": "array",
+                                      "inner_val_type": "string",
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The AWS resource tags to filter on for the log source specified by `source`."
+                                    }
+                                  },
+                                  "description": "List of AWS log source tag filters. Defaults to `[]`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Log source configuration."
+                            },
+                            "sources": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of service IDs set to enable automatic log collection. Discover the list of available services with the\n[Get list of AWS log ready services](https://docs.datadoghq.com/api/latest/aws-logs-integration/#get-list-of-aws-log-ready-services) endpoint."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Log Autosubscription configuration for Datadog Forwarder Lambda functions. Automatically set up triggers for existing\nand new logs for some services, ensuring no logs from new resources are missed and saving time spent on manual configuration."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Logs Collection config."
+                    },
+                    "metrics_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "automute_enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable EC2 automute for AWS metrics. Defaults to `true`."
+                        },
+                        "collect_cloudwatch_alarms": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable CloudWatch alarms collection. Defaults to `false`."
+                        },
+                        "collect_custom_metrics": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable custom metrics collection. Defaults to `false`."
+                        },
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable AWS metrics collection. Defaults to `true`."
+                        },
+                        "namespace_filters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "AWS Metrics namespace filters. Defaults to `exclude_only`."
+                        },
+                        "tag_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "namespace": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The AWS service for which the tag filters defined in `tags` will be applied."
+                            },
+                            "tags": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The AWS resource tags to filter on for the service specified by `namespace`."
+                            }
+                          },
+                          "description": "AWS Metrics collection tag filters list. Defaults to `[]`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Metrics Collection config."
+                    },
+                    "resources_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "cloud_security_posture_management_collection": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable Cloud Security Management to scan AWS resources for vulnerabilities, misconfigurations, identity risks, and compliance violations. Defaults to `false`. Requires `extended_collection` to be set to `true`."
+                        },
+                        "extended_collection": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Whether Datadog collects additional attributes and configuration information about the resources in your AWS account. Defaults to `true`. Required for `cloud_security_posture_management_collection`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Resources Collection config."
+                    },
+                    "traces_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "xray_services": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "AWS X-Ray services to collect traces from. Defaults to `include_only`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Traces Collection config."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The AWS Account Integration Config to be created."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "account"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AWS Account resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "AWS Account Create Request data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateAWSAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integration/aws/accounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "aws_account_config",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags to apply to all hosts and metrics reporting for this account. Defaults to `[]`."
+                    },
+                    "auth_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Authentication config."
+                    },
+                    "aws_account_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Account ID."
+                    },
+                    "aws_partition": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "aws",
+                        "aws-cn",
+                        "aws-us-gov"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS partition your AWS account is scoped to. Defaults to `aws`.\nSee [Partitions](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html) in the AWS documentation for more information."
+                    },
+                    "aws_regions": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "AWS Regions to collect data from. Defaults to `include_all`."
+                    },
+                    "logs_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "lambda_forwarder": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "lambdas": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of Datadog Lambda Log Forwarder ARNs in your AWS account. Defaults to `[]`."
+                            },
+                            "log_source_config": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "tag_filters": {
+                                  "val_type": "array",
+                                  "inner_val_type": "json",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": {
+                                    "source": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The AWS log source to which the tag filters defined in `tags` are applied."
+                                    },
+                                    "tags": {
+                                      "val_type": "array",
+                                      "inner_val_type": "string",
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The AWS resource tags to filter on for the log source specified by `source`."
+                                    }
+                                  },
+                                  "description": "List of AWS log source tag filters. Defaults to `[]`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Log source configuration."
+                            },
+                            "sources": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of service IDs set to enable automatic log collection. Discover the list of available services with the\n[Get list of AWS log ready services](https://docs.datadoghq.com/api/latest/aws-logs-integration/#get-list-of-aws-log-ready-services) endpoint."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Log Autosubscription configuration for Datadog Forwarder Lambda functions. Automatically set up triggers for existing\nand new logs for some services, ensuring no logs from new resources are missed and saving time spent on manual configuration."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Logs Collection config."
+                    },
+                    "metrics_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "automute_enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable EC2 automute for AWS metrics. Defaults to `true`."
+                        },
+                        "collect_cloudwatch_alarms": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable CloudWatch alarms collection. Defaults to `false`."
+                        },
+                        "collect_custom_metrics": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable custom metrics collection. Defaults to `false`."
+                        },
+                        "enabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable AWS metrics collection. Defaults to `true`."
+                        },
+                        "namespace_filters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "AWS Metrics namespace filters. Defaults to `exclude_only`."
+                        },
+                        "tag_filters": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "namespace": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The AWS service for which the tag filters defined in `tags` will be applied."
+                            },
+                            "tags": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The AWS resource tags to filter on for the service specified by `namespace`."
+                            }
+                          },
+                          "description": "AWS Metrics collection tag filters list. Defaults to `[]`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Metrics Collection config."
+                    },
+                    "resources_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "cloud_security_posture_management_collection": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Enable Cloud Security Management to scan AWS resources for vulnerabilities, misconfigurations, identity risks, and compliance violations. Defaults to `false`. Requires `extended_collection` to be set to `true`."
+                        },
+                        "extended_collection": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Whether Datadog collects additional attributes and configuration information about the resources in your AWS account. Defaults to `true`. Required for `cloud_security_posture_management_collection`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Resources Collection config."
+                    },
+                    "traces_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "xray_services": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "AWS X-Ray services to collect traces from. Defaults to `include_only`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "AWS Traces Collection config."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The AWS Account Integration Config to be created."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "account"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AWS Account resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "AWS Account Create Request data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"AWS Account Create Request body.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"AWS Account Create Request data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The AWS Account Integration Config to be created.\",\n                \"properties\": {\n                  \"account_tags\": {\n                    \"description\": \"Tags to apply to all hosts and metrics reporting for this account. Defaults to `[]`.\",\n                    \"items\": {\n                      \"description\": \"Tag in the form `key:value`.\",\n                      \"example\": \"env:prod\",\n                      \"type\": \"string\"\n                    },\n                    \"nullable\": true,\n                    \"type\": \"array\"\n                  },\n                  \"auth_config\": {\n                    \"description\": \"AWS Authentication config.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"AWS Authentication config to integrate your account using an access key pair.\",\n                        \"properties\": {\n                          \"access_key_id\": {\n                            \"description\": \"AWS Access Key ID.\",\n                            \"example\": \"AKIAIOSFODNN7EXAMPLE\",\n                            \"type\": \"string\"\n                          },\n                          \"secret_access_key\": {\n                            \"description\": \"AWS Secret Access Key.\",\n                            \"example\": \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\",\n                            \"minLength\": 1,\n                            \"type\": \"string\",\n                            \"writeOnly\": true\n                          }\n                        },\n                        \"required\": [\n                          \"access_key_id\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"AWS Authentication config to integrate your account using an IAM role.\",\n                        \"properties\": {\n                          \"external_id\": {\n                            \"description\": \"AWS IAM External ID for associated role.\",\n                            \"type\": \"string\"\n                          },\n                          \"role_name\": {\n                            \"description\": \"AWS IAM Role name.\",\n                            \"example\": \"DatadogIntegrationRole\",\n                            \"maxLength\": 576,\n                            \"minLength\": 1,\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"required\": [\n                          \"role_name\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"aws_account_id\": {\n                    \"description\": \"AWS Account ID.\",\n                    \"example\": \"123456789012\",\n                    \"type\": \"string\"\n                  },\n                  \"aws_partition\": {\n                    \"description\": \"AWS partition your AWS account is scoped to. Defaults to `aws`.\\nSee [Partitions](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html) in the AWS documentation for more information.\",\n                    \"enum\": [\n                      \"aws\",\n                      \"aws-cn\",\n                      \"aws-us-gov\"\n                    ],\n                    \"example\": \"aws\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"AWS\",\n                      \"AWS_CN\",\n                      \"AWS_US_GOV\"\n                    ]\n                  },\n                  \"aws_regions\": {\n                    \"description\": \"AWS Regions to collect data from. Defaults to `include_all`.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"Include all regions. Defaults to `true`.\",\n                        \"properties\": {\n                          \"include_all\": {\n                            \"description\": \"Include all regions.\",\n                            \"example\": true,\n                            \"type\": \"boolean\"\n                          }\n                        },\n                        \"required\": [\n                          \"include_all\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"Include only these regions.\",\n                        \"properties\": {\n                          \"include_only\": {\n                            \"description\": \"Include only these regions.\",\n                            \"example\": [\n                              \"us-east-1\"\n                            ],\n                            \"items\": {\n                              \"example\": \"us-east-1\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"include_only\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"logs_config\": {\n                    \"description\": \"AWS Logs Collection config.\",\n                    \"properties\": {\n                      \"lambda_forwarder\": {\n                        \"description\": \"Log Autosubscription configuration for Datadog Forwarder Lambda functions. Automatically set up triggers for existing\\nand new logs for some services, ensuring no logs from new resources are missed and saving time spent on manual configuration.\",\n                        \"properties\": {\n                          \"lambdas\": {\n                            \"description\": \"List of Datadog Lambda Log Forwarder ARNs in your AWS account. Defaults to `[]`.\",\n                            \"items\": {\n                              \"example\": \"arn:aws:lambda:us-east-1:123456789012:function:DatadogLambdaLogForwarder\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                          },\n                          \"log_source_config\": {\n                            \"description\": \"Log source configuration.\",\n                            \"properties\": {\n                              \"tag_filters\": {\n                                \"description\": \"List of AWS log source tag filters. Defaults to `[]`.\",\n                                \"items\": {\n                                  \"description\": \"AWS log source tag filter list. Defaults to `[]`.\\nArray of log source to AWS resource tag mappings. Each mapping contains a log source and its associated AWS resource tags (in `key:value` format) used to filter logs submitted to Datadog.\\nTag filters are applied for tags on the AWS resource emitting logs; tags associated with the log storage entity (such as a CloudWatch Log Group or S3 Bucket) are not considered.\\nFor more information on resource tag filter syntax, [see AWS resource exclusion](https://docs.datadoghq.com/account_management/billing/aws/#aws-resource-exclusion) in the AWS integration billing page.\",\n                                  \"properties\": {\n                                    \"source\": {\n                                      \"description\": \"The AWS log source to which the tag filters defined in `tags` are applied.\",\n                                      \"example\": \"s3\",\n                                      \"type\": \"string\"\n                                    },\n                                    \"tags\": {\n                                      \"description\": \"The AWS resource tags to filter on for the log source specified by `source`.\",\n                                      \"items\": {\n                                        \"description\": \"Tag in the form `key:value`.\",\n                                        \"example\": \"env:prod\",\n                                        \"type\": \"string\"\n                                      },\n                                      \"nullable\": true,\n                                      \"type\": \"array\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"type\": \"array\"\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"sources\": {\n                            \"description\": \"List of service IDs set to enable automatic log collection. Discover the list of available services with the\\n[Get list of AWS log ready services](https://docs.datadoghq.com/api/latest/aws-logs-integration/#get-list-of-aws-log-ready-services) endpoint.\",\n                            \"items\": {\n                              \"example\": \"s3\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"metrics_config\": {\n                    \"description\": \"AWS Metrics Collection config.\",\n                    \"properties\": {\n                      \"automute_enabled\": {\n                        \"description\": \"Enable EC2 automute for AWS metrics. Defaults to `true`.\",\n                        \"example\": true,\n                        \"type\": \"boolean\"\n                      },\n                      \"collect_cloudwatch_alarms\": {\n                        \"description\": \"Enable CloudWatch alarms collection. Defaults to `false`.\",\n                        \"example\": false,\n                        \"type\": \"boolean\"\n                      },\n                      \"collect_custom_metrics\": {\n                        \"description\": \"Enable custom metrics collection. Defaults to `false`.\",\n                        \"example\": false,\n                        \"type\": \"boolean\"\n                      },\n                      \"enabled\": {\n                        \"description\": \"Enable AWS metrics collection. Defaults to `true`.\",\n                        \"example\": true,\n                        \"type\": \"boolean\"\n                      },\n                      \"namespace_filters\": {\n                        \"description\": \"AWS Metrics namespace filters. Defaults to `exclude_only`.\",\n                        \"oneOf\": [\n                          {\n                            \"description\": \"Exclude only these namespaces from metrics collection. Defaults to `[\\\"AWS/SQS\\\", \\\"AWS/ElasticMapReduce\\\", \\\"AWS/Usage\\\"]`.\\n`AWS/SQS`, `AWS/ElasticMapReduce`, and `AWS/Usage` are excluded by default to reduce your AWS CloudWatch costs from `GetMetricData` API calls.\",\n                            \"properties\": {\n                              \"exclude_only\": {\n                                \"description\": \"Exclude only these namespaces from metrics collection. Defaults to `[\\\"AWS/SQS\\\", \\\"AWS/ElasticMapReduce\\\", \\\"AWS/Usage\\\"]`.\\n`AWS/SQS`, `AWS/ElasticMapReduce`, and `AWS/Usage` are excluded by default to reduce your AWS CloudWatch costs from `GetMetricData` API calls.\",\n                                \"example\": [\n                                  \"AWS/SQS\",\n                                  \"AWS/ElasticMapReduce\",\n                                  \"AWS/Usage\"\n                                ],\n                                \"items\": {\n                                  \"example\": \"AWS/SQS\",\n                                  \"type\": \"string\"\n                                },\n                                \"type\": \"array\"\n                              }\n                            },\n                            \"required\": [\n                              \"exclude_only\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          {\n                            \"description\": \"Include only these namespaces.\",\n                            \"properties\": {\n                              \"include_only\": {\n                                \"description\": \"Include only these namespaces.\",\n                                \"example\": [\n                                  \"AWS/EC2\"\n                                ],\n                                \"items\": {\n                                  \"example\": \"AWS/EC2\",\n                                  \"type\": \"string\"\n                                },\n                                \"type\": \"array\"\n                              }\n                            },\n                            \"required\": [\n                              \"include_only\"\n                            ],\n                            \"type\": \"object\"\n                          }\n                        ]\n                      },\n                      \"tag_filters\": {\n                        \"description\": \"AWS Metrics collection tag filters list. Defaults to `[]`.\",\n                        \"items\": {\n                          \"description\": \"AWS Metrics Collection tag filters list. Defaults to `[]`.\\nThe array of custom AWS resource tags (in the form `key:value`) defines a filter that Datadog uses when collecting metrics from a specified service.\\nWildcards, such as `?` (match a single character) and `*` (match multiple characters), and exclusion using `!` before the tag are supported.\\nFor EC2, only hosts that match one of the defined tags will be imported into Datadog. The rest will be ignored.\\nFor example, `env:production,instance-type:c?.*,!region:us-east-1`.\",\n                          \"properties\": {\n                            \"namespace\": {\n                              \"description\": \"The AWS service for which the tag filters defined in `tags` will be applied.\",\n                              \"example\": \"AWS/EC2\",\n                              \"type\": \"string\"\n                            },\n                            \"tags\": {\n                              \"description\": \"The AWS resource tags to filter on for the service specified by `namespace`.\",\n                              \"items\": {\n                                \"description\": \"Tag in the form `key:value`.\",\n                                \"example\": \"datadog:true\",\n                                \"type\": \"string\"\n                              },\n                              \"nullable\": true,\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"resources_config\": {\n                    \"description\": \"AWS Resources Collection config.\",\n                    \"properties\": {\n                      \"cloud_security_posture_management_collection\": {\n                        \"description\": \"Enable Cloud Security Management to scan AWS resources for vulnerabilities, misconfigurations, identity risks, and compliance violations. Defaults to `false`. Requires `extended_collection` to be set to `true`.\",\n                        \"example\": false,\n                        \"type\": \"boolean\"\n                      },\n                      \"extended_collection\": {\n                        \"description\": \"Whether Datadog collects additional attributes and configuration information about the resources in your AWS account. Defaults to `true`. Required for `cloud_security_posture_management_collection`.\",\n                        \"example\": true,\n                        \"type\": \"boolean\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"traces_config\": {\n                    \"description\": \"AWS Traces Collection config.\",\n                    \"properties\": {\n                      \"xray_services\": {\n                        \"description\": \"AWS X-Ray services to collect traces from. Defaults to `include_only`.\",\n                        \"oneOf\": [\n                          {\n                            \"description\": \"Include all services.\",\n                            \"properties\": {\n                              \"include_all\": {\n                                \"description\": \"Include all services.\",\n                                \"example\": false,\n                                \"type\": \"boolean\"\n                              }\n                            },\n                            \"required\": [\n                              \"include_all\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          {\n                            \"description\": \"Include only these services. Defaults to `[]`.\",\n                            \"nullable\": true,\n                            \"properties\": {\n                              \"include_only\": {\n                                \"description\": \"Include only these services.\",\n                                \"example\": [\n                                  \"AWS/AppSync\"\n                                ],\n                                \"items\": {\n                                  \"example\": \"AWS/AppSync\",\n                                  \"type\": \"string\"\n                                },\n                                \"type\": \"array\"\n                              }\n                            },\n                            \"required\": [\n                              \"include_only\"\n                            ],\n                            \"type\": \"object\"\n                          }\n                        ]\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"aws_account_id\",\n                  \"aws_partition\",\n                  \"auth_config\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"account\",\n                \"description\": \"AWS Account resource type.\",\n                \"enum\": [\n                  \"account\"\n                ],\n                \"example\": \"account\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ACCOUNT\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

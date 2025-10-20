@@ -1,0 +1,361 @@
+{
+  "name": "UpdateIncidentType",
+  "fully_qualified_name": "DatadogApi.UpdateIncidentType@0.1.0",
+  "description": "Update the type of a specific incident in Datadog.\n\nUse this tool to modify an existing incident type in Datadog by specifying the incident type ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_type_uuid",
+        "required": true,
+        "description": "The UUID representing the incident type to be updated in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_type_id"
+      },
+      {
+        "name": "incident_type_payload",
+        "required": true,
+        "description": "JSON payload containing the incident type data, including attributes like name, description, and timestamps for updates.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident type was created."
+                    },
+                    "createdBy": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier that represents the user that created the incident type."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Text that describes the incident type."
+                    },
+                    "is_default": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When true, this incident type will be used as the default type when an incident type is not specified."
+                    },
+                    "lastModifiedBy": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier that represents the user that last modified the incident type."
+                    },
+                    "modifiedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident type was last modified."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the incident type."
+                    },
+                    "prefix": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The string that will be prepended to the incident title across the Datadog app."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident type's attributes for updates."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type's ID."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_types"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident type resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident type data for a patch request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident type payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIncidentType'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/config/types/{incident_type_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "incident_type_id",
+        "tool_parameter_name": "incident_type_uuid",
+        "description": "The UUID of the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident type."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_type_payload",
+        "description": "Incident type payload.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident type was created."
+                    },
+                    "createdBy": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier that represents the user that created the incident type."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Text that describes the incident type."
+                    },
+                    "is_default": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When true, this incident type will be used as the default type when an incident type is not specified."
+                    },
+                    "lastModifiedBy": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A unique identifier that represents the user that last modified the incident type."
+                    },
+                    "modifiedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident type was last modified."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the incident type."
+                    },
+                    "prefix": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The string that will be prepended to the incident title across the Datadog app."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident type's attributes for updates."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident type's ID."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_types"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident type resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident type data for a patch request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident type payload."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Patch request for an incident type.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Incident type data for a patch request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Incident type's attributes for updates.\",\n                \"properties\": {\n                  \"createdAt\": {\n                    \"description\": \"Timestamp when the incident type was created.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"createdBy\": {\n                    \"description\": \"A unique identifier that represents the user that created the incident type.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"description\": {\n                    \"description\": \"Text that describes the incident type.\",\n                    \"example\": \"Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data. Note: This will notify the security team.\",\n                    \"type\": \"string\"\n                  },\n                  \"is_default\": {\n                    \"description\": \"When true, this incident type will be used as the default type when an incident type is not specified.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"lastModifiedBy\": {\n                    \"description\": \"A unique identifier that represents the user that last modified the incident type.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"modifiedAt\": {\n                    \"description\": \"Timestamp when the incident type was last modified.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the incident type.\",\n                    \"example\": \"Security Incident\",\n                    \"type\": \"string\"\n                  },\n                  \"prefix\": {\n                    \"description\": \"The string that will be prepended to the incident title across the Datadog app.\",\n                    \"example\": \"IR\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The incident type's ID.\",\n                \"example\": \"00000000-0000-0000-0000-000000000000\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"incident_types\",\n                \"description\": \"Incident type resource type.\",\n                \"enum\": [\n                  \"incident_types\"\n                ],\n                \"example\": \"incident_types\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENT_TYPES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident type payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

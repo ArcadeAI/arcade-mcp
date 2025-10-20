@@ -1,0 +1,306 @@
+{
+  "name": "UpdateCaseCustomAttribute",
+  "fully_qualified_name": "DatadogApi.UpdateCaseCustomAttribute@0.1.0",
+  "description": "Update a custom attribute for a specific case in Datadog.\n\nUse this tool to update the custom attribute of a specific case by providing the case ID and the custom attribute key in Datadog. It should be called when you need to modify the properties of an existing case.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_identifier",
+        "required": true,
+        "description": "The UUID or key of the case to be updated. This identifies the specific case in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "case_id"
+      },
+      {
+        "name": "custom_attribute_key",
+        "required": true,
+        "description": "The key for the custom attribute of the case to be updated. Provide the exact key name to ensure accurate updates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case Custom attribute's key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_attribute_key"
+      },
+      {
+        "name": "update_case_custom_attribute_payload",
+        "required": true,
+        "description": "JSON payload specifying the custom attribute update for a case, including attributes like type, is_multi, and value.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_multi": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If true, value must be an array"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "URL",
+                        "TEXT",
+                        "NUMBER"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Custom attributes type"
+                    },
+                    "value": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Union of supported value for a custom attribute"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Custom attribute values"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "case"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Case resource type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Case update custom attribute"
+            }
+          },
+          "inner_properties": null,
+          "description": "Update case custom attribute payload"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCaseCustomAttribute'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/{case_id}/custom_attributes/{custom_attribute_key}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "case_id",
+        "tool_parameter_name": "case_identifier",
+        "description": "Case's UUID or key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_attribute_key",
+        "tool_parameter_name": "custom_attribute_key",
+        "description": "Case Custom attribute's key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case Custom attribute's key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_case_custom_attribute_payload",
+        "description": "Update case custom attribute payload",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "is_multi": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If true, value must be an array"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "URL",
+                        "TEXT",
+                        "NUMBER"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Custom attributes type"
+                    },
+                    "value": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Union of supported value for a custom attribute"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Custom attribute values"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "case"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Case resource type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Case update custom attribute"
+            }
+          },
+          "inner_properties": null,
+          "description": "Update case custom attribute payload"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case update custom attribute request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case update custom attribute\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Custom attribute values\",\n                \"properties\": {\n                  \"is_multi\": {\n                    \"description\": \"If true, value must be an array\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"type\": {\n                    \"description\": \"Custom attributes type\",\n                    \"enum\": [\n                      \"URL\",\n                      \"TEXT\",\n                      \"NUMBER\"\n                    ],\n                    \"example\": \"NUMBER\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"URL\",\n                      \"TEXT\",\n                      \"NUMBER\"\n                    ]\n                  },\n                  \"value\": {\n                    \"description\": \"Union of supported value for a custom attribute\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"Value of TEXT/URL custom attribute\",\n                        \"type\": \"string\"\n                      },\n                      {\n                        \"description\": \"Value of multi TEXT/URL custom attribute\",\n                        \"items\": {\n                          \"description\": \"TEXT/URL Value\",\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      {\n                        \"description\": \"Value of NUMBER custom attribute\",\n                        \"format\": \"double\",\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"description\": \"Values of multi NUMBER custom attribute\",\n                        \"items\": {\n                          \"description\": \"NUMBER value\",\n                          \"format\": \"double\",\n                          \"type\": \"number\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"is_multi\",\n                  \"value\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case\",\n                \"description\": \"Case resource type\",\n                \"enum\": [\n                  \"case\"\n                ],\n                \"example\": \"case\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Update case custom attribute payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

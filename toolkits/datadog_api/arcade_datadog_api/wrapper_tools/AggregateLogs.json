@@ -1,0 +1,700 @@
+{
+  "name": "AggregateLogs",
+  "fully_qualified_name": "DatadogApi.AggregateLogs@0.1.0",
+  "description": "Aggregate logs to compute metrics and timeseries.\n\nThis tool aggregates log events into buckets to compute relevant metrics and timeseries. It's useful for analyzing large volumes of log data to extract meaningful insights.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "log_aggregation_request",
+        "required": true,
+        "description": "JSON object specifying compute metrics, filters, groupings, options, and paging settings for log aggregation.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "compute": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "aggregation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "count",
+                    "cardinality",
+                    "pc75",
+                    "pc90",
+                    "pc95",
+                    "pc98",
+                    "pc99",
+                    "sum",
+                    "min",
+                    "max",
+                    "avg",
+                    "median"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An aggregation function"
+                },
+                "interval": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time buckets' size (only used for type=timeseries)\nDefaults to a resolution of 150 points"
+                },
+                "metric": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric to use"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "timeseries",
+                    "total"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of compute"
+                }
+              },
+              "description": "The list of metrics or timeseries to compute for the retrieved buckets."
+            },
+            "filter": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "from": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The minimum time for the requested logs, supports date math and regular timestamps (milliseconds)."
+                },
+                "indexes": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes."
+                },
+                "query": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The search query - following the log search syntax."
+                },
+                "storage_tier": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "indexes",
+                    "online-archives",
+                    "flex"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies storage type as indexes, online-archives or flex"
+                },
+                "to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The maximum time for the requested logs, supports date math and regular timestamps (milliseconds)."
+                }
+              },
+              "inner_properties": null,
+              "description": "The search and filter query settings"
+            },
+            "group_by": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "facet": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the facet to use (required)"
+                },
+                "histogram": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "interval": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The bin size of the histogram buckets"
+                    },
+                    "max": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The maximum value for the measure used in the histogram\n(values greater than this one are filtered out)"
+                    },
+                    "min": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The minimum value for the measure used in the histogram\n(values smaller than this one are filtered out)"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Used to perform a histogram computation (only for measure facets).\nNote: at most 100 buckets are allowed, the number of buckets is (max - min)/interval."
+                },
+                "limit": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The maximum buckets to return for this group by. Note: at most 10000 buckets are allowed.\nIf grouping by multiple facets, the product of limits must not exceed 10000."
+                },
+                "missing": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value to use for logs that don't have the facet used to group by"
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "aggregation": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "count",
+                        "cardinality",
+                        "pc75",
+                        "pc90",
+                        "pc95",
+                        "pc98",
+                        "pc99",
+                        "sum",
+                        "min",
+                        "max",
+                        "avg",
+                        "median"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An aggregation function"
+                    },
+                    "metric": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The metric to sort by (only used for `type=measure`)"
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order to use, ascending or descending"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "alphabetical",
+                        "measure"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of sorting algorithm"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "A sort rule"
+                },
+                "total": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A resulting object to put the given computes in over all the matching records."
+                }
+              },
+              "description": "The rules for the group by"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "timeOffset": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time offset (in seconds) to apply to the query."
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Global query options that are used during the query.\nNote: These fields are currently deprecated and do not affect the query results."
+            },
+            "page": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cursor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The returned paging point to use to get the next results. Note: at most 1000 results can be paged."
+                }
+              },
+              "inner_properties": null,
+              "description": "Paging settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AggregateLogs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/analytics/aggregate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "log_aggregation_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "compute": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "aggregation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "count",
+                    "cardinality",
+                    "pc75",
+                    "pc90",
+                    "pc95",
+                    "pc98",
+                    "pc99",
+                    "sum",
+                    "min",
+                    "max",
+                    "avg",
+                    "median"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "An aggregation function"
+                },
+                "interval": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time buckets' size (only used for type=timeseries)\nDefaults to a resolution of 150 points"
+                },
+                "metric": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The metric to use"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "timeseries",
+                    "total"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of compute"
+                }
+              },
+              "description": "The list of metrics or timeseries to compute for the retrieved buckets."
+            },
+            "filter": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "from": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The minimum time for the requested logs, supports date math and regular timestamps (milliseconds)."
+                },
+                "indexes": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes."
+                },
+                "query": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The search query - following the log search syntax."
+                },
+                "storage_tier": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "indexes",
+                    "online-archives",
+                    "flex"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies storage type as indexes, online-archives or flex"
+                },
+                "to": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The maximum time for the requested logs, supports date math and regular timestamps (milliseconds)."
+                }
+              },
+              "inner_properties": null,
+              "description": "The search and filter query settings"
+            },
+            "group_by": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "facet": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the facet to use (required)"
+                },
+                "histogram": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "interval": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The bin size of the histogram buckets"
+                    },
+                    "max": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The maximum value for the measure used in the histogram\n(values greater than this one are filtered out)"
+                    },
+                    "min": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The minimum value for the measure used in the histogram\n(values smaller than this one are filtered out)"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Used to perform a histogram computation (only for measure facets).\nNote: at most 100 buckets are allowed, the number of buckets is (max - min)/interval."
+                },
+                "limit": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The maximum buckets to return for this group by. Note: at most 10000 buckets are allowed.\nIf grouping by multiple facets, the product of limits must not exceed 10000."
+                },
+                "missing": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The value to use for logs that don't have the facet used to group by"
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "aggregation": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "count",
+                        "cardinality",
+                        "pc75",
+                        "pc90",
+                        "pc95",
+                        "pc98",
+                        "pc99",
+                        "sum",
+                        "min",
+                        "max",
+                        "avg",
+                        "median"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An aggregation function"
+                    },
+                    "metric": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The metric to sort by (only used for `type=measure`)"
+                    },
+                    "order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order to use, ascending or descending"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "alphabetical",
+                        "measure"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The type of sorting algorithm"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "A sort rule"
+                },
+                "total": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "A resulting object to put the given computes in over all the matching records."
+                }
+              },
+              "description": "The rules for the group by"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "timeOffset": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time offset (in seconds) to apply to the query."
+                },
+                "timezone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Global query options that are used during the query.\nNote: These fields are currently deprecated and do not affect the query results."
+            },
+            "page": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cursor": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The returned paging point to use to get the next results. Note: at most 1000 results can be paged."
+                }
+              },
+              "inner_properties": null,
+              "description": "Paging settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The object sent with the request to retrieve a list of logs from your organization.\",\n        \"properties\": {\n          \"compute\": {\n            \"description\": \"The list of metrics or timeseries to compute for the retrieved buckets.\",\n            \"items\": {\n              \"description\": \"A compute rule to compute metrics or timeseries\",\n              \"properties\": {\n                \"aggregation\": {\n                  \"description\": \"An aggregation function\",\n                  \"enum\": [\n                    \"count\",\n                    \"cardinality\",\n                    \"pc75\",\n                    \"pc90\",\n                    \"pc95\",\n                    \"pc98\",\n                    \"pc99\",\n                    \"sum\",\n                    \"min\",\n                    \"max\",\n                    \"avg\",\n                    \"median\"\n                  ],\n                  \"example\": \"pc90\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"COUNT\",\n                    \"CARDINALITY\",\n                    \"PERCENTILE_75\",\n                    \"PERCENTILE_90\",\n                    \"PERCENTILE_95\",\n                    \"PERCENTILE_98\",\n                    \"PERCENTILE_99\",\n                    \"SUM\",\n                    \"MIN\",\n                    \"MAX\",\n                    \"AVG\",\n                    \"MEDIAN\"\n                  ]\n                },\n                \"interval\": {\n                  \"description\": \"The time buckets' size (only used for type=timeseries)\\nDefaults to a resolution of 150 points\",\n                  \"example\": \"5m\",\n                  \"type\": \"string\"\n                },\n                \"metric\": {\n                  \"description\": \"The metric to use\",\n                  \"example\": \"@duration\",\n                  \"type\": \"string\"\n                },\n                \"type\": {\n                  \"default\": \"total\",\n                  \"description\": \"The type of compute\",\n                  \"enum\": [\n                    \"timeseries\",\n                    \"total\"\n                  ],\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"TIMESERIES\",\n                    \"TOTAL\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"aggregation\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"filter\": {\n            \"description\": \"The search and filter query settings\",\n            \"properties\": {\n              \"from\": {\n                \"default\": \"now-15m\",\n                \"description\": \"The minimum time for the requested logs, supports date math and regular timestamps (milliseconds).\",\n                \"example\": \"now-15m\",\n                \"type\": \"string\"\n              },\n              \"indexes\": {\n                \"default\": [\n                  \"*\"\n                ],\n                \"description\": \"For customers with multiple indexes, the indexes to search. Defaults to ['*'] which means all indexes.\",\n                \"example\": [\n                  \"main\",\n                  \"web\"\n                ],\n                \"items\": {\n                  \"description\": \"The name of a log index.\",\n                  \"type\": \"string\"\n                },\n                \"type\": \"array\"\n              },\n              \"query\": {\n                \"default\": \"*\",\n                \"description\": \"The search query - following the log search syntax.\",\n                \"example\": \"service:web* AND @http.status_code:[200 TO 299]\",\n                \"type\": \"string\"\n              },\n              \"storage_tier\": {\n                \"default\": \"indexes\",\n                \"description\": \"Specifies storage type as indexes, online-archives or flex\",\n                \"enum\": [\n                  \"indexes\",\n                  \"online-archives\",\n                  \"flex\"\n                ],\n                \"example\": \"indexes\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INDEXES\",\n                  \"ONLINE_ARCHIVES\",\n                  \"FLEX\"\n                ]\n              },\n              \"to\": {\n                \"default\": \"now\",\n                \"description\": \"The maximum time for the requested logs, supports date math and regular timestamps (milliseconds).\",\n                \"example\": \"now\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"group_by\": {\n            \"description\": \"The rules for the group by\",\n            \"items\": {\n              \"description\": \"A group by rule\",\n              \"properties\": {\n                \"facet\": {\n                  \"description\": \"The name of the facet to use (required)\",\n                  \"example\": \"host\",\n                  \"type\": \"string\"\n                },\n                \"histogram\": {\n                  \"description\": \"Used to perform a histogram computation (only for measure facets).\\nNote: at most 100 buckets are allowed, the number of buckets is (max - min)/interval.\",\n                  \"properties\": {\n                    \"interval\": {\n                      \"description\": \"The bin size of the histogram buckets\",\n                      \"example\": 10,\n                      \"format\": \"double\",\n                      \"type\": \"number\"\n                    },\n                    \"max\": {\n                      \"description\": \"The maximum value for the measure used in the histogram\\n(values greater than this one are filtered out)\",\n                      \"example\": 100,\n                      \"format\": \"double\",\n                      \"type\": \"number\"\n                    },\n                    \"min\": {\n                      \"description\": \"The minimum value for the measure used in the histogram\\n(values smaller than this one are filtered out)\",\n                      \"example\": 50,\n                      \"format\": \"double\",\n                      \"type\": \"number\"\n                    }\n                  },\n                  \"required\": [\n                    \"interval\",\n                    \"min\",\n                    \"max\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"limit\": {\n                  \"default\": 10,\n                  \"description\": \"The maximum buckets to return for this group by. Note: at most 10000 buckets are allowed.\\nIf grouping by multiple facets, the product of limits must not exceed 10000.\",\n                  \"format\": \"int64\",\n                  \"type\": \"integer\"\n                },\n                \"missing\": {\n                  \"description\": \"The value to use for logs that don't have the facet used to group by\",\n                  \"oneOf\": [\n                    {\n                      \"description\": \"The missing value to use if there is string valued facet.\",\n                      \"type\": \"string\"\n                    },\n                    {\n                      \"description\": \"The missing value to use if there is a number valued facet.\",\n                      \"format\": \"double\",\n                      \"type\": \"number\"\n                    }\n                  ]\n                },\n                \"sort\": {\n                  \"description\": \"A sort rule\",\n                  \"example\": {\n                    \"aggregation\": \"count\",\n                    \"order\": \"asc\"\n                  },\n                  \"properties\": {\n                    \"aggregation\": {\n                      \"description\": \"An aggregation function\",\n                      \"enum\": [\n                        \"count\",\n                        \"cardinality\",\n                        \"pc75\",\n                        \"pc90\",\n                        \"pc95\",\n                        \"pc98\",\n                        \"pc99\",\n                        \"sum\",\n                        \"min\",\n                        \"max\",\n                        \"avg\",\n                        \"median\"\n                      ],\n                      \"example\": \"pc90\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"COUNT\",\n                        \"CARDINALITY\",\n                        \"PERCENTILE_75\",\n                        \"PERCENTILE_90\",\n                        \"PERCENTILE_95\",\n                        \"PERCENTILE_98\",\n                        \"PERCENTILE_99\",\n                        \"SUM\",\n                        \"MIN\",\n                        \"MAX\",\n                        \"AVG\",\n                        \"MEDIAN\"\n                      ]\n                    },\n                    \"metric\": {\n                      \"description\": \"The metric to sort by (only used for `type=measure`)\",\n                      \"example\": \"@duration\",\n                      \"type\": \"string\"\n                    },\n                    \"order\": {\n                      \"description\": \"The order to use, ascending or descending\",\n                      \"enum\": [\n                        \"asc\",\n                        \"desc\"\n                      ],\n                      \"example\": \"asc\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"ASCENDING\",\n                        \"DESCENDING\"\n                      ]\n                    },\n                    \"type\": {\n                      \"default\": \"alphabetical\",\n                      \"description\": \"The type of sorting algorithm\",\n                      \"enum\": [\n                        \"alphabetical\",\n                        \"measure\"\n                      ],\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"ALPHABETICAL\",\n                        \"MEASURE\"\n                      ]\n                    }\n                  },\n                  \"type\": \"object\"\n                },\n                \"total\": {\n                  \"default\": false,\n                  \"description\": \"A resulting object to put the given computes in over all the matching records.\",\n                  \"oneOf\": [\n                    {\n                      \"description\": \"If set to true, creates an additional bucket labeled \\\"$facet_total\\\"\",\n                      \"type\": \"boolean\"\n                    },\n                    {\n                      \"description\": \"A string to use as the key value for the total bucket\",\n                      \"type\": \"string\"\n                    },\n                    {\n                      \"description\": \"A number to use as the key value for the total bucket\",\n                      \"format\": \"double\",\n                      \"type\": \"number\"\n                    }\n                  ]\n                }\n              },\n              \"required\": [\n                \"facet\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"options\": {\n            \"deprecated\": true,\n            \"description\": \"Global query options that are used during the query.\\nNote: These fields are currently deprecated and do not affect the query results.\",\n            \"properties\": {\n              \"timeOffset\": {\n                \"description\": \"The time offset (in seconds) to apply to the query.\",\n                \"format\": \"int64\",\n                \"type\": \"integer\"\n              },\n              \"timezone\": {\n                \"default\": \"UTC\",\n                \"description\": \"The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).\",\n                \"example\": \"GMT\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"page\": {\n            \"description\": \"Paging settings\",\n            \"properties\": {\n              \"cursor\": {\n                \"description\": \"The returned paging point to use to get the next results. Note: at most 1000 results can be paged.\",\n                \"example\": \"eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

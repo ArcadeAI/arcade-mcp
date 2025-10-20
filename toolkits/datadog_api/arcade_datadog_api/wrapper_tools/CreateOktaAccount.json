@@ -1,0 +1,361 @@
+{
+  "name": "CreateOktaAccount",
+  "fully_qualified_name": "DatadogApi.CreateOktaAccount@0.1.0",
+  "description": "Create an Okta account via Datadog integration.\n\nUse this tool to create a new Okta account through Datadog's API integration. This is useful when setting up user accounts for Okta within the Datadog platform.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "okta_auth_method",
+        "required": true,
+        "description": "Specify the authorization method for the Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The authorization method for an Okta account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.auth_method"
+      },
+      {
+        "name": "okta_account_domain",
+        "required": true,
+        "description": "The domain of the Okta account to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain of the Okta account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.domain"
+      },
+      {
+        "name": "okta_account_name",
+        "required": true,
+        "description": "The name of the Okta account to be created via Datadog API integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Okta account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "okta_account_type",
+        "required": true,
+        "description": "Specifies the type of account for the Okta account. The value should be 'okta-accounts'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "okta-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Account type for an Okta account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "okta_api_key",
+        "required": false,
+        "description": "The API key for the Okta account integration. This key is used for authenticating the account with Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Okta account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.api_key"
+      },
+      {
+        "name": "okta_client_id",
+        "required": false,
+        "description": "The Client ID for the Okta app integration, necessary for the account setup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Client ID of an Okta app integration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.client_id"
+      },
+      {
+        "name": "client_secret",
+        "required": false,
+        "description": "The client secret associated with the Okta app integration. This is required for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client secret of an Okta app integration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.client_secret"
+      },
+      {
+        "name": "okta_account_id",
+        "required": false,
+        "description": "The ID of the Okta account, which is a UUID hash of the account name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Okta account, a UUID hash of the account name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateOktaAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/okta/accounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.api_key",
+        "tool_parameter_name": "okta_api_key",
+        "description": "The API key of the Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API key of the Okta account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.auth_method",
+        "tool_parameter_name": "okta_auth_method",
+        "description": "The authorization method for an Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The authorization method for an Okta account."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.client_id",
+        "tool_parameter_name": "okta_client_id",
+        "description": "The Client ID of an Okta app integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Client ID of an Okta app integration."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.client_secret",
+        "tool_parameter_name": "client_secret",
+        "description": "The client secret of an Okta app integration.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The client secret of an Okta app integration."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.domain",
+        "tool_parameter_name": "okta_account_domain",
+        "description": "The domain of the Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain of the Okta account."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "okta_account_name",
+        "description": "The name of the Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Okta account."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "okta_account_id",
+        "description": "The ID of the Okta account, a UUID hash of the account name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Okta account, a UUID hash of the account name."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "okta_account_type",
+        "description": "Account type for an Okta account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "okta-accounts"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Account type for an Okta account."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "okta-accounts",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object for an Okta account.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Schema for an Okta account.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for an Okta account.\",\n                \"properties\": {\n                  \"api_key\": {\n                    \"description\": \"The API key of the Okta account.\",\n                    \"type\": \"string\",\n                    \"writeOnly\": true\n                  },\n                  \"auth_method\": {\n                    \"description\": \"The authorization method for an Okta account.\",\n                    \"example\": \"oauth\",\n                    \"type\": \"string\"\n                  },\n                  \"client_id\": {\n                    \"description\": \"The Client ID of an Okta app integration.\",\n                    \"type\": \"string\"\n                  },\n                  \"client_secret\": {\n                    \"description\": \"The client secret of an Okta app integration.\",\n                    \"type\": \"string\",\n                    \"writeOnly\": true\n                  },\n                  \"domain\": {\n                    \"description\": \"The domain of the Okta account.\",\n                    \"example\": \"https://example.okta.com/\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the Okta account.\",\n                    \"example\": \"Okta-Prod\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"auth_method\",\n                  \"domain\",\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the Okta account, a UUID hash of the account name.\",\n                \"example\": \"f749daaf-682e-4208-a38d-c9b43162c609\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"okta-accounts\",\n                \"description\": \"Account type for an Okta account.\",\n                \"enum\": [\n                  \"okta-accounts\"\n                ],\n                \"example\": \"okta-accounts\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"OKTA_ACCOUNTS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

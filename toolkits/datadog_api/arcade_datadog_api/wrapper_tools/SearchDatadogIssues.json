@@ -1,0 +1,389 @@
+{
+  "name": "SearchDatadogIssues",
+  "fully_qualified_name": "DatadogApi.SearchDatadogIssues@0.1.0",
+  "description": "Search and retrieve issues from Datadog using a query.\n\nUse this tool to programmatically search for issues in your organization via Datadog. It returns a list of issues that match a specified search query, up to 100 per request.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date_millis",
+        "required": true,
+        "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.from"
+      },
+      {
+        "name": "search_event_query",
+        "required": true,
+        "description": "Search query using the event search syntax to find relevant issues.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search query following the event search syntax."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.query"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "End date (exclusive) for the query in milliseconds since the Unix epoch. Determines up to when the issues are retrieved.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date (exclusive) of the query in milliseconds since the Unix epoch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.to"
+      },
+      {
+        "name": "object_type",
+        "required": true,
+        "description": "Specify the type of the object. The value must be 'search_request'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "search_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "include_relationship_objects",
+        "required": false,
+        "description": "List of relationship objects to include in the response, specified as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of relationship objects that should be included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "sort_results_by",
+        "required": false,
+        "description": "Attribute to sort the search results. Options: TOTAL_COUNT, FIRST_SEEN, IMPACTED_SESSIONS, PRIORITY.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "TOTAL_COUNT",
+            "FIRST_SEEN",
+            "IMPACTED_SESSIONS",
+            "PRIORITY"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The attribute to sort the search results by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.order_by"
+      },
+      {
+        "name": "search_persona",
+        "required": false,
+        "description": "Persona for the search. Choose from ALL, BROWSER, MOBILE, or BACKEND. Either track(s) or persona(s) must be specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "BROWSER",
+            "MOBILE",
+            "BACKEND"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Persona for the search. Either track(s) or persona(s) must be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.persona"
+      },
+      {
+        "name": "event_track_to_query",
+        "required": false,
+        "description": "Specify the track of events to query: 'trace', 'logs', or 'rum'. Either track or persona must be provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "trace",
+            "logs",
+            "rum"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Track of the events to query. Either track(s) or persona(s) must be specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.track"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchIssues'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/error-tracking/issues/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_relationship_objects",
+        "description": "Comma-separated list of relationship objects that should be included in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of relationship objects that should be included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.from",
+        "tool_parameter_name": "start_date_millis",
+        "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date (inclusive) of the query in milliseconds since the Unix epoch."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.order_by",
+        "tool_parameter_name": "sort_results_by",
+        "description": "The attribute to sort the search results by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "TOTAL_COUNT",
+            "FIRST_SEEN",
+            "IMPACTED_SESSIONS",
+            "PRIORITY"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The attribute to sort the search results by."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.persona",
+        "tool_parameter_name": "search_persona",
+        "description": "Persona for the search. Either track(s) or persona(s) must be specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "BROWSER",
+            "MOBILE",
+            "BACKEND"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Persona for the search. Either track(s) or persona(s) must be specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.query",
+        "tool_parameter_name": "search_event_query",
+        "description": "Search query following the event search syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search query following the event search syntax."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.to",
+        "tool_parameter_name": "end_date",
+        "description": "End date (exclusive) of the query in milliseconds since the Unix epoch.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date (exclusive) of the query in milliseconds since the Unix epoch."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.track",
+        "tool_parameter_name": "event_track_to_query",
+        "description": "Track of the events to query. Either track(s) or persona(s) must be specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "trace",
+            "logs",
+            "rum"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Track of the events to query. Either track(s) or persona(s) must be specified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "object_type",
+        "description": "Type of the object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "search_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the object."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Search issues request payload.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Search issues request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Object describing a search issue request.\",\n                \"properties\": {\n                  \"from\": {\n                    \"description\": \"Start date (inclusive) of the query in milliseconds since the Unix epoch.\",\n                    \"example\": 1671612804000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"order_by\": {\n                    \"description\": \"The attribute to sort the search results by.\",\n                    \"enum\": [\n                      \"TOTAL_COUNT\",\n                      \"FIRST_SEEN\",\n                      \"IMPACTED_SESSIONS\",\n                      \"PRIORITY\"\n                    ],\n                    \"example\": \"IMPACTED_SESSIONS\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"TOTAL_COUNT\",\n                      \"FIRST_SEEN\",\n                      \"IMPACTED_SESSIONS\",\n                      \"PRIORITY\"\n                    ]\n                  },\n                  \"persona\": {\n                    \"description\": \"Persona for the search. Either track(s) or persona(s) must be specified.\",\n                    \"enum\": [\n                      \"ALL\",\n                      \"BROWSER\",\n                      \"MOBILE\",\n                      \"BACKEND\"\n                    ],\n                    \"example\": \"BACKEND\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"ALL\",\n                      \"BROWSER\",\n                      \"MOBILE\",\n                      \"BACKEND\"\n                    ]\n                  },\n                  \"query\": {\n                    \"description\": \"Search query following the event search syntax.\",\n                    \"example\": \"service:orders-* AND @language:go\",\n                    \"type\": \"string\"\n                  },\n                  \"to\": {\n                    \"description\": \"End date (exclusive) of the query in milliseconds since the Unix epoch.\",\n                    \"example\": 1671620004000,\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  },\n                  \"track\": {\n                    \"description\": \"Track of the events to query. Either track(s) or persona(s) must be specified.\",\n                    \"enum\": [\n                      \"trace\",\n                      \"logs\",\n                      \"rum\"\n                    ],\n                    \"example\": \"trace\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"TRACE\",\n                      \"LOGS\",\n                      \"RUM\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"query\",\n                  \"from\",\n                  \"to\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"Type of the object.\",\n                \"enum\": [\n                  \"search_request\"\n                ],\n                \"example\": \"search_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SEARCH_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Search issues request payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

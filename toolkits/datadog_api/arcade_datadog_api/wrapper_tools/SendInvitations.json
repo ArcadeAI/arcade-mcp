@@ -1,0 +1,256 @@
+{
+  "name": "SendInvitations",
+  "fully_qualified_name": "DatadogApi.SendInvitations@0.1.0",
+  "description": "Invite users to join the organization via email.\n\nThis tool sends invitation emails to specified users, asking them to join the organization. It should be used when you need to extend an invite to new members through email.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_invitations_data",
+        "required": true,
+        "description": "A JSON array of user objects to invite. Each user object should include an 'id' and 'type'. 'type' must be 'users'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "user": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships data for user invitation."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "user_invitations"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "User invitations type."
+                }
+              },
+              "description": "List of user invitations."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SendInvitations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/user_invitations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_invitations_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "user": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships data for user invitation."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "user_invitations"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "User invitations type."
+                }
+              },
+              "description": "List of user invitations."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Object to invite users to join the organization.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"List of user invitations.\",\n            \"example\": [],\n            \"items\": {\n              \"description\": \"Object to create a user invitation.\",\n              \"properties\": {\n                \"relationships\": {\n                  \"description\": \"Relationships data for user invitation.\",\n                  \"properties\": {\n                    \"user\": {\n                      \"description\": \"Relationship to user.\",\n                      \"properties\": {\n                        \"data\": {\n                          \"description\": \"Relationship to user object.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"A unique identifier that represents the user.\",\n                              \"example\": \"00000000-0000-0000-2345-000000000000\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"users\",\n                              \"description\": \"Users resource type.\",\n                              \"enum\": [\n                                \"users\"\n                              ],\n                              \"example\": \"users\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"USERS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"type\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"required\": [\n                        \"data\"\n                      ],\n                      \"type\": \"object\"\n                    }\n                  },\n                  \"required\": [\n                    \"user\"\n                  ],\n                  \"type\": \"object\"\n                },\n                \"type\": {\n                  \"default\": \"user_invitations\",\n                  \"description\": \"User invitations type.\",\n                  \"enum\": [\n                    \"user_invitations\"\n                  ],\n                  \"example\": \"user_invitations\",\n                  \"type\": \"string\",\n                  \"x-enum-varnames\": [\n                    \"USER_INVITATIONS\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"type\",\n                \"relationships\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

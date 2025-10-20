@@ -1,0 +1,344 @@
+{
+  "name": "CreateRumRetentionFilter",
+  "fully_qualified_name": "DatadogApi.CreateRumRetentionFilter@0.1.0",
+  "description": "Create a RUM retention filter for a RUM application.\n\nUse this tool to create a data retention filter for an RUM application, which controls the retention rules of your application's RUM data.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rum_application_id",
+        "required": true,
+        "description": "RUM application ID for which the retention filter is to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_id"
+      },
+      {
+        "name": "rum_event_type_filter",
+        "required": true,
+        "description": "Specify the type of RUM events to filter. Options include: session, view, action, error, resource, long_task, vital.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "session",
+            "view",
+            "action",
+            "error",
+            "resource",
+            "long_task",
+            "vital"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of RUM events to filter on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.event_type"
+      },
+      {
+        "name": "rum_retention_filter_name",
+        "required": true,
+        "description": "The name assigned to the RUM retention filter, used for identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a RUM retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "rum_retention_filter_sample_rate",
+        "required": true,
+        "description": "The sample rate for a RUM retention filter, an integer between 0 and 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sample rate for a RUM retention filter, between 0 and 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.sample_rate"
+      },
+      {
+        "name": "resource_type_for_retention",
+        "required": true,
+        "description": "Specifies the resource type as 'retention_filters'. This value should always be 'retention_filters'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "retention_filters"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the resource. The value should always be retention_filters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "rum_retention_filter_query",
+        "required": false,
+        "description": "The query string that defines the filtering criteria for the RUM retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string for a RUM retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.query"
+      },
+      {
+        "name": "enable_retention_filter",
+        "required": false,
+        "description": "Set true to enable the retention filter, false to disable it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the retention filter is enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateRetentionFilter'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/rum/applications/{app_id}/retention_filters",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "app_id",
+        "tool_parameter_name": "rum_application_id",
+        "description": "RUM application ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.enabled",
+        "tool_parameter_name": "enable_retention_filter",
+        "description": "Whether the retention filter is enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the retention filter is enabled."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.event_type",
+        "tool_parameter_name": "rum_event_type_filter",
+        "description": "The type of RUM events to filter on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "session",
+            "view",
+            "action",
+            "error",
+            "resource",
+            "long_task",
+            "vital"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of RUM events to filter on."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "rum_retention_filter_name",
+        "description": "The name of a RUM retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of a RUM retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.query",
+        "tool_parameter_name": "rum_retention_filter_query",
+        "description": "The query string for a RUM retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string for a RUM retention filter."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.sample_rate",
+        "tool_parameter_name": "rum_retention_filter_sample_rate",
+        "description": "The sample rate for a RUM retention filter, between 0 and 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sample rate for a RUM retention filter, between 0 and 100."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "resource_type_for_retention",
+        "description": "The type of the resource. The value should always be retention_filters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "retention_filters"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the resource. The value should always be retention_filters."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "retention_filters",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The RUM retention filter body to create.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The new RUM retention filter properties to create.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The object describing attributes of a RUM retention filter to create.\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"description\": \"Whether the retention filter is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"event_type\": {\n                    \"description\": \"The type of RUM events to filter on.\",\n                    \"enum\": [\n                      \"session\",\n                      \"view\",\n                      \"action\",\n                      \"error\",\n                      \"resource\",\n                      \"long_task\",\n                      \"vital\"\n                    ],\n                    \"example\": \"session\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"SESSION\",\n                      \"VIEW\",\n                      \"ACTION\",\n                      \"ERROR\",\n                      \"RESOURCE\",\n                      \"LONG_TASK\",\n                      \"VITAL\"\n                    ]\n                  },\n                  \"name\": {\n                    \"description\": \"The name of a RUM retention filter.\",\n                    \"example\": \"Retention filter for session\",\n                    \"type\": \"string\"\n                  },\n                  \"query\": {\n                    \"description\": \"The query string for a RUM retention filter.\",\n                    \"example\": \"@session.has_replay:true\",\n                    \"type\": \"string\"\n                  },\n                  \"sample_rate\": {\n                    \"description\": \"The sample rate for a RUM retention filter, between 0 and 100.\",\n                    \"example\": 25,\n                    \"format\": \"int64\",\n                    \"maximum\": 100,\n                    \"minimum\": 0,\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"event_type\",\n                  \"name\",\n                  \"sample_rate\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"retention_filters\",\n                \"description\": \"The type of the resource. The value should always be retention_filters.\",\n                \"enum\": [\n                  \"retention_filters\"\n                ],\n                \"example\": \"retention_filters\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"RETENTION_FILTERS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The definition of the new RUM retention filter.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

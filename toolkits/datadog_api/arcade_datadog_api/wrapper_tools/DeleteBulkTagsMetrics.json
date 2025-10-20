@@ -1,0 +1,196 @@
+{
+  "name": "DeleteBulkTagsMetrics",
+  "fully_qualified_name": "DatadogApi.DeleteBulkTagsMetrics@0.1.0",
+  "description": "Delete custom lists of queryable tag keys for metrics.\n\nThis tool deletes all custom queryable tag keys for a given set of metrics identified by a name prefix. It is used with application keys that have 'Manage Tags for Metrics' permission and can notify specified account emails on completion.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metric_name_prefix",
+        "required": true,
+        "description": "A text prefix to match against metric names for tag deletion.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A text prefix to match against metric names."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "metric_bulk_configure_tags_resource",
+        "required": true,
+        "description": "The identifier for the metric bulk configure tags resource, which should be 'metric_bulk_configure_tags'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "metric_bulk_configure_tags"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The metric bulk configure tags resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "notification_emails",
+        "required": false,
+        "description": "A list of account emails to notify when the configuration is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of account emails to notify when the configuration is applied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.emails"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteBulkTagsMetricsConfiguration'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics/config/bulk-tags",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.emails",
+        "tool_parameter_name": "notification_emails",
+        "description": "A list of account emails to notify when the configuration is applied.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of account emails to notify when the configuration is applied."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "metric_name_prefix",
+        "description": "A text prefix to match against metric names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A text prefix to match against metric names."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "metric_bulk_configure_tags_resource",
+        "description": "The metric bulk configure tags resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "metric_bulk_configure_tags"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The metric bulk configure tags resource."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "metric_bulk_configure_tags",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Wrapper object for a single bulk tag deletion request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Request object to bulk delete all tag configurations for metrics matching the given prefix.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Optional parameters for bulk deleting metric tag configurations.\",\n                \"properties\": {\n                  \"emails\": {\n                    \"description\": \"A list of account emails to notify when the configuration is applied.\",\n                    \"example\": [\n                      \"sue@example.com\",\n                      \"bob@example.com\"\n                    ],\n                    \"items\": {\n                      \"description\": \"An email address.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"A text prefix to match against metric names.\",\n                \"example\": \"kafka.lag\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"metric_bulk_configure_tags\",\n                \"description\": \"The metric bulk configure tags resource.\",\n                \"enum\": [\n                  \"metric_bulk_configure_tags\"\n                ],\n                \"example\": \"metric_bulk_configure_tags\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"BULK_MANAGE_TAGS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

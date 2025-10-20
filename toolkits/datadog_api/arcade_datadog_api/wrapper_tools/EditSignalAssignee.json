@@ -1,0 +1,324 @@
+{
+  "name": "EditSignalAssignee",
+  "fully_qualified_name": "DatadogApi.EditSignalAssignee@0.1.0",
+  "description": "Modify the triage assignee of a security signal.\n\nUse this tool to change the person assigned to handle a security monitoring signal in Datadog. This is helpful when reassigning tasks to different team members for better workload distribution or expertise alignment.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "signal_id",
+        "required": true,
+        "description": "The unique identifier for the security signal to modify its assignee.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "signal_id"
+      },
+      {
+        "name": "assignee_uuid",
+        "required": true,
+        "description": "UUID assigned by Datadog to identify the user account for the signal's assignee.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UUID assigned by Datadog to this user account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.assignee.uuid"
+      },
+      {
+        "name": "user_account_handle",
+        "required": false,
+        "description": "The handle for the user account to be assigned the security signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The handle for this user account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.assignee.handle"
+      },
+      {
+        "name": "assignee_gravatar_icon",
+        "required": false,
+        "description": "URL for the Gravatar icon associated with the user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gravatar icon associated to the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.assignee.icon"
+      },
+      {
+        "name": "user_account_numerical_id",
+        "required": false,
+        "description": "Numerical ID assigned by Datadog to the user account. Required for identifying the assignee.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Numerical ID assigned by Datadog to this user account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.assignee.id"
+      },
+      {
+        "name": "assignee_name",
+        "required": false,
+        "description": "The name for the user account to be assigned the security signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for this user account."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.assignee.name"
+      },
+      {
+        "name": "signal_version_number",
+        "required": false,
+        "description": "Integer representing the version of the updated signal. If the server-side version is higher, the update will be rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditSecurityMonitoringSignalAssignee'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/signals/{signal_id}/assignee",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "signal_id",
+        "tool_parameter_name": "signal_id",
+        "description": "The ID of the signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.assignee.handle",
+        "tool_parameter_name": "user_account_handle",
+        "description": "The handle for this user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The handle for this user account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.assignee.icon",
+        "tool_parameter_name": "assignee_gravatar_icon",
+        "description": "Gravatar icon associated to the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gravatar icon associated to the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.assignee.id",
+        "tool_parameter_name": "user_account_numerical_id",
+        "description": "Numerical ID assigned by Datadog to this user account.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Numerical ID assigned by Datadog to this user account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.assignee.name",
+        "tool_parameter_name": "assignee_name",
+        "description": "The name for this user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name for this user account."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.assignee.uuid",
+        "tool_parameter_name": "assignee_uuid",
+        "description": "UUID assigned by Datadog to this user account.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "UUID assigned by Datadog to this user account."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.version",
+        "tool_parameter_name": "signal_version_number",
+        "description": "Version of the updated signal. If server side version is higher, update will be rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request body for changing the assignee of a given security monitoring signal.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data containing the patch for changing the assignee of a signal.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes describing the new assignee of a security signal.\",\n                \"properties\": {\n                  \"assignee\": {\n                    \"description\": \"Object representing a given user entity.\",\n                    \"properties\": {\n                      \"handle\": {\n                        \"description\": \"The handle for this user account.\",\n                        \"type\": \"string\"\n                      },\n                      \"icon\": {\n                        \"description\": \"Gravatar icon associated to the user.\",\n                        \"example\": \"/path/to/matching/gravatar/icon\",\n                        \"readOnly\": true,\n                        \"type\": \"string\"\n                      },\n                      \"id\": {\n                        \"description\": \"Numerical ID assigned by Datadog to this user account.\",\n                        \"format\": \"int64\",\n                        \"type\": \"integer\"\n                      },\n                      \"name\": {\n                        \"description\": \"The name for this user account.\",\n                        \"nullable\": true,\n                        \"type\": \"string\"\n                      },\n                      \"uuid\": {\n                        \"description\": \"UUID assigned by Datadog to this user account.\",\n                        \"example\": \"773b045d-ccf8-4808-bd3b-955ef6a8c940\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"uuid\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"version\": {\n                    \"description\": \"Version of the updated signal. If server side version is higher, update will be rejected.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"assignee\"\n                ],\n                \"type\": \"object\"\n              }\n            },\n            \"required\": [\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Attributes describing the signal update.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

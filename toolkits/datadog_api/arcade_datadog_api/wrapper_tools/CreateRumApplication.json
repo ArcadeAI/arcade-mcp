@@ -1,0 +1,276 @@
+{
+  "name": "CreateRumApplication",
+  "fully_qualified_name": "DatadogApi.CreateRumApplication@0.1.0",
+  "description": "Create a new RUM application within your organization.\n\nThis tool is used to create a new RUM (Real User Monitoring) application in your organization using Datadog's API.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "rum_application_name",
+        "required": true,
+        "description": "The name of the RUM application to be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the RUM application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "rum_application_creation_type",
+        "required": true,
+        "description": "Specifies the type for creating a RUM application. Use `rum_application_create`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "rum_application_create"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application creation type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "product_analytics_retention_state",
+        "required": false,
+        "description": "Set the retention policy for Product Analytics data from RUM events. Options are 'MAX' or 'NONE'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MAX",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Controls the retention policy for Product Analytics data derived from RUM events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.product_analytics_retention_state"
+      },
+      {
+        "name": "rum_event_processing_state",
+        "required": false,
+        "description": "Configures which RUM events are processed and stored for the application. Accepted values are 'ALL', 'ERROR_FOCUSED_MODE', or 'NONE'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "ERROR_FOCUSED_MODE",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Configures which RUM events are processed and stored for the application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.rum_event_processing_state"
+      },
+      {
+        "name": "rum_application_type",
+        "required": false,
+        "description": "Specifies the type of the RUM application. Expected values: `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateRUMApplication'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/rum/applications",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "rum_application_name",
+        "description": "Name of the RUM application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the RUM application."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.product_analytics_retention_state",
+        "tool_parameter_name": "product_analytics_retention_state",
+        "description": "Controls the retention policy for Product Analytics data derived from RUM events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "MAX",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Controls the retention policy for Product Analytics data derived from RUM events."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.rum_event_processing_state",
+        "tool_parameter_name": "rum_event_processing_state",
+        "description": "Configures which RUM events are processed and stored for the application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ALL",
+            "ERROR_FOCUSED_MODE",
+            "NONE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Configures which RUM events are processed and stored for the application."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.type",
+        "tool_parameter_name": "rum_application_type",
+        "description": "Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "rum_application_creation_type",
+        "description": "RUM application creation type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "rum_application_create"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "RUM application creation type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "rum_application_create",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"RUM application creation request attributes.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"RUM application creation.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"RUM application creation attributes.\",\n                \"properties\": {\n                  \"name\": {\n                    \"description\": \"Name of the RUM application.\",\n                    \"example\": \"my_new_rum_application\",\n                    \"type\": \"string\"\n                  },\n                  \"product_analytics_retention_state\": {\n                    \"description\": \"Controls the retention policy for Product Analytics data derived from RUM events.\",\n                    \"enum\": [\n                      \"MAX\",\n                      \"NONE\"\n                    ],\n                    \"example\": \"MAX\",\n                    \"type\": \"string\",\n                    \"x-enum-descriptions\": [\n                      \"Store Product Analytics data for the maximum available retention period\",\n                      \"Do not store Product Analytics data\"\n                    ],\n                    \"x-enum-varnames\": [\n                      \"MAX\",\n                      \"NONE\"\n                    ]\n                  },\n                  \"rum_event_processing_state\": {\n                    \"description\": \"Configures which RUM events are processed and stored for the application.\",\n                    \"enum\": [\n                      \"ALL\",\n                      \"ERROR_FOCUSED_MODE\",\n                      \"NONE\"\n                    ],\n                    \"example\": \"ALL\",\n                    \"type\": \"string\",\n                    \"x-enum-descriptions\": [\n                      \"Process and store all RUM events (sessions, views, actions, resources, errors)\",\n                      \"Process and store only error events and related critical events\",\n                      \"Disable RUM event processing\\u2014no events are stored\"\n                    ],\n                    \"x-enum-varnames\": [\n                      \"ALL\",\n                      \"ERROR_FOCUSED_MODE\",\n                      \"NONE\"\n                    ]\n                  },\n                  \"type\": {\n                    \"description\": \"Type of the RUM application. Supported values are `browser`, `ios`, `android`, `react-native`, `flutter`, `roku`, `electron`, `unity`, `kotlin-multiplatform`.\",\n                    \"example\": \"browser\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"rum_application_create\",\n                \"description\": \"RUM application creation type.\",\n                \"enum\": [\n                  \"rum_application_create\"\n                ],\n                \"example\": \"rum_application_create\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"RUM_APPLICATION_CREATE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

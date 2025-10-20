@@ -1,0 +1,702 @@
+{
+  "name": "UpdateOnCallSchedule",
+  "fully_qualified_name": "DatadogApi.UpdateOnCallSchedule@0.1.0",
+  "description": "Update an existing on-call schedule in Datadog.\n\nUse this tool to update the details of an existing on-call schedule in Datadog. It should be called when there is a need to modify the configuration or timing of an on-call schedule.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "schedule_id",
+        "required": true,
+        "description": "The unique identifier for the on-call schedule to update in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the schedule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "schedule_id"
+      },
+      {
+        "name": "schedule_update_details",
+        "required": true,
+        "description": "JSON object containing the updated schedule details, including attributes like name, time zone, and layers. It includes information about relationships and the schedule ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "layers": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "effective_date": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When this updated layer takes effect (ISO 8601 format)."
+                        },
+                        "end_date": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When this updated layer should stop being active (ISO 8601 format)."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the layer being updated."
+                        },
+                        "interval": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "days": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The number of days in each rotation cycle."
+                            },
+                            "seconds": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Any additional seconds for the rotation cycle (up to 30 days)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Defines how often the rotation repeats, using a combination of days and optional seconds. Should be at least 1 hour."
+                        },
+                        "members": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "user": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "id": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The user's ID."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Identifies the user participating in this layer as a single object with an `id`."
+                            }
+                          },
+                          "description": "The members assigned to this layer."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name for this layer (for example, \"Secondary Coverage\")."
+                        },
+                        "restrictions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "end_day": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A day of the week."
+                            },
+                            "end_time": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the ending time for this restriction."
+                            },
+                            "start_day": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A day of the week."
+                            },
+                            "start_time": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the starting time for this restriction."
+                            }
+                          },
+                          "description": "Any time restrictions that define when this layer is active."
+                        },
+                        "rotation_start": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The date/time at which the rotation begins (ISO 8601 format)."
+                        }
+                      },
+                      "description": "The updated list of layers (rotations) for this schedule."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short name for the schedule."
+                    },
+                    "time_zone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone used when interpreting rotation times."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the updatable attributes for a schedule, such as name, time zone, and layers."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the schedule to be updated."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "teams": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the team in this relationship."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Teams resource type."
+                            }
+                          },
+                          "description": "An array of team references for this schedule."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Associates teams with this schedule in a data structure."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Houses relationships for the schedule update, typically referencing teams."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "schedules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Schedules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains all data needed to update an existing schedule, including its attributes (such as name and time zone) and any relationships to teams."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "relationships_to_include",
+        "required": false,
+        "description": "Comma-separated relationships to return, e.g., `teams`, `layers`. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateOnCallSchedule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/on-call/schedules/{schedule_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "relationships_to_include",
+        "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of included relationships to be returned. Allowed values: `teams`, `layers`, `layers.members`, `layers.members.user`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "schedule_id",
+        "tool_parameter_name": "schedule_id",
+        "description": "The ID of the schedule",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the schedule"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "schedule_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "layers": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "effective_date": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When this updated layer takes effect (ISO 8601 format)."
+                        },
+                        "end_date": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When this updated layer should stop being active (ISO 8601 format)."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A unique identifier for the layer being updated."
+                        },
+                        "interval": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "days": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The number of days in each rotation cycle."
+                            },
+                            "seconds": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Any additional seconds for the rotation cycle (up to 30 days)."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Defines how often the rotation repeats, using a combination of days and optional seconds. Should be at least 1 hour."
+                        },
+                        "members": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "user": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "id": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The user's ID."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Identifies the user participating in this layer as a single object with an `id`."
+                            }
+                          },
+                          "description": "The members assigned to this layer."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name for this layer (for example, \"Secondary Coverage\")."
+                        },
+                        "restrictions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "end_day": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A day of the week."
+                            },
+                            "end_time": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the ending time for this restriction."
+                            },
+                            "start_day": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A day of the week."
+                            },
+                            "start_time": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Specifies the starting time for this restriction."
+                            }
+                          },
+                          "description": "Any time restrictions that define when this layer is active."
+                        },
+                        "rotation_start": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The date/time at which the rotation begins (ISO 8601 format)."
+                        }
+                      },
+                      "description": "The updated list of layers (rotations) for this schedule."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A short name for the schedule."
+                    },
+                    "time_zone": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The time zone used when interpreting rotation times."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Defines the updatable attributes for a schedule, such as name, time zone, and layers."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the schedule to be updated."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "teams": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of the team in this relationship."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "teams"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Teams resource type."
+                            }
+                          },
+                          "description": "An array of team references for this schedule."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Associates teams with this schedule in a data structure."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Houses relationships for the schedule update, typically referencing teams."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "schedules"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Schedules resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains all data needed to update an existing schedule, including its attributes (such as name and time zone) and any relationships to teams."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"A top-level wrapper for a schedule update request, referring to the `data` object with the new details.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"layers\": [\n                {\n                  \"effective_date\": \"2025-02-03T05:00:00Z\",\n                  \"end_date\": \"2025-12-31T00:00:00Z\",\n                  \"interval\": {\n                    \"seconds\": 3600\n                  },\n                  \"members\": [\n                    {\n                      \"user\": {\n                        \"id\": \"00000000-aba1-0000-0000-000000000000\"\n                      }\n                    }\n                  ],\n                  \"name\": \"Layer 1\",\n                  \"restrictions\": [\n                    {\n                      \"end_day\": \"friday\",\n                      \"end_time\": \"17:00:00\",\n                      \"start_day\": \"monday\",\n                      \"start_time\": \"09:00:00\"\n                    }\n                  ],\n                  \"rotation_start\": \"2025-02-01T00:00:00Z\"\n                }\n              ],\n              \"name\": \"On-Call Schedule Updated\",\n              \"time_zone\": \"America/New_York\"\n            },\n            \"id\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n            \"relationships\": {\n              \"teams\": {\n                \"data\": [\n                  {\n                    \"id\": \"00000000-da3a-0000-0000-000000000000\",\n                    \"type\": \"teams\"\n                  }\n                ]\n              }\n            },\n            \"type\": \"schedules\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Contains all data needed to update an existing schedule, including its attributes (such as name and time zone) and any relationships to teams.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Defines the updatable attributes for a schedule, such as name, time zone, and layers.\",\n                \"properties\": {\n                  \"layers\": {\n                    \"description\": \"The updated list of layers (rotations) for this schedule.\",\n                    \"items\": {\n                      \"description\": \"Represents a layer within a schedule update, including rotation details, members,\\nand optional restrictions.\",\n                      \"properties\": {\n                        \"effective_date\": {\n                          \"description\": \"When this updated layer takes effect (ISO 8601 format).\",\n                          \"example\": \"2025-02-03T05:00:00Z\",\n                          \"format\": \"date-time\",\n                          \"type\": \"string\"\n                        },\n                        \"end_date\": {\n                          \"description\": \"When this updated layer should stop being active (ISO 8601 format).\",\n                          \"example\": \"2025-12-31T00:00:00Z\",\n                          \"format\": \"date-time\",\n                          \"type\": \"string\"\n                        },\n                        \"id\": {\n                          \"description\": \"A unique identifier for the layer being updated.\",\n                          \"example\": \"00000000-0000-0000-0000-000000000001\",\n                          \"type\": \"string\"\n                        },\n                        \"interval\": {\n                          \"description\": \"Defines how often the rotation repeats, using a combination of days and optional seconds. Should be at least 1 hour.\",\n                          \"properties\": {\n                            \"days\": {\n                              \"description\": \"The number of days in each rotation cycle.\",\n                              \"example\": 1,\n                              \"format\": \"int32\",\n                              \"maximum\": 400,\n                              \"type\": \"integer\"\n                            },\n                            \"seconds\": {\n                              \"description\": \"Any additional seconds for the rotation cycle (up to 30 days).\",\n                              \"example\": 300,\n                              \"format\": \"int64\",\n                              \"maximum\": 2592000,\n                              \"type\": \"integer\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"members\": {\n                          \"description\": \"The members assigned to this layer.\",\n                          \"items\": {\n                            \"description\": \"Defines a single member within a schedule layer, including the reference to the underlying user.\",\n                            \"properties\": {\n                              \"user\": {\n                                \"description\": \"Identifies the user participating in this layer as a single object with an `id`.\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"description\": \"The user's ID.\",\n                                    \"example\": \"00000000-aba1-0000-0000-000000000000\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"type\": \"object\"\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"name\": {\n                          \"description\": \"The name for this layer (for example, \\\"Secondary Coverage\\\").\",\n                          \"example\": \"Primary On-Call Layer\",\n                          \"type\": \"string\"\n                        },\n                        \"restrictions\": {\n                          \"description\": \"Any time restrictions that define when this layer is active.\",\n                          \"items\": {\n                            \"description\": \"Defines a single time restriction rule with start and end times and the applicable weekdays.\",\n                            \"properties\": {\n                              \"end_day\": {\n                                \"description\": \"A day of the week.\",\n                                \"enum\": [\n                                  \"monday\",\n                                  \"tuesday\",\n                                  \"wednesday\",\n                                  \"thursday\",\n                                  \"friday\",\n                                  \"saturday\",\n                                  \"sunday\"\n                                ],\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"MONDAY\",\n                                  \"TUESDAY\",\n                                  \"WEDNESDAY\",\n                                  \"THURSDAY\",\n                                  \"FRIDAY\",\n                                  \"SATURDAY\",\n                                  \"SUNDAY\"\n                                ]\n                              },\n                              \"end_time\": {\n                                \"description\": \"Specifies the ending time for this restriction.\",\n                                \"type\": \"string\"\n                              },\n                              \"start_day\": {\n                                \"description\": \"A day of the week.\",\n                                \"enum\": [\n                                  \"monday\",\n                                  \"tuesday\",\n                                  \"wednesday\",\n                                  \"thursday\",\n                                  \"friday\",\n                                  \"saturday\",\n                                  \"sunday\"\n                                ],\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"MONDAY\",\n                                  \"TUESDAY\",\n                                  \"WEDNESDAY\",\n                                  \"THURSDAY\",\n                                  \"FRIDAY\",\n                                  \"SATURDAY\",\n                                  \"SUNDAY\"\n                                ]\n                              },\n                              \"start_time\": {\n                                \"description\": \"Specifies the starting time for this restriction.\",\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"rotation_start\": {\n                          \"description\": \"The date/time at which the rotation begins (ISO 8601 format).\",\n                          \"example\": \"2025-02-01T00:00:00Z\",\n                          \"format\": \"date-time\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"effective_date\",\n                        \"interval\",\n                        \"members\",\n                        \"name\",\n                        \"rotation_start\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"name\": {\n                    \"description\": \"A short name for the schedule.\",\n                    \"example\": \"Primary On-Call\",\n                    \"type\": \"string\"\n                  },\n                  \"time_zone\": {\n                    \"description\": \"The time zone used when interpreting rotation times.\",\n                    \"example\": \"America/New_York\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"time_zone\",\n                  \"layers\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the schedule to be updated.\",\n                \"example\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Houses relationships for the schedule update, typically referencing teams.\",\n                \"properties\": {\n                  \"teams\": {\n                    \"description\": \"Associates teams with this schedule in a data structure.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"An array of team references for this schedule.\",\n                        \"items\": {\n                          \"description\": \"Relates a team to this schedule, identified by `id` and `type` (must be `teams`).\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The unique identifier of the team in this relationship.\",\n                              \"example\": \"00000000-da3a-0000-0000-000000000000\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"teams\",\n                              \"description\": \"Teams resource type.\",\n                              \"enum\": [\n                                \"teams\"\n                              ],\n                              \"example\": \"teams\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"TEAMS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"type\",\n                            \"id\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"schedules\",\n                \"description\": \"Schedules resource type.\",\n                \"enum\": [\n                  \"schedules\"\n                ],\n                \"example\": \"schedules\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SCHEDULES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"id\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "name": "UpdateOrgConnection",
+  "fully_qualified_name": "DatadogApi.UpdateOrgConnection@0.1.0",
+  "description": "Update an existing organization connection in Datadog.\n\nUse this tool to update details of an existing organization connection in Datadog. Useful for modifying connection configurations or settings.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "org_connection_id",
+        "required": true,
+        "description": "The unique identifier of the organization connection in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org connection."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "connection_id"
+      },
+      {
+        "name": "updated_connection_types",
+        "required": true,
+        "description": "A list of updated connection types for the organization connection.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Updated list of connection types."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.connection_types"
+      },
+      {
+        "name": "organization_connection_id",
+        "required": true,
+        "description": "The unique identifier of the organization connection to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org connection."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "org_connection_type",
+        "required": true,
+        "description": "Specifies the type of organization connection. Must be 'org_connection'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org_connection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org connection type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateOrgConnections'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/org_connections/{connection_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "connection_id",
+        "tool_parameter_name": "org_connection_id",
+        "description": "The unique identifier of the org connection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org connection."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.connection_types",
+        "tool_parameter_name": "updated_connection_types",
+        "description": "Updated list of connection types.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Updated list of connection types."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "organization_connection_id",
+        "description": "The unique identifier of the org connection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org connection."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "org_connection_type",
+        "description": "Org connection type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "org_connection"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Org connection type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to update an org connection.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Org connection update data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for updating an org connection.\",\n                \"properties\": {\n                  \"connection_types\": {\n                    \"description\": \"Updated list of connection types.\",\n                    \"example\": [\n                      \"logs\",\n                      \"metrics\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Available connection types between organizations.\",\n                      \"enum\": [\n                        \"logs\",\n                        \"metrics\"\n                      ],\n                      \"example\": \"logs\",\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"LOGS\",\n                        \"METRICS\"\n                      ]\n                    },\n                    \"minItems\": 1,\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"connection_types\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the org connection.\",\n                \"example\": \"f9ec96b0-8c8a-4b0a-9b0a-1b2c3d4e5f6a\",\n                \"format\": \"uuid\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"description\": \"Org connection type.\",\n                \"enum\": [\n                  \"org_connection\"\n                ],\n                \"example\": \"org_connection\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ORG_CONNECTION\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"id\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

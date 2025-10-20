@@ -1,0 +1,316 @@
+{
+  "name": "CreateMonitorNotificationRule",
+  "fully_qualified_name": "DatadogApi.CreateMonitorNotificationRule@0.1.0",
+  "description": "Creates a monitor notification rule in Datadog.\n\nUse this tool to set up a notification rule for a specific monitor in Datadog. This allows for alerting based on monitor condition changes.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "monitor_notification_rule_details",
+        "required": true,
+        "description": "JSON object detailing the monitor notification rule, including attributes like recipients, conditions, and filters.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conditional_recipients": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "conditions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "recipients": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                            },
+                            "scope": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The scope to which the monitor applied."
+                            }
+                          },
+                          "description": "Conditions of the notification rule."
+                        },
+                        "fallback_recipients": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Use conditional recipients to define different recipients for different situations."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Filter used to associate the notification rule with monitors."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the monitor notification rule."
+                    },
+                    "recipients": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the monitor notification rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-notification-rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor notification rule resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to create a monitor notification rule."
+            }
+          },
+          "inner_properties": null,
+          "description": "Request body to create a monitor notification rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateMonitorNotificationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/monitor/notification_rule",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "monitor_notification_rule_details",
+        "description": "Request body to create a monitor notification rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "conditional_recipients": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "conditions": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "recipients": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                            },
+                            "scope": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The scope to which the monitor applied."
+                            }
+                          },
+                          "description": "Conditions of the notification rule."
+                        },
+                        "fallback_recipients": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Use conditional recipients to define different recipients for different situations."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Filter used to associate the notification rule with monitors."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the monitor notification rule."
+                    },
+                    "recipients": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the monitor notification rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "monitor-notification-rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Monitor notification rule resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object to create a monitor notification rule."
+            }
+          },
+          "inner_properties": null,
+          "description": "Request body to create a monitor notification rule."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request for creating a monitor notification rule.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object to create a monitor notification rule.\",\n            \"properties\": {\n              \"attributes\": {\n                \"additionalProperties\": false,\n                \"description\": \"Attributes of the monitor notification rule.\",\n                \"properties\": {\n                  \"conditional_recipients\": {\n                    \"description\": \"Use conditional recipients to define different recipients for different situations.\",\n                    \"properties\": {\n                      \"conditions\": {\n                        \"description\": \"Conditions of the notification rule.\",\n                        \"items\": {\n                          \"description\": \"Conditions for `conditional_recipients`.\",\n                          \"properties\": {\n                            \"recipients\": {\n                              \"description\": \"A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'.\",\n                              \"example\": [\n                                \"slack-test-channel\",\n                                \"jira-test\"\n                              ],\n                              \"items\": {\n                                \"description\": \"individual recipient.\",\n                                \"maxLength\": 255,\n                                \"type\": \"string\"\n                              },\n                              \"maxItems\": 20,\n                              \"minItems\": 1,\n                              \"type\": \"array\",\n                              \"uniqueItems\": true\n                            },\n                            \"scope\": {\n                              \"description\": \"The scope to which the monitor applied.\",\n                              \"example\": \"transition_type:alert\",\n                              \"maxLength\": 3000,\n                              \"minLength\": 1,\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"scope\",\n                            \"recipients\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"maxItems\": 10,\n                        \"minItems\": 1,\n                        \"type\": \"array\"\n                      },\n                      \"fallback_recipients\": {\n                        \"description\": \"A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'.\",\n                        \"example\": [\n                          \"slack-test-channel\",\n                          \"jira-test\"\n                        ],\n                        \"items\": {\n                          \"description\": \"individual recipient.\",\n                          \"maxLength\": 255,\n                          \"type\": \"string\"\n                        },\n                        \"maxItems\": 20,\n                        \"minItems\": 1,\n                        \"type\": \"array\",\n                        \"uniqueItems\": true\n                      }\n                    },\n                    \"required\": [\n                      \"conditions\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"filter\": {\n                    \"description\": \"Filter used to associate the notification rule with monitors.\",\n                    \"oneOf\": [\n                      {\n                        \"additionalProperties\": false,\n                        \"description\": \"Filter monitors by tags. Monitors must match all tags.\",\n                        \"properties\": {\n                          \"tags\": {\n                            \"description\": \"A list of monitor tags.\",\n                            \"example\": [\n                              \"team:product\",\n                              \"host:abc\"\n                            ],\n                            \"items\": {\n                              \"maxLength\": 255,\n                              \"type\": \"string\"\n                            },\n                            \"maxItems\": 20,\n                            \"minItems\": 1,\n                            \"type\": \"array\",\n                            \"uniqueItems\": true\n                          }\n                        },\n                        \"required\": [\n                          \"tags\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the monitor notification rule.\",\n                    \"example\": \"A notification rule name\",\n                    \"maxLength\": 1000,\n                    \"minLength\": 1,\n                    \"type\": \"string\"\n                  },\n                  \"recipients\": {\n                    \"description\": \"A list of recipients to notify. Uses the same format as the monitor `message` field. Must not start with an '@'.\",\n                    \"example\": [\n                      \"slack-test-channel\",\n                      \"jira-test\"\n                    ],\n                    \"items\": {\n                      \"description\": \"individual recipient.\",\n                      \"maxLength\": 255,\n                      \"type\": \"string\"\n                    },\n                    \"maxItems\": 20,\n                    \"minItems\": 1,\n                    \"type\": \"array\",\n                    \"uniqueItems\": true\n                  }\n                },\n                \"required\": [\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"monitor-notification-rule\",\n                \"description\": \"Monitor notification rule resource type.\",\n                \"enum\": [\n                  \"monitor-notification-rule\"\n                ],\n                \"example\": \"monitor-notification-rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"MONITOR_NOTIFICATION_RULE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Request body to create a monitor notification rule.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

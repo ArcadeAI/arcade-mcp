@@ -1,0 +1,241 @@
+{
+  "name": "UpdateIssueState",
+  "fully_qualified_name": "DatadogApi.UpdateIssueState@0.1.0",
+  "description": "Update the state of an issue in Datadog.\n\nThis tool updates the state of an issue identified by `issue_id` in Datadog, allowing transitions between states such as `OPEN`, `RESOLVED`, or `IGNORED`. It should be called when you need to change an issue's status.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_identifier",
+        "required": true,
+        "description": "The unique identifier for the issue to update its state in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the issue."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "issue_id"
+      },
+      {
+        "name": "issue_state",
+        "required": true,
+        "description": "State of the issue, valid values are 'OPEN', 'ACKNOWLEDGED', 'RESOLVED', 'IGNORED', 'EXCLUDED'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OPEN",
+            "ACKNOWLEDGED",
+            "RESOLVED",
+            "IGNORED",
+            "EXCLUDED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of the issue"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.state"
+      },
+      {
+        "name": "issue_id_value",
+        "required": true,
+        "description": "The identifier for the issue to update the state of in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Issue identifier."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "issue_object_type",
+        "required": true,
+        "description": "Specifies the type of the object. Accepted value is 'error_tracking_issue'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error_tracking_issue"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIssueState'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/error-tracking/issues/{issue_id}/state",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "issue_id",
+        "tool_parameter_name": "issue_identifier",
+        "description": "The identifier of the issue.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the issue."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.state",
+        "tool_parameter_name": "issue_state",
+        "description": "State of the issue",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "OPEN",
+            "ACKNOWLEDGED",
+            "RESOLVED",
+            "IGNORED",
+            "EXCLUDED"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "State of the issue"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "issue_id_value",
+        "description": "Issue identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Issue identifier."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "issue_object_type",
+        "description": "Type of the object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "error_tracking_issue"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the object."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update issue state request payload.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Update issue state request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Object describing an issue state update request.\",\n                \"properties\": {\n                  \"state\": {\n                    \"description\": \"State of the issue\",\n                    \"enum\": [\n                      \"OPEN\",\n                      \"ACKNOWLEDGED\",\n                      \"RESOLVED\",\n                      \"IGNORED\",\n                      \"EXCLUDED\"\n                    ],\n                    \"example\": \"RESOLVED\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"OPEN\",\n                      \"ACKNOWLEDGED\",\n                      \"RESOLVED\",\n                      \"IGNORED\",\n                      \"EXCLUDED\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"state\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"Issue identifier.\",\n                \"example\": \"c1726a66-1f64-11ee-b338-da7ad0900002\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"description\": \"Type of the object.\",\n                \"enum\": [\n                  \"error_tracking_issue\"\n                ],\n                \"example\": \"error_tracking_issue\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ERROR_TRACKING_ISSUE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Update issue state request payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

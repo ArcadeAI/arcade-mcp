@@ -1,0 +1,229 @@
+{
+  "name": "CreateFastlyService",
+  "fully_qualified_name": "DatadogApi.CreateFastlyService@0.1.0",
+  "description": "Create a Fastly service for a specific account in Datadog.\n\nUse this tool to create a Fastly service associated with a given account within Datadog. Ideal when setting up or expanding Fastly integrations.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "fastly_account_id",
+        "required": true,
+        "description": "Provide the Fastly Account ID to create the service under.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fastly Account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "fastly_service_id",
+        "required": true,
+        "description": "The ID of the Fastly service to create. Provide a valid Fastly service ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Fastly service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "jsonapi_type_for_fastly_service",
+        "required": true,
+        "description": "The JSON:API type, always set to 'fastly-services', for creating a Fastly service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fastly-services"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `fastly-services`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "fastly_service_tags",
+        "required": false,
+        "description": "A list of tags for the Fastly service to help categorize and organize the service.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of tags for the Fastly service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.tags"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateFastlyService'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integrations/fastly/accounts/{account_id}/services",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "fastly_account_id",
+        "description": "Fastly Account id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fastly Account id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.tags",
+        "tool_parameter_name": "fastly_service_tags",
+        "description": "A list of tags for the Fastly service.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of tags for the Fastly service."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "fastly_service_id",
+        "description": "The ID of the Fastly service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Fastly service."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "jsonapi_type_for_fastly_service",
+        "description": "The JSON:API type for this API. Should always be `fastly-services`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "fastly-services"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The JSON:API type for this API. Should always be `fastly-services`."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "fastly-services",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Payload schema for Fastly service requests.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data object for Fastly service requests.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes object for Fastly service requests.\",\n                \"properties\": {\n                  \"tags\": {\n                    \"description\": \"A list of tags for the Fastly service.\",\n                    \"example\": [\n                      \"myTag\",\n                      \"myTag2:myValue\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the Fastly service.\",\n                \"example\": \"abc123\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"fastly-services\",\n                \"description\": \"The JSON:API type for this API. Should always be `fastly-services`.\",\n                \"enum\": [\n                  \"fastly-services\"\n                ],\n                \"example\": \"fastly-services\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"FASTLY_SERVICES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

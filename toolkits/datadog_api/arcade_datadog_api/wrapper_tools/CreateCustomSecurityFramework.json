@@ -1,0 +1,348 @@
+{
+  "name": "CreateCustomSecurityFramework",
+  "fully_qualified_name": "DatadogApi.CreateCustomSecurityFramework@0.1.0",
+  "description": "Create a custom security framework in Datadog.\n\nThis tool is used to create a custom security framework in Datadog's cloud security management system. Call this tool when you need to define or customize security protocols and structures.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_framework_data",
+        "required": true,
+        "description": "A JSON object containing the type and attributes for custom frameworks, such as name, version, description, requirements, and type (must be 'custom_framework').",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Description"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Handle"
+                    },
+                    "icon_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Icon URL"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Name"
+                    },
+                    "requirements": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "controls": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Control Name."
+                            },
+                            "rules_id": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Rule IDs."
+                            }
+                          },
+                          "description": "Requirement Controls."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Requirement Name."
+                        }
+                      },
+                      "description": "Framework Requirements"
+                    },
+                    "version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Version"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Framework Data Attributes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_framework"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value must be `custom_framework`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains type and attributes for custom frameworks."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCustomFramework'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cloud_security_management/custom_frameworks",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_framework_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Description"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Handle"
+                    },
+                    "icon_url": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Icon URL"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Name"
+                    },
+                    "requirements": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "controls": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Control Name."
+                            },
+                            "rules_id": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Rule IDs."
+                            }
+                          },
+                          "description": "Requirement Controls."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Requirement Name."
+                        }
+                      },
+                      "description": "Framework Requirements"
+                    },
+                    "version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Framework Version"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Framework Data Attributes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_framework"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value must be `custom_framework`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains type and attributes for custom frameworks."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object to create a custom framework.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Contains type and attributes for custom frameworks.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Framework Data Attributes.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Framework Description\",\n                    \"type\": \"string\"\n                  },\n                  \"handle\": {\n                    \"description\": \"Framework Handle\",\n                    \"example\": \"sec2\",\n                    \"type\": \"string\"\n                  },\n                  \"icon_url\": {\n                    \"description\": \"Framework Icon URL\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Framework Name\",\n                    \"example\": \"security-framework\",\n                    \"type\": \"string\"\n                  },\n                  \"requirements\": {\n                    \"description\": \"Framework Requirements\",\n                    \"items\": {\n                      \"description\": \"Framework Requirement.\",\n                      \"properties\": {\n                        \"controls\": {\n                          \"description\": \"Requirement Controls.\",\n                          \"items\": {\n                            \"description\": \"Framework Control.\",\n                            \"properties\": {\n                              \"name\": {\n                                \"description\": \"Control Name.\",\n                                \"example\": \"A1.2\",\n                                \"type\": \"string\"\n                              },\n                              \"rules_id\": {\n                                \"description\": \"Rule IDs.\",\n                                \"example\": [\n                                  \"[\\\"def-000-abc\\\"]\"\n                                ],\n                                \"items\": {\n                                  \"type\": \"string\"\n                                },\n                                \"type\": \"array\"\n                              }\n                            },\n                            \"required\": [\n                              \"name\",\n                              \"rules_id\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"name\": {\n                          \"description\": \"Requirement Name.\",\n                          \"example\": \"criteria\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"name\",\n                        \"controls\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"version\": {\n                    \"description\": \"Framework Version\",\n                    \"example\": \"2\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"handle\",\n                  \"version\",\n                  \"name\",\n                  \"requirements\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"custom_framework\",\n                \"description\": \"The type of the resource. The value must be `custom_framework`.\",\n                \"enum\": [\n                  \"custom_framework\"\n                ],\n                \"example\": \"custom_framework\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CUSTOM_FRAMEWORK\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

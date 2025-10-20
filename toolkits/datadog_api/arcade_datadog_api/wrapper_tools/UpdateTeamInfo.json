@@ -1,0 +1,453 @@
+{
+  "name": "UpdateTeamInfo",
+  "fully_qualified_name": "DatadogApi.UpdateTeamInfo@0.1.0",
+  "description": "Update and modify a team's configuration in Datadog.\n\nUse this tool to update a team in Datadog by modifying its configuration using the team's ID. You can adjust team links and other settings as needed.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier for the team to be updated. Must be a valid string representing the team's ID in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "team_update_request",
+        "required": true,
+        "description": "JSON object containing team update attributes and relationships, including avatar, banner, description, handle, hidden/visible modules, and team links.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "avatar": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Unicode representation of the avatar for the team, limited to a single grapheme"
+                    },
+                    "banner": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Banner selection for the team"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Free-form markdown description/content for the team's homepage"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The team's identifier"
+                    },
+                    "hidden_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of hidden modules for the team"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the team"
+                    },
+                    "visible_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of visible modules for the team"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team update attributes"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_links": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The team link's identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "team_links"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Team link type"
+                            }
+                          },
+                          "description": "Related team links"
+                        },
+                        "links": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "related": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Related link."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Links attributes."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship between a team and a team link"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team update relationships"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team update request"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team/{team_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_update_request",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "avatar": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Unicode representation of the avatar for the team, limited to a single grapheme"
+                    },
+                    "banner": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Banner selection for the team"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Free-form markdown description/content for the team's homepage"
+                    },
+                    "handle": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The team's identifier"
+                    },
+                    "hidden_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of hidden modules for the team"
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the team"
+                    },
+                    "visible_modules": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Collection of visible modules for the team"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team update attributes"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "team_links": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The team link's identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "team_links"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Team link type"
+                            }
+                          },
+                          "description": "Related team links"
+                        },
+                        "links": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "related": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Related link."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Links attributes."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship between a team and a team link"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Team update relationships"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Team type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team update request"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Team update request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Team update request\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Team update attributes\",\n                \"properties\": {\n                  \"avatar\": {\n                    \"description\": \"Unicode representation of the avatar for the team, limited to a single grapheme\",\n                    \"example\": \"\\ud83e\\udd51\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"banner\": {\n                    \"description\": \"Banner selection for the team\",\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"type\": \"integer\"\n                  },\n                  \"description\": {\n                    \"description\": \"Free-form markdown description/content for the team's homepage\",\n                    \"type\": \"string\"\n                  },\n                  \"handle\": {\n                    \"description\": \"The team's identifier\",\n                    \"example\": \"example-team\",\n                    \"maxLength\": 195,\n                    \"type\": \"string\"\n                  },\n                  \"hidden_modules\": {\n                    \"description\": \"Collection of hidden modules for the team\",\n                    \"items\": {\n                      \"description\": \"String identifier of the module\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the team\",\n                    \"example\": \"Example Team\",\n                    \"maxLength\": 200,\n                    \"type\": \"string\"\n                  },\n                  \"visible_modules\": {\n                    \"description\": \"Collection of visible modules for the team\",\n                    \"items\": {\n                      \"description\": \"String identifier of the module\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"handle\",\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Team update relationships\",\n                \"properties\": {\n                  \"team_links\": {\n                    \"description\": \"Relationship between a team and a team link\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Related team links\",\n                        \"items\": {\n                          \"description\": \"Relationship between a link and a team\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"The team link's identifier\",\n                              \"example\": \"f9bb8444-af7f-11ec-ac2c-da7ad0900001\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"team_links\",\n                              \"description\": \"Team link type\",\n                              \"enum\": [\n                                \"team_links\"\n                              ],\n                              \"example\": \"team_links\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"TEAM_LINKS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"type\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"links\": {\n                        \"description\": \"Links attributes.\",\n                        \"properties\": {\n                          \"related\": {\n                            \"description\": \"Related link.\",\n                            \"example\": \"/api/v2/team/c75a4a8e-20c7-11ee-a3a5-da7ad0900002/links\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"team\",\n                \"description\": \"Team type\",\n                \"enum\": [\n                  \"team\"\n                ],\n                \"example\": \"team\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

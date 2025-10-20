@@ -1,0 +1,361 @@
+{
+  "name": "UpdateSuppressionRule",
+  "fully_qualified_name": "DatadogApi.UpdateSuppressionRule@0.1.0",
+  "description": "Update a specific suppression rule in Datadog.\n\nUse this tool to modify an existing suppression rule within Datadog's security monitoring configuration. Call this when you need to change the settings of a particular suppression rule identified by its ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "suppression_rule_id",
+        "required": true,
+        "description": "The unique identifier of the suppression rule to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the suppression rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "suppression_id"
+      },
+      {
+        "name": "suppression_rule_update",
+        "required": true,
+        "description": "JSON object with the new definition of the suppression rule, supporting partial updates. Include attributes like name, description, enabled status, and queries related to data exclusion or suppression. Also, define timestamps for start or expiration dates if necessary, along with the version for concurrency handling.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "data_exclusion_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A description for the suppression rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the suppression rule is enabled."
+                    },
+                    "expiration_date": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore. If unset, the expiration date of the suppression rule is left untouched. If set to `null`, the expiration date is removed."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the suppression rule."
+                    },
+                    "rule_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The rule query of the suppression rule, with the same syntax as the search bar for detection rules."
+                    },
+                    "start_date": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals. If unset, the start date of the suppression rule is left untouched. If set to `null`, the start date is removed."
+                    },
+                    "suppression_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The suppression query of the suppression rule. If a signal matches this query, it is suppressed and not triggered. Same syntax as the queries to search signals in the signal explorer."
+                    },
+                    "version": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the suppression. This is optional, but it can help prevent concurrent modifications."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The suppression rule properties to be updated."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "suppressions"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `suppressions`."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new suppression properties; partial updates are supported."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the suppression rule. Supports partial updates."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateSecurityMonitoringSuppression'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/configuration/suppressions/{suppression_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "suppression_id",
+        "tool_parameter_name": "suppression_rule_id",
+        "description": "The ID of the suppression rule",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the suppression rule"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "suppression_rule_update",
+        "description": "New definition of the suppression rule. Supports partial updates.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "data_exclusion_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A description for the suppression rule."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the suppression rule is enabled."
+                    },
+                    "expiration_date": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore. If unset, the expiration date of the suppression rule is left untouched. If set to `null`, the expiration date is removed."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the suppression rule."
+                    },
+                    "rule_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The rule query of the suppression rule, with the same syntax as the search bar for detection rules."
+                    },
+                    "start_date": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals. If unset, the start date of the suppression rule is left untouched. If set to `null`, the start date is removed."
+                    },
+                    "suppression_query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The suppression query of the suppression rule. If a signal matches this query, it is suppressed and not triggered. Same syntax as the queries to search signals in the signal explorer."
+                    },
+                    "version": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The current version of the suppression. This is optional, but it can help prevent concurrent modifications."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The suppression rule properties to be updated."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "suppressions"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `suppressions`."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new suppression properties; partial updates are supported."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the suppression rule. Supports partial updates."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object containing the fields to update on the suppression rule.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The new suppression properties; partial updates are supported.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The suppression rule properties to be updated.\",\n                \"properties\": {\n                  \"data_exclusion_query\": {\n                    \"description\": \"An exclusion query on the input data of the security rules, which could be logs, Agent events, or other types of data based on the security rule. Events matching this query are ignored by any detection rules referenced in the suppression rule.\",\n                    \"example\": \"source:cloudtrail account_id:12345\",\n                    \"type\": \"string\"\n                  },\n                  \"description\": {\n                    \"description\": \"A description for the suppression rule.\",\n                    \"example\": \"This rule suppresses low-severity signals in staging environments.\",\n                    \"type\": \"string\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"Whether the suppression rule is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"expiration_date\": {\n                    \"description\": \"A Unix millisecond timestamp giving an expiration date for the suppression rule. After this date, it won't suppress signals anymore. If unset, the expiration date of the suppression rule is left untouched. If set to `null`, the expiration date is removed.\",\n                    \"example\": 1703187336000,\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"type\": \"integer\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the suppression rule.\",\n                    \"example\": \"Custom suppression\",\n                    \"type\": \"string\"\n                  },\n                  \"rule_query\": {\n                    \"description\": \"The rule query of the suppression rule, with the same syntax as the search bar for detection rules.\",\n                    \"example\": \"type:log_detection source:cloudtrail\",\n                    \"type\": \"string\"\n                  },\n                  \"start_date\": {\n                    \"description\": \"A Unix millisecond timestamp giving the start date for the suppression rule. After this date, it starts suppressing signals. If unset, the start date of the suppression rule is left untouched. If set to `null`, the start date is removed.\",\n                    \"example\": 1703187336000,\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"type\": \"integer\"\n                  },\n                  \"suppression_query\": {\n                    \"description\": \"The suppression query of the suppression rule. If a signal matches this query, it is suppressed and not triggered. Same syntax as the queries to search signals in the signal explorer.\",\n                    \"example\": \"env:staging status:low\",\n                    \"type\": \"string\"\n                  },\n                  \"version\": {\n                    \"description\": \"The current version of the suppression. This is optional, but it can help prevent concurrent modifications.\",\n                    \"format\": \"int32\",\n                    \"maximum\": 2147483647,\n                    \"type\": \"integer\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"suppressions\",\n                \"description\": \"The type of the resource. The value should always be `suppressions`.\",\n                \"enum\": [\n                  \"suppressions\"\n                ],\n                \"example\": \"suppressions\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SUPPRESSIONS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the suppression rule. Supports partial updates.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

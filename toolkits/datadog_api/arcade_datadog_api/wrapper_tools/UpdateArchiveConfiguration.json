@@ -1,0 +1,309 @@
+{
+  "name": "UpdateArchiveConfiguration",
+  "fully_qualified_name": "DatadogApi.UpdateArchiveConfiguration@0.1.0",
+  "description": "Replace an existing archive configuration in Datadog.\n\nUse this tool to update an archive configuration by replacing the current settings with new ones for a specified archive in your Datadog organization.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "archive_identifier",
+        "required": true,
+        "description": "The unique identifier for the archive you wish to update in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the archive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archive_id"
+      },
+      {
+        "name": "new_archive_configuration",
+        "required": true,
+        "description": "New definition of the archive including attributes like destination, tags, name, query, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "destination": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An archive's destination."
+                    },
+                    "include_tags": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "To store the tags in the archive, set the value \"true\".\nIf it is set to \"false\", the tags will be deleted when the logs are sent to the archive."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The archive name."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The archive query/filter. Logs matching this query are included in the archive."
+                    },
+                    "rehydration_max_scan_size_in_gb": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Maximum scan size for rehydration from this archive."
+                    },
+                    "rehydration_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An array of tags to add to rehydrated logs from an archive."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes associated with the archive."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be archives."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of an archive."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the archive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateLogsArchive'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/config/archives/{archive_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archive_id",
+        "tool_parameter_name": "archive_identifier",
+        "description": "The ID of the archive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the archive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_archive_configuration",
+        "description": "New definition of the archive.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "destination": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An archive's destination."
+                    },
+                    "include_tags": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "To store the tags in the archive, set the value \"true\".\nIf it is set to \"false\", the tags will be deleted when the logs are sent to the archive."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The archive name."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The archive query/filter. Logs matching this query are included in the archive."
+                    },
+                    "rehydration_max_scan_size_in_gb": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Maximum scan size for rehydration from this archive."
+                    },
+                    "rehydration_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An array of tags to add to rehydrated logs from an archive."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes associated with the archive."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be archives."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of an archive."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the archive."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The logs archive.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of an archive.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes associated with the archive.\",\n                \"properties\": {\n                  \"destination\": {\n                    \"description\": \"An archive's destination.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"The Azure archive destination.\",\n                        \"properties\": {\n                          \"container\": {\n                            \"description\": \"The container where the archive will be stored.\",\n                            \"example\": \"container-name\",\n                            \"type\": \"string\"\n                          },\n                          \"integration\": {\n                            \"description\": \"The Azure archive's integration destination.\",\n                            \"properties\": {\n                              \"client_id\": {\n                                \"description\": \"A client ID.\",\n                                \"example\": \"aaaaaaaa-1a1a-1a1a-1a1a-aaaaaaaaaaaa\",\n                                \"type\": \"string\"\n                              },\n                              \"tenant_id\": {\n                                \"description\": \"A tenant ID.\",\n                                \"example\": \"aaaaaaaa-1a1a-1a1a-1a1a-aaaaaaaaaaaa\",\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"required\": [\n                              \"tenant_id\",\n                              \"client_id\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"path\": {\n                            \"description\": \"The archive path.\",\n                            \"type\": \"string\"\n                          },\n                          \"region\": {\n                            \"description\": \"The region where the archive will be stored.\",\n                            \"type\": \"string\"\n                          },\n                          \"storage_account\": {\n                            \"description\": \"The associated storage account.\",\n                            \"example\": \"account-name\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"azure\",\n                            \"description\": \"Type of the Azure archive destination.\",\n                            \"enum\": [\n                              \"azure\"\n                            ],\n                            \"example\": \"azure\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"AZURE\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"storage_account\",\n                          \"container\",\n                          \"integration\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The GCS archive destination.\",\n                        \"properties\": {\n                          \"bucket\": {\n                            \"description\": \"The bucket where the archive will be stored.\",\n                            \"example\": \"bucket-name\",\n                            \"type\": \"string\"\n                          },\n                          \"integration\": {\n                            \"description\": \"The GCS archive's integration destination.\",\n                            \"properties\": {\n                              \"client_email\": {\n                                \"description\": \"A client email.\",\n                                \"example\": \"youremail@example.com\",\n                                \"type\": \"string\"\n                              },\n                              \"project_id\": {\n                                \"description\": \"A project ID.\",\n                                \"example\": \"project-id\",\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"required\": [\n                              \"client_email\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"path\": {\n                            \"description\": \"The archive path.\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"gcs\",\n                            \"description\": \"Type of the GCS archive destination.\",\n                            \"enum\": [\n                              \"gcs\"\n                            ],\n                            \"example\": \"gcs\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"GCS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"bucket\",\n                          \"integration\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The S3 archive destination.\",\n                        \"properties\": {\n                          \"bucket\": {\n                            \"description\": \"The bucket where the archive will be stored.\",\n                            \"example\": \"bucket-name\",\n                            \"type\": \"string\"\n                          },\n                          \"encryption\": {\n                            \"description\": \"The S3 encryption settings.\",\n                            \"properties\": {\n                              \"key\": {\n                                \"description\": \"An Amazon Resource Name (ARN) used to identify an AWS KMS key.\",\n                                \"example\": \"arn:aws:kms:us-east-1:012345678901:key/DatadogIntegrationRoleKms\",\n                                \"type\": \"string\"\n                              },\n                              \"type\": {\n                                \"description\": \"Type of S3 encryption for a destination.\",\n                                \"enum\": [\n                                  \"NO_OVERRIDE\",\n                                  \"SSE_S3\",\n                                  \"SSE_KMS\"\n                                ],\n                                \"example\": \"SSE_S3\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"NO_OVERRIDE\",\n                                  \"SSE_S3\",\n                                  \"SSE_KMS\"\n                                ]\n                              }\n                            },\n                            \"required\": [\n                              \"type\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"integration\": {\n                            \"description\": \"The S3 Archive's integration destination.\",\n                            \"properties\": {\n                              \"account_id\": {\n                                \"description\": \"The account ID for the integration.\",\n                                \"example\": \"123456789012\",\n                                \"type\": \"string\"\n                              },\n                              \"role_name\": {\n                                \"description\": \"The path of the integration.\",\n                                \"example\": \"role-name\",\n                                \"type\": \"string\"\n                              }\n                            },\n                            \"required\": [\n                              \"role_name\",\n                              \"account_id\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"path\": {\n                            \"description\": \"The archive path.\",\n                            \"type\": \"string\"\n                          },\n                          \"storage_class\": {\n                            \"default\": \"STANDARD\",\n                            \"description\": \"The storage class where the archive will be stored.\",\n                            \"enum\": [\n                              \"STANDARD\",\n                              \"STANDARD_IA\",\n                              \"ONEZONE_IA\",\n                              \"INTELLIGENT_TIERING\",\n                              \"GLACIER_IR\"\n                            ],\n                            \"example\": \"STANDARD\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"STANDARD\",\n                              \"STANDARD_IA\",\n                              \"ONEZONE_IA\",\n                              \"INTELLIGENT_TIERING\",\n                              \"GLACIER_IR\"\n                            ]\n                          },\n                          \"type\": {\n                            \"default\": \"s3\",\n                            \"description\": \"Type of the S3 archive destination.\",\n                            \"enum\": [\n                              \"s3\"\n                            ],\n                            \"example\": \"s3\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"S3\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"bucket\",\n                          \"integration\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"include_tags\": {\n                    \"default\": false,\n                    \"description\": \"To store the tags in the archive, set the value \\\"true\\\".\\nIf it is set to \\\"false\\\", the tags will be deleted when the logs are sent to the archive.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"name\": {\n                    \"description\": \"The archive name.\",\n                    \"example\": \"Nginx Archive\",\n                    \"type\": \"string\"\n                  },\n                  \"query\": {\n                    \"description\": \"The archive query/filter. Logs matching this query are included in the archive.\",\n                    \"example\": \"source:nginx\",\n                    \"type\": \"string\"\n                  },\n                  \"rehydration_max_scan_size_in_gb\": {\n                    \"description\": \"Maximum scan size for rehydration from this archive.\",\n                    \"example\": 100,\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"type\": \"integer\"\n                  },\n                  \"rehydration_tags\": {\n                    \"description\": \"An array of tags to add to rehydrated logs from an archive.\",\n                    \"example\": [\n                      \"team:intake\",\n                      \"team:app\"\n                    ],\n                    \"items\": {\n                      \"description\": \"A given tag in the `<KEY>:<VALUE>` format.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"query\",\n                  \"destination\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"archives\",\n                \"description\": \"The type of the resource. The value should always be archives.\",\n                \"example\": \"archives\",\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the archive.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

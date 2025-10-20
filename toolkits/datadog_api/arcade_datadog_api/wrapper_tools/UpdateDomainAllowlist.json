@@ -1,0 +1,229 @@
+{
+  "name": "UpdateDomainAllowlist",
+  "fully_qualified_name": "DatadogApi.UpdateDomainAllowlist@0.1.0",
+  "description": "Update the organization's domain allowlist to control domain access.\n\n",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "email_domain_allowlist_type",
+        "required": true,
+        "description": "Type of email domain allowlist. Valid value: 'domain_allowlist'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "domain_allowlist"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email domain allowlist allowlist type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "allowed_domains_list",
+        "required": false,
+        "description": "A list of domains to include in the organization's email domain allowlist.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of domains in the email domain allowlist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.domains"
+      },
+      {
+        "name": "organization_identifier",
+        "required": false,
+        "description": "The unique identifier for the organization to update the domain allowlist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "enable_email_domain_allowlist",
+        "required": false,
+        "description": "Set to true to enable the email domain allowlist for the organization.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the email domain allowlist is enabled for the org."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'PatchDomainAllowlist'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/domain_allowlist",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.domains",
+        "tool_parameter_name": "allowed_domains_list",
+        "description": "The list of domains in the email domain allowlist.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The list of domains in the email domain allowlist."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.enabled",
+        "tool_parameter_name": "enable_email_domain_allowlist",
+        "description": "Whether the email domain allowlist is enabled for the org.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the email domain allowlist is enabled for the org."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "The unique identifier of the org.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the org."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "email_domain_allowlist_type",
+        "description": "Email domain allowlist allowlist type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "domain_allowlist"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email domain allowlist allowlist type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "domain_allowlist",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request containing the desired email domain allowlist configuration.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The email domain allowlist for an org.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The details of the email domain allowlist.\",\n                \"properties\": {\n                  \"domains\": {\n                    \"description\": \"The list of domains in the email domain allowlist.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"Whether the email domain allowlist is enabled for the org.\",\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the org.\",\n                \"nullable\": true,\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"domain_allowlist\",\n                \"description\": \"Email domain allowlist allowlist type.\",\n                \"enum\": [\n                  \"domain_allowlist\"\n                ],\n                \"example\": \"domain_allowlist\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"DOMAIN_ALLOWLIST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

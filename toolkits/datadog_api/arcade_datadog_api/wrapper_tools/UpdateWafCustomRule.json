@@ -1,0 +1,763 @@
+{
+  "name": "UpdateWafCustomRule",
+  "fully_qualified_name": "DatadogApi.UpdateWafCustomRule@0.1.0",
+  "description": "Update a specific WAF custom rule in Datadog.\n\nUse this tool to update a specific Web Application Firewall (WAF) custom rule in Datadog. It returns the updated custom rule object upon successful execution.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_rule_id",
+        "required": true,
+        "description": "Specify the ID of the custom WAF rule to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the custom rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_rule_id"
+      },
+      {
+        "name": "waf_custom_rule_definition",
+        "required": true,
+        "description": "JSON object defining the new attributes for the WAF custom rule, including name, conditions, scope, and actions.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "action": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "action": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "redirect_request",
+                            "block_request"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Override the default action to take when the WAF custom rule would block."
+                        },
+                        "parameters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "location": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The location to redirect to when the WAF custom rule triggers."
+                            },
+                            "status_code": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The status code to return when the WAF custom rule triggers."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `ApplicationSecurityWafCustomRuleActionParameters` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `ApplicationSecurityWafCustomRuleAction` object."
+                    },
+                    "blocking": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the WAF custom rule will block the request."
+                    },
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "operator": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "match_regex",
+                            "!match_regex",
+                            "phrase_match",
+                            "!phrase_match",
+                            "is_xss",
+                            "is_sqli",
+                            "exact_match",
+                            "!exact_match",
+                            "ip_match",
+                            "!ip_match",
+                            "capture_data"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Operator to use for the WAF Condition."
+                        },
+                        "parameters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "data": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Identifier of a list of data from the denylist. Can only be used as substitution from the list parameter."
+                            },
+                            "inputs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "address": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "server.db.statement",
+                                    "server.io.fs.file",
+                                    "server.io.net.url",
+                                    "server.sys.shell.cmd",
+                                    "server.request.method",
+                                    "server.request.uri.raw",
+                                    "server.request.path_params",
+                                    "server.request.query",
+                                    "server.request.headers.no_cookies",
+                                    "server.request.cookies",
+                                    "server.request.trailers",
+                                    "server.request.body",
+                                    "server.response.status",
+                                    "server.response.headers.no_cookies",
+                                    "server.response.trailers",
+                                    "grpc.server.request.metadata",
+                                    "grpc.server.request.message",
+                                    "grpc.server.method",
+                                    "graphql.server.all_resolvers",
+                                    "usr.id",
+                                    "http.client_ip"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Input from the request on which the condition should apply."
+                                },
+                                "key_path": {
+                                  "val_type": "array",
+                                  "inner_val_type": "string",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specific path for the input."
+                                }
+                              },
+                              "description": "List of inputs on which at least one should match with the given operator."
+                            },
+                            "list": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of value to use with the condition. Only used with the phrase_match, !phrase_match, exact_match and\n!exact_match operator."
+                            },
+                            "options": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "case_sensitive": {
+                                  "val_type": "boolean",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Evaluate the value as case sensitive."
+                                },
+                                "min_length": {
+                                  "val_type": "integer",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Only evaluate this condition if the value has a minimum amount of characters."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Options for the operator of this condition."
+                            },
+                            "regex": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Regex to use with the condition. Only used with match_regex and !match_regex operator."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Store the captured value in the specified tag name. Only used with the capture_data operator."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The scope of the WAF custom rule."
+                        }
+                      },
+                      "description": "Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF\nrule to trigger."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the WAF custom rule is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Name of the WAF custom rule."
+                    },
+                    "path_glob": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path glob for the WAF custom rule."
+                    },
+                    "scope": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "env": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The environment scope for the WAF custom rule."
+                        },
+                        "service": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The service scope for the WAF custom rule."
+                        }
+                      },
+                      "description": "The scope of the WAF custom rule."
+                    },
+                    "tags": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "category": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "attack_attempt",
+                            "business_logic",
+                            "security_response"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The category of the WAF Rule, can be either `business_logic`, `attack_attempt` or `security_response`."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the WAF rule, associated with the category will form the security activity."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Tags associated with the WAF Custom Rule. The concatenation of category and type will form the security\nactivity field associated with the traces."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Update a WAF custom rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `custom_rule`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single WAF Custom Rule."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the WAF Custom Rule."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateApplicationSecurityWafCustomRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/remote_config/products/asm/waf/custom_rules/{custom_rule_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "custom_rule_id",
+        "tool_parameter_name": "custom_rule_id",
+        "description": "The ID of the custom rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the custom rule."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "waf_custom_rule_definition",
+        "description": "New definition of the WAF Custom Rule.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "action": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "action": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "redirect_request",
+                            "block_request"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Override the default action to take when the WAF custom rule would block."
+                        },
+                        "parameters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "location": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The location to redirect to when the WAF custom rule triggers."
+                            },
+                            "status_code": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The status code to return when the WAF custom rule triggers."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `ApplicationSecurityWafCustomRuleActionParameters` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `ApplicationSecurityWafCustomRuleAction` object."
+                    },
+                    "blocking": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the WAF custom rule will block the request."
+                    },
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "operator": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "match_regex",
+                            "!match_regex",
+                            "phrase_match",
+                            "!phrase_match",
+                            "is_xss",
+                            "is_sqli",
+                            "exact_match",
+                            "!exact_match",
+                            "ip_match",
+                            "!ip_match",
+                            "capture_data"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Operator to use for the WAF Condition."
+                        },
+                        "parameters": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "data": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Identifier of a list of data from the denylist. Can only be used as substitution from the list parameter."
+                            },
+                            "inputs": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "address": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "server.db.statement",
+                                    "server.io.fs.file",
+                                    "server.io.net.url",
+                                    "server.sys.shell.cmd",
+                                    "server.request.method",
+                                    "server.request.uri.raw",
+                                    "server.request.path_params",
+                                    "server.request.query",
+                                    "server.request.headers.no_cookies",
+                                    "server.request.cookies",
+                                    "server.request.trailers",
+                                    "server.request.body",
+                                    "server.response.status",
+                                    "server.response.headers.no_cookies",
+                                    "server.response.trailers",
+                                    "grpc.server.request.metadata",
+                                    "grpc.server.request.message",
+                                    "grpc.server.method",
+                                    "graphql.server.all_resolvers",
+                                    "usr.id",
+                                    "http.client_ip"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Input from the request on which the condition should apply."
+                                },
+                                "key_path": {
+                                  "val_type": "array",
+                                  "inner_val_type": "string",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Specific path for the input."
+                                }
+                              },
+                              "description": "List of inputs on which at least one should match with the given operator."
+                            },
+                            "list": {
+                              "val_type": "array",
+                              "inner_val_type": "string",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "List of value to use with the condition. Only used with the phrase_match, !phrase_match, exact_match and\n!exact_match operator."
+                            },
+                            "options": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "case_sensitive": {
+                                  "val_type": "boolean",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Evaluate the value as case sensitive."
+                                },
+                                "min_length": {
+                                  "val_type": "integer",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Only evaluate this condition if the value has a minimum amount of characters."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Options for the operator of this condition."
+                            },
+                            "regex": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Regex to use with the condition. Only used with match_regex and !match_regex operator."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Store the captured value in the specified tag name. Only used with the capture_data operator."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The scope of the WAF custom rule."
+                        }
+                      },
+                      "description": "Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF\nrule to trigger."
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Indicates whether the WAF custom rule is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The Name of the WAF custom rule."
+                    },
+                    "path_glob": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The path glob for the WAF custom rule."
+                    },
+                    "scope": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "env": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The environment scope for the WAF custom rule."
+                        },
+                        "service": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The service scope for the WAF custom rule."
+                        }
+                      },
+                      "description": "The scope of the WAF custom rule."
+                    },
+                    "tags": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "category": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "attack_attempt",
+                            "business_logic",
+                            "security_response"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The category of the WAF Rule, can be either `business_logic`, `attack_attempt` or `security_response`."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The type of the WAF rule, associated with the category will form the security activity."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Tags associated with the WAF Custom Rule. The concatenation of category and type will form the security\nactivity field associated with the traces."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Update a WAF custom rule."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `custom_rule`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single WAF Custom Rule."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the WAF Custom Rule."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object that includes the Custom Rule to update.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for a single WAF Custom Rule.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Update a WAF custom rule.\",\n                \"properties\": {\n                  \"action\": {\n                    \"description\": \"The definition of `ApplicationSecurityWafCustomRuleAction` object.\",\n                    \"properties\": {\n                      \"action\": {\n                        \"default\": \"block_request\",\n                        \"description\": \"Override the default action to take when the WAF custom rule would block.\",\n                        \"enum\": [\n                          \"redirect_request\",\n                          \"block_request\"\n                        ],\n                        \"example\": \"block_request\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"REDIRECT_REQUEST\",\n                          \"BLOCK_REQUEST\"\n                        ]\n                      },\n                      \"parameters\": {\n                        \"description\": \"The definition of `ApplicationSecurityWafCustomRuleActionParameters` object.\",\n                        \"properties\": {\n                          \"location\": {\n                            \"description\": \"The location to redirect to when the WAF custom rule triggers.\",\n                            \"example\": \"/blocking\",\n                            \"type\": \"string\"\n                          },\n                          \"status_code\": {\n                            \"default\": 403,\n                            \"description\": \"The status code to return when the WAF custom rule triggers.\",\n                            \"example\": 403,\n                            \"format\": \"int64\",\n                            \"type\": \"integer\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"blocking\": {\n                    \"description\": \"Indicates whether the WAF custom rule will block the request.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"conditions\": {\n                    \"description\": \"Conditions for which the WAF Custom Rule will triggers, all conditions needs to match in order for the WAF\\nrule to trigger.\",\n                    \"items\": {\n                      \"description\": \"One condition of the WAF Custom Rule.\",\n                      \"properties\": {\n                        \"operator\": {\n                          \"description\": \"Operator to use for the WAF Condition.\",\n                          \"enum\": [\n                            \"match_regex\",\n                            \"!match_regex\",\n                            \"phrase_match\",\n                            \"!phrase_match\",\n                            \"is_xss\",\n                            \"is_sqli\",\n                            \"exact_match\",\n                            \"!exact_match\",\n                            \"ip_match\",\n                            \"!ip_match\",\n                            \"capture_data\"\n                          ],\n                          \"example\": \"match_regex\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"MATCH_REGEX\",\n                            \"NOT_MATCH_REGEX\",\n                            \"PHRASE_MATCH\",\n                            \"NOT_PHRASE_MATCH\",\n                            \"IS_XSS\",\n                            \"IS_SQLI\",\n                            \"EXACT_MATCH\",\n                            \"NOT_EXACT_MATCH\",\n                            \"IP_MATCH\",\n                            \"NOT_IP_MATCH\",\n                            \"CAPTURE_DATA\"\n                          ]\n                        },\n                        \"parameters\": {\n                          \"description\": \"The scope of the WAF custom rule.\",\n                          \"properties\": {\n                            \"data\": {\n                              \"description\": \"Identifier of a list of data from the denylist. Can only be used as substitution from the list parameter.\",\n                              \"example\": \"blocked_users\",\n                              \"type\": \"string\"\n                            },\n                            \"inputs\": {\n                              \"description\": \"List of inputs on which at least one should match with the given operator.\",\n                              \"items\": {\n                                \"description\": \"Input from the request on which the condition should apply.\",\n                                \"properties\": {\n                                  \"address\": {\n                                    \"description\": \"Input from the request on which the condition should apply.\",\n                                    \"enum\": [\n                                      \"server.db.statement\",\n                                      \"server.io.fs.file\",\n                                      \"server.io.net.url\",\n                                      \"server.sys.shell.cmd\",\n                                      \"server.request.method\",\n                                      \"server.request.uri.raw\",\n                                      \"server.request.path_params\",\n                                      \"server.request.query\",\n                                      \"server.request.headers.no_cookies\",\n                                      \"server.request.cookies\",\n                                      \"server.request.trailers\",\n                                      \"server.request.body\",\n                                      \"server.response.status\",\n                                      \"server.response.headers.no_cookies\",\n                                      \"server.response.trailers\",\n                                      \"grpc.server.request.metadata\",\n                                      \"grpc.server.request.message\",\n                                      \"grpc.server.method\",\n                                      \"graphql.server.all_resolvers\",\n                                      \"usr.id\",\n                                      \"http.client_ip\"\n                                    ],\n                                    \"example\": \"server.db.statement\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"SERVER_DB_STATEMENT\",\n                                      \"SERVER_IO_FS_FILE\",\n                                      \"SERVER_IO_NET_URL\",\n                                      \"SERVER_SYS_SHELL_CMD\",\n                                      \"SERVER_REQUEST_METHOD\",\n                                      \"SERVER_REQUEST_URI_RAW\",\n                                      \"SERVER_REQUEST_PATH_PARAMS\",\n                                      \"SERVER_REQUEST_QUERY\",\n                                      \"SERVER_REQUEST_HEADERS_NO_COOKIES\",\n                                      \"SERVER_REQUEST_COOKIES\",\n                                      \"SERVER_REQUEST_TRAILERS\",\n                                      \"SERVER_REQUEST_BODY\",\n                                      \"SERVER_RESPONSE_STATUS\",\n                                      \"SERVER_RESPONSE_HEADERS_NO_COOKIES\",\n                                      \"SERVER_RESPONSE_TRAILERS\",\n                                      \"GRPC_SERVER_REQUEST_METADATA\",\n                                      \"GRPC_SERVER_REQUEST_MESSAGE\",\n                                      \"GRPC_SERVER_METHOD\",\n                                      \"GRAPHQL_SERVER_ALL_RESOLVERS\",\n                                      \"USR_ID\",\n                                      \"HTTP_CLIENT_IP\"\n                                    ]\n                                  },\n                                  \"key_path\": {\n                                    \"description\": \"Specific path for the input.\",\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    },\n                                    \"type\": \"array\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"address\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"list\": {\n                              \"description\": \"List of value to use with the condition. Only used with the phrase_match, !phrase_match, exact_match and\\n!exact_match operator.\",\n                              \"items\": {\n                                \"type\": \"string\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"options\": {\n                              \"description\": \"Options for the operator of this condition.\",\n                              \"properties\": {\n                                \"case_sensitive\": {\n                                  \"default\": false,\n                                  \"description\": \"Evaluate the value as case sensitive.\",\n                                  \"type\": \"boolean\"\n                                },\n                                \"min_length\": {\n                                  \"default\": 0,\n                                  \"description\": \"Only evaluate this condition if the value has a minimum amount of characters.\",\n                                  \"format\": \"int64\",\n                                  \"type\": \"integer\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"regex\": {\n                              \"description\": \"Regex to use with the condition. Only used with match_regex and !match_regex operator.\",\n                              \"example\": \"path.*\",\n                              \"type\": \"string\"\n                            },\n                            \"value\": {\n                              \"description\": \"Store the captured value in the specified tag name. Only used with the capture_data operator.\",\n                              \"example\": \"custom_tag\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"required\": [\n                            \"inputs\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"required\": [\n                        \"operator\",\n                        \"parameters\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"Indicates whether the WAF custom rule is enabled.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"name\": {\n                    \"description\": \"The Name of the WAF custom rule.\",\n                    \"example\": \"Block request from bad useragent\",\n                    \"type\": \"string\"\n                  },\n                  \"path_glob\": {\n                    \"description\": \"The path glob for the WAF custom rule.\",\n                    \"example\": \"/api/search/*\",\n                    \"type\": \"string\"\n                  },\n                  \"scope\": {\n                    \"description\": \"The scope of the WAF custom rule.\",\n                    \"items\": {\n                      \"description\": \"The scope of the WAF custom rule.\",\n                      \"properties\": {\n                        \"env\": {\n                          \"description\": \"The environment scope for the WAF custom rule.\",\n                          \"example\": \"prod\",\n                          \"type\": \"string\"\n                        },\n                        \"service\": {\n                          \"description\": \"The service scope for the WAF custom rule.\",\n                          \"example\": \"billing-service\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"service\",\n                        \"env\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"tags\": {\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Tags associated with the WAF Custom Rule. The concatenation of category and type will form the security\\nactivity field associated with the traces.\",\n                    \"maxProperties\": 32,\n                    \"properties\": {\n                      \"category\": {\n                        \"description\": \"The category of the WAF Rule, can be either `business_logic`, `attack_attempt` or `security_response`.\",\n                        \"enum\": [\n                          \"attack_attempt\",\n                          \"business_logic\",\n                          \"security_response\"\n                        ],\n                        \"example\": \"business_logic\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"ATTACK_ATTEMPT\",\n                          \"BUSINESS_LOGIC\",\n                          \"SECURITY_RESPONSE\"\n                        ]\n                      },\n                      \"type\": {\n                        \"description\": \"The type of the WAF rule, associated with the category will form the security activity.\",\n                        \"example\": \"users.login.success\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"category\",\n                      \"type\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"enabled\",\n                  \"blocking\",\n                  \"name\",\n                  \"tags\",\n                  \"conditions\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"custom_rule\",\n                \"description\": \"The type of the resource. The value should always be `custom_rule`.\",\n                \"enum\": [\n                  \"custom_rule\"\n                ],\n                \"example\": \"custom_rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CUSTOM_RULE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the WAF Custom Rule.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

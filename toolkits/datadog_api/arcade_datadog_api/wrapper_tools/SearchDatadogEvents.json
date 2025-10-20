@@ -1,0 +1,363 @@
+{
+  "name": "SearchDatadogEvents",
+  "fully_qualified_name": "DatadogApi.SearchDatadogEvents@0.1.0",
+  "description": "Search and filter events in Datadog.\n\nUse this tool to find and filter events in Datadog using complex search queries. It returns a paginated list of events that match the specified criteria.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_time",
+        "required": false,
+        "description": "The earliest time for requested events, using date math or timestamps in milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum time for the requested events. Supports date math and regular timestamps in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.from"
+      },
+      {
+        "name": "event_search_query",
+        "required": false,
+        "description": "The search query using Datadog's event search syntax to filter events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query following the event search syntax."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.query"
+      },
+      {
+        "name": "max_event_time",
+        "required": false,
+        "description": "Specify the maximum time for the events. Supports date math and timestamps in milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum time for the requested events. Supports date math and regular timestamps in milliseconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter.to"
+      },
+      {
+        "name": "time_offset_seconds",
+        "required": false,
+        "description": "The time offset to apply to the query in seconds. Use an integer to specify the shift in time for the search results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time offset to apply to the query in seconds."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "options.timeOffset"
+      },
+      {
+        "name": "timezone",
+        "required": false,
+        "description": "Specify the timezone for the query. It can be GMT, UTC, an offset (like UTC+1), or a Timezone Database identifier (like America/New_York).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "options.timezone"
+      },
+      {
+        "name": "paging_cursor",
+        "required": false,
+        "description": "The cursor for pagination to retrieve the next set of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The returned paging point to use to get the next results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page.cursor"
+      },
+      {
+        "name": "maximum_events_per_page",
+        "required": false,
+        "description": "Specify the maximum number of events returned per page in the response. This controls the pagination size.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of logs in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page.limit"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify event sorting order: 'timestamp' for ascending, '-timestamp' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sort parameters when querying events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/events/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter.from",
+        "tool_parameter_name": "start_time",
+        "description": "The minimum time for the requested events. Supports date math and regular timestamps in milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum time for the requested events. Supports date math and regular timestamps in milliseconds."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "now-15m",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter.query",
+        "tool_parameter_name": "event_search_query",
+        "description": "The search query following the event search syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query following the event search syntax."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "*",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter.to",
+        "tool_parameter_name": "max_event_time",
+        "description": "The maximum time for the requested events. Supports date math and regular timestamps in milliseconds.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum time for the requested events. Supports date math and regular timestamps in milliseconds."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "now",
+        "documentation_urls": []
+      },
+      {
+        "name": "options.timeOffset",
+        "tool_parameter_name": "time_offset_seconds",
+        "description": "The time offset to apply to the query in seconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The time offset to apply to the query in seconds."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "options.timezone",
+        "tool_parameter_name": "timezone",
+        "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "UTC",
+        "documentation_urls": []
+      },
+      {
+        "name": "page.cursor",
+        "tool_parameter_name": "paging_cursor",
+        "description": "The returned paging point to use to get the next results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The returned paging point to use to get the next results."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page.limit",
+        "tool_parameter_name": "maximum_events_per_page",
+        "description": "The maximum number of logs in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of logs in the response."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "The sort parameters when querying events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "timestamp",
+            "-timestamp"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sort parameters when querying events."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The object sent with the request to retrieve a list of events from your organization.\",\n        \"properties\": {\n          \"filter\": {\n            \"description\": \"The search and filter query settings.\",\n            \"properties\": {\n              \"from\": {\n                \"default\": \"now-15m\",\n                \"description\": \"The minimum time for the requested events. Supports date math and regular timestamps in milliseconds.\",\n                \"example\": \"now-15m\",\n                \"type\": \"string\"\n              },\n              \"query\": {\n                \"default\": \"*\",\n                \"description\": \"The search query following the event search syntax.\",\n                \"example\": \"service:web* AND @http.status_code:[200 TO 299]\",\n                \"type\": \"string\"\n              },\n              \"to\": {\n                \"default\": \"now\",\n                \"description\": \"The maximum time for the requested events. Supports date math and regular timestamps in milliseconds.\",\n                \"example\": \"now\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"options\": {\n            \"description\": \"The global query options that are used. Either provide a timezone or a time offset but not both,\\notherwise the query fails.\",\n            \"properties\": {\n              \"timeOffset\": {\n                \"description\": \"The time offset to apply to the query in seconds.\",\n                \"format\": \"int64\",\n                \"type\": \"integer\"\n              },\n              \"timezone\": {\n                \"default\": \"UTC\",\n                \"description\": \"The timezone can be specified as GMT, UTC, an offset from UTC (like UTC+1), or as a Timezone Database identifier (like America/New_York).\",\n                \"example\": \"GMT\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"page\": {\n            \"description\": \"Pagination settings.\",\n            \"properties\": {\n              \"cursor\": {\n                \"description\": \"The returned paging point to use to get the next results.\",\n                \"example\": \"eyJzdGFydEF0IjoiQVFBQUFYS2tMS3pPbm40NGV3QUFBQUJCV0V0clRFdDZVbG8zY3pCRmNsbHJiVmxDWlEifQ==\",\n                \"type\": \"string\"\n              },\n              \"limit\": {\n                \"default\": 10,\n                \"description\": \"The maximum number of logs in the response.\",\n                \"example\": 25,\n                \"format\": \"int32\",\n                \"maximum\": 1000,\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"sort\": {\n            \"description\": \"The sort parameters when querying events.\",\n            \"enum\": [\n              \"timestamp\",\n              \"-timestamp\"\n            ],\n            \"type\": \"string\",\n            \"x-enum-varnames\": [\n              \"TIMESTAMP_ASCENDING\",\n              \"TIMESTAMP_DESCENDING\"\n            ]\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

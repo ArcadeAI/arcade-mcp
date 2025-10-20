@@ -1,0 +1,196 @@
+{
+  "name": "UpdateGcpUsageCostStatus",
+  "fully_qualified_name": "DatadogApi.UpdateGcpUsageCostStatus@0.1.0",
+  "description": "Update the status of a GCP Usage Cost config.\n\nThis tool updates the status of a Google Cloud Platform Usage Cost configuration in Datadog, setting it as active or archived. It should be called when you need to change the operational status of a specific GCP cost configuration based on the cloud account ID.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "required": true,
+        "description": "The ID of the Google Cloud account for which the cost configuration status needs to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cloud_account_id"
+      },
+      {
+        "name": "gcp_usage_cost_config_request_type",
+        "required": true,
+        "description": "Type of Google Cloud Usage Cost configuration patch request. Use 'gcp_uc_config_patch_request'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gcp_uc_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Google Cloud Usage Cost config patch request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "cloud_cost_management_enabled",
+        "required": true,
+        "description": "Set to 'true' to enable the Cloud Cost Management account or 'false' to disable it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.is_enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCostGCPUsageCostConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/gcp_uc_config/{cloud_account_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "tool_parameter_name": "cloud_account_id",
+        "description": "Cloud Account id.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.is_enabled",
+        "tool_parameter_name": "cloud_cost_management_enabled",
+        "description": "Whether or not the Cloud Cost Management account is enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "gcp_usage_cost_config_request_type",
+        "description": "Type of Google Cloud Usage Cost config patch request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gcp_uc_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Google Cloud Usage Cost config patch request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "gcp_uc_config_patch_request",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Google Cloud Usage Cost config patch request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Google Cloud Usage Cost config patch data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for Google Cloud Usage Cost config patch request.\",\n                \"properties\": {\n                  \"is_enabled\": {\n                    \"description\": \"Whether or not the Cloud Cost Management account is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"required\": [\n                  \"is_enabled\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"gcp_uc_config_patch_request\",\n                \"description\": \"Type of Google Cloud Usage Cost config patch request.\",\n                \"enum\": [\n                  \"gcp_uc_config_patch_request\"\n                ],\n                \"example\": \"gcp_uc_config_patch_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"GCP_USAGE_COST_CONFIG_PATCH_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

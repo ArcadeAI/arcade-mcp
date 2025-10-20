@@ -1,0 +1,394 @@
+{
+  "name": "CreateIncidentType",
+  "fully_qualified_name": "DatadogApi.CreateIncidentType@0.1.0",
+  "description": "Create a new incident type in Datadog.\n\nThis tool is used to create a new incident type in Datadog, allowing users to define categories for managing incidents effectively.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_type_name",
+        "required": true,
+        "description": "The name of the incident type to be created in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the incident type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "incident_type_resource_type",
+        "required": true,
+        "description": "Specifies the incident type resource type. Must be 'incident_types'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident_types"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident type resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "incident_creation_timestamp",
+        "required": false,
+        "description": "Timestamp indicating when the incident type was created. Format should be ISO 8601.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp when the incident type was created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.createdAt"
+      },
+      {
+        "name": "creator_user_id",
+        "required": false,
+        "description": "A unique ID representing the user who created the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user that created the incident type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.createdBy"
+      },
+      {
+        "name": "incident_type_description",
+        "required": false,
+        "description": "Text that describes the incident type. Provide a clear, concise explanation to aid in management and identification.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text that describes the incident type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "last_modified_user_id",
+        "required": false,
+        "description": "Unique identifier for the user who last modified the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user that last modified the incident type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.lastModifiedBy"
+      },
+      {
+        "name": "last_modified_timestamp",
+        "required": false,
+        "description": "Timestamp indicating when the incident type was last modified. Use ISO 8601 format, e.g., '2023-10-01T14:30:00Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp when the incident type was last modified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.modifiedAt"
+      },
+      {
+        "name": "incident_title_prefix",
+        "required": false,
+        "description": "The string prepended to the incident title throughout the Datadog app.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The string that will be prepended to the incident title across the Datadog app."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.prefix"
+      },
+      {
+        "name": "set_as_default_incident_type",
+        "required": false,
+        "description": "Set to true to make this the default incident type if no type is specified during incident creation.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.is_default"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIncidentType'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/config/types",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.createdAt",
+        "tool_parameter_name": "incident_creation_timestamp",
+        "description": "Timestamp when the incident type was created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp when the incident type was created."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.createdBy",
+        "tool_parameter_name": "creator_user_id",
+        "description": "A unique identifier that represents the user that created the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user that created the incident type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "incident_type_description",
+        "description": "Text that describes the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Text that describes the incident type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.is_default",
+        "tool_parameter_name": "set_as_default_incident_type",
+        "description": "If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.lastModifiedBy",
+        "tool_parameter_name": "last_modified_user_id",
+        "description": "A unique identifier that represents the user that last modified the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user that last modified the incident type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.modifiedAt",
+        "tool_parameter_name": "last_modified_timestamp",
+        "description": "Timestamp when the incident type was last modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp when the incident type was last modified."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "incident_type_name",
+        "description": "The name of the incident type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the incident type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.prefix",
+        "tool_parameter_name": "incident_title_prefix",
+        "description": "The string that will be prepended to the incident title across the Datadog app.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The string that will be prepended to the incident title across the Datadog app."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "incident_type_resource_type",
+        "description": "Incident type resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "incident_types"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Incident type resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "incident_types",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Create request for an incident type.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Incident type data for a create request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Incident type's attributes.\",\n                \"properties\": {\n                  \"createdAt\": {\n                    \"description\": \"Timestamp when the incident type was created.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"createdBy\": {\n                    \"description\": \"A unique identifier that represents the user that created the incident type.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"description\": {\n                    \"description\": \"Text that describes the incident type.\",\n                    \"example\": \"Any incidents that harm (or have the potential to) the confidentiality, integrity, or availability of our data.\",\n                    \"type\": \"string\"\n                  },\n                  \"is_default\": {\n                    \"default\": false,\n                    \"description\": \"If true, this incident type will be used as the default incident type if a type is not specified during the creation of incident resources.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"lastModifiedBy\": {\n                    \"description\": \"A unique identifier that represents the user that last modified the incident type.\",\n                    \"example\": \"00000000-0000-0000-0000-000000000000\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"modifiedAt\": {\n                    \"description\": \"Timestamp when the incident type was last modified.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the incident type.\",\n                    \"example\": \"Security Incident\",\n                    \"type\": \"string\"\n                  },\n                  \"prefix\": {\n                    \"description\": \"The string that will be prepended to the incident title across the Datadog app.\",\n                    \"example\": \"IR\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"incident_types\",\n                \"description\": \"Incident type resource type.\",\n                \"enum\": [\n                  \"incident_types\"\n                ],\n                \"example\": \"incident_types\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENT_TYPES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident type payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

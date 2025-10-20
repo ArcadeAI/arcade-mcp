@@ -1,0 +1,196 @@
+{
+  "name": "UpdateCaseDescription",
+  "fully_qualified_name": "DatadogApi.UpdateCaseDescription@0.1.0",
+  "description": "Update the description of a case in Datadog.\n\nUse this tool to modify the description of a specific case in Datadog by providing the case ID and new description details.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_uuid_or_key",
+        "required": true,
+        "description": "The unique identifier (UUID or key) for the specific case you want to update in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "case_id"
+      },
+      {
+        "name": "new_case_description",
+        "required": true,
+        "description": "Provide the new description text for the case you wish to update. This replaces the current case description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case new description"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "case_resource_type",
+        "required": true,
+        "description": "Specify the type of resource for the case. It must be 'case'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCaseDescription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/{case_id}/description",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "case_id",
+        "tool_parameter_name": "case_uuid_or_key",
+        "description": "Case's UUID or key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "new_case_description",
+        "description": "Case new description",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case new description"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "case_resource_type",
+        "description": "Case resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "case",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case update description request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case update description\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Case update description attributes\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Case new description\",\n                    \"example\": \"Seeing some weird memory increase... We shouldn't ignore this\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"description\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case\",\n                \"description\": \"Case resource type\",\n                \"enum\": [\n                  \"case\"\n                ],\n                \"example\": \"case\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Case description update payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

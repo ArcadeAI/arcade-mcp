@@ -1,0 +1,241 @@
+{
+  "name": "UpdateTeamPermission",
+  "fully_qualified_name": "DatadogApi.UpdateTeamPermission@0.1.0",
+  "description": "Update a team's permission setting in Datadog.\n\nUse this tool to update the permission setting for a specific team in Datadog, allowing for customized access control adjustments.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier of the team for which the permission setting will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "action_to_update",
+        "required": true,
+        "description": "The specific action to update in the team's permission setting, specifying what can be performed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "action"
+      },
+      {
+        "name": "team_permission_setting_type",
+        "required": true,
+        "description": "Specify the team permission setting type. Required value: 'team_permission_settings'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_permission_settings"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team permission setting type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "allowed_user_type_for_action",
+        "required": false,
+        "description": "Specify the user type permitted to perform the action. Options: admins, members, organization, user_access_manage, teams_manage.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admins",
+            "members",
+            "organization",
+            "user_access_manage",
+            "teams_manage"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What type of user is allowed to perform the specified action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.value"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateTeamPermissionSetting'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/team/{team_id}/permission-settings/{action}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "action",
+        "tool_parameter_name": "action_to_update",
+        "description": "None",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "None"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.value",
+        "tool_parameter_name": "allowed_user_type_for_action",
+        "description": "What type of user is allowed to perform the specified action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admins",
+            "members",
+            "organization",
+            "user_access_manage",
+            "teams_manage"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "What type of user is allowed to perform the specified action"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "team_permission_setting_type",
+        "description": "Team permission setting type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_permission_settings"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Team permission setting type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "team_permission_settings",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Team permission setting update request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Team permission setting update\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Team permission setting update attributes\",\n                \"properties\": {\n                  \"value\": {\n                    \"description\": \"What type of user is allowed to perform the specified action\",\n                    \"enum\": [\n                      \"admins\",\n                      \"members\",\n                      \"organization\",\n                      \"user_access_manage\",\n                      \"teams_manage\"\n                    ],\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"ADMINS\",\n                      \"MEMBERS\",\n                      \"ORGANIZATION\",\n                      \"USER_ACCESS_MANAGE\",\n                      \"TEAMS_MANAGE\"\n                    ]\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"team_permission_settings\",\n                \"description\": \"Team permission setting type\",\n                \"enum\": [\n                  \"team_permission_settings\"\n                ],\n                \"example\": \"team_permission_settings\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"TEAM_PERMISSION_SETTINGS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,416 @@
+{
+  "name": "CreateSupportCase",
+  "fully_qualified_name": "DatadogApi.CreateSupportCase@0.1.0",
+  "description": "Create a new support case in Datadog.\n\nUse this tool to create a new support case in Datadog. Useful for reporting issues or requesting assistance.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_title",
+        "required": true,
+        "description": "The title of the support case to be created. It should clearly summarize the issue or request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.title"
+      },
+      {
+        "name": "case_type_uuid",
+        "required": true,
+        "description": "UUID representing the case type. Provide a valid UUID to specify the type of case being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type UUID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.type_id"
+      },
+      {
+        "name": "case_resource_type",
+        "required": true,
+        "description": "Specifies the type of resource being created. Always use \"case\" for this argument.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "case_description",
+        "required": false,
+        "description": "A detailed description of the support case. Include all relevant information about the issue or request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "case_priority",
+        "required": false,
+        "description": "The priority of the support case. Valid values are NOT_DEFINED, P1, P2, P3, P4, P5.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "NOT_DEFINED",
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case priority"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.priority"
+      },
+      {
+        "name": "assignee_user_id",
+        "required": false,
+        "description": "A unique identifier for the user assigned to the case. Typically a UUID string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.assignee.data.id"
+      },
+      {
+        "name": "assignee_resource_type",
+        "required": false,
+        "description": "The type of resource for the assignee, usually 'user'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.assignee.data.type"
+      },
+      {
+        "name": "project_id",
+        "required": false,
+        "description": "Provide the unique identifier of the project related to the support case.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.project.data.id"
+      },
+      {
+        "name": "project_resource_type",
+        "required": false,
+        "description": "Specifies the project resource type. Must be 'project'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "project"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.relationships.project.data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCase'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "case_description",
+        "description": "Description",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.priority",
+        "tool_parameter_name": "case_priority",
+        "description": "Case priority",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "NOT_DEFINED",
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case priority"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "NOT_DEFINED",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.title",
+        "tool_parameter_name": "case_title",
+        "description": "Title",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Title"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.type_id",
+        "tool_parameter_name": "case_type_uuid",
+        "description": "Case type UUID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case type UUID"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.assignee.data.id",
+        "tool_parameter_name": "assignee_user_id",
+        "description": "A unique identifier that represents the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.assignee.data.type",
+        "tool_parameter_name": "assignee_resource_type",
+        "description": "User resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "user"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "User resource type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "user",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.project.data.id",
+        "tool_parameter_name": "project_id",
+        "description": "A unique identifier that represents the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique identifier that represents the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.relationships.project.data.type",
+        "tool_parameter_name": "project_resource_type",
+        "description": "Project resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "project"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project resource type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "project",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "case_resource_type",
+        "description": "Case resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "case",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case create request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case creation data\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Case creation attributes\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Description\",\n                    \"type\": \"string\"\n                  },\n                  \"priority\": {\n                    \"default\": \"NOT_DEFINED\",\n                    \"description\": \"Case priority\",\n                    \"enum\": [\n                      \"NOT_DEFINED\",\n                      \"P1\",\n                      \"P2\",\n                      \"P3\",\n                      \"P4\",\n                      \"P5\"\n                    ],\n                    \"example\": \"NOT_DEFINED\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"NOT_DEFINED\",\n                      \"P1\",\n                      \"P2\",\n                      \"P3\",\n                      \"P4\",\n                      \"P5\"\n                    ]\n                  },\n                  \"title\": {\n                    \"description\": \"Title\",\n                    \"example\": \"Security breach investigation\",\n                    \"type\": \"string\"\n                  },\n                  \"type_id\": {\n                    \"description\": \"Case type UUID\",\n                    \"example\": \"3b010bde-09ce-4449-b745-71dd5f861963\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"title\",\n                  \"type_id\"\n                ],\n                \"type\": \"object\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships formed with the case on creation\",\n                \"properties\": {\n                  \"assignee\": {\n                    \"description\": \"Relationship to user.\",\n                    \"nullable\": true,\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationship to user object.\",\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"A unique identifier that represents the user.\",\n                            \"example\": \"00000000-0000-0000-0000-000000000000\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"user\",\n                            \"description\": \"User resource type.\",\n                            \"enum\": [\n                              \"user\"\n                            ],\n                            \"example\": \"user\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USER\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"project\": {\n                    \"description\": \"Relationship to project\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationship to project object\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"A unique identifier that represents the project\",\n                            \"example\": \"e555e290-ed65-49bd-ae18-8acbfcf18db7\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"project\",\n                            \"description\": \"Project resource type\",\n                            \"enum\": [\n                              \"project\"\n                            ],\n                            \"example\": \"project\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"PROJECT\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"project\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case\",\n                \"description\": \"Case resource type\",\n                \"enum\": [\n                  \"case\"\n                ],\n                \"example\": \"case\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Case payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
