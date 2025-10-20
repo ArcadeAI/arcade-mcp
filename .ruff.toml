@@ -4,6 +4,8 @@ fix = true
 
 exclude = [
     "libs/arcade-cli/arcade_cli/templates/",
+    "toolkits/datadog_api/arcade_datadog_api/tools/__init__.py",
+    "toolkits/datadog_api/arcade_datadog_api/tools/request_body_schemas.py",
 ]
 
 [lint]
