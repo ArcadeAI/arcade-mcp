@@ -68,7 +68,7 @@ class MCPApp:
         title: str | None = None,
         instructions: str | None = None,
         log_level: str = "INFO",
-        transport: TransportType = "http",
+        transport: TransportType = "stdio",
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
@@ -83,7 +83,7 @@ class MCPApp:
             title: Server title for display
             instructions: Server instructions
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
-            transport: Transport type ("http")
+            transport: Transport type ("stdio")
             host: Host for transport
             port: Port for transport
             reload: Enable auto-reload for development
@@ -221,7 +221,7 @@ class MCPApp:
         host: str = "127.0.0.1",
         port: int = 8000,
         reload: bool = False,
-        transport: TransportType = "http",
+        transport: TransportType = "stdio",
         **kwargs: Any,
     ) -> None:
         if len(self._catalog) == 0:

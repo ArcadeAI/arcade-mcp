@@ -175,12 +175,16 @@ class StdioTransport:
         session_id = str(uuid.uuid4())
         read_stream = StdioReadStream(self.read_queue)
         write_stream = StdioWriteStream(self.write_queue)
+
+        # Set transport type in init_options
+        init_options = {"transport_type": "stdio", **options}
+
         session = ServerSession(
             server=None,  # set by the caller using run_connection; not used here
             session_id=session_id,
             read_stream=read_stream,
             write_stream=write_stream,
-            init_options=options,
+            init_options=init_options,
             stateless=True,
         )
 

@@ -473,23 +473,27 @@ def configure(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
     ),
+    transport: str = typer.Option(
+        "stdio",
+        "--transport",
+        "-t",
+        help="The transport to use for the MCP server configuration",
+        click_type=click.Choice(["stdio", "http"], case_sensitive=False),
+        show_choices=True,
+    ),
     server_name: Optional[str] = typer.Option(
         None,
         "--server",
         "-s",
         help="Name of the server to connect to (defaults to current directory name)",
     ),
-    from_local: bool = typer.Option(
-        False,
-        "--from-local",
-        help="Connect to a local MCP server",
-        is_flag=True,
-    ),
-    from_arcade: bool = typer.Option(
-        False,
-        "--from-arcade",
-        help="Connect to an Arcade Cloud MCP server",
-        is_flag=True,
+    from_source: str = typer.Option(
+        "local",
+        "--from",
+        "-f",
+        help="The source of the server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        click_type=click.Choice(["local", "arcade"], case_sensitive=False),
+        show_choices=True,
     ),
     port: int = typer.Option(
         8000,
@@ -521,8 +525,8 @@ def configure(
         configure_client(
             client=client,
             server_name=server_name,
-            from_local=from_local,
-            from_arcade=from_arcade,
+            transport=transport,
+            from_source=from_source,
             port=port,
             path=path,
         )

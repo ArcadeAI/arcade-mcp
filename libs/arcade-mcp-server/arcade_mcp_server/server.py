@@ -661,7 +661,7 @@ class MCPServer:
 
             # Handle authorization and secrets requirements if required
             if missing_requirements_response := await self._check_tool_requirements(
-                tool, tool_context, message, tool_name
+                tool, tool_context, message, tool_name, session
             ):
                 return missing_requirements_response
 
@@ -754,8 +754,35 @@ class MCPServer:
         tool_context: ToolContext,
         message: CallToolRequest,
         tool_name: str,
+        session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
         """Check tool requirements before executing the tool"""
+        # Check transport restrictions for tools requiring auth or secrets
+        if session and session.init_options:
+            transport_type = session.init_options.get("transport_type")
+            if transport_type == "http":
+                requirements = tool.definition.requirements
+                if requirements and (requirements.authorization or requirements.secrets):
+                    error_parts = []
+                    if requirements.authorization:
+                        error_parts.append("authorization")
+                    if requirements.secrets:
+                        error_parts.append("secrets")
+
+                    error_type = " and ".join(error_parts)
+
+                    tool_response = {
+                        "message": f"Tool '{tool_name}' cannot be executed over HTTP transport because it requires {error_type}.",
+                        "llm_instructions": (
+                            f"The '{tool_name}' tool requires {error_type} and cannot be used over HTTP transport for security reasons. "
+                            "To use this tool, the server developer must either: "
+                            "1) Use the stdio transport (recommended for local development and desktop clients), or "
+                            "2) Deploy the server using 'arcade deploy', or "
+                            "3) Add the server in the Arcade Developer Dashboard with 'Arcade' server type"
+                        ),
+                    }
+                    return self._create_error_response(message, tool_response)
+
         # Check authorization
         if tool.definition.requirements and tool.definition.requirements.authorization:
             # First check if Arcade API key is configured
