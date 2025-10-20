@@ -1,4 +1,5 @@
 files: ^.*/datadog_api/.*
+exclude: ^.*/datadog_api/arcade_datadog_api/tools/__init__\.py$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.4.0"
