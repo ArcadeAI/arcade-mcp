@@ -15,8 +15,6 @@ from rich.console import Console
 from rich.text import Text
 from tqdm import tqdm
 
-import arcade_cli.secret as secret
-import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
@@ -26,6 +24,8 @@ from arcade_cli.constants import (
 from arcade_cli.display import (
     display_eval_results,
 )
+from arcade_cli.secret import app as secret_app
+from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
@@ -58,14 +58,14 @@ cli = TrackedTyper(
 
 
 cli.add_typer(
-    worker.app,
+    server_app,
     name="server",
     help="Manage deployments of tool servers (logs, list, etc)",
     rich_help_panel="Manage",
 )
 
 cli.add_typer(
-    secret.app,
+    secret_app,
     name="secret",
     help="Manage tool secrets in the cloud (set, unset, list)",
     rich_help_panel="Manage",
