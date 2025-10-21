@@ -1,0 +1,106 @@
+{
+  "name": "GetSupportedTlds",
+  "fully_qualified_name": "VercelApi.GetSupportedTlds@0.1.0",
+  "description": "Retrieve a list of TLDs supported by Vercel.\n\nThis tool provides a list of Top-Level Domains (TLDs) that are supported by Vercel. Use this tool to find out which TLDs can be managed or registered through Vercel's platform.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_id",
+        "required": false,
+        "description": "The ID of the team for which to retrieve supported TLDs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getSupportedTlds'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/registrar/tlds/supported",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

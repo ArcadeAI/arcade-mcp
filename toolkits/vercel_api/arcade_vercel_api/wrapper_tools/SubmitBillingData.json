@@ -1,0 +1,377 @@
+{
+  "name": "SubmitBillingData",
+  "fully_qualified_name": "VercelApi.SubmitBillingData@0.1.0",
+  "description": "Submit billing and usage data to the server.\n\nThis tool should be used to send billing and usage data at least once a day, ideally once per hour, using the provided access token for authorization.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "integration_configuration_id",
+        "required": true,
+        "description": "A string representing the unique identifier for the integration configuration. This is required to submit billing data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integrationConfigurationId"
+      },
+      {
+        "name": "billing_usage_data",
+        "required": true,
+        "description": "JSON containing the billing and usage data details: timestamp, end of day (eod), period, billing, and usage metrics.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "timestamp": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept."
+            },
+            "eod": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End of Day, the UTC datetime for when the end of the billing/usage day is in UTC time. This tells us which day the usage data is for, and also allows for your \\\"end of day\\\" to be different from UTC 00:00:00. eod must be within the period dates, and cannot be older than 24h earlier from our server's current time."
+            },
+            "period": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Period for the billing cycle. The period end date cannot be older than 24 hours earlier than our current server's time."
+            },
+            "billing": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing data (interim invoicing data)."
+            },
+            "usage": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric name."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "total",
+                    "interval",
+                    "rate"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\\n              Type of the metric.\\n              - total: measured total value, such as Database size\\n              - interval: usage during the period, such as i/o or number of queries.\\n              - rate: rate of usage, such as queries per second.\\n            "
+                },
+                "units": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric units. Example: \\\"GB\\\""
+                },
+                "dayValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric value for the day. Could be a final or an interim value for the day."
+                },
+                "periodValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric value for the billing period. Could be a final or an interim value for the period."
+                },
+                "planValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The limit value of the metric for a billing period, if a limit is defined by the plan."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'submit-billing-data'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/installations/{integrationConfigurationId}/billing",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "integrationConfigurationId",
+        "tool_parameter_name": "integration_configuration_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "billing_usage_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "timestamp": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept."
+            },
+            "eod": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "End of Day, the UTC datetime for when the end of the billing/usage day is in UTC time. This tells us which day the usage data is for, and also allows for your \\\"end of day\\\" to be different from UTC 00:00:00. eod must be within the period dates, and cannot be older than 24h earlier from our server's current time."
+            },
+            "period": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "start": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "end": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Period for the billing cycle. The period end date cannot be older than 24 hours earlier than our current server's time."
+            },
+            "billing": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing data (interim invoicing data)."
+            },
+            "usage": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "resourceId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Partner's resource ID."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric name."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "total",
+                    "interval",
+                    "rate"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\\n              Type of the metric.\\n              - total: measured total value, such as Database size\\n              - interval: usage during the period, such as i/o or number of queries.\\n              - rate: rate of usage, such as queries per second.\\n            "
+                },
+                "units": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric units. Example: \\\"GB\\\""
+                },
+                "dayValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric value for the day. Could be a final or an interim value for the day."
+                },
+                "periodValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Metric value for the billing period. Could be a final or an interim value for the period."
+                },
+                "planValue": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The limit value of the metric for a billing period, if a limit is defined by the plan."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"timestamp\": {\n            \"description\": \"Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"eod\": {\n            \"description\": \"End of Day, the UTC datetime for when the end of the billing/usage day is in UTC time. This tells us which day the usage data is for, and also allows for your \\\\\\\"end of day\\\\\\\" to be different from UTC 00:00:00. eod must be within the period dates, and cannot be older than 24h earlier from our server's current time.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"period\": {\n            \"type\": \"object\",\n            \"description\": \"Period for the billing cycle. The period end date cannot be older than 24 hours earlier than our current server's time.\",\n            \"properties\": {\n              \"start\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              },\n              \"end\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              }\n            },\n            \"required\": [\n              \"start\",\n              \"end\"\n            ],\n            \"additionalProperties\": false\n          },\n          \"billing\": {\n            \"description\": \"Billing data (interim invoicing data).\",\n            \"oneOf\": [\n              {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"billingPlanId\": {\n                      \"type\": \"string\",\n                      \"description\": \"Partner's billing plan ID.\"\n                    },\n                    \"resourceId\": {\n                      \"type\": \"string\",\n                      \"description\": \"Partner's resource ID.\"\n                    },\n                    \"start\": {\n                      \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                      \"type\": \"string\",\n                      \"format\": \"date-time\"\n                    },\n                    \"end\": {\n                      \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                      \"type\": \"string\",\n                      \"format\": \"date-time\"\n                    },\n                    \"name\": {\n                      \"type\": \"string\",\n                      \"description\": \"Line item name.\"\n                    },\n                    \"details\": {\n                      \"type\": \"string\",\n                      \"description\": \"Line item details.\"\n                    },\n                    \"price\": {\n                      \"description\": \"Price per unit.\",\n                      \"type\": \"string\",\n                      \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\"\n                    },\n                    \"quantity\": {\n                      \"type\": \"number\",\n                      \"description\": \"Quantity of units.\"\n                    },\n                    \"units\": {\n                      \"type\": \"string\",\n                      \"description\": \"Units of the quantity.\"\n                    },\n                    \"total\": {\n                      \"description\": \"Total amount.\",\n                      \"type\": \"string\",\n                      \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\"\n                    }\n                  },\n                  \"required\": [\n                    \"billingPlanId\",\n                    \"name\",\n                    \"price\",\n                    \"quantity\",\n                    \"units\",\n                    \"total\"\n                  ],\n                  \"additionalProperties\": false\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"items\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"billingPlanId\": {\n                          \"type\": \"string\",\n                          \"description\": \"Partner's billing plan ID.\"\n                        },\n                        \"resourceId\": {\n                          \"type\": \"string\",\n                          \"description\": \"Partner's resource ID.\"\n                        },\n                        \"start\": {\n                          \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\"\n                        },\n                        \"end\": {\n                          \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\"\n                        },\n                        \"name\": {\n                          \"type\": \"string\",\n                          \"description\": \"Line item name.\"\n                        },\n                        \"details\": {\n                          \"type\": \"string\",\n                          \"description\": \"Line item details.\"\n                        },\n                        \"price\": {\n                          \"description\": \"Price per unit.\",\n                          \"type\": \"string\",\n                          \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\"\n                        },\n                        \"quantity\": {\n                          \"type\": \"number\",\n                          \"description\": \"Quantity of units.\"\n                        },\n                        \"units\": {\n                          \"type\": \"string\",\n                          \"description\": \"Units of the quantity.\"\n                        },\n                        \"total\": {\n                          \"description\": \"Total amount.\",\n                          \"type\": \"string\",\n                          \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\"\n                        }\n                      },\n                      \"required\": [\n                        \"billingPlanId\",\n                        \"name\",\n                        \"price\",\n                        \"quantity\",\n                        \"units\",\n                        \"total\"\n                      ],\n                      \"additionalProperties\": false\n                    }\n                  },\n                  \"discounts\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"billingPlanId\": {\n                          \"type\": \"string\",\n                          \"description\": \"Partner's billing plan ID.\"\n                        },\n                        \"resourceId\": {\n                          \"type\": \"string\",\n                          \"description\": \"Partner's resource ID.\"\n                        },\n                        \"start\": {\n                          \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\"\n                        },\n                        \"end\": {\n                          \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                          \"type\": \"string\",\n                          \"format\": \"date-time\"\n                        },\n                        \"name\": {\n                          \"type\": \"string\",\n                          \"description\": \"Discount name.\"\n                        },\n                        \"details\": {\n                          \"type\": \"string\",\n                          \"description\": \"Discount details.\"\n                        },\n                        \"amount\": {\n                          \"description\": \"Discount amount.\",\n                          \"type\": \"string\",\n                          \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\"\n                        }\n                      },\n                      \"required\": [\n                        \"billingPlanId\",\n                        \"name\",\n                        \"amount\"\n                      ],\n                      \"additionalProperties\": false\n                    }\n                  }\n                },\n                \"required\": [\n                  \"items\"\n                ]\n              }\n            ]\n          },\n          \"usage\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID.\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"Metric name.\"\n                },\n                \"type\": {\n                  \"type\": \"string\",\n                  \"description\": \"\\\\n              Type of the metric.\\\\n              - total: measured total value, such as Database size\\\\n              - interval: usage during the period, such as i/o or number of queries.\\\\n              - rate: rate of usage, such as queries per second.\\\\n            \",\n                  \"enum\": [\n                    \"total\",\n                    \"interval\",\n                    \"rate\"\n                  ]\n                },\n                \"units\": {\n                  \"type\": \"string\",\n                  \"description\": \"Metric units. Example: \\\\\\\"GB\\\\\\\"\"\n                },\n                \"dayValue\": {\n                  \"type\": \"number\",\n                  \"description\": \"Metric value for the day. Could be a final or an interim value for the day.\"\n                },\n                \"periodValue\": {\n                  \"type\": \"number\",\n                  \"description\": \"Metric value for the billing period. Could be a final or an interim value for the period.\"\n                },\n                \"planValue\": {\n                  \"type\": \"number\",\n                  \"description\": \"The limit value of the metric for a billing period, if a limit is defined by the plan.\"\n                }\n              },\n              \"required\": [\n                \"name\",\n                \"type\",\n                \"units\",\n                \"dayValue\",\n                \"periodValue\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        },\n        \"required\": [\n          \"timestamp\",\n          \"eod\",\n          \"period\",\n          \"billing\",\n          \"usage\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

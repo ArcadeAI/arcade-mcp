@@ -1,0 +1,106 @@
+{
+  "name": "InvalidateAuthToken",
+  "fully_qualified_name": "VercelApi.InvalidateAuthToken@0.1.0",
+  "description": "Invalidate an authentication token to revoke access.\n\nThis tool is used to invalidate an authentication token, ensuring it is no longer valid for any future HTTP requests. Call this tool when you need to revoke access granted by a specific token.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "token_id",
+        "required": true,
+        "description": "The ID of the token to invalidate. Use 'current' to invalidate the token used for this request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the token to invalidate. The special value \\\"current\\\" may be supplied, which invalidates the token that the HTTP request was authenticated with."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tokenId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteAuthToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v3/user/tokens/{tokenId}",
+    "http_method": "DELETE",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "tokenId",
+        "tool_parameter_name": "token_id",
+        "description": "The identifier of the token to invalidate. The special value \\\"current\\\" may be supplied, which invalidates the token that the HTTP request was authenticated with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the token to invalidate. The special value \\\"current\\\" may be supplied, which invalidates the token that the HTTP request was authenticated with."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

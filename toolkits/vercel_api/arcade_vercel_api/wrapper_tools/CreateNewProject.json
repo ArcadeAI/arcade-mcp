@@ -1,0 +1,836 @@
+{
+  "name": "CreateNewProject",
+  "fully_qualified_name": "VercelApi.CreateNewProject@0.1.0",
+  "description": "Create a new project with specified configurations.\n\nThis tool creates a new project using the provided configurations. You can specify only the project name or add additional configurations to customize the project further. Call this tool when you need to initialize a new project.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier of the team on whose behalf the project will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the Team to perform the request on behalf of. It should be a string identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "project_configuration",
+        "required": false,
+        "description": "JSON with detailed settings for the new project, such as name, commands, environment variables, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "enablePreviewFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to preview toolbar on the project level"
+            },
+            "enableProductionFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to production toolbar on the project level"
+            },
+            "previewDeploymentsDisabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether preview deployments are disabled for this project."
+            },
+            "buildCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The build command for this project. When `null` is used this value will be automatically detected"
+            },
+            "commandForIgnoringBuildStep": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "devCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+            },
+            "environmentVariables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the ENV variable"
+                },
+                "target": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Deployment Target or Targets in which the ENV variable will be used"
+                },
+                "gitBranch": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If defined, the git branch of the environment variable (must have target=preview)"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "system",
+                    "secret",
+                    "encrypted",
+                    "plain",
+                    "sensitive"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the ENV variable"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value for the ENV variable"
+                }
+              },
+              "description": "Collection of ENV Variables the Project will use"
+            },
+            "framework": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+            },
+            "gitRepository": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "repo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the git repository. For example: \\\"vercel/next.js\\\""
+                },
+                "type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Git Provider of the repository"
+                }
+              },
+              "inner_properties": null,
+              "description": "The Git Repository that will be connected to the project. When this is defined, any pushes to the specified connected Git Repository will be automatically deployed"
+            },
+            "installCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The install command for this project. When `null` is used this value will be automatically detected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired name for the project"
+            },
+            "skipGitConnectDuringLink": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+            },
+            "ssoProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "The Vercel Auth setting for the project (historically named \\\"SSO Protection\\\")"
+            },
+            "outputDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+            },
+            "publicSource": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the source code and logs of the deployments for this project should be public or not"
+            },
+            "rootDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+            },
+            "serverlessFunctionRegion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The region to deploy Serverless Functions in this project"
+            },
+            "serverlessFunctionZeroConfigFailover": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Zero Config Failover is enabled for this project."
+            },
+            "oidcTokenConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not to generate OpenID Connect JSON Web Tokens."
+                },
+                "issuerMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team",
+                    "global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`"
+                }
+              },
+              "inner_properties": null,
+              "description": "OpenID Connect JSON Web Token generation configuration."
+            },
+            "enableAffectedProjectsDeployments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to skip deployments when there are no changes to the root directory and its dependencies"
+            },
+            "resourceConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fluid": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultRegions": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The regions to deploy Vercel Functions to for this project"
+                },
+                "functionDefaultTimeout": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultMemoryType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionZeroConfigFailover": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies whether Zero Config Failover is enabled for this project."
+                },
+                "elasticConcurrencyEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "buildMachineType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "isNSNBDisabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specifies resource override configuration for the project"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v11/projects",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "enablePreviewFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to preview toolbar on the project level"
+            },
+            "enableProductionFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to production toolbar on the project level"
+            },
+            "previewDeploymentsDisabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether preview deployments are disabled for this project."
+            },
+            "buildCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The build command for this project. When `null` is used this value will be automatically detected"
+            },
+            "commandForIgnoringBuildStep": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "devCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+            },
+            "environmentVariables": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "key": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the ENV variable"
+                },
+                "target": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Deployment Target or Targets in which the ENV variable will be used"
+                },
+                "gitBranch": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "If defined, the git branch of the environment variable (must have target=preview)"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "system",
+                    "secret",
+                    "encrypted",
+                    "plain",
+                    "sensitive"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of the ENV variable"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value for the ENV variable"
+                }
+              },
+              "description": "Collection of ENV Variables the Project will use"
+            },
+            "framework": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+            },
+            "gitRepository": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "repo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the git repository. For example: \\\"vercel/next.js\\\""
+                },
+                "type": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The Git Provider of the repository"
+                }
+              },
+              "inner_properties": null,
+              "description": "The Git Repository that will be connected to the project. When this is defined, any pushes to the specified connected Git Repository will be automatically deployed"
+            },
+            "installCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The install command for this project. When `null` is used this value will be automatically detected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired name for the project"
+            },
+            "skipGitConnectDuringLink": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+            },
+            "ssoProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "The Vercel Auth setting for the project (historically named \\\"SSO Protection\\\")"
+            },
+            "outputDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+            },
+            "publicSource": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the source code and logs of the deployments for this project should be public or not"
+            },
+            "rootDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+            },
+            "serverlessFunctionRegion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The region to deploy Serverless Functions in this project"
+            },
+            "serverlessFunctionZeroConfigFailover": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Zero Config Failover is enabled for this project."
+            },
+            "oidcTokenConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not to generate OpenID Connect JSON Web Tokens."
+                },
+                "issuerMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team",
+                    "global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`"
+                }
+              },
+              "inner_properties": null,
+              "description": "OpenID Connect JSON Web Token generation configuration."
+            },
+            "enableAffectedProjectsDeployments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to skip deployments when there are no changes to the root directory and its dependencies"
+            },
+            "resourceConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "fluid": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultRegions": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The regions to deploy Vercel Functions to for this project"
+                },
+                "functionDefaultTimeout": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultMemoryType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionZeroConfigFailover": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies whether Zero Config Failover is enabled for this project."
+                },
+                "elasticConcurrencyEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "buildMachineType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "isNSNBDisabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specifies resource override configuration for the project"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"enablePreviewFeedback\": {\n            \"description\": \"Opt-in to preview toolbar on the project level\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"enableProductionFeedback\": {\n            \"description\": \"Opt-in to production toolbar on the project level\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"previewDeploymentsDisabled\": {\n            \"description\": \"Specifies whether preview deployments are disabled for this project.\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"buildCommand\": {\n            \"description\": \"The build command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"commandForIgnoringBuildStep\": {\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"devCommand\": {\n            \"description\": \"The dev command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"environmentVariables\": {\n            \"description\": \"Collection of ENV Variables the Project will use\",\n            \"items\": {\n              \"properties\": {\n                \"key\": {\n                  \"description\": \"Name of the ENV variable\",\n                  \"type\": \"string\"\n                },\n                \"target\": {\n                  \"description\": \"Deployment Target or Targets in which the ENV variable will be used\",\n                  \"oneOf\": [\n                    {\n                      \"enum\": [\n                        \"production\",\n                        \"preview\",\n                        \"development\"\n                      ]\n                    },\n                    {\n                      \"items\": {\n                        \"enum\": [\n                          \"production\",\n                          \"preview\",\n                          \"development\"\n                        ]\n                      },\n                      \"type\": \"array\"\n                    }\n                  ]\n                },\n                \"gitBranch\": {\n                  \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n                  \"type\": \"string\",\n                  \"maxLength\": 250\n                },\n                \"type\": {\n                  \"description\": \"Type of the ENV variable\",\n                  \"enum\": [\n                    \"system\",\n                    \"secret\",\n                    \"encrypted\",\n                    \"plain\",\n                    \"sensitive\"\n                  ],\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"Value for the ENV variable\",\n                  \"type\": \"string\"\n                }\n              },\n              \"required\": [\n                \"key\",\n                \"value\",\n                \"target\"\n              ],\n              \"type\": \"object\"\n            },\n            \"type\": \"array\"\n          },\n          \"framework\": {\n            \"description\": \"The framework that is being used for this project. When `null` is used no framework is selected\",\n            \"enum\": [\n              null,\n              \"blitzjs\",\n              \"nextjs\",\n              \"gatsby\",\n              \"remix\",\n              \"react-router\",\n              \"astro\",\n              \"hexo\",\n              \"eleventy\",\n              \"docusaurus-2\",\n              \"docusaurus\",\n              \"preact\",\n              \"solidstart-1\",\n              \"solidstart\",\n              \"dojo\",\n              \"ember\",\n              \"vue\",\n              \"scully\",\n              \"ionic-angular\",\n              \"angular\",\n              \"polymer\",\n              \"svelte\",\n              \"sveltekit\",\n              \"sveltekit-1\",\n              \"ionic-react\",\n              \"create-react-app\",\n              \"gridsome\",\n              \"umijs\",\n              \"sapper\",\n              \"saber\",\n              \"stencil\",\n              \"nuxtjs\",\n              \"redwoodjs\",\n              \"hugo\",\n              \"jekyll\",\n              \"brunch\",\n              \"middleman\",\n              \"zola\",\n              \"hydrogen\",\n              \"vite\",\n              \"vitepress\",\n              \"vuepress\",\n              \"parcel\",\n              \"fastapi\",\n              \"flask\",\n              \"fasthtml\",\n              \"sanity-v3\",\n              \"sanity\",\n              \"storybook\",\n              \"nitro\",\n              \"hono\",\n              \"express\",\n              \"h3\",\n              \"nestjs\",\n              \"xmcp\"\n            ]\n          },\n          \"gitRepository\": {\n            \"description\": \"The Git Repository that will be connected to the project. When this is defined, any pushes to the specified connected Git Repository will be automatically deployed\",\n            \"properties\": {\n              \"repo\": {\n                \"description\": \"The name of the git repository. For example: \\\\\\\"vercel/next.js\\\\\\\"\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"description\": \"The Git Provider of the repository\",\n                \"enum\": [\n                  \"github\",\n                  \"github-limited\",\n                  \"gitlab\",\n                  \"bitbucket\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"repo\"\n            ],\n            \"type\": \"object\"\n          },\n          \"installCommand\": {\n            \"description\": \"The install command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"description\": \"The desired name for the project\",\n            \"example\": \"a-project-name\",\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"skipGitConnectDuringLink\": {\n            \"description\": \"Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`.\",\n            \"type\": \"boolean\",\n            \"deprecated\": true\n          },\n          \"ssoProtection\": {\n            \"description\": \"The Vercel Auth setting for the project (historically named \\\\\\\"SSO Protection\\\\\\\")\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"deploymentType\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"all\",\n                  \"preview\",\n                  \"prod_deployment_urls_and_all_previews\",\n                  \"all_except_custom_domains\"\n                ]\n              }\n            },\n            \"required\": [\n              \"deploymentType\"\n            ],\n            \"nullable\": true\n          },\n          \"outputDirectory\": {\n            \"description\": \"The output directory of the project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"publicSource\": {\n            \"description\": \"Specifies whether the source code and logs of the deployments for this project should be public or not\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"rootDirectory\": {\n            \"description\": \"The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"serverlessFunctionRegion\": {\n            \"description\": \"The region to deploy Serverless Functions in this project\",\n            \"maxLength\": 4,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"serverlessFunctionZeroConfigFailover\": {\n            \"description\": \"Specifies whether Zero Config Failover is enabled for this project.\",\n            \"oneOf\": [\n              {\n                \"type\": \"boolean\"\n              }\n            ]\n          },\n          \"oidcTokenConfig\": {\n            \"description\": \"OpenID Connect JSON Web Token generation configuration.\",\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"enabled\": {\n                \"description\": \"Whether or not to generate OpenID Connect JSON Web Tokens.\",\n                \"deprecated\": true,\n                \"type\": \"boolean\",\n                \"default\": true\n              },\n              \"issuerMode\": {\n                \"description\": \"team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"team\",\n                  \"global\"\n                ],\n                \"default\": \"team\"\n              }\n            }\n          },\n          \"enableAffectedProjectsDeployments\": {\n            \"description\": \"Opt-in to skip deployments when there are no changes to the root directory and its dependencies\",\n            \"type\": \"boolean\"\n          },\n          \"resourceConfig\": {\n            \"type\": \"object\",\n            \"description\": \"Specifies resource override configuration for the project\",\n            \"properties\": {\n              \"fluid\": {\n                \"type\": \"boolean\"\n              },\n              \"functionDefaultRegions\": {\n                \"description\": \"The regions to deploy Vercel Functions to for this project\",\n                \"type\": \"array\",\n                \"minItems\": 1,\n                \"uniqueItems\": true,\n                \"items\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 4\n                }\n              },\n              \"functionDefaultTimeout\": {\n                \"type\": \"number\",\n                \"maximum\": 900,\n                \"minimum\": 1\n              },\n              \"functionDefaultMemoryType\": {\n                \"enum\": [\n                  \"standard_legacy\",\n                  \"standard\",\n                  \"performance\"\n                ]\n              },\n              \"functionZeroConfigFailover\": {\n                \"description\": \"Specifies whether Zero Config Failover is enabled for this project.\",\n                \"oneOf\": [\n                  {\n                    \"type\": \"boolean\"\n                  }\n                ]\n              },\n              \"elasticConcurrencyEnabled\": {\n                \"type\": \"boolean\"\n              },\n              \"buildMachineType\": {\n                \"enum\": [\n                  \"enhanced\",\n                  \"turbo\"\n                ]\n              },\n              \"isNSNBDisabled\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"additionalProperties\": false\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,337 @@
+{
+  "name": "ListAccessGroups",
+  "fully_qualified_name": "VercelApi.ListAccessGroups@0.1.0",
+  "description": "Retrieve a list of access groups within Vercel.\n\nUse this tool to obtain a detailed list of all access groups available in your Vercel account.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": false,
+        "description": "Filter access groups by the specified project ID in Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter access groups by project."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectId"
+      },
+      {
+        "name": "search_access_groups_by_name",
+        "required": false,
+        "description": "Provide a name or keyword to search for specific access groups.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search for access groups by name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "members_inclusion_limit",
+        "required": false,
+        "description": "Specify the number of members to include in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of members to include in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "membersLimit"
+      },
+      {
+        "name": "max_projects_in_response",
+        "required": false,
+        "description": "Specify the maximum number of projects to include in the response list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of projects to include in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectsLimit"
+      },
+      {
+        "name": "access_groups_limit",
+        "required": false,
+        "description": "Specify the maximum number of access groups to be returned in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit how many access group should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "continuation_cursor_for_next_page",
+        "required": false,
+        "description": "A string to retrieve the next page of results using a continuation cursor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Continuation cursor to retrieve the next page of results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The ID of the team for which to list access groups. Specify this to perform the request on behalf of a specific team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "A string representing the Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listAccessGroups'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/access-groups",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "projectId",
+        "tool_parameter_name": "project_id",
+        "description": "Filter access groups by project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter access groups by project."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "search_access_groups_by_name",
+        "description": "Search for access groups by name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search for access groups by name."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "membersLimit",
+        "tool_parameter_name": "members_inclusion_limit",
+        "description": "Number of members to include in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of members to include in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projectsLimit",
+        "tool_parameter_name": "max_projects_in_response",
+        "description": "Number of projects to include in the response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of projects to include in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "access_groups_limit",
+        "description": "Limit how many access group should be returned.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit how many access group should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "next",
+        "tool_parameter_name": "continuation_cursor_for_next_page",
+        "description": "Continuation cursor to retrieve the next page of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Continuation cursor to retrieve the next page of results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

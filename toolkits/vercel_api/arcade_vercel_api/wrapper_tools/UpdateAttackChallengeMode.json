@@ -1,0 +1,238 @@
+{
+  "name": "UpdateAttackChallengeMode",
+  "fully_qualified_name": "VercelApi.UpdateAttackChallengeMode@0.1.0",
+  "description": "Updates Attack Challenge mode setting for a project.\n\nThis tool updates the Attack Challenge mode setting for a project in Vercel's security settings. Use it when you need to enable or disable the Attack Challenge mode.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier of the project to update the Attack Challenge mode for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectId"
+      },
+      {
+        "name": "enable_attack_challenge_mode",
+        "required": true,
+        "description": "Set to true to enable Attack Challenge mode; false to disable it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attackModeEnabled"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The unique slug of the team on behalf of which the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "attack_mode_active_until",
+        "required": false,
+        "description": "The UNIX timestamp indicating when the Attack Challenge mode should be active until. Specify this to control the duration of the mode being enabled.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attackModeActiveUntil"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateAttackChallengeMode'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/security/attack-mode",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projectId",
+        "tool_parameter_name": "project_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attackModeEnabled",
+        "tool_parameter_name": "enable_attack_challenge_mode",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attackModeActiveUntil",
+        "tool_parameter_name": "attack_mode_active_until",
+        "description": "",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"projectId\",\n          \"attackModeEnabled\"\n        ],\n        \"properties\": {\n          \"projectId\": {\n            \"type\": \"string\"\n          },\n          \"attackModeEnabled\": {\n            \"type\": \"boolean\"\n          },\n          \"attackModeActiveUntil\": {\n            \"type\": \"number\",\n            \"nullable\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

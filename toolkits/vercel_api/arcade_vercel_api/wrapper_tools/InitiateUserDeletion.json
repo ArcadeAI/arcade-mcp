@@ -1,0 +1,158 @@
+{
+  "name": "InitiateUserDeletion",
+  "fully_qualified_name": "VercelApi.InitiateUserDeletion@0.1.0",
+  "description": "Initiates user deletion and sends a confirmation email.\n\nUse this tool to start the deletion process for a user by emailing a confirmation link. The user has to follow the link to complete the deletion.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_deletion_request_body",
+        "required": true,
+        "description": "JSON object detailing reasons for deletion. Includes an array of objects with 'slug' and 'description' fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "reasons": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Idenitifier slug of the reason why the User account is being deleted."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the reason why the User account is being deleted."
+                }
+              },
+              "description": "Optional array of objects that describe the reason why the User account is being deleted."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'requestDelete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/user",
+    "http_method": "DELETE",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_deletion_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "reasons": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "slug": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Idenitifier slug of the reason why the User account is being deleted."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the reason why the User account is being deleted."
+                }
+              },
+              "description": "Optional array of objects that describe the reason why the User account is being deleted."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"reasons\": {\n            \"type\": \"array\",\n            \"description\": \"Optional array of objects that describe the reason why the User account is being deleted.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"An object describing the reason why the User account is being deleted.\",\n              \"required\": [\n                \"slug\",\n                \"description\"\n              ],\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"slug\": {\n                  \"type\": \"string\",\n                  \"description\": \"Idenitifier slug of the reason why the User account is being deleted.\"\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description of the reason why the User account is being deleted.\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

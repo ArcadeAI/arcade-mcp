@@ -1,0 +1,1403 @@
+{
+  "name": "SetFirewallConfiguration",
+  "fully_qualified_name": "VercelApi.SetFirewallConfiguration@0.1.0",
+  "description": "Update firewall configuration with specified rules.\n\nThis tool sets or overwrites the firewall configuration with the provided rules and settings on Vercel.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id",
+        "required": true,
+        "description": "The unique identifier for the project to configure the firewall settings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectId"
+      },
+      {
+        "name": "firewall_configuration",
+        "required": true,
+        "description": "JSON object specifying firewall rules, custom rules, IP settings, and other configurations. Includes details like enabling firewall, managed rules, custom ruleset (CRS), specific rules, IP actions, and bot ID configurations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "firewallEnabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "managedRules": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "crs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "sd": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Scanner Detection - Detect and prevent reconnaissance activities from network scanning tools."
+                },
+                "ma": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Multipart Attack - Block attempts to bypass security controls using multipart/form-data encoding."
+                },
+                "lfi": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Local File Inclusion Attack - Prevent unauthorized access to local files through web applications."
+                },
+                "rfi": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Remote File Inclusion Attack - Prohibit unauthorized upload or execution of remote files."
+                },
+                "rce": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Remote Execution Attack - Prevent unauthorized execution of remote scripts or commands."
+                },
+                "php": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "PHP Attack - Safeguard against vulnerability exploits in PHP-based applications."
+                },
+                "gen": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Generic Attack - Provide broad protection from various undefined or novel attack vectors."
+                },
+                "xss": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "XSS Attack - Prevent injection of malicious scripts into trusted webpages."
+                },
+                "sqli": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "SQL Injection Attack - Prohibit unauthorized use of SQL commands to manipulate databases."
+                },
+                "sf": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Session Fixation Attack - Prevent unauthorized takeover of user sessions by enforcing unique session IDs."
+                },
+                "java": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Java Attack - Mitigate risks of exploitation targeting Java-based applications or components."
+                }
+              },
+              "inner_properties": null,
+              "description": "Custom Ruleset"
+            },
+            "rules": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "active": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "conditionGroup": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "host",
+                            "path",
+                            "method",
+                            "header",
+                            "query",
+                            "cookie",
+                            "target_path",
+                            "route",
+                            "raw_path",
+                            "ip_address",
+                            "region",
+                            "protocol",
+                            "scheme",
+                            "environment",
+                            "user_agent",
+                            "geo_continent",
+                            "geo_country",
+                            "geo_country_region",
+                            "geo_city",
+                            "geo_as_number",
+                            "ja4_digest",
+                            "ja3_digest",
+                            "rate_limit_api_id"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "[Parameter](https://vercel.com/docs/security/vercel-waf/rule-configuration#parameters) from the incoming traffic."
+                        },
+                        "op": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "re",
+                            "eq",
+                            "neq",
+                            "ex",
+                            "nex",
+                            "inc",
+                            "ninc",
+                            "pre",
+                            "suf",
+                            "sub",
+                            "gt",
+                            "gte",
+                            "lt",
+                            "lte"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "neg": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "key": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "value": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "description": null
+                    }
+                  },
+                  "description": null
+                },
+                "action": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "mitigate": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "action": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "log",
+                            "challenge",
+                            "deny",
+                            "bypass",
+                            "rate_limit",
+                            "redirect"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "rateLimit": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "redirect": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "actionDuration": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "bypassSystem": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "ips": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "hostname": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "ip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "deny",
+                    "challenge",
+                    "log",
+                    "bypass"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "botIdEnabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the team for which the firewall configuration will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'putFirewallConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/security/firewall/config",
+    "http_method": "PUT",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "projectId",
+        "tool_parameter_name": "project_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "firewall_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "firewallEnabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "managedRules": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "crs": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "sd": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Scanner Detection - Detect and prevent reconnaissance activities from network scanning tools."
+                },
+                "ma": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Multipart Attack - Block attempts to bypass security controls using multipart/form-data encoding."
+                },
+                "lfi": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Local File Inclusion Attack - Prevent unauthorized access to local files through web applications."
+                },
+                "rfi": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Remote File Inclusion Attack - Prohibit unauthorized upload or execution of remote files."
+                },
+                "rce": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Remote Execution Attack - Prevent unauthorized execution of remote scripts or commands."
+                },
+                "php": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "PHP Attack - Safeguard against vulnerability exploits in PHP-based applications."
+                },
+                "gen": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Generic Attack - Provide broad protection from various undefined or novel attack vectors."
+                },
+                "xss": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "XSS Attack - Prevent injection of malicious scripts into trusted webpages."
+                },
+                "sqli": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "SQL Injection Attack - Prohibit unauthorized use of SQL commands to manipulate databases."
+                },
+                "sf": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Session Fixation Attack - Prevent unauthorized takeover of user sessions by enforcing unique session IDs."
+                },
+                "java": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "active": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "action": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "deny",
+                        "log"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Java Attack - Mitigate risks of exploitation targeting Java-based applications or components."
+                }
+              },
+              "inner_properties": null,
+              "description": "Custom Ruleset"
+            },
+            "rules": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "active": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "conditionGroup": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "conditions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "host",
+                            "path",
+                            "method",
+                            "header",
+                            "query",
+                            "cookie",
+                            "target_path",
+                            "route",
+                            "raw_path",
+                            "ip_address",
+                            "region",
+                            "protocol",
+                            "scheme",
+                            "environment",
+                            "user_agent",
+                            "geo_continent",
+                            "geo_country",
+                            "geo_country_region",
+                            "geo_city",
+                            "geo_as_number",
+                            "ja4_digest",
+                            "ja3_digest",
+                            "rate_limit_api_id"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "[Parameter](https://vercel.com/docs/security/vercel-waf/rule-configuration#parameters) from the incoming traffic."
+                        },
+                        "op": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "re",
+                            "eq",
+                            "neq",
+                            "ex",
+                            "nex",
+                            "inc",
+                            "ninc",
+                            "pre",
+                            "suf",
+                            "sub",
+                            "gt",
+                            "gte",
+                            "lt",
+                            "lte"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "neg": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "key": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "value": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "description": null
+                    }
+                  },
+                  "description": null
+                },
+                "action": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "mitigate": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "action": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "log",
+                            "challenge",
+                            "deny",
+                            "bypass",
+                            "rate_limit",
+                            "redirect"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "rateLimit": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "redirect": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "actionDuration": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "bypassSystem": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "ips": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "hostname": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "ip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "notes": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "deny",
+                    "challenge",
+                    "log",
+                    "bypass"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "botIdEnabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"firewallEnabled\": {\n            \"type\": \"boolean\"\n          },\n          \"managedRules\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"anyOf\": []\n            }\n          },\n          \"crs\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"sd\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Scanner Detection - Detect and prevent reconnaissance activities from network scanning tools.\"\n              },\n              \"ma\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Multipart Attack - Block attempts to bypass security controls using multipart/form-data encoding.\"\n              },\n              \"lfi\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Local File Inclusion Attack - Prevent unauthorized access to local files through web applications.\"\n              },\n              \"rfi\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Remote File Inclusion Attack - Prohibit unauthorized upload or execution of remote files.\"\n              },\n              \"rce\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Remote Execution Attack - Prevent unauthorized execution of remote scripts or commands.\"\n              },\n              \"php\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"PHP Attack - Safeguard against vulnerability exploits in PHP-based applications.\"\n              },\n              \"gen\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Generic Attack - Provide broad protection from various undefined or novel attack vectors.\"\n              },\n              \"xss\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"XSS Attack - Prevent injection of malicious scripts into trusted webpages.\"\n              },\n              \"sqli\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"SQL Injection Attack - Prohibit unauthorized use of SQL commands to manipulate databases.\"\n              },\n              \"sf\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Session Fixation Attack - Prevent unauthorized takeover of user sessions by enforcing unique session IDs.\"\n              },\n              \"java\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"active\": {\n                    \"type\": \"boolean\"\n                  },\n                  \"action\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"deny\",\n                      \"log\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"active\",\n                  \"action\"\n                ],\n                \"additionalProperties\": false,\n                \"description\": \"Java Attack - Mitigate risks of exploitation targeting Java-based applications or components.\"\n              }\n            },\n            \"additionalProperties\": false,\n            \"description\": \"Custom Ruleset\"\n          },\n          \"rules\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 160\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 256\n                },\n                \"active\": {\n                  \"type\": \"boolean\"\n                },\n                \"conditionGroup\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"conditions\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"host\",\n                                \"path\",\n                                \"method\",\n                                \"header\",\n                                \"query\",\n                                \"cookie\",\n                                \"target_path\",\n                                \"route\",\n                                \"raw_path\",\n                                \"ip_address\",\n                                \"region\",\n                                \"protocol\",\n                                \"scheme\",\n                                \"environment\",\n                                \"user_agent\",\n                                \"geo_continent\",\n                                \"geo_country\",\n                                \"geo_country_region\",\n                                \"geo_city\",\n                                \"geo_as_number\",\n                                \"ja4_digest\",\n                                \"ja3_digest\",\n                                \"rate_limit_api_id\"\n                              ],\n                              \"description\": \"[Parameter](https://vercel.com/docs/security/vercel-waf/rule-configuration#parameters) from the incoming traffic.\"\n                            },\n                            \"op\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"re\",\n                                \"eq\",\n                                \"neq\",\n                                \"ex\",\n                                \"nex\",\n                                \"inc\",\n                                \"ninc\",\n                                \"pre\",\n                                \"suf\",\n                                \"sub\",\n                                \"gt\",\n                                \"gte\",\n                                \"lt\",\n                                \"lte\"\n                              ]\n                            },\n                            \"neg\": {\n                              \"type\": \"boolean\"\n                            },\n                            \"key\": {\n                              \"type\": \"string\"\n                            },\n                            \"value\": {\n                              \"anyOf\": [\n                                {\n                                  \"type\": \"string\"\n                                },\n                                {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\"\n                                  },\n                                  \"maxItems\": 75\n                                },\n                                {\n                                  \"type\": \"number\"\n                                }\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"type\",\n                            \"op\"\n                          ],\n                          \"additionalProperties\": false\n                        },\n                        \"maxItems\": 65\n                      }\n                    },\n                    \"required\": [\n                      \"conditions\"\n                    ],\n                    \"additionalProperties\": false\n                  },\n                  \"maxItems\": 25\n                },\n                \"action\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"mitigate\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"action\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"log\",\n                            \"challenge\",\n                            \"deny\",\n                            \"bypass\",\n                            \"rate_limit\",\n                            \"redirect\"\n                          ]\n                        },\n                        \"rateLimit\": {\n                          \"anyOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"algo\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"fixed_window\",\n                                    \"token_bucket\"\n                                  ]\n                                },\n                                \"window\": {\n                                  \"type\": \"number\"\n                                },\n                                \"limit\": {\n                                  \"type\": \"number\"\n                                },\n                                \"keys\": {\n                                  \"type\": \"array\",\n                                  \"items\": {\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"action\": {\n                                  \"anyOf\": [\n                                    {\n                                      \"type\": \"string\",\n                                      \"enum\": [\n                                        \"log\",\n                                        \"challenge\",\n                                        \"deny\",\n                                        \"rate_limit\"\n                                      ]\n                                    },\n                                    {}\n                                  ],\n                                  \"nullable\": true\n                                }\n                              },\n                              \"required\": [\n                                \"algo\",\n                                \"window\",\n                                \"limit\",\n                                \"keys\"\n                              ],\n                              \"additionalProperties\": false\n                            },\n                            {}\n                          ],\n                          \"nullable\": true\n                        },\n                        \"redirect\": {\n                          \"anyOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"location\": {\n                                  \"type\": \"string\"\n                                },\n                                \"permanent\": {\n                                  \"type\": \"boolean\"\n                                }\n                              },\n                              \"required\": [\n                                \"location\",\n                                \"permanent\"\n                              ],\n                              \"additionalProperties\": false\n                            },\n                            {}\n                          ],\n                          \"nullable\": true\n                        },\n                        \"actionDuration\": {\n                          \"type\": \"string\",\n                          \"nullable\": true\n                        },\n                        \"bypassSystem\": {\n                          \"type\": \"boolean\",\n                          \"nullable\": true\n                        }\n                      },\n                      \"required\": [\n                        \"action\"\n                      ],\n                      \"additionalProperties\": false\n                    }\n                  },\n                  \"additionalProperties\": false\n                }\n              },\n              \"required\": [\n                \"name\",\n                \"active\",\n                \"conditionGroup\",\n                \"action\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"ips\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\"\n                },\n                \"hostname\": {\n                  \"type\": \"string\"\n                },\n                \"ip\": {\n                  \"type\": \"string\"\n                },\n                \"notes\": {\n                  \"type\": \"string\"\n                },\n                \"action\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"deny\",\n                    \"challenge\",\n                    \"log\",\n                    \"bypass\"\n                  ]\n                }\n              },\n              \"required\": [\n                \"hostname\",\n                \"ip\",\n                \"action\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"botIdEnabled\": {\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"firewallEnabled\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

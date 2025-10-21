@@ -1,0 +1,337 @@
+{
+  "name": "CreateCustomEnvironment",
+  "fully_qualified_name": "VercelApi.CreateCustomEnvironment@0.1.0",
+  "description": "Create a custom environment for your Vercel project.\n\nThis tool creates a custom environment in a specified Vercel project, excluding 'Production' or 'Preview' as names. Use it to set up tailored project environments.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_unique_identifier_or_name",
+        "required": true,
+        "description": "The unique project identifier or project name for which the custom environment is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier of the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug of the team to perform the request on behalf of. It is required to specify the unique team for the custom environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the custom environment to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "custom_environment_slug",
+        "required": false,
+        "description": "Specify the slug for the new custom environment. It cannot be 'Production' or 'Preview'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the custom environment to create."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "environment_description",
+        "required": false,
+        "description": "Optional description for the custom environment being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the custom environment. This is optional."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "branch_matcher_type",
+        "required": false,
+        "description": "Specifies the type of branch matcher: 'equals', 'startsWith', or 'endsWith'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of matcher. One of \\\"equals\\\", \\\"startsWith\\\", or \\\"endsWith\\\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branchMatcher.type"
+      },
+      {
+        "name": "git_branch_name_pattern",
+        "required": false,
+        "description": "Git branch name or part of it to match with the custom environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Git branch name or portion thereof."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branchMatcher.pattern"
+      },
+      {
+        "name": "copy_environment_variables_from",
+        "required": false,
+        "description": "Specify the source environment to copy variables from. This is optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Where to copy environment variables from. This is optional."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "copyEnvVarsFrom"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createCustomEnvironment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v9/projects/{idOrName}/custom-environments",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "custom_environment_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_unique_identifier_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "custom_environment_slug",
+        "description": "The slug of the custom environment to create.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The slug of the custom environment to create."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "environment_description",
+        "description": "Description of the custom environment. This is optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description of the custom environment. This is optional."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branchMatcher.type",
+        "tool_parameter_name": "branch_matcher_type",
+        "description": "Type of matcher. One of \\\"equals\\\", \\\"startsWith\\\", or \\\"endsWith\\\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of matcher. One of \\\"equals\\\", \\\"startsWith\\\", or \\\"endsWith\\\"."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branchMatcher.pattern",
+        "tool_parameter_name": "git_branch_name_pattern",
+        "description": "Git branch name or portion thereof.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Git branch name or portion thereof."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "copyEnvVarsFrom",
+        "tool_parameter_name": "copy_environment_variables_from",
+        "description": "Where to copy environment variables from. This is optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Where to copy environment variables from. This is optional."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"slug\": {\n            \"description\": \"The slug of the custom environment to create.\",\n            \"type\": \"string\",\n            \"maxLength\": 32\n          },\n          \"description\": {\n            \"description\": \"Description of the custom environment. This is optional.\",\n            \"type\": \"string\",\n            \"maxLength\": 256\n          },\n          \"branchMatcher\": {\n            \"required\": [\n              \"type\",\n              \"pattern\"\n            ],\n            \"description\": \"How we want to determine a matching branch. This is optional.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"type\": {\n                \"description\": \"Type of matcher. One of \\\\\\\"equals\\\\\\\", \\\\\\\"startsWith\\\\\\\", or \\\\\\\"endsWith\\\\\\\".\",\n                \"enum\": [\n                  \"equals\",\n                  \"startsWith\",\n                  \"endsWith\"\n                ]\n              },\n              \"pattern\": {\n                \"description\": \"Git branch name or portion thereof.\",\n                \"type\": \"string\",\n                \"maxLength\": 100\n              }\n            }\n          },\n          \"copyEnvVarsFrom\": {\n            \"description\": \"Where to copy environment variables from. This is optional.\",\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

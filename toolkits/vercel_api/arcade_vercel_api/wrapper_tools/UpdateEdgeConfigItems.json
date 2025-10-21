@@ -1,0 +1,223 @@
+{
+  "name": "UpdateEdgeConfigItems",
+  "fully_qualified_name": "VercelApi.UpdateEdgeConfigItems@0.1.0",
+  "description": "Batch update Edge Config Items efficiently.\n\nUse this tool to update multiple Edge Config Items in a single request. Ideal for making bulk modifications to your Vercel Edge Configurations.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "edge_config_identifier",
+        "required": true,
+        "description": "The identifier for the specific Edge Config to update in the batch request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "edgeConfigId"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the Team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The unique slug of the team to perform the request on behalf of. It identifies the team in a URL-friendly format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "edge_config_items_update_payload",
+        "required": false,
+        "description": "A JSON object containing an array of Edge Config Items to update. Each item should have properties needed for modification.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchEdgeConfigItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/edge-config/{edgeConfigId}/items",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "edgeConfigId",
+        "tool_parameter_name": "edge_config_identifier",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "edge_config_items_update_payload",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"items\"\n        ],\n        \"properties\": {\n          \"items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"operation\": {\n                      \"enum\": [\n                        \"create\",\n                        \"update\",\n                        \"upsert\",\n                        \"delete\"\n                      ]\n                    },\n                    \"key\": {\n                      \"maxLength\": 256,\n                      \"pattern\": \"^[\\\\\\\\w-]+$\",\n                      \"type\": \"string\"\n                    },\n                    \"value\": {\n                      \"nullable\": true\n                    },\n                    \"description\": {\n                      \"oneOf\": [\n                        {\n                          \"type\": \"string\",\n                          \"maxLength\": 512\n                        },\n                        {}\n                      ],\n                      \"nullable\": true\n                    }\n                  },\n                  \"anyOf\": [\n                    {\n                      \"properties\": {\n                        \"operation\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"create\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"operation\",\n                        \"key\",\n                        \"value\"\n                      ]\n                    },\n                    {\n                      \"properties\": {\n                        \"operation\": {\n                          \"enum\": [\n                            \"update\",\n                            \"upsert\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"operation\",\n                        \"key\",\n                        \"value\"\n                      ]\n                    },\n                    {\n                      \"properties\": {\n                        \"operation\": {\n                          \"enum\": [\n                            \"update\",\n                            \"upsert\"\n                          ]\n                        }\n                      },\n                      \"required\": [\n                        \"operation\",\n                        \"key\",\n                        \"description\"\n                      ]\n                    }\n                  ]\n                }\n              ]\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "name": "PurchaseDomain",
+  "fully_qualified_name": "VercelApi.PurchaseDomain@0.1.0",
+  "description": "Facilitates the purchase of a specified domain.\n\nCall this tool to purchase a domain through Vercel's new domain acquisition endpoints.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "domain_purchase_details",
+        "required": true,
+        "description": "A JSON object containing details for domain purchase, including `name`, `expectedPrice`, `renew`, and registrant information like `country`, `firstName`, `lastName`, `address1`, `city`, `state`, `postalCode`, `phone`, and `email`.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The domain name to purchase."
+            },
+            "expectedPrice": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The price you expect to be charged for the purchase."
+            },
+            "renew": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the domain should be automatically renewed."
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The country of the domain registrant"
+            },
+            "orgName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The company name of the domain registrant"
+            },
+            "firstName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The first name of the domain registrant"
+            },
+            "lastName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The last name of the domain registrant"
+            },
+            "address1": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The street address of the domain registrant"
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The city of the domain registrant"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of the domain registrant"
+            },
+            "postalCode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The postal code of the domain registrant"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The phone number of the domain registrant"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the domain registrant"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team to perform the domain purchase request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the team to perform the purchase on behalf of. This identifies the team within Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'buyDomain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v5/domains/buy",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "domain_purchase_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The domain name to purchase."
+            },
+            "expectedPrice": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The price you expect to be charged for the purchase."
+            },
+            "renew": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates whether the domain should be automatically renewed."
+            },
+            "country": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The country of the domain registrant"
+            },
+            "orgName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The company name of the domain registrant"
+            },
+            "firstName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The first name of the domain registrant"
+            },
+            "lastName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The last name of the domain registrant"
+            },
+            "address1": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The street address of the domain registrant"
+            },
+            "city": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The city of the domain registrant"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The state of the domain registrant"
+            },
+            "postalCode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The postal code of the domain registrant"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The phone number of the domain registrant"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The email of the domain registrant"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"type\": \"object\",\n        \"required\": [\n          \"name\",\n          \"country\",\n          \"firstName\",\n          \"lastName\",\n          \"address1\",\n          \"city\",\n          \"state\",\n          \"postalCode\",\n          \"phone\",\n          \"email\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The domain name to purchase.\",\n            \"type\": \"string\",\n            \"example\": \"example.com\"\n          },\n          \"expectedPrice\": {\n            \"description\": \"The price you expect to be charged for the purchase.\",\n            \"type\": \"number\",\n            \"example\": 10\n          },\n          \"renew\": {\n            \"description\": \"Indicates whether the domain should be automatically renewed.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"country\": {\n            \"description\": \"The country of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"US\"\n          },\n          \"orgName\": {\n            \"description\": \"The company name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Acme Inc.\"\n          },\n          \"firstName\": {\n            \"description\": \"The first name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Jane\"\n          },\n          \"lastName\": {\n            \"description\": \"The last name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Doe\"\n          },\n          \"address1\": {\n            \"description\": \"The street address of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"340 S Lemon Ave Suite 4133\"\n          },\n          \"city\": {\n            \"description\": \"The city of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"San Francisco\"\n          },\n          \"state\": {\n            \"description\": \"The state of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"CA\"\n          },\n          \"postalCode\": {\n            \"description\": \"The postal code of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"91789\"\n          },\n          \"phone\": {\n            \"description\": \"The phone number of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"+1.4158551452\"\n          },\n          \"email\": {\n            \"description\": \"The email of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"jane.doe@someplace.com\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

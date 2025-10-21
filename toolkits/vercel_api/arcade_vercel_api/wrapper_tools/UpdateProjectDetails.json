@@ -1,0 +1,1359 @@
+{
+  "name": "UpdateProjectDetails",
+  "fully_qualified_name": "VercelApi.UpdateProjectDetails@0.1.0",
+  "description": "Update a project's fields using its name or ID.\n\nUse this tool to modify specific details of a Vercel project by providing its name or ID. Ideal for updating project configurations or metadata.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id_or_name",
+        "required": true,
+        "description": "The unique identifier or name of the Vercel project to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "project_update_details",
+        "required": true,
+        "description": "JSON object containing keys and values to update project fields like build command, framework, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "autoExposeSystemEnvs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "autoAssignCustomDomains": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "autoAssignCustomDomainsUpdatedBy": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "buildCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The build command for this project. When `null` is used this value will be automatically detected"
+            },
+            "commandForIgnoringBuildStep": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "customerSupportCodeVisibility": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether customer support can see git source for a deployment"
+            },
+            "devCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+            },
+            "directoryListing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "framework": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "None",
+                "blitzjs",
+                "nextjs",
+                "gatsby",
+                "remix",
+                "react-router",
+                "astro",
+                "hexo",
+                "eleventy",
+                "docusaurus-2",
+                "docusaurus",
+                "preact",
+                "solidstart-1",
+                "solidstart",
+                "dojo",
+                "ember",
+                "vue",
+                "scully",
+                "ionic-angular",
+                "angular",
+                "polymer",
+                "svelte",
+                "sveltekit",
+                "sveltekit-1",
+                "ionic-react",
+                "create-react-app",
+                "gridsome",
+                "umijs",
+                "sapper",
+                "saber",
+                "stencil",
+                "nuxtjs",
+                "redwoodjs",
+                "hugo",
+                "jekyll",
+                "brunch",
+                "middleman",
+                "zola",
+                "hydrogen",
+                "vite",
+                "vitepress",
+                "vuepress",
+                "parcel",
+                "fastapi",
+                "flask",
+                "fasthtml",
+                "sanity-v3",
+                "sanity",
+                "storybook",
+                "nitro",
+                "hono",
+                "express",
+                "h3",
+                "nestjs",
+                "xmcp"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+            },
+            "gitForkProtection": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed"
+            },
+            "gitLFS": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Git LFS is enabled for this project."
+            },
+            "installCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The install command for this project. When `null` is used this value will be automatically detected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired name for the project"
+            },
+            "nodeVersion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "22.x",
+                "20.x",
+                "18.x",
+                "16.x",
+                "14.x",
+                "12.x",
+                "10.x"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "outputDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+            },
+            "previewDeploymentsDisabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether preview deployments are disabled for this project."
+            },
+            "publicSource": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the source code and logs of the deployments for this project should be public or not"
+            },
+            "resourceConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "buildMachineType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "fluid": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultRegions": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The regions to deploy Vercel Functions to for this project"
+                },
+                "functionDefaultTimeout": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultMemoryType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionZeroConfigFailover": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies whether Zero Config Failover is enabled for this project."
+                },
+                "elasticConcurrencyEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "isNSNBDisabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specifies resource override configuration for the project"
+            },
+            "rootDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+            },
+            "serverlessFunctionRegion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The region to deploy Serverless Functions in this project"
+            },
+            "serverlessFunctionZeroConfigFailover": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Zero Config Failover is enabled for this project."
+            },
+            "skewProtectionBoundaryAt": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deployments created before this absolute datetime have Skew Protection disabled. Value is in milliseconds since epoch to match \\\"createdAt\\\" fields."
+            },
+            "skewProtectionMaxAge": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deployments created before this rolling window have Skew Protection disabled. Value is in seconds to match \\\"revalidate\\\" fields."
+            },
+            "skipGitConnectDuringLink": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+            },
+            "sourceFilesOutsideRootDirectory": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if there are source files outside of the root directory"
+            },
+            "enablePreviewFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to preview toolbar on the project level"
+            },
+            "enableProductionFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to production toolbar on the project level"
+            },
+            "enableAffectedProjectsDeployments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to skip deployments when there are no changes to the root directory and its dependencies"
+            },
+            "staticIps": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opt-in to Static IPs for this project"
+                }
+              },
+              "inner_properties": null,
+              "description": "Manage Static IPs for this project"
+            },
+            "oidcTokenConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not to generate OpenID Connect JSON Web Tokens."
+                },
+                "issuerMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team",
+                    "global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`"
+                }
+              },
+              "inner_properties": null,
+              "description": "OpenID Connect JSON Web Token generation configuration."
+            },
+            "passwordProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the password will apply to every Deployment Target or just Preview"
+                },
+                "password": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The password that will be used to protect Project Deployments"
+                }
+              },
+              "inner_properties": null,
+              "description": "Allows to protect project deployments with a password"
+            },
+            "ssoProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview"
+                }
+              },
+              "inner_properties": null,
+              "description": "Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team"
+            },
+            "trustedIps": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "production",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the Trusted IPs will apply to every Deployment Target or just Preview"
+                },
+                "addresses": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The IP addresses that are allowlisted. Supports IPv4 addresses and CIDR notations. IPv6 is not supported"
+                    },
+                    "note": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An optional note explaining what the IP address or subnet is used for"
+                    }
+                  },
+                  "description": null
+                },
+                "protectionMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "exclusive",
+                    "additional"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "exclusive: ip match is enough to bypass deployment protection (regardless of other settings). additional: ip must match + any other protection should be also provided (password, vercel auth, shareable link, automation bypass header, automation bypass query param)"
+                }
+              },
+              "inner_properties": null,
+              "description": "Restricts access to deployments based on the incoming request IP address"
+            },
+            "optionsAllowlist": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "paths": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The regex path that should not be protected by Deployment Protection"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specify a list of paths that should not be protected by Deployment Protection to enable Cors preflight requests"
+            },
+            "connectConfigurations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "envId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the environment"
+                },
+                "connectConfigurationId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Secure Compute network"
+                },
+                "passive": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the configuration should be passive, meaning builds will not run there and only passive Serverless Functions will be deployed"
+                },
+                "buildsEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Flag saying if project builds should use Secure Compute"
+                }
+              },
+              "description": "The list of connections from project environment to Secure Compute network"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug of the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v9/projects/{idOrName}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_id_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "project_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "autoExposeSystemEnvs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "autoAssignCustomDomains": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "autoAssignCustomDomainsUpdatedBy": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "buildCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The build command for this project. When `null` is used this value will be automatically detected"
+            },
+            "commandForIgnoringBuildStep": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "customerSupportCodeVisibility": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether customer support can see git source for a deployment"
+            },
+            "devCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+            },
+            "directoryListing": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "framework": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "None",
+                "blitzjs",
+                "nextjs",
+                "gatsby",
+                "remix",
+                "react-router",
+                "astro",
+                "hexo",
+                "eleventy",
+                "docusaurus-2",
+                "docusaurus",
+                "preact",
+                "solidstart-1",
+                "solidstart",
+                "dojo",
+                "ember",
+                "vue",
+                "scully",
+                "ionic-angular",
+                "angular",
+                "polymer",
+                "svelte",
+                "sveltekit",
+                "sveltekit-1",
+                "ionic-react",
+                "create-react-app",
+                "gridsome",
+                "umijs",
+                "sapper",
+                "saber",
+                "stencil",
+                "nuxtjs",
+                "redwoodjs",
+                "hugo",
+                "jekyll",
+                "brunch",
+                "middleman",
+                "zola",
+                "hydrogen",
+                "vite",
+                "vitepress",
+                "vuepress",
+                "parcel",
+                "fastapi",
+                "flask",
+                "fasthtml",
+                "sanity-v3",
+                "sanity",
+                "storybook",
+                "nitro",
+                "hono",
+                "express",
+                "h3",
+                "nestjs",
+                "xmcp"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+            },
+            "gitForkProtection": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed"
+            },
+            "gitLFS": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Git LFS is enabled for this project."
+            },
+            "installCommand": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The install command for this project. When `null` is used this value will be automatically detected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired name for the project"
+            },
+            "nodeVersion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "22.x",
+                "20.x",
+                "18.x",
+                "16.x",
+                "14.x",
+                "12.x",
+                "10.x"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "outputDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+            },
+            "previewDeploymentsDisabled": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether preview deployments are disabled for this project."
+            },
+            "publicSource": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether the source code and logs of the deployments for this project should be public or not"
+            },
+            "resourceConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "buildMachineType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "fluid": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultRegions": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The regions to deploy Vercel Functions to for this project"
+                },
+                "functionDefaultTimeout": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionDefaultMemoryType": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "functionZeroConfigFailover": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specifies whether Zero Config Failover is enabled for this project."
+                },
+                "elasticConcurrencyEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "isNSNBDisabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specifies resource override configuration for the project"
+            },
+            "rootDirectory": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+            },
+            "serverlessFunctionRegion": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The region to deploy Serverless Functions in this project"
+            },
+            "serverlessFunctionZeroConfigFailover": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specifies whether Zero Config Failover is enabled for this project."
+            },
+            "skewProtectionBoundaryAt": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deployments created before this absolute datetime have Skew Protection disabled. Value is in milliseconds since epoch to match \\\"createdAt\\\" fields."
+            },
+            "skewProtectionMaxAge": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deployments created before this rolling window have Skew Protection disabled. Value is in seconds to match \\\"revalidate\\\" fields."
+            },
+            "skipGitConnectDuringLink": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+            },
+            "sourceFilesOutsideRootDirectory": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Indicates if there are source files outside of the root directory"
+            },
+            "enablePreviewFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to preview toolbar on the project level"
+            },
+            "enableProductionFeedback": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to production toolbar on the project level"
+            },
+            "enableAffectedProjectsDeployments": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Opt-in to skip deployments when there are no changes to the root directory and its dependencies"
+            },
+            "staticIps": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opt-in to Static IPs for this project"
+                }
+              },
+              "inner_properties": null,
+              "description": "Manage Static IPs for this project"
+            },
+            "oidcTokenConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not to generate OpenID Connect JSON Web Tokens."
+                },
+                "issuerMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team",
+                    "global"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`"
+                }
+              },
+              "inner_properties": null,
+              "description": "OpenID Connect JSON Web Token generation configuration."
+            },
+            "passwordProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the password will apply to every Deployment Target or just Preview"
+                },
+                "password": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The password that will be used to protect Project Deployments"
+                }
+              },
+              "inner_properties": null,
+              "description": "Allows to protect project deployments with a password"
+            },
+            "ssoProtection": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview"
+                }
+              },
+              "inner_properties": null,
+              "description": "Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team"
+            },
+            "trustedIps": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "deploymentType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "all",
+                    "preview",
+                    "production",
+                    "prod_deployment_urls_and_all_previews",
+                    "all_except_custom_domains"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Specify if the Trusted IPs will apply to every Deployment Target or just Preview"
+                },
+                "addresses": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The IP addresses that are allowlisted. Supports IPv4 addresses and CIDR notations. IPv6 is not supported"
+                    },
+                    "note": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "An optional note explaining what the IP address or subnet is used for"
+                    }
+                  },
+                  "description": null
+                },
+                "protectionMode": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "exclusive",
+                    "additional"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "exclusive: ip match is enough to bypass deployment protection (regardless of other settings). additional: ip must match + any other protection should be also provided (password, vercel auth, shareable link, automation bypass header, automation bypass query param)"
+                }
+              },
+              "inner_properties": null,
+              "description": "Restricts access to deployments based on the incoming request IP address"
+            },
+            "optionsAllowlist": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "paths": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The regex path that should not be protected by Deployment Protection"
+                    }
+                  },
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Specify a list of paths that should not be protected by Deployment Protection to enable Cors preflight requests"
+            },
+            "connectConfigurations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "envId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the environment"
+                },
+                "connectConfigurationId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Secure Compute network"
+                },
+                "passive": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether the configuration should be passive, meaning builds will not run there and only passive Serverless Functions will be deployed"
+                },
+                "buildsEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Flag saying if project builds should use Secure Compute"
+                }
+              },
+              "description": "The list of connections from project environment to Secure Compute network"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"autoExposeSystemEnvs\": {\n            \"type\": \"boolean\"\n          },\n          \"autoAssignCustomDomains\": {\n            \"type\": \"boolean\"\n          },\n          \"autoAssignCustomDomainsUpdatedBy\": {\n            \"type\": \"string\"\n          },\n          \"buildCommand\": {\n            \"description\": \"The build command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"commandForIgnoringBuildStep\": {\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"customerSupportCodeVisibility\": {\n            \"description\": \"Specifies whether customer support can see git source for a deployment\",\n            \"type\": \"boolean\"\n          },\n          \"devCommand\": {\n            \"description\": \"The dev command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"directoryListing\": {\n            \"type\": \"boolean\"\n          },\n          \"framework\": {\n            \"description\": \"The framework that is being used for this project. When `null` is used no framework is selected\",\n            \"enum\": [\n              null,\n              \"blitzjs\",\n              \"nextjs\",\n              \"gatsby\",\n              \"remix\",\n              \"react-router\",\n              \"astro\",\n              \"hexo\",\n              \"eleventy\",\n              \"docusaurus-2\",\n              \"docusaurus\",\n              \"preact\",\n              \"solidstart-1\",\n              \"solidstart\",\n              \"dojo\",\n              \"ember\",\n              \"vue\",\n              \"scully\",\n              \"ionic-angular\",\n              \"angular\",\n              \"polymer\",\n              \"svelte\",\n              \"sveltekit\",\n              \"sveltekit-1\",\n              \"ionic-react\",\n              \"create-react-app\",\n              \"gridsome\",\n              \"umijs\",\n              \"sapper\",\n              \"saber\",\n              \"stencil\",\n              \"nuxtjs\",\n              \"redwoodjs\",\n              \"hugo\",\n              \"jekyll\",\n              \"brunch\",\n              \"middleman\",\n              \"zola\",\n              \"hydrogen\",\n              \"vite\",\n              \"vitepress\",\n              \"vuepress\",\n              \"parcel\",\n              \"fastapi\",\n              \"flask\",\n              \"fasthtml\",\n              \"sanity-v3\",\n              \"sanity\",\n              \"storybook\",\n              \"nitro\",\n              \"hono\",\n              \"express\",\n              \"h3\",\n              \"nestjs\",\n              \"xmcp\"\n            ],\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"gitForkProtection\": {\n            \"description\": \"Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed\",\n            \"type\": \"boolean\"\n          },\n          \"gitLFS\": {\n            \"description\": \"Specifies whether Git LFS is enabled for this project.\",\n            \"type\": \"boolean\"\n          },\n          \"installCommand\": {\n            \"description\": \"The install command for this project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"description\": \"The desired name for the project\",\n            \"example\": \"a-project-name\",\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"nodeVersion\": {\n            \"enum\": [\n              \"22.x\",\n              \"20.x\",\n              \"18.x\",\n              \"16.x\",\n              \"14.x\",\n              \"12.x\",\n              \"10.x\"\n            ],\n            \"type\": \"string\"\n          },\n          \"outputDirectory\": {\n            \"description\": \"The output directory of the project. When `null` is used this value will be automatically detected\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"previewDeploymentsDisabled\": {\n            \"description\": \"Specifies whether preview deployments are disabled for this project.\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"publicSource\": {\n            \"description\": \"Specifies whether the source code and logs of the deployments for this project should be public or not\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"resourceConfig\": {\n            \"properties\": {\n              \"buildMachineType\": {\n                \"enum\": [\n                  null,\n                  \"enhanced\",\n                  \"turbo\"\n                ]\n              },\n              \"fluid\": {\n                \"type\": \"boolean\"\n              },\n              \"functionDefaultRegions\": {\n                \"description\": \"The regions to deploy Vercel Functions to for this project\",\n                \"type\": \"array\",\n                \"minItems\": 1,\n                \"uniqueItems\": true,\n                \"items\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 4\n                }\n              },\n              \"functionDefaultTimeout\": {\n                \"type\": \"number\",\n                \"maximum\": 900,\n                \"minimum\": 1\n              },\n              \"functionDefaultMemoryType\": {\n                \"enum\": [\n                  \"standard_legacy\",\n                  \"standard\",\n                  \"performance\"\n                ]\n              },\n              \"functionZeroConfigFailover\": {\n                \"description\": \"Specifies whether Zero Config Failover is enabled for this project.\",\n                \"oneOf\": [\n                  {\n                    \"type\": \"boolean\"\n                  }\n                ]\n              },\n              \"elasticConcurrencyEnabled\": {\n                \"type\": \"boolean\"\n              },\n              \"isNSNBDisabled\": {\n                \"type\": \"boolean\"\n              }\n            },\n            \"type\": \"object\",\n            \"description\": \"Specifies resource override configuration for the project\",\n            \"additionalProperties\": false\n          },\n          \"rootDirectory\": {\n            \"description\": \"The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root\",\n            \"maxLength\": 256,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"serverlessFunctionRegion\": {\n            \"description\": \"The region to deploy Serverless Functions in this project\",\n            \"maxLength\": 4,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"serverlessFunctionZeroConfigFailover\": {\n            \"description\": \"Specifies whether Zero Config Failover is enabled for this project.\",\n            \"oneOf\": [\n              {\n                \"type\": \"boolean\"\n              }\n            ]\n          },\n          \"skewProtectionBoundaryAt\": {\n            \"description\": \"Deployments created before this absolute datetime have Skew Protection disabled. Value is in milliseconds since epoch to match \\\\\\\"createdAt\\\\\\\" fields.\",\n            \"minimum\": 0,\n            \"type\": \"integer\"\n          },\n          \"skewProtectionMaxAge\": {\n            \"description\": \"Deployments created before this rolling window have Skew Protection disabled. Value is in seconds to match \\\\\\\"revalidate\\\\\\\" fields.\",\n            \"minimum\": 0,\n            \"type\": \"integer\"\n          },\n          \"skipGitConnectDuringLink\": {\n            \"description\": \"Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`.\",\n            \"type\": \"boolean\",\n            \"deprecated\": true\n          },\n          \"sourceFilesOutsideRootDirectory\": {\n            \"description\": \"Indicates if there are source files outside of the root directory\",\n            \"type\": \"boolean\"\n          },\n          \"enablePreviewFeedback\": {\n            \"description\": \"Opt-in to preview toolbar on the project level\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"enableProductionFeedback\": {\n            \"description\": \"Opt-in to production toolbar on the project level\",\n            \"type\": \"boolean\",\n            \"nullable\": true\n          },\n          \"enableAffectedProjectsDeployments\": {\n            \"description\": \"Opt-in to skip deployments when there are no changes to the root directory and its dependencies\",\n            \"type\": \"boolean\"\n          },\n          \"staticIps\": {\n            \"additionalProperties\": false,\n            \"description\": \"Manage Static IPs for this project\",\n            \"properties\": {\n              \"enabled\": {\n                \"description\": \"Opt-in to Static IPs for this project\",\n                \"type\": \"boolean\"\n              }\n            },\n            \"required\": [\n              \"enabled\"\n            ],\n            \"type\": \"object\"\n          },\n          \"oidcTokenConfig\": {\n            \"description\": \"OpenID Connect JSON Web Token generation configuration.\",\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"enabled\": {\n                \"description\": \"Whether or not to generate OpenID Connect JSON Web Tokens.\",\n                \"deprecated\": true,\n                \"type\": \"boolean\",\n                \"default\": true\n              },\n              \"issuerMode\": {\n                \"description\": \"team: `https://oidc.vercel.com/[team_slug]` global: `https://oidc.vercel.com`\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"team\",\n                  \"global\"\n                ],\n                \"default\": \"team\"\n              }\n            }\n          },\n          \"passwordProtection\": {\n            \"additionalProperties\": false,\n            \"description\": \"Allows to protect project deployments with a password\",\n            \"properties\": {\n              \"deploymentType\": {\n                \"description\": \"Specify if the password will apply to every Deployment Target or just Preview\",\n                \"enum\": [\n                  \"all\",\n                  \"preview\",\n                  \"prod_deployment_urls_and_all_previews\",\n                  \"all_except_custom_domains\"\n                ],\n                \"type\": \"string\"\n              },\n              \"password\": {\n                \"description\": \"The password that will be used to protect Project Deployments\",\n                \"maxLength\": 72,\n                \"type\": \"string\",\n                \"nullable\": true\n              }\n            },\n            \"required\": [\n              \"deploymentType\"\n            ],\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"ssoProtection\": {\n            \"additionalProperties\": false,\n            \"description\": \"Ensures visitors to your Preview Deployments are logged into Vercel and have a minimum of Viewer access on your team\",\n            \"properties\": {\n              \"deploymentType\": {\n                \"default\": \"preview\",\n                \"description\": \"Specify if the Vercel Authentication (SSO Protection) will apply to every Deployment Target or just Preview\",\n                \"enum\": [\n                  \"all\",\n                  \"preview\",\n                  \"prod_deployment_urls_and_all_previews\",\n                  \"all_except_custom_domains\"\n                ],\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"deploymentType\"\n            ],\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"trustedIps\": {\n            \"additionalProperties\": false,\n            \"description\": \"Restricts access to deployments based on the incoming request IP address\",\n            \"properties\": {\n              \"deploymentType\": {\n                \"description\": \"Specify if the Trusted IPs will apply to every Deployment Target or just Preview\",\n                \"enum\": [\n                  \"all\",\n                  \"preview\",\n                  \"production\",\n                  \"prod_deployment_urls_and_all_previews\",\n                  \"all_except_custom_domains\"\n                ],\n                \"type\": \"string\"\n              },\n              \"addresses\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"value\": {\n                      \"type\": \"string\",\n                      \"description\": \"The IP addresses that are allowlisted. Supports IPv4 addresses and CIDR notations. IPv6 is not supported\"\n                    },\n                    \"note\": {\n                      \"type\": \"string\",\n                      \"description\": \"An optional note explaining what the IP address or subnet is used for\",\n                      \"maxLength\": 20\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"additionalProperties\": false\n                },\n                \"minItems\": 1\n              },\n              \"protectionMode\": {\n                \"description\": \"exclusive: ip match is enough to bypass deployment protection (regardless of other settings). additional: ip must match + any other protection should be also provided (password, vercel auth, shareable link, automation bypass header, automation bypass query param)\",\n                \"enum\": [\n                  \"exclusive\",\n                  \"additional\"\n                ],\n                \"type\": \"string\"\n              }\n            },\n            \"required\": [\n              \"deploymentType\",\n              \"addresses\",\n              \"protectionMode\"\n            ],\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"optionsAllowlist\": {\n            \"additionalProperties\": false,\n            \"description\": \"Specify a list of paths that should not be protected by Deployment Protection to enable Cors preflight requests\",\n            \"properties\": {\n              \"paths\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"value\": {\n                      \"type\": \"string\",\n                      \"description\": \"The regex path that should not be protected by Deployment Protection\",\n                      \"pattern\": \"^/.*\"\n                    }\n                  },\n                  \"required\": [\n                    \"value\"\n                  ],\n                  \"additionalProperties\": false\n                },\n                \"minItems\": 1,\n                \"maxItems\": 5\n              }\n            },\n            \"required\": [\n              \"paths\"\n            ],\n            \"type\": \"object\",\n            \"nullable\": true\n          },\n          \"connectConfigurations\": {\n            \"type\": \"array\",\n            \"description\": \"The list of connections from project environment to Secure Compute network\",\n            \"items\": {\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"envId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The ID of the environment\"\n                },\n                \"connectConfigurationId\": {\n                  \"type\": \"string\",\n                  \"description\": \"The ID of the Secure Compute network\"\n                },\n                \"passive\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether the configuration should be passive, meaning builds will not run there and only passive Serverless Functions will be deployed\"\n                },\n                \"buildsEnabled\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Flag saying if project builds should use Secure Compute\"\n                }\n              },\n              \"required\": [\n                \"envId\",\n                \"connectConfigurationId\",\n                \"passive\",\n                \"buildsEnabled\"\n              ],\n              \"oneOf\": [\n                {\n                  \"type\": \"object\"\n                }\n              ]\n            },\n            \"minItems\": 1,\n            \"nullable\": true\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

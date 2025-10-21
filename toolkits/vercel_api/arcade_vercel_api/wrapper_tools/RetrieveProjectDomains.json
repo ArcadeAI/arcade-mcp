@@ -1,0 +1,541 @@
+{
+  "name": "RetrieveProjectDomains",
+  "fully_qualified_name": "VercelApi.RetrieveProjectDomains@0.1.0",
+  "description": "Retrieve domains linked to a specific project.\n\nUse this tool to get the domains associated with a project by providing the project's ID or name. This can help manage and review project-related domains efficiently.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id_or_name",
+        "required": true,
+        "description": "Specify the unique project identifier or the project name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "filter_production_domains",
+        "required": false,
+        "description": "Set to 'true' to filter only production domains; otherwise, returns all.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters only production domains when set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "production"
+      },
+      {
+        "name": "filter_target_domain",
+        "required": false,
+        "description": "Specify 'production' or 'preview' to filter domains based on their target environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "production",
+            "preview"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters on the target of the domain. Can be either \\\"production\\\", \\\"preview\\\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "target"
+      },
+      {
+        "name": "custom_environment_id",
+        "required": false,
+        "description": "The unique custom environment identifier within the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique custom environment identifier within the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customEnvironmentId"
+      },
+      {
+        "name": "filter_by_git_branch",
+        "required": false,
+        "description": "Specify the branch to filter domains associated with that branch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on specific branch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gitBranch"
+      },
+      {
+        "name": "include_redirect_domains",
+        "required": false,
+        "description": "Specify whether to include redirect project domains. Use \"true\" to include (default), \"false\" to exclude.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Excludes redirect project domains when \\\"false\\\". Includes redirect project domains when \\\"true\\\" (default)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirects"
+      },
+      {
+        "name": "filter_by_redirect_target",
+        "required": false,
+        "description": "Specify the redirect target to filter domains. Useful for targeting specific redirections.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on their redirect target."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirect"
+      },
+      {
+        "name": "filter_by_verification_status",
+        "required": false,
+        "description": "Filter domains by their verification status (e.g., verified, unverified).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on their verification status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "verified"
+      },
+      {
+        "name": "max_domains_to_list",
+        "required": false,
+        "description": "The maximum number of domains to list in the response, with a maximum value of 100.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of domains to list from a request (max 100)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "domains_created_since_timestamp",
+        "required": false,
+        "description": "Get domains created after this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get domains created after this JavaScript timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "created_before_timestamp",
+        "required": false,
+        "description": "Get domains created before this JavaScript timestamp for filtering results.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get domains created before this JavaScript timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "domains_sort_order",
+        "required": false,
+        "description": "Sort order for domains based on creation date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Domains sort order by createdAt"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getProjectDomains'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v9/projects/{idOrName}/domains",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "production",
+        "tool_parameter_name": "filter_production_domains",
+        "description": "Filters only production domains when set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters only production domains when set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "false",
+        "documentation_urls": []
+      },
+      {
+        "name": "target",
+        "tool_parameter_name": "filter_target_domain",
+        "description": "Filters on the target of the domain. Can be either \\\"production\\\", \\\"preview\\\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "production",
+            "preview"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters on the target of the domain. Can be either \\\"production\\\", \\\"preview\\\""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customEnvironmentId",
+        "tool_parameter_name": "custom_environment_id",
+        "description": "The unique custom environment identifier within the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique custom environment identifier within the project"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "gitBranch",
+        "tool_parameter_name": "filter_by_git_branch",
+        "description": "Filters domains based on specific branch.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on specific branch."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirects",
+        "tool_parameter_name": "include_redirect_domains",
+        "description": "Excludes redirect project domains when \\\"false\\\". Includes redirect project domains when \\\"true\\\" (default).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Excludes redirect project domains when \\\"false\\\". Includes redirect project domains when \\\"true\\\" (default)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "true",
+        "documentation_urls": []
+      },
+      {
+        "name": "redirect",
+        "tool_parameter_name": "filter_by_redirect_target",
+        "description": "Filters domains based on their redirect target.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on their redirect target."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "verified",
+        "tool_parameter_name": "filter_by_verification_status",
+        "description": "Filters domains based on their verification status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters domains based on their verification status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_domains_to_list",
+        "description": "Maximum number of domains to list from a request (max 100).",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of domains to list from a request (max 100)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "domains_created_since_timestamp",
+        "description": "Get domains created after this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get domains created after this JavaScript timestamp."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "created_before_timestamp",
+        "description": "Get domains created before this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get domains created before this JavaScript timestamp."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order",
+        "tool_parameter_name": "domains_sort_order",
+        "description": "Domains sort order by createdAt",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Domains sort order by createdAt"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "DESC",
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_id_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,349 @@
+{
+  "name": "AddProjectDomain",
+  "fully_qualified_name": "VercelApi.AddProjectDomain@0.1.0",
+  "description": "Add a domain to a specified Vercel project.\n\nThis tool adds a domain to a Vercel project by specifying the domain name and project identifier (id or name). If the domain is unverified, the response will indicate it needs verification. If the domain already exists, a 400 error will occur.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_identifier_or_name",
+        "required": true,
+        "description": "The unique identifier or name of the project to which the domain will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "project_domain_name",
+        "required": true,
+        "description": "The domain name to be added to the specified Vercel project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The project domain name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier of the team for which the request is made. This ensures the request is executed on behalf of the specified team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug of the team to perform the request on behalf of. This identifies the team context for the domain addition.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "git_branch_to_link_domain",
+        "required": false,
+        "description": "The Git branch to associate with the project domain when adding it to a Vercel project. This allows the domain to be tied to a specific branch in the repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Git branch to link the project domain"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gitBranch"
+      },
+      {
+        "name": "custom_environment_id",
+        "required": false,
+        "description": "The unique custom environment identifier within the project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique custom environment identifier within the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customEnvironmentId"
+      },
+      {
+        "name": "redirect_target_domain",
+        "required": false,
+        "description": "Specify the target destination domain to redirect to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target destination domain for redirect"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirect"
+      },
+      {
+        "name": "redirect_status_code",
+        "required": false,
+        "description": "HTTP status code for redirecting the domain. Options are: 301, 302, 307, 308, or None.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "None",
+            "301",
+            "302",
+            "307",
+            "308"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status code for domain redirect"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "redirectStatusCode"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'addProjectDomain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v10/projects/{idOrName}/domains",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_identifier_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "project_domain_name",
+        "description": "The project domain name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The project domain name"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "gitBranch",
+        "tool_parameter_name": "git_branch_to_link_domain",
+        "description": "Git branch to link the project domain",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Git branch to link the project domain"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customEnvironmentId",
+        "tool_parameter_name": "custom_environment_id",
+        "description": "The unique custom environment identifier within the project",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique custom environment identifier within the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirect",
+        "tool_parameter_name": "redirect_target_domain",
+        "description": "Target destination domain for redirect",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Target destination domain for redirect"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "redirectStatusCode",
+        "tool_parameter_name": "redirect_status_code",
+        "description": "Status code for domain redirect",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "None",
+            "301",
+            "302",
+            "307",
+            "308"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Status code for domain redirect"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The project domain name\",\n            \"example\": \"www.example.com\",\n            \"type\": \"string\"\n          },\n          \"gitBranch\": {\n            \"description\": \"Git branch to link the project domain\",\n            \"example\": null,\n            \"maxLength\": 250,\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"customEnvironmentId\": {\n            \"description\": \"The unique custom environment identifier within the project\",\n            \"type\": \"string\"\n          },\n          \"redirect\": {\n            \"description\": \"Target destination domain for redirect\",\n            \"example\": \"foobar.com\",\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"redirectStatusCode\": {\n            \"description\": \"Status code for domain redirect\",\n            \"example\": 307,\n            \"type\": \"integer\",\n            \"enum\": [\n              null,\n              301,\n              302,\n              307,\n              308\n            ],\n            \"nullable\": true\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

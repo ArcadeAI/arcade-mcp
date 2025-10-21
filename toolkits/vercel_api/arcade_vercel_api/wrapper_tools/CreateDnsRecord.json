@@ -1,0 +1,245 @@
+{
+  "name": "CreateDnsRecord",
+  "fully_qualified_name": "VercelApi.CreateDnsRecord@0.1.0",
+  "description": "Creates a DNS record for a domain.\n\nUse this tool to create a DNS record for a specified domain. It helps manage DNS configurations by adding new records as needed.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "domain_name_for_dns_record",
+        "required": true,
+        "description": "The domain for which the DNS record will be created. Must be a valid and registered domain name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain used to create the DNS record."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "domain"
+      },
+      {
+        "name": "dns_record_details",
+        "required": true,
+        "description": "JSON object containing details of the DNS record to create, including type, name, value, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A",
+                "AAAA",
+                "ALIAS",
+                "CAA",
+                "CNAME",
+                "HTTPS",
+                "MX",
+                "SRV",
+                "TXT",
+                "NS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of record, it could be one of the valid DNS records."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The Team identifier for performing the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug identifier for the team performing the DNS record creation. It should be a string that represents the team's unique slug.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createRecord'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v2/domains/{domain}/records",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "domain",
+        "tool_parameter_name": "domain_name_for_dns_record",
+        "description": "The domain used to create the DNS record.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain used to create the DNS record."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "dns_record_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "A",
+                "AAAA",
+                "ALIAS",
+                "CAA",
+                "CNAME",
+                "HTTPS",
+                "MX",
+                "SRV",
+                "TXT",
+                "NS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of record, it could be one of the valid DNS records."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"type\"\n        ],\n        \"properties\": {\n          \"type\": {\n            \"description\": \"The type of record, it could be one of the valid DNS records.\",\n            \"type\": \"string\",\n            \"enum\": [\n              \"A\",\n              \"AAAA\",\n              \"ALIAS\",\n              \"CAA\",\n              \"CNAME\",\n              \"HTTPS\",\n              \"MX\",\n              \"SRV\",\n              \"TXT\",\n              \"NS\"\n            ]\n          }\n        },\n        \"anyOf\": [\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `A`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"A\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"The record value must be a valid IPv4 address.\",\n                \"type\": \"string\",\n                \"format\": \"ipv4\",\n                \"example\": \"192.0.2.42\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `AAAA`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"AAAA\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"An AAAA record pointing to an IPv6 address.\",\n                \"type\": \"string\",\n                \"format\": \"ipv6\",\n                \"example\": \"2001:DB8::42\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `ALIAS`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"ALIAS\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"An ALIAS virtual record pointing to a hostname resolved to an A record on server side.\",\n                \"type\": \"string\",\n                \"example\": \"cname.vercel-dns.com\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `CAA`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"CAA\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"A CAA record to specify which Certificate Authorities (CAs) are allowed to issue certificates for the domain.\",\n                \"type\": \"string\",\n                \"example\": \"0 issue \\\\\\\"letsencrypt.org\\\\\\\"\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `CNAME`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"CNAME\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"A CNAME record mapping to another domain name.\",\n                \"type\": \"string\",\n                \"example\": \"cname.vercel-dns.com\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\",\n              \"mxPriority\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name or an empty string for the root domain.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `MX`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"MX\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"An MX record specifying the mail server responsible for accepting messages on behalf of the domain name.\",\n                \"type\": \"string\",\n                \"example\": \"10 mail.example.com.\"\n              },\n              \"mxPriority\": {\n                \"type\": \"number\",\n                \"minimum\": 0,\n                \"maximum\": 65535,\n                \"example\": 10\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"name\",\n              \"srv\"\n            ],\n            \"properties\": {\n              \"type\": {\n                \"description\": \"Must be of type `SRV`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"SRV\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"srv\": {\n                \"type\": \"object\",\n                \"additionalProperties\": false,\n                \"required\": [\n                  \"weight\",\n                  \"port\",\n                  \"priority\",\n                  \"target\"\n                ],\n                \"properties\": {\n                  \"priority\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"number\",\n                        \"minimum\": 0,\n                        \"maximum\": 65535,\n                        \"example\": 10\n                      }\n                    ],\n                    \"nullable\": true\n                  },\n                  \"weight\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"number\",\n                        \"minimum\": 0,\n                        \"maximum\": 65535,\n                        \"example\": 10\n                      }\n                    ],\n                    \"nullable\": true\n                  },\n                  \"port\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"number\",\n                        \"minimum\": 0,\n                        \"maximum\": 65535,\n                        \"example\": 5000\n                      }\n                    ],\n                    \"nullable\": true\n                  },\n                  \"target\": {\n                    \"type\": \"string\",\n                    \"example\": \"host.example.com\"\n                  }\n                }\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"value\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"type\": {\n                \"description\": \"Must be of type `TXT`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"TXT\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"A TXT record containing arbitrary text.\",\n                \"type\": \"string\",\n                \"example\": \"hello\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"A subdomain name.\",\n                \"type\": \"string\",\n                \"example\": \"subdomain\"\n              },\n              \"type\": {\n                \"description\": \"Must be of type `NS`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"NS\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"value\": {\n                \"description\": \"An NS domain value.\",\n                \"type\": \"string\",\n                \"example\": \"ns1.example.com\"\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"type\",\n              \"name\",\n              \"https\"\n            ],\n            \"properties\": {\n              \"type\": {\n                \"description\": \"Must be of type `HTTPS`.\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"HTTPS\"\n                ]\n              },\n              \"ttl\": {\n                \"description\": \"The TTL value. Must be a number between 60 and 2147483647. Default value is 60.\",\n                \"type\": \"number\",\n                \"minimum\": 60,\n                \"maximum\": 2147483647,\n                \"example\": 60\n              },\n              \"https\": {\n                \"type\": \"object\",\n                \"additionalProperties\": false,\n                \"required\": [\n                  \"priority\",\n                  \"target\"\n                ],\n                \"properties\": {\n                  \"priority\": {\n                    \"anyOf\": [\n                      {\n                        \"type\": \"number\",\n                        \"minimum\": 0,\n                        \"maximum\": 65535,\n                        \"example\": 10\n                      }\n                    ],\n                    \"nullable\": true\n                  },\n                  \"target\": {\n                    \"type\": \"string\",\n                    \"example\": \"host.example.com\"\n                  },\n                  \"params\": {\n                    \"type\": \"string\",\n                    \"example\": \"alpn=h2,h3\"\n                  }\n                }\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this DNS record is for\",\n                \"example\": \"used to verify ownership of domain\",\n                \"maxLength\": 500\n              }\n            }\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

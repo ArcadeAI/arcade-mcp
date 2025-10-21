@@ -1,0 +1,205 @@
+{
+  "name": "UpdateUrlProtectionBypass",
+  "fully_qualified_name": "VercelApi.UpdateUrlProtectionBypass@0.1.0",
+  "description": "Update the protection bypass for a Vercel URL.\n\nUse this tool to update the protection bypass for an alias or deployment URL in Vercel, enabling user or comment access on preview deployments.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "alias_or_deployment_id",
+        "required": true,
+        "description": "The ID of the alias or deployment for which to update the protection bypass.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The alias or deployment ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The team slug representing which team the request should be performed for in Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "protection_bypass_details",
+        "required": false,
+        "description": "JSON object specifying the details for updating the protection bypass. This may include settings for user access and comment permissions.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'patchUrlProtectionBypass'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/aliases/{id}/protection-bypass",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "alias_or_deployment_id",
+        "description": "The alias or deployment ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The alias or deployment ID"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "protection_bypass_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"ttl\": {\n                \"description\": \"Optional time the shareable link is valid for in seconds. If not provided, the shareable link will never expire.\",\n                \"type\": \"number\",\n                \"maximum\": 63072000\n              },\n              \"revoke\": {\n                \"description\": \"Optional instructions for revoking and regenerating a shareable link\",\n                \"type\": \"object\",\n                \"properties\": {\n                  \"secret\": {\n                    \"description\": \"Sharebale link to revoked\",\n                    \"type\": \"string\"\n                  },\n                  \"regenerate\": {\n                    \"description\": \"Whether or not a new shareable link should be created after the provided secret is revoked\",\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"required\": [\n                  \"secret\",\n                  \"regenerate\"\n                ]\n              }\n            },\n            \"additionalProperties\": false\n          },\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"scope\": {\n                \"description\": \"Instructions for creating a user scoped protection bypass\",\n                \"type\": \"object\",\n                \"properties\": {\n                  \"userId\": {\n                    \"type\": \"string\",\n                    \"description\": \"Specified user id for the scoped bypass.\"\n                  },\n                  \"email\": {\n                    \"type\": \"string\",\n                    \"format\": \"email\",\n                    \"description\": \"Specified email for the scoped bypass.\"\n                  },\n                  \"access\": {\n                    \"enum\": [\n                      \"denied\",\n                      \"granted\"\n                    ],\n                    \"description\": \"Invitation status for the user scoped bypass.\"\n                  }\n                },\n                \"allOf\": [\n                  {\n                    \"anyOf\": [\n                      {\n                        \"required\": [\n                          \"userId\"\n                        ]\n                      },\n                      {\n                        \"required\": [\n                          \"email\"\n                        ]\n                      }\n                    ]\n                  },\n                  {\n                    \"required\": [\n                      \"access\"\n                    ]\n                  }\n                ]\n              }\n            },\n            \"required\": [\n              \"scope\"\n            ],\n            \"additionalProperties\": false\n          },\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"override\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"scope\": {\n                    \"enum\": [\n                      \"alias-protection-override\"\n                    ]\n                  },\n                  \"action\": {\n                    \"enum\": [\n                      \"create\",\n                      \"revoke\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"scope\",\n                  \"action\"\n                ]\n              }\n            },\n            \"required\": [\n              \"override\"\n            ],\n            \"additionalProperties\": false\n          }\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

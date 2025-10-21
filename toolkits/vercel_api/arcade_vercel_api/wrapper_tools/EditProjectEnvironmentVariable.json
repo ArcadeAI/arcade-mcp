@@ -1,0 +1,364 @@
+{
+  "name": "EditProjectEnvironmentVariable",
+  "fully_qualified_name": "VercelApi.EditProjectEnvironmentVariable@0.1.0",
+  "description": "Edit a specific environment variable for a project.\n\nUse this tool to modify an environment variable of a Vercel project by providing the variable's ID and the project's ID or name.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id_or_name",
+        "required": true,
+        "description": "Specify the unique project identifier or the project name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "environment_variable_id",
+        "required": true,
+        "description": "The unique environment variable identifier for the Vercel project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique environment variable identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "environment_variable_details",
+        "required": true,
+        "description": "JSON object detailing the environment variable's key, value, type, target environments, and optional attributes such as git branch, custom environment IDs, and comments.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the environment variable"
+            },
+            "target": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "The target environment of the environment variable"
+            },
+            "gitBranch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If defined, the git branch of the environment variable (must have target=preview)"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "system",
+                "secret",
+                "encrypted",
+                "plain",
+                "sensitive"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of environment variable"
+            },
+            "value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The value of the environment variable"
+            },
+            "customEnvironmentIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The custom environments that the environment variable should be synced to"
+            },
+            "comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A comment to add context on what this env var is for"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team on whose behalf the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The identifier for the team on whose behalf the request is made. This is usually a URL-friendly name for the team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'editProjectEnv'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v9/projects/{idOrName}/env/{id}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_id_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "environment_variable_id",
+        "description": "The unique environment variable identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique environment variable identifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "environment_variable_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "key": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the environment variable"
+            },
+            "target": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "The target environment of the environment variable"
+            },
+            "gitBranch": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If defined, the git branch of the environment variable (must have target=preview)"
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "system",
+                "secret",
+                "encrypted",
+                "plain",
+                "sensitive"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of environment variable"
+            },
+            "value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The value of the environment variable"
+            },
+            "customEnvironmentIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The custom environments that the environment variable should be synced to"
+            },
+            "comment": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A comment to add context on what this env var is for"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"key\": {\n            \"description\": \"The name of the environment variable\",\n            \"type\": \"string\",\n            \"example\": \"GITHUB_APP_ID\"\n          },\n          \"target\": {\n            \"description\": \"The target environment of the environment variable\",\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"production\",\n                \"preview\",\n                \"development\"\n              ]\n            },\n            \"example\": [\n              \"preview\"\n            ]\n          },\n          \"gitBranch\": {\n            \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n            \"type\": \"string\",\n            \"maxLength\": 250,\n            \"example\": \"feature-1\",\n            \"nullable\": true\n          },\n          \"type\": {\n            \"description\": \"The type of environment variable\",\n            \"type\": \"string\",\n            \"enum\": [\n              \"system\",\n              \"secret\",\n              \"encrypted\",\n              \"plain\",\n              \"sensitive\"\n            ],\n            \"example\": \"plain\"\n          },\n          \"value\": {\n            \"description\": \"The value of the environment variable\",\n            \"type\": \"string\",\n            \"example\": \"bkWIjbnxcvo78\"\n          },\n          \"customEnvironmentIds\": {\n            \"type\": \"array\",\n            \"description\": \"The custom environments that the environment variable should be synced to\",\n            \"items\": {\n              \"type\": \"string\",\n              \"example\": \"env_1234567890\"\n            }\n          },\n          \"comment\": {\n            \"type\": \"string\",\n            \"description\": \"A comment to add context on what this env var is for\",\n            \"example\": \"database connection string for production\",\n            \"maxLength\": 500\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
