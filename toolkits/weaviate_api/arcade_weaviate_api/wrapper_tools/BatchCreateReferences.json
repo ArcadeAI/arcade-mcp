@@ -1,0 +1,198 @@
+{
+  "name": "BatchCreateReferences",
+  "fully_qualified_name": "WeaviateApi.BatchCreateReferences@0.1.0",
+  "description": "Batch create cross-references between items in a collection.\n\nUse this tool to efficiently establish multiple cross-references between items in a collection at once. Ideal for handling large datasets where establishing individual links manually would be inefficient.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "reference_batch_list",
+        "required": true,
+        "description": "A list of references to batch, with each comprising 'from', 'to', and optional 'tenant'. Use the URI format specified in the API documentation.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "from": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Long-form beacon-style URI to identify the source of the cross-reference, including the property name. Should be in the form of `weaviate://localhost/objects/<uuid>/<className>/<propertyName>`, where `<className>` and `<propertyName>` must represent the cross-reference property of the source class to be used."
+            },
+            "to": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Short-form URI to point to the cross-reference. Should be in the form of `weaviate://localhost/<uuid>` for the example of a local cross-reference to an object."
+            },
+            "tenant": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the reference tenant."
+            }
+          },
+          "description": "A list of references to be batched. The ideal size depends on the used database connector. Please see the documentation of the used connector for help."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "consistency_level",
+        "required": false,
+        "description": "Specifies the number of replicas needed to acknowledge a request for it to be deemed successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "consistency_level"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'batch.references.create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/batch/references",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "consistency_level",
+        "tool_parameter_name": "consistency_level",
+        "description": "Determines how many replicas must acknowledge a request before it is considered successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "reference_batch_list",
+        "description": "A list of references to be batched. The ideal size depends on the used database connector. Please see the documentation of the used connector for help.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "from": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Long-form beacon-style URI to identify the source of the cross-reference, including the property name. Should be in the form of `weaviate://localhost/objects/<uuid>/<className>/<propertyName>`, where `<className>` and `<propertyName>` must represent the cross-reference property of the source class to be used."
+            },
+            "to": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Short-form URI to point to the cross-reference. Should be in the form of `weaviate://localhost/<uuid>` for the example of a local cross-reference to an object."
+            },
+            "tenant": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the reference tenant."
+            }
+          },
+          "description": "A list of references to be batched. The ideal size depends on the used database connector. Please see the documentation of the used connector for help."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"A list of references to be batched. The ideal size depends on the used database connector. Please see the documentation of the used connector for help.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"from\": {\n              \"type\": \"string\",\n              \"description\": \"Long-form beacon-style URI to identify the source of the cross-reference, including the property name. Should be in the form of `weaviate://localhost/objects/<uuid>/<className>/<propertyName>`, where `<className>` and `<propertyName>` must represent the cross-reference property of the source class to be used.\",\n              \"format\": \"uri\",\n              \"example\": \"weaviate://localhost/Zoo/a5d09582-4239-4702-81c9-92a6e0122bb4/hasAnimals\"\n            },\n            \"to\": {\n              \"type\": \"string\",\n              \"description\": \"Short-form URI to point to the cross-reference. Should be in the form of `weaviate://localhost/<uuid>` for the example of a local cross-reference to an object.\",\n              \"format\": \"uri\",\n              \"example\": \"weaviate://localhost/97525810-a9a5-4eb0-858a-71449aeb007f\"\n            },\n            \"tenant\": {\n              \"type\": \"string\",\n              \"description\": \"Name of the reference tenant.\"\n            }\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"from\": {\n              \"type\": \"string\",\n              \"description\": \"Long-form beacon-style URI to identify the source of the cross-reference, including the property name. Should be in the form of `weaviate://localhost/objects/<uuid>/<className>/<propertyName>`, where `<className>` and `<propertyName>` must represent the cross-reference property of the source class to be used.\",\n              \"format\": \"uri\",\n              \"example\": \"weaviate://localhost/Zoo/a5d09582-4239-4702-81c9-92a6e0122bb4/hasAnimals\"\n            },\n            \"to\": {\n              \"type\": \"string\",\n              \"description\": \"Short-form URI to point to the cross-reference. Should be in the form of `weaviate://localhost/<uuid>` for the example of a local cross-reference to an object.\",\n              \"format\": \"uri\",\n              \"example\": \"weaviate://localhost/97525810-a9a5-4eb0-858a-71449aeb007f\"\n            },\n            \"tenant\": {\n              \"type\": \"string\",\n              \"description\": \"Name of the reference tenant.\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,376 @@
+{
+  "name": "UpdateObjectProperties",
+  "fully_qualified_name": "WeaviateApi.UpdateObjectProperties@0.1.0",
+  "description": "Replace properties of a data object using its class and ID.\n\nThis tool updates the properties of an existing object identified by its class name and UUID. The request must include the complete object definition with new values to replace the existing ones.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name",
+        "required": true,
+        "description": "The name of the class (collection) to which the object belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the collection (class) the object belongs to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "object_uuid",
+        "required": true,
+        "description": "Unique UUID of the object to be replaced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique UUID of the object to be replaced."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "object_definition",
+        "required": true,
+        "description": "The full object definition in JSON format to replace the existing object. Must include all updated property values.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the collection (class) the object belongs to."
+            },
+            "vectorWeights": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allow custom overrides of vector weights as math expressions. E.g. `pancake`: `7` will set the weight for the word pancake to 7 in the vectorization, whereas `w * 3` would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object."
+            },
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection."
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The UUID of the object."
+            },
+            "creationTimeUnix": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Timestamp of creation of this object in milliseconds since epoch UTC."
+            },
+            "lastUpdateTimeUnix": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Timestamp of the last object update in milliseconds since epoch UTC."
+            },
+            "vector": {
+              "val_type": "array",
+              "inner_val_type": "number",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting."
+            },
+            "vectors": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map of named vectors for multi-vector representations."
+            },
+            "tenant": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the tenant the object belongs to."
+            },
+            "additional": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Additional meta information about a single object."
+            }
+          },
+          "inner_properties": null,
+          "description": "The object definition to replace the existing object with."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "required_replica_acknowledgement",
+        "required": false,
+        "description": "Specifies how many replicas must acknowledge a request for it to be successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "consistency_level"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'objects.class.put'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/objects/{className}/{id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "consistency_level",
+        "tool_parameter_name": "required_replica_acknowledgement",
+        "description": "Determines how many replicas must acknowledge a request before it is considered successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "className",
+        "tool_parameter_name": "collection_name",
+        "description": "Name of the collection (class) the object belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the collection (class) the object belongs to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "object_uuid",
+        "description": "Unique UUID of the object to be replaced.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique UUID of the object to be replaced."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "object_definition",
+        "description": "The object definition to replace the existing object with.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the collection (class) the object belongs to."
+            },
+            "vectorWeights": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allow custom overrides of vector weights as math expressions. E.g. `pancake`: `7` will set the weight for the word pancake to 7 in the vectorization, whereas `w * 3` would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object."
+            },
+            "properties": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection."
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The UUID of the object."
+            },
+            "creationTimeUnix": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Timestamp of creation of this object in milliseconds since epoch UTC."
+            },
+            "lastUpdateTimeUnix": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Timestamp of the last object update in milliseconds since epoch UTC."
+            },
+            "vector": {
+              "val_type": "array",
+              "inner_val_type": "number",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting."
+            },
+            "vectors": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A map of named vectors for multi-vector representations."
+            },
+            "tenant": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the tenant the object belongs to."
+            },
+            "additional": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Response only) Additional meta information about a single object."
+            }
+          },
+          "inner_properties": null,
+          "description": "The object definition to replace the existing object with."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The object definition to replace the existing object with.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the collection (class) the object belongs to.\"\n          },\n          \"vectorWeights\": {\n            \"type\": \"object\",\n            \"description\": \"Allow custom overrides of vector weights as math expressions. E.g. `pancake`: `7` will set the weight for the word pancake to 7 in the vectorization, whereas `w * 3` would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object.\"\n          },\n          \"properties\": {\n            \"type\": \"object\",\n            \"description\": \"Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The UUID of the object.\",\n            \"format\": \"uuid\"\n          },\n          \"creationTimeUnix\": {\n            \"type\": \"integer\",\n            \"description\": \"(Response only) Timestamp of creation of this object in milliseconds since epoch UTC.\",\n            \"format\": \"int64\"\n          },\n          \"lastUpdateTimeUnix\": {\n            \"type\": \"integer\",\n            \"description\": \"(Response only) Timestamp of the last object update in milliseconds since epoch UTC.\",\n            \"format\": \"int64\"\n          },\n          \"vector\": {\n            \"type\": \"array\",\n            \"description\": \"A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting.\",\n            \"items\": {\n              \"type\": \"number\",\n              \"format\": \"float\"\n            }\n          },\n          \"vectors\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"A vector representation of the object. If provided at object creation, this wil take precedence over any vectorizer setting.\"\n            },\n            \"description\": \"A map of named vectors for multi-vector representations.\"\n          },\n          \"tenant\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the tenant the object belongs to.\"\n          },\n          \"additional\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {}\n            },\n            \"description\": \"(Response only) Additional meta information about a single object.\"\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the collection (class) the object belongs to.\"\n          },\n          \"vectorWeights\": {\n            \"type\": \"object\",\n            \"description\": \"Allow custom overrides of vector weights as math expressions. E.g. `pancake`: `7` will set the weight for the word pancake to 7 in the vectorization, whereas `w * 3` would triple the originally calculated word. This is an open object, with OpenAPI Specification 3.0 this will be more detailed. See Weaviate docs for more info. In the future this will become a key/value (string/string) object.\"\n          },\n          \"properties\": {\n            \"type\": \"object\",\n            \"description\": \"Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection.\"\n          },\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The UUID of the object.\",\n            \"format\": \"uuid\"\n          },\n          \"creationTimeUnix\": {\n            \"type\": \"integer\",\n            \"description\": \"(Response only) Timestamp of creation of this object in milliseconds since epoch UTC.\",\n            \"format\": \"int64\"\n          },\n          \"lastUpdateTimeUnix\": {\n            \"type\": \"integer\",\n            \"description\": \"(Response only) Timestamp of the last object update in milliseconds since epoch UTC.\",\n            \"format\": \"int64\"\n          },\n          \"vector\": {\n            \"type\": \"array\",\n            \"description\": \"A vector representation of the object in the Contextionary. If provided at object creation, this wil take precedence over any vectorizer setting.\",\n            \"items\": {\n              \"type\": \"number\",\n              \"format\": \"float\"\n            }\n          },\n          \"vectors\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"description\": \"A vector representation of the object. If provided at object creation, this wil take precedence over any vectorizer setting.\"\n            },\n            \"description\": \"A map of named vectors for multi-vector representations.\"\n          },\n          \"tenant\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the tenant the object belongs to.\"\n          },\n          \"additional\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {}\n            },\n            \"description\": \"(Response only) Additional meta information about a single object.\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

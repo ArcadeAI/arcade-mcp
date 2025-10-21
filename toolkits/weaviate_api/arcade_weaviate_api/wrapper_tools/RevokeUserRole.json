@@ -1,0 +1,187 @@
+{
+  "name": "RevokeUserRole",
+  "fully_qualified_name": "WeaviateApi.RevokeUserRole@0.1.0",
+  "description": "Remove roles from a specified user in the system.\n\nUse this tool to revoke one or more roles assigned to a user by specifying their user ID. It's useful for updating user permissions in the system.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier or name of the user from whom roles will be revoked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "roles_to_revoke",
+        "required": false,
+        "description": "A list of roles to be removed from the specified user. Provide each role as a string in the array.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The roles to revoke from the specified user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roles"
+      },
+      {
+        "name": "user_type",
+        "required": false,
+        "description": "Specify the user type: `db` for Weaviate-managed or `oidc` for external OIDC-managed users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "db",
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the user. `db` users are managed by Weaviate, `oidc` users are managed by an external OIDC provider."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revokeRoleFromUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/authz/users/{id}/revoke",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "user_id",
+        "description": "The name of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "roles",
+        "tool_parameter_name": "roles_to_revoke",
+        "description": "The roles to revoke from the specified user.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The roles to revoke from the specified user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "userType",
+        "tool_parameter_name": "user_type",
+        "description": "The type of the user. `db` users are managed by Weaviate, `oidc` users are managed by an external OIDC provider.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "db",
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the user. `db` users are managed by Weaviate, `oidc` users are managed by an external OIDC provider."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"roles\": {\n            \"type\": \"array\",\n            \"description\": \"The roles to revoke from the specified user.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"userType\": {\n            \"type\": \"string\",\n            \"description\": \"The type of the user. `db` users are managed by Weaviate, `oidc` users are managed by an external OIDC provider.\",\n            \"enum\": [\n              \"db\",\n              \"oidc\"\n            ]\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"roles\": {\n            \"type\": \"array\",\n            \"description\": \"The roles to revoke from the specified user.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"userType\": {\n            \"type\": \"string\",\n            \"description\": \"The type of the user. `db` users are managed by Weaviate, `oidc` users are managed by an external OIDC provider.\",\n            \"enum\": [\n              \"db\",\n              \"oidc\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

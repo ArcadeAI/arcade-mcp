@@ -1,0 +1,373 @@
+{
+  "name": "RestoreBackup",
+  "fully_qualified_name": "WeaviateApi.RestoreBackup@0.1.0",
+  "description": "Restore collections from a specified backup.\n\nInitiates the restoration of collections from a backup stored on a designated backend. Ensure the target cluster has identical node configurations as the source cluster, and that the collections do not already exist on the target.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "backup_backend_storage",
+        "required": true,
+        "description": "Specifies the backend storage system where the backup resides, such as `filesystem`, `gcs`, `s3`, or `azure`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "backend"
+      },
+      {
+        "name": "backup_identifier",
+        "required": true,
+        "description": "The unique identifier for the backup to restore. It must be URL-safe and compatible with filesystem paths, using only lowercase letters, numbers, underscores, and minus characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the backup to restore from. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "restore_request_details",
+        "required": true,
+        "description": "Details of the restore request, including collections to include or exclude, node mapping, and configurations like CPU usage.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "Endpoint": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "name of the endpoint, e.g. s3.amazonaws.com"
+                },
+                "Bucket": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the bucket, container, volume, etc"
+                },
+                "Path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path within the bucket"
+                },
+                "CPUPercentage": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Desired CPU core utilization ranging from 1%-80%"
+                },
+                "rolesOptions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "noRestore",
+                    "all"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "How roles should be restored"
+                },
+                "usersOptions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "noRestore",
+                    "all"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "How users should be restored"
+                }
+              },
+              "inner_properties": null,
+              "description": "Backup custom configuration"
+            },
+            "include": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of collections (classes) to include in the backup restoration process."
+            },
+            "exclude": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of collections (classes) to exclude from the backup restoration process."
+            },
+            "node_mapping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment."
+            },
+            "overwriteAlias": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows ovewriting the collection alias if there is a conflict"
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the restore request, including collections to include or exclude and node mapping if necessary."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'backups.restore'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/backups/{backend}/{id}/restore",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "backend",
+        "tool_parameter_name": "backup_backend_storage",
+        "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "backup_identifier",
+        "description": "The unique identifier of the backup to restore from. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the backup to restore from. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "restore_request_details",
+        "description": "Details of the restore request, including collections to include or exclude and node mapping if necessary.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "config": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "Endpoint": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "name of the endpoint, e.g. s3.amazonaws.com"
+                },
+                "Bucket": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the bucket, container, volume, etc"
+                },
+                "Path": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Path within the bucket"
+                },
+                "CPUPercentage": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Desired CPU core utilization ranging from 1%-80%"
+                },
+                "rolesOptions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "noRestore",
+                    "all"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "How roles should be restored"
+                },
+                "usersOptions": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "noRestore",
+                    "all"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "How users should be restored"
+                }
+              },
+              "inner_properties": null,
+              "description": "Backup custom configuration"
+            },
+            "include": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of collections (classes) to include in the backup restoration process."
+            },
+            "exclude": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of collections (classes) to exclude from the backup restoration process."
+            },
+            "node_mapping": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment."
+            },
+            "overwriteAlias": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Allows ovewriting the collection alias if there is a conflict"
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the restore request, including collections to include or exclude and node mapping if necessary."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Details of the restore request, including collections to include or exclude and node mapping if necessary.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"config\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"Endpoint\": {\n                \"type\": \"string\",\n                \"description\": \"name of the endpoint, e.g. s3.amazonaws.com\"\n              },\n              \"Bucket\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the bucket, container, volume, etc\"\n              },\n              \"Path\": {\n                \"type\": \"string\",\n                \"description\": \"Path within the bucket\"\n              },\n              \"CPUPercentage\": {\n                \"maximum\": 80,\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"Desired CPU core utilization ranging from 1%-80%\",\n                \"nullable\": false\n              },\n              \"rolesOptions\": {\n                \"type\": \"string\",\n                \"description\": \"How roles should be restored\",\n                \"default\": \"noRestore\",\n                \"enum\": [\n                  \"noRestore\",\n                  \"all\"\n                ]\n              },\n              \"usersOptions\": {\n                \"type\": \"string\",\n                \"description\": \"How users should be restored\",\n                \"default\": \"noRestore\",\n                \"enum\": [\n                  \"noRestore\",\n                  \"all\"\n                ]\n              }\n            },\n            \"description\": \"Backup custom configuration\"\n          },\n          \"include\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections (classes) to include in the backup restoration process.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"exclude\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections (classes) to exclude from the backup restoration process.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"node_mapping\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment.\"\n          },\n          \"overwriteAlias\": {\n            \"type\": \"boolean\",\n            \"description\": \"Allows ovewriting the collection alias if there is a conflict\"\n          }\n        },\n        \"description\": \"Request body for restoring a backup for a set of collections (classes).\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"config\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"Endpoint\": {\n                \"type\": \"string\",\n                \"description\": \"name of the endpoint, e.g. s3.amazonaws.com\"\n              },\n              \"Bucket\": {\n                \"type\": \"string\",\n                \"description\": \"Name of the bucket, container, volume, etc\"\n              },\n              \"Path\": {\n                \"type\": \"string\",\n                \"description\": \"Path within the bucket\"\n              },\n              \"CPUPercentage\": {\n                \"maximum\": 80,\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"Desired CPU core utilization ranging from 1%-80%\",\n                \"nullable\": false\n              },\n              \"rolesOptions\": {\n                \"type\": \"string\",\n                \"description\": \"How roles should be restored\",\n                \"default\": \"noRestore\",\n                \"enum\": [\n                  \"noRestore\",\n                  \"all\"\n                ]\n              },\n              \"usersOptions\": {\n                \"type\": \"string\",\n                \"description\": \"How users should be restored\",\n                \"default\": \"noRestore\",\n                \"enum\": [\n                  \"noRestore\",\n                  \"all\"\n                ]\n              }\n            },\n            \"description\": \"Backup custom configuration\"\n          },\n          \"include\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections (classes) to include in the backup restoration process.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"exclude\": {\n            \"type\": \"array\",\n            \"description\": \"List of collections (classes) to exclude from the backup restoration process.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"node_mapping\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Allows overriding the node names stored in the backup with different ones. Useful when restoring backups to a different environment.\"\n          },\n          \"overwriteAlias\": {\n            \"type\": \"boolean\",\n            \"description\": \"Allows ovewriting the collection alias if there is a conflict\"\n          }\n        },\n        \"description\": \"Request body for restoring a backup for a set of collections (classes).\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

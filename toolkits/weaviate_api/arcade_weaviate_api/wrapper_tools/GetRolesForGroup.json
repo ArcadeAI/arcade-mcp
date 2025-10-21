@@ -1,0 +1,185 @@
+{
+  "name": "GetRolesForGroup",
+  "fully_qualified_name": "WeaviateApi.GetRolesForGroup@0.1.0",
+  "description": "Retrieve roles assigned to a specific group.\n\nFetches all roles associated with a group identified by its name and type (options: `db` or `oidc`).",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_name",
+        "required": true,
+        "description": "The unique name of the group to retrieve roles for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique name of the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "group_type",
+        "required": true,
+        "description": "Specifies the type of the group, either 'db' or 'oidc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupType"
+      },
+      {
+        "name": "include_full_role_definitions",
+        "required": false,
+        "description": "Include full role definitions with all permissions if true; return only role names if false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response will include the full role definitions with all associated permissions. If false, only role names are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "includeFullRoles"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getRolesForGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/authz/groups/{id}/roles/{groupType}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "includeFullRoles",
+        "tool_parameter_name": "include_full_role_definitions",
+        "description": "If true, the response will include the full role definitions with all associated permissions. If false, only role names are returned.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the response will include the full role definitions with all associated permissions. If false, only role names are returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "group_name",
+        "description": "The unique name of the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique name of the group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "groupType",
+        "tool_parameter_name": "group_type",
+        "description": "The type of the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
