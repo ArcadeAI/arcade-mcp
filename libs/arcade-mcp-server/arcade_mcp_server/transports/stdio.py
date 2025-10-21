@@ -176,7 +176,6 @@ class StdioTransport:
         read_stream = StdioReadStream(self.read_queue)
         write_stream = StdioWriteStream(self.write_queue)
 
-        # Set transport type in init_options
         init_options = {"transport_type": "stdio", **options}
 
         session = ServerSession(

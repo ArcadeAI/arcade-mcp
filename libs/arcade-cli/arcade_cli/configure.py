@@ -322,6 +322,9 @@ def configure_client(
     if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
         raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
 
+    if not (Path.cwd() / entrypoint_file).exists():
+        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not in the current directory")
+
     client_lower = client.lower()
 
     if client_lower == "claude":
