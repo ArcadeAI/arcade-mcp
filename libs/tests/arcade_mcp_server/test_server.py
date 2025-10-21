@@ -1103,8 +1103,7 @@ class TestMCPServer:
         assert response.result.isError is True
         assert "HTTP transport" in response.result.structuredContent["message"]
         assert (
-            "authorization and secrets" in response.result.structuredContent["message"]
-            or "secrets and authorization" in response.result.structuredContent["message"]
+            "authorization or access to sensitive secrets" in response.result.structuredContent["message"]
         )
 
     @pytest.mark.asyncio

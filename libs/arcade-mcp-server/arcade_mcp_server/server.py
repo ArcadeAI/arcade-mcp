@@ -760,25 +760,18 @@ class MCPServer:
         # Check transport restrictions for tools requiring auth or secrets
         if session and session.init_options:
             transport_type = session.init_options.get("transport_type")
-            if transport_type == "http":
+            if transport_type != "stdio":
                 requirements = tool.definition.requirements
                 if requirements and (requirements.authorization or requirements.secrets):
-                    error_parts = []
-                    if requirements.authorization:
-                        error_parts.append("authorization")
-                    if requirements.secrets:
-                        error_parts.append("secrets")
-
-                    error_type = " and ".join(error_parts)
-
                     tool_response = {
-                        "message": f"Tool '{tool_name}' cannot be executed over HTTP transport because it requires {error_type}.",
-                        "llm_instructions": (
-                            f"The '{tool_name}' tool requires {error_type} and cannot be used over HTTP transport for security reasons. "
-                            "To use this tool, the server developer must either: "
-                            "1) Use the stdio transport (recommended for local development and desktop clients), or "
-                            "2) Deploy the server using 'arcade deploy', or "
-                            "3) Add the server in the Arcade Developer Dashboard with 'Arcade' server type"
+                        "message": (
+                            f"Tool '{tool_name}' cannot be executed over HTTP transport for security reasons. "
+                            "This tool requires end-user authorization or access to sensitive secrets, and therefore "
+                            "must not run over HTTP. This restriction is permanent - retrying the call will not resolve the issue.\n\n"
+                            "To use this tool, the server developer must either:\n"
+                            "1) Use the stdio transport (recommended for local development and desktop clients),\n"
+                            "2) Deploy the server using 'arcade deploy', or\n"
+                            "3) Register the server in the Arcade Developer Dashboard with type 'Arcade'."
                         ),
                     }
                     return self._create_error_response(message, tool_response)
@@ -792,8 +785,8 @@ class MCPServer:
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
                         "but the Arcade API key is not configured. The developer needs to: "
-                        "1) Set the ARCADE_API_KEY environment variable with a valid API key, or "
-                        "2) Run 'arcade login' to authenticate. "
+                        "1) Run 'arcade login' to authenticate, or "
+                        "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
                         "Once the API key is configured, restart the MCP server for the changes to take effect."
                     ),
                 }

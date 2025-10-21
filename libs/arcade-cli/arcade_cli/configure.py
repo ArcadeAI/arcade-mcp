@@ -3,6 +3,8 @@
 import json
 import os
 import platform
+import re
+import shutil
 from pathlib import Path
 
 import typer
@@ -51,6 +53,11 @@ def get_vscode_config_path() -> Path:
         return Path.home() / ".config" / "Code" / "User" / "mcp.json"
 
 
+def is_uv_installed() -> bool:
+    """Check if uv is installed and available in PATH."""
+    return shutil.which("uv") is not None
+
+
 def find_python_interpreter() -> Path:
     # Find the Python interpreter in the virtual environment
     venv_python = None
@@ -72,15 +79,43 @@ def find_python_interpreter() -> Path:
     return venv_python
 
 
-def configure_claude_local(server_name: str, port: int = 8000, path: Path | None = None) -> None:
+def get_stdio_config(entrypoint_file: str, server_name: str) -> dict:
+    """Get the appropriate stdio configuration based on whether uv is installed."""
+    server_file = Path.cwd() / entrypoint_file
+
+    if is_uv_installed():
+        return {
+            "command": "uv",
+            "args": [
+                "run",
+                "--directory",
+                str(Path.cwd()),
+                "python",
+                entrypoint_file,
+            ],
+        }
+    else:
+        console.print(
+            "[yellow]Warning: uv is not installed. Install uv for the best experience with arcade configure CLI command.[/yellow]"
+        )
+        venv_python = find_python_interpreter()
+        return {
+            "command": str(venv_python),
+            "args": [str(server_file)],
+        }
+
+
+def configure_claude_local(
+    entrypoint_file: str, server_name: str, port: int = 8000, config_path: Path | None = None
+) -> None:
     """Configure Claude Desktop to add a local MCP server to the configuration."""
-    config_path = path or get_claude_config_path()
+    config_path = config_path or get_claude_config_path()
+
+    # Handle both absolute and relative config paths
+    if config_path and not config_path.is_absolute():
+        config_path = Path.cwd() / config_path
+
     config_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Assume server.py is the entry point for the server
-    server_file = Path.cwd() / "server.py"
-
-    venv_python = find_python_interpreter()
 
     # Load existing config or create new one
     config = {}
@@ -93,10 +128,7 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
         config["mcpServers"] = {}
 
     # Claude Desktop uses stdio transport
-    config["mcpServers"][server_name] = {
-        "command": str(venv_python),
-        "args": [str(server_file), "stdio"],
-    }
+    config["mcpServers"][server_name] = get_stdio_config(entrypoint_file, server_name)
 
     # Write updated config
     with open(config_path, "w") as f:
@@ -108,12 +140,17 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
     )
     config_file_path = config_path.as_posix().replace(" ", "\\ ")
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
-    console.print(f"   Server file: {server_file}", style="dim")
-    console.print(f"   Python interpreter: {venv_python}", style="dim")
+    console.print(f"   Server file: {Path.cwd() / entrypoint_file}", style="dim")
+    if is_uv_installed():
+        console.print("   Using uv to run server", style="dim")
+    else:
+        console.print(f"   Python interpreter: {find_python_interpreter()}", style="dim")
     console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
 
 
-def configure_claude_arcade(server_name: str, transport: str, path: Path | None = None) -> None:
+def configure_claude_arcade(
+    server_name: str, transport: str, config_path: Path | None = None
+) -> None:
     """Configure Claude Desktop to add an Arcade Cloud MCP server to the configuration."""
     # This would connect to the Arcade Cloud to get the server URL
     # For now, this is a placeholder
@@ -121,7 +158,11 @@ def configure_claude_arcade(server_name: str, transport: str, path: Path | None 
 
 
 def configure_cursor_local(
-    server_name: str, transport: str, port: int = 8000, path: Path | None = None
+    entrypoint_file: str,
+    server_name: str,
+    transport: str,
+    port: int = 8000,
+    config_path: Path | None = None,
 ) -> None:
     """Configure Cursor to add a local MCP server to the configuration."""
 
@@ -132,17 +173,12 @@ def configure_cursor_local(
             "url": f"http://localhost:{port}/mcp",
         }
 
-    def stdio_config(server_name: str) -> dict:
-        # Assume server.py is the entry point for the server
-        server_file = Path.cwd() / "server.py"
+    config_path = config_path or get_cursor_config_path()
 
-        venv_python = find_python_interpreter()
-        return {
-            "command": str(venv_python),
-            "args": [str(server_file), "stdio"],
-        }
+    # Handle both absolute and relative config paths
+    if config_path and not config_path.is_absolute():
+        config_path = Path.cwd() / config_path
 
-    config_path = path or get_cursor_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load existing config or create new one
@@ -156,7 +192,9 @@ def configure_cursor_local(
         config["mcpServers"] = {}
 
     config["mcpServers"][server_name] = (
-        stdio_config(server_name) if transport == "stdio" else http_config(server_name, port)
+        get_stdio_config(entrypoint_file, server_name)
+        if transport == "stdio"
+        else http_config(server_name, port)
     )
 
     # Write updated config
@@ -171,19 +209,42 @@ def configure_cursor_local(
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
     if transport == "http":
         console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
+    elif transport == "stdio":
+        if is_uv_installed():
+            console.print("   Using uv to run server", style="dim")
+        else:
+            console.print(f"   Python interpreter: {find_python_interpreter()}", style="dim")
     console.print("   Restart Cursor for changes to take effect.", style="yellow")
 
 
-def configure_cursor_arcade(server_name: str, transport: str, path: Path | None = None) -> None:
+def configure_cursor_arcade(
+    server_name: str, transport: str, config_path: Path | None = None
+) -> None:
     """Configure Cursor to add an Arcade Cloud MCP server to the configuration."""
     console.print("[red]Connecting to Arcade Cloud servers not yet implemented[/red]")
 
 
 def configure_vscode_local(
-    server_name: str, transport: str, port: int = 8000, path: Path | None = None
+    entrypoint_file: str,
+    server_name: str,
+    transport: str,
+    port: int = 8000,
+    config_path: Path | None = None,
 ) -> None:
     """Configure VS Code to add a local MCP server to the configuration."""
-    config_path = path or get_vscode_config_path()
+
+    def http_config(server_name: str, port: int = 8000) -> dict:
+        return {
+            "type": "http",
+            "url": f"http://localhost:{port}/mcp",
+        }
+
+    config_path = config_path or get_vscode_config_path()
+
+    # Handle both absolute and relative config paths
+    if config_path and not config_path.is_absolute():
+        config_path = Path.cwd() / config_path
+
     config_path.parent.mkdir(parents=True, exist_ok=True)
     # Load existing config or create new one
     config = {}
@@ -202,10 +263,11 @@ def configure_vscode_local(
     if "servers" not in config:
         config["servers"] = {}
 
-    config["servers"][server_name] = {
-        "type": "http",
-        "url": f"http://localhost:{port}/mcp",
-    }
+    config["servers"][server_name] = (
+        get_stdio_config(entrypoint_file, server_name)
+        if transport == "stdio"
+        else http_config(server_name, port)
+    )
 
     # Write updated config
     with open(config_path, "w") as f:
@@ -217,7 +279,13 @@ def configure_vscode_local(
     )
     config_file_path = config_path.as_posix().replace(" ", "\\ ")
     console.print(f"   MCP client config file: {config_file_path}", style="dim")
-    console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
+    if transport == "http":
+        console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
+    elif transport == "stdio":
+        if is_uv_installed():
+            console.print("   Using uv to run server", style="dim")
+        else:
+            console.print(f"   Python interpreter: {find_python_interpreter()}", style="dim")
     console.print("   Restart VS Code for changes to take effect.", style="yellow")
 
 
@@ -228,47 +296,51 @@ def configure_vscode_arcade(server_name: str, transport: str, path: Path | None 
 
 def configure_client(
     client: str,
+    entrypoint_file: str,
     server_name: str | None = None,
     transport: str = "stdio",
-    from_source: str = "local",
+    host: str = "local",
     port: int = 8000,
-    path: Path | None = None,
+    config_path: Path | None = None,
 ) -> None:
     """
     Configure an MCP client to connect to a server.
 
     Args:
         client: The MCP client to configure (claude, cursor, vscode)
+        entrypoint_file: The name of the Python file in the current directory that runs the server. This file must run the server when invoked directly. Only used for stdio servers.
         server_name: Name of the server to add to the configuration
         transport: The transport to use for the MCP server configuration
-        from_source: The source of the server to configure (local or arcade)
-        port: Port for local servers (default: 8000)
-        path: Custom path to the MCP client configuration file
+        host: The host of the server to configure (local or arcade)
+        port: Port for local HTTP servers (default: 8000)
+        config_path: Custom path to the MCP client configuration file
     """
-    # Default server name if not provided
     if not server_name:
-        # Try to detect from current directory
-        server_name = Path.cwd().name if Path("server.py").exists() else "arcade-mcp-server"
+        # Use the name of the current directory as the server name
+        server_name = Path.cwd().name
+
+    if not bool(re.match(r"^[a-zA-Z0-9_-]+\.py$", entrypoint_file)):
+        raise ValueError(f"Entrypoint file '{entrypoint_file}' is not a valid Python file name")
 
     client_lower = client.lower()
 
     if client_lower == "claude":
         if transport != "stdio":
-            raise ValueError("Claude Desktop only supports stdio transport")
-        if from_source == "local":
-            configure_claude_local(server_name, port, path)
+            raise ValueError("Claude Desktop only supports stdio transport via configuration file")
+        if host == "local":
+            configure_claude_local(entrypoint_file, server_name, port, config_path)
         else:
-            configure_claude_arcade(server_name, transport, path)
+            configure_claude_arcade(server_name, transport, config_path)
     elif client_lower == "cursor":
-        if from_source == "local":
-            configure_cursor_local(server_name, transport, port, path)
+        if host == "local":
+            configure_cursor_local(entrypoint_file, server_name, transport, port, config_path)
         else:
-            configure_cursor_arcade(server_name, transport, path)
+            configure_cursor_arcade(server_name, transport, config_path)
     elif client_lower == "vscode":
-        if from_source == "local":
-            configure_vscode_local(server_name, transport, port, path)
+        if host == "local":
+            configure_vscode_local(entrypoint_file, server_name, transport, port, config_path)
         else:
-            configure_vscode_arcade(server_name, transport, path)
+            configure_vscode_arcade(server_name, transport, config_path)
     else:
         raise typer.BadParameter(
             f"Unknown client: {client}. Supported clients: claude, cursor, vscode."
