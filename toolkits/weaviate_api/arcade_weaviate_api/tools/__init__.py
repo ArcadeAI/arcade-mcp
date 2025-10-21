@@ -182,7 +182,7 @@ async def discover_api_endpoints(
     """Retrieve links to available REST API endpoints.
 
     This tool fetches links to other endpoints within the REST API, aiding in the discovery and navigation of the available API options."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -212,7 +212,7 @@ async def check_weaviate_liveness(
     """Check if the Weaviate instance is running properly.
 
     Use this tool to perform a basic health check on a Weaviate instance, ensuring it is running and responding to HTTP requests. Useful for monitoring and maintenance tasks."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -242,7 +242,7 @@ async def check_weaviate_readiness(
     """Check if the Weaviate instance is ready to accept traffic.
 
     Use this tool to determine if the Weaviate instance has completed its startup routines and is ready for operations such as data import and queries. Ideal for readiness checks in container orchestration contexts like Kubernetes."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -272,7 +272,7 @@ async def get_oidc_discovery(
     """Fetches OIDC discovery details for Weaviate authentication.
 
     This tool retrieves OpenID Connect (OIDC) discovery information for Weaviate if OIDC authentication is configured. It provides essential details like the token issuer URL, client ID, and required scopes."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -321,7 +321,7 @@ async def replicate_shard_replica(
     """Initiates replication of a shard replica to a target node.
 
     This tool starts an asynchronous process to move or copy a specific shard replica from its current node to a specified target node. It handles data copying, synchronization, and may decommission the source replica."""  # noqa: E501
-    request_data = {
+    request_data: Any = {
         "sourceNode": source_node,
         "targetNode": target_weaviate_node,
         "collection": target_collection_name,
@@ -358,7 +358,7 @@ async def delete_all_replications(
     """Schedule deletion of all replication operations across the system.
 
     This tool is used to schedule the deletion of all replication operations across all collections, shards, and nodes. It should be called when you need to clear all replication tasks in the system."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -405,7 +405,7 @@ async def force_delete_replications(
     """Forcefully delete replication operations with caution.
 
     This tool is used to forcefully delete operations from the FSM in Weaviate. It should be called when there is a need to remove replication operations without performing state checks, which may lead to data corruption or loss. Ensure replication engine workers are scaled to 0 before using this to prevent in-flight operations."""  # noqa: E501
-    request_data = {
+    request_data: Any = {
         "id": replication_operation_id,
         "collection": collection_name,
         "shard": shard_identifier,
@@ -448,7 +448,7 @@ async def fetch_replication_status(
     """Retrieve the status of a specific replication operation.
 
     Use this tool to get current status and detailed information about a replication operation by its unique ID. It can optionally include historical progress data of the operation."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -482,7 +482,7 @@ async def cancel_replication_operation(
     """Cancel an active replication operation.
 
     Use this tool to remove and cancel a specific replication operation. It ensures that active processes are halted and resources are cleaned up before deletion."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -526,7 +526,7 @@ async def list_replication_status(
     """Retrieve registered replication operations and details.
 
     Call this tool to get information about current replication operations in Weaviate, filtered by collection, shard, or node ID if needed."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -565,7 +565,7 @@ async def cancel_replication(
     """Cancel an active replication operation by ID.
 
     Use this tool to request the cancellation of an ongoing replication operation specified by its ID. The operation is stopped and marked as 'CANCELLED' but is not automatically deleted."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -602,7 +602,7 @@ async def fetch_sharding_state(
     """Fetch the current sharding state and replica details for collections.
 
     This tool retrieves the current sharding state for all collections or a specified collection, including replica locations and statuses. If needed, it can also provide the state for a specific shard within a collection."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -632,7 +632,7 @@ async def get_authenticated_user_info(
     """Retrieve details about the authenticated user and their roles.
 
     This tool retrieves information about the current user, including their username and assigned roles, from the authenticated session."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -665,7 +665,7 @@ async def list_db_users(
     """Retrieve all database users and their roles and statuses.
 
     Use this tool to obtain a comprehensive list of all users within the database, along with detailed information about their roles and current status. This is useful for auditing and managing user permissions in the database."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -701,7 +701,7 @@ async def get_database_user_info(
     """Retrieve information about a specific database user.
 
     Use this tool to get detailed information about a database user, including their roles, status, and type. Call this tool when you need to know specific details about a database user's profile or attributes."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -744,7 +744,7 @@ async def create_database_user(
     """Create a new database user and obtain an API key.
 
     This tool is used to create a new database user by specifying a name. It returns an API key for the created user."""  # noqa: E501
-    request_data = {
+    request_data: Any = {
         "import": disable_import_experimental,
         "createTime": set_creation_time_experimental,
     }
@@ -781,7 +781,7 @@ async def delete_database_user(
     """Delete a specific database user.
 
     This tool deletes a specified user from the database. It should be called when there is a need to remove a user, except the current active user."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -814,7 +814,7 @@ async def rotate_user_api_key(
     """Revoke and regenerate the API key for a database user.
 
     This tool is used to revoke the current API key for a specified database user and generate a new one. It should be called when an API key needs refreshing or if security has been compromised."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -846,7 +846,7 @@ async def activate_database_user(
     """Activate a deactivated database user account.
 
     Use this tool to activate a user with a `db` user type in the database. It should be called when re-enabling user access is needed."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -882,7 +882,7 @@ async def deactivate_database_user(
     """Deactivate a database user account.
 
     Use this tool to deactivate a user with the type 'db' in the database. Provide the user ID to deactivate their account and prevent access to the database."""  # noqa: E501
-    request_data = {"revoke_key": revoke_api_key}
+    request_data: Any = {"revoke_key": revoke_api_key}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -913,7 +913,7 @@ async def get_roles_and_permissions(
     """Retrieve all roles and their assigned permissions.
 
     Use this tool to obtain detailed information on all roles and the specific permissions associated with each role."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1299,7 +1299,7 @@ async def fetch_role_by_name(
     """Fetch role details using its name.
 
     This tool retrieves the details of a specific role by its name from the Weaviate service. It should be called when information about a role is required, typically for authorization or configuration purposes."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1330,7 +1330,7 @@ async def delete_role(
     """Delete a role and revoke its permissions system-wide.
 
     Use this tool to delete a role from the system, removing it and revoking the associated permissions from all users who had it."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1485,7 +1485,7 @@ async def get_users_by_role(
     """Retrieve users with a specific role assignment.
 
     Use to obtain a list of users assigned to a particular role by role ID."""
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1516,7 +1516,7 @@ async def get_groups_for_role(
     """Retrieve groups assigned to a specific role.
 
     Use this tool to get a list of all groups that have been assigned a particular role, identified by the role's name."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1555,7 +1555,7 @@ async def get_user_roles(
     """Retrieve all roles assigned to a specific user.
 
     Use this tool to get a list of all roles for a specified user, identified by their ID and user type (`db` or `oidc`)."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1596,7 +1596,7 @@ async def assign_roles_to_user(
     """Assign roles to a user in the system.
 
     Use this tool to assign one or more roles to a specific user, allowing flexibility in user permissions and access control."""  # noqa: E501
-    request_data = {"roles": assigned_roles, "userType": user_type}
+    request_data: Any = {"roles": assigned_roles, "userType": user_type}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1638,7 +1638,7 @@ async def revoke_user_role(
     """Remove roles from a specified user in the system.
 
     Use this tool to revoke one or more roles assigned to a user by specifying their user ID. It's useful for updating user permissions in the system."""  # noqa: E501
-    request_data = {"roles": roles_to_revoke, "userType": user_type}
+    request_data: Any = {"roles": roles_to_revoke, "userType": user_type}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1677,7 +1677,7 @@ async def assign_role_to_group(
     """Assign roles to a specific group.
 
     Use this tool to assign one or more roles to a designated group, identified by its ID."""
-    request_data = {"roles": roles_to_assign, "groupType": group_type}
+    request_data: Any = {"roles": roles_to_assign, "groupType": group_type}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1715,7 +1715,7 @@ async def revoke_role_from_group(
     """Revoke roles from a specified group to manage permissions.
 
     This tool allows the revocation of roles from a specified group, which is useful for managing and updating group permissions within a system using Weaviate."""  # noqa: E501
-    request_data = {"roles": roles_to_revoke, "groupType": group_type}
+    request_data: Any = {"roles": roles_to_revoke, "groupType": group_type}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1752,7 +1752,7 @@ async def get_roles_for_group(
     """Retrieve roles assigned to a specific group.
 
     Fetches all roles associated with a group identified by its name and type (options: `db` or `oidc`)."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1785,7 +1785,7 @@ async def retrieve_group_names(
     """Retrieve available group names for a specified type.
 
     This tool retrieves a list of all available group names for a specified group type, either 'oidc' or 'db'. Use it when you need to list groups of a certain type."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -1845,7 +1845,7 @@ async def list_data_objects(
     """Retrieve a list of data objects from a specified collection.
 
     Use this tool to get a list of data objects from a particular collection by providing the collection name parameter. The objects are returned in reverse order of creation."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -2009,7 +2009,7 @@ async def get_data_object(
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'objects.class.get'."]:
     """Retrieve a data object using collection name and UUID."""
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -2192,7 +2192,7 @@ async def delete_data_object(
     """Delete a data object from a specified collection using its UUID.
 
     Use this tool to remove a specific data object from a Weaviate collection, identified by its `className` and `id` (UUID). Useful for managing data within a Weaviate instance."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3261,7 +3261,7 @@ async def execute_graphql_query(
     """Executes a GraphQL query on Weaviate.
 
     Use this tool to perform data queries and exploration on the Weaviate platform by executing a provided GraphQL query."""  # noqa: E501
-    request_data = {
+    request_data: Any = {
         "operationName": operation_name,
         "query": graphql_query,
         "variables": query_variables,
@@ -3401,7 +3401,7 @@ async def get_weaviate_instance_meta(
     """Get meta-information about a Weaviate instance.
 
     Use this tool to obtain details such as version, modules, and network hostname of a running Weaviate instance. Useful for monitoring, compatibility checks, or communication between instances."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3431,7 +3431,7 @@ async def retrieve_database_schema(
     """Retrieve definitions of all classes in the database schema.
 
     Use this tool to obtain the definitions of all collections (classes) currently present in the database schema. It provides a comprehensive overview of the database structure."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3565,7 +3565,7 @@ async def retrieve_collection_schema(
     """Retrieve the schema of a specified collection.
 
     Fetches the definition of a specific collection by `className`, detailing its properties, configuration, and vectorizer settings."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3725,7 +3725,7 @@ async def delete_schema_collection(
     """Permanently delete a collection from the schema.
 
     Call this tool to remove a collection definition and all its data objects from the schema permanently."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3886,7 +3886,7 @@ async def get_collection_shard_status(
     """Retrieves status of shards for a specified collection.
 
     Use this tool to get the status of all shards associated with a specific collection (`className`) in Weaviate. For multi-tenant collections, specify the `tenant` query parameter to retrieve shard status for a particular tenant."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3923,7 +3923,7 @@ async def update_shard_status(
     """Update the status of a specific shard in a collection.
 
     Use this tool to update the status of a specific shard within a Weaviate collection. It is typically used to change the shard's status to `READY` or `READONLY` after addressing issues that affected its operation."""  # noqa: E501
-    request_data = {"status": shard_status}
+    request_data: Any = {"status": shard_status}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -3957,7 +3957,7 @@ async def get_collection_tenants(
     """Retrieve tenants for a specified collection.
 
     This tool retrieves a list of all tenants associated with a given collection. Call this tool to obtain tenant information for a specified collection in the Weaviate service."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4236,7 +4236,7 @@ async def delete_tenants(
     """Permanently delete specified tenants from a collection.
 
     Use this tool to delete one or more tenants from a specified collection in Weaviate. This action is irreversible and will remove all data related to the specified tenants."""  # noqa: E501
-    request_data = tenant_names_to_delete
+    request_data: Any = tenant_names_to_delete
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4271,7 +4271,7 @@ async def get_tenant_details(
     """Retrieve details about a specific tenant's status.
 
     Call this tool to get information about a specific tenant within a specified collection, including their current activity status."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4308,7 +4308,7 @@ async def retrieve_aliases(
     """Retrieve all aliases from the system.
 
     Fetches a list of all aliases, with an option to filter by collection (class) name for specific aliases."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4345,7 +4345,7 @@ async def create_alias_mapping(
     """Create a new alias for a collection in Weaviate.
 
     This tool creates a new alias mapping between an alias name and a collection (class) in Weaviate. Use it to set up alternative names for accessing collections."""  # noqa: E501
-    request_data = {"alias": alias_name, "class": collection_class_name}
+    request_data: Any = {"alias": alias_name, "class": collection_class_name}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4379,7 +4379,7 @@ async def retrieve_alias_details(
     """Retrieve details about a specific alias by its name.
 
     Use this tool to obtain information about an alias, such as the collection (class) it points to, by specifying the alias name."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4415,7 +4415,7 @@ async def update_collection_alias(
     """Redirect an alias to a different collection.
 
     Use this tool to update an existing alias so it points to a new collection. This allows alias redirection without changing its name."""  # noqa: E501
-    request_data = {"class": new_collection_name}
+    request_data: Any = {"class": new_collection_name}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4450,7 +4450,7 @@ async def delete_alias(
     """Delete an existing alias from the system.
 
     This tool removes an alias from the system without affecting the underlying collection. It should be called when an alias is no longer needed."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4484,7 +4484,7 @@ async def list_backups(
     """Retrieve all backup IDs and their statuses.
 
     Use this tool to get a list of all created backup IDs along with their current statuses. Useful for monitoring or managing backup data."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4554,7 +4554,7 @@ async def create_backup(
     """Initiates backup creation for specified collections.
 
     This tool starts the process of creating a backup for the specified collections on a designated backend storage using Weaviate. The backup is compressed using gzip by default, and the system remains operational during the backup process. Use this tool when you need to ensure data is safely backed up without interrupting service."""  # noqa: E501
-    request_data = {
+    request_data: Any = {
         "id": backup_id,
         "config": {
             "Endpoint": storage_endpoint_name,
@@ -4613,7 +4613,7 @@ async def check_backup_status(
     """Get the current status of a backup creation process.
 
     Use this tool to manually check the status of a backup creation process by its ID on the specified backend. Ideal for when waiting for completion is disabled or not suitable."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4661,7 +4661,7 @@ async def cancel_backup(
     """Cancel a backup by its ID from a specified backend storage.
 
     Use this tool to delete a backup using its unique ID from a specified backend storage location, ensuring the backup is no longer retrievable."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4707,7 +4707,7 @@ async def check_backup_restore_status(
     """Check the status of a backup restoration process.
 
     Use this tool to manually check the status of a specific backup restoration on a given backend, using the backup ID. Ideal when automatic polling is disabled."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4867,7 +4867,7 @@ async def get_weaviate_cluster_statistics(
     """Get Weaviate cluster Raft protocol statistics.
 
     Use this tool to retrieve detailed statistics about the internal Raft consensus protocol state for a Weaviate cluster. This can help monitor the cluster's status and performance."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4901,7 +4901,7 @@ async def get_cluster_node_status(
     """Retrieve status information about all nodes in a cluster.
 
     Fetches status details for all nodes in the cluster, with adjustable detail level using the output parameter."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4942,7 +4942,7 @@ async def get_shard_host_nodes_status(
     """Retrieve status of nodes hosting shards for a collection.
 
     This tool fetches status information for nodes that host shards of a specified collection. Use it to monitor or diagnose the nodes in a distributed database cluster, customizing the level of detail with the `output` query parameter."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -4973,7 +4973,7 @@ async def list_distributed_tasks(
     """Retrieve all distributed tasks in the cluster.
 
     Use this tool to get an overview of all distributed tasks currently active or available within the cluster."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
@@ -5111,7 +5111,7 @@ async def get_classification_status(
     """Retrieve status and results of a classification task.
 
     Use this tool to obtain the status, metadata, and results of an ongoing or completed classification task by providing its unique ID."""  # noqa: E501
-    request_data = {}
+    request_data: Any = {}
     if isinstance(request_data, dict):
         request_data = remove_none_values(request_data)
     content = json.dumps(request_data) if request_data else None
