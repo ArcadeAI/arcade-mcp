@@ -1,0 +1,247 @@
+{
+  "name": "CreateServiceRequest",
+  "fully_qualified_name": "FreshserviceApi.CreateServiceRequest@1.0.0",
+  "description": "Create a service request in Freshservice.\n\nUse this tool to submit a new service request in Freshservice. It facilitates the creation of service requests by sending the necessary information to Freshservice's system.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "item_id",
+        "required": true,
+        "description": "The ID of the item to be requested. It must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the id of the item that needs to requested"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "requester_email",
+        "required": true,
+        "description": "The email address of the person making the service request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the email id of the requester"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requester_email"
+      },
+      {
+        "name": "item_quantity",
+        "required": false,
+        "description": "The number of units of the item needed by the requester. Defaults to 1 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of units of the item needed by the requester. By default it is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "quantity"
+      },
+      {
+        "name": "user_requested_for_email",
+        "required": false,
+        "description": "Email address of the user for whom the service is requested.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the email id of the user for whom this is requested."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requested_for_email"
+      },
+      {
+        "name": "custom_fields_json",
+        "required": false,
+        "description": "A JSON object containing custom fields related to a Freshservice entity. This allows for additional data specific to the request.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom fields that are associated with a Freshservice entity"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-service-request'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/service_requests",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "item_id",
+        "description": "the id of the item that needs to requested",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the id of the item that needs to requested"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "quantity",
+        "tool_parameter_name": "item_quantity",
+        "description": "The number of units of the item needed by the requester. By default it is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of units of the item needed by the requester. By default it is 1."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requester_email",
+        "tool_parameter_name": "requester_email",
+        "description": "the email id of the requester",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the email id of the requester"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requested_for_email",
+        "tool_parameter_name": "user_requested_for_email",
+        "description": "the email id of the user for whom this is requested.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "the email id of the user for whom this is requested."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_fields",
+        "tool_parameter_name": "custom_fields_json",
+        "description": "Custom fields that are associated with a Freshservice entity",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom fields that are associated with a Freshservice entity"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Service request that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\",\n          \"requester_email\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"the id of the item that needs to requested\",\n            \"format\": \"int64\",\n            \"example\": 140002398473\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"description\": \"The number of units of the item needed by the requester. By default it is 1.\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"requester_email\": {\n            \"type\": \"string\",\n            \"description\": \"the email id of the requester\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"requested_for_email\": {\n            \"type\": \"string\",\n            \"description\": \"the email id of the user for whom this is requested.\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"description\": \"Custom fields that are associated with a Freshservice entity\",\n            \"example\": {\n              \"field1\": \"Value 1\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

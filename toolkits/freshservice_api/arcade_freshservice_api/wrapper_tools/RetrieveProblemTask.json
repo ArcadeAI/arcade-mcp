@@ -1,18 +1,18 @@
 {
   "name": "RetrieveProblemTask",
-  "fully_qualified_name": "FreshserviceApi.RetrieveProblemTask@0.1.0",
-  "description": "Retrieve details of a specific task from a problem in Freshservice.\n\nUse this tool to get information about a specific task linked to a problem in Freshservice using the task and problem IDs.",
+  "fully_qualified_name": "FreshserviceApi.RetrieveProblemTask@1.0.0",
+  "description": "Retrieve a specific task from a problem in Freshservice.\n\nThis tool retrieves the details of a task associated with a specific problem in Freshservice, using the problem and task IDs provided.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "problem_id",
         "required": true,
-        "description": "The unique integer ID of the problem to retrieve the task from in Freshservice.",
+        "description": "The unique identifier for the problem used to retrieve the task details from Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "task_id",
         "required": true,
-        "description": "The unique identifier for the task to retrieve from the specified problem.",
+        "description": "ID of the task to be retrieved from the specified problem, expected as an integer.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,10 +61,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks/{task_id}",
@@ -125,21 +125,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

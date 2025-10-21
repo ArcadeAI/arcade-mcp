@@ -1,0 +1,561 @@
+{
+  "name": "CreateCsatSurvey",
+  "fully_qualified_name": "FreshserviceApi.CreateCsatSurvey@1.0.0",
+  "description": "Create a new CSAT survey in Freshservice.\n\nThis tool is used to create a new Customer Satisfaction (CSAT) survey in Freshservice. Call this tool when you need to set up a survey to gather customer feedback.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "csat_survey_data",
+        "required": true,
+        "description": "JSON object containing details of the CSAT Survey to be created. Includes ID, name, activation state, trigger event, survey question, option ordering, response options, and timestamps.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Customer Satisfaction Survey"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Survey"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the survey. For an activated survey, active = true. For a deactivated survey, active = false."
+            },
+            "survey_trigger_event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "Ticket Closure",
+                "Ticket Resolution",
+                "All Replies",
+                "Agent Specified Emails"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field to capture when the survey should be sent."
+            },
+            "question": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Question that will be asked to the requester to capture the service experience"
+            },
+            "order_of_options": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "Good to Bad",
+                "Bad to Good"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Gradient order of the options displayed"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "option_1": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_2": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_3": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_4": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_5": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "thank_you_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The final \\\"Thank you\\\" message that gets displayed to the requester upon completion of the survey"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent who last modified this survey"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the survey was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the survey was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "CSAT Survey that needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-survey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/surveys",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "csat_survey_data",
+        "description": "CSAT Survey that needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Customer Satisfaction Survey"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Survey"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the survey. For an activated survey, active = true. For a deactivated survey, active = false."
+            },
+            "survey_trigger_event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "Ticket Closure",
+                "Ticket Resolution",
+                "All Replies",
+                "Agent Specified Emails"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field to capture when the survey should be sent."
+            },
+            "question": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Question that will be asked to the requester to capture the service experience"
+            },
+            "order_of_options": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "Good to Bad",
+                "Bad to Good"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Gradient order of the options displayed"
+            },
+            "options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "option_1": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_2": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_3": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_4": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                },
+                "option_5": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "text": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful."
+                    },
+                    "follow_up_question": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Follow-up question that will asked when the requester responds with the current option."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Response Options of the Customer Satisfaction Survey"
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "thank_you_message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The final \\\"Thank you\\\" message that gets displayed to the requester upon completion of the survey"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent who last modified this survey"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the survey was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the survey was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "CSAT Survey that needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"CSAT Survey that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the Customer Satisfaction Survey\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the Survey\",\n            \"example\": \"Buyer satisfaction\"\n          },\n          \"active\": {\n            \"type\": \"boolean\",\n            \"description\": \"State of the survey. For an activated survey, active = true. For a deactivated survey, active = false.\",\n            \"example\": true\n          },\n          \"survey_trigger_event\": {\n            \"type\": \"string\",\n            \"description\": \"Field to capture when the survey should be sent.\",\n            \"example\": \"Ticket Closure\",\n            \"enum\": [\n              \"Ticket Closure\",\n              \"Ticket Resolution\",\n              \"All Replies\",\n              \"Agent Specified Emails\"\n            ]\n          },\n          \"question\": {\n            \"type\": \"string\",\n            \"description\": \"Question that will be asked to the requester to capture the service experience\",\n            \"example\": \"How do you rate the buying experience?\"\n          },\n          \"order_of_options\": {\n            \"type\": \"string\",\n            \"description\": \"Gradient order of the options displayed\",\n            \"example\": \"Good to Bad\",\n            \"enum\": [\n              \"Good to Bad\",\n              \"Bad to Good\"\n            ]\n          },\n          \"options\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"option_1\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful.\",\n                    \"example\": \"Fantastic\"\n                  },\n                  \"follow_up_question\": {\n                    \"type\": \"string\",\n                    \"description\": \"Follow-up question that will asked when the requester responds with the current option.\",\n                    \"example\": \"How do you rate overall experience?\"\n                  }\n                },\n                \"description\": \"Response Options of the Customer Satisfaction Survey\",\n                \"example\": {\n                  \"text\": \"Fantastic\",\n                  \"follow_up_question\": \"How do you rate overall experience?\"\n                }\n              },\n              \"option_2\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful.\",\n                    \"example\": \"Fantastic\"\n                  },\n                  \"follow_up_question\": {\n                    \"type\": \"string\",\n                    \"description\": \"Follow-up question that will asked when the requester responds with the current option.\",\n                    \"example\": \"How do you rate overall experience?\"\n                  }\n                },\n                \"description\": \"Response Options of the Customer Satisfaction Survey\",\n                \"example\": {\n                  \"text\": \"Fantastic\",\n                  \"follow_up_question\": \"How do you rate overall experience?\"\n                }\n              },\n              \"option_3\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful.\",\n                    \"example\": \"Fantastic\"\n                  },\n                  \"follow_up_question\": {\n                    \"type\": \"string\",\n                    \"description\": \"Follow-up question that will asked when the requester responds with the current option.\",\n                    \"example\": \"How do you rate overall experience?\"\n                  }\n                },\n                \"description\": \"Response Options of the Customer Satisfaction Survey\",\n                \"example\": {\n                  \"text\": \"Fantastic\",\n                  \"follow_up_question\": \"How do you rate overall experience?\"\n                }\n              },\n              \"option_4\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful.\",\n                    \"example\": \"Fantastic\"\n                  },\n                  \"follow_up_question\": {\n                    \"type\": \"string\",\n                    \"description\": \"Follow-up question that will asked when the requester responds with the current option.\",\n                    \"example\": \"How do you rate overall experience?\"\n                  }\n                },\n                \"description\": \"Response Options of the Customer Satisfaction Survey\",\n                \"example\": {\n                  \"text\": \"Fantastic\",\n                  \"follow_up_question\": \"How do you rate overall experience?\"\n                }\n              },\n              \"option_5\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"text\": {\n                    \"type\": \"string\",\n                    \"description\": \"Option text that will be displayed to the requester. E.g. Fantastic, Neutral, Awful.\",\n                    \"example\": \"Fantastic\"\n                  },\n                  \"follow_up_question\": {\n                    \"type\": \"string\",\n                    \"description\": \"Follow-up question that will asked when the requester responds with the current option.\",\n                    \"example\": \"How do you rate overall experience?\"\n                  }\n                },\n                \"description\": \"Response Options of the Customer Satisfaction Survey\",\n                \"example\": {\n                  \"text\": \"Fantastic\",\n                  \"follow_up_question\": \"How do you rate overall experience?\"\n                }\n              }\n            },\n            \"example\": {\n              \"option_1\": {\n                \"text\": \"Fantastic\"\n              },\n              \"option_2\": {\n                \"text\": \"Fantastic\"\n              }\n            }\n          },\n          \"thank_you_message\": {\n            \"type\": \"string\",\n            \"description\": \"The final \\\\\\\"Thank you\\\\\\\" message that gets displayed to the requester upon completion of the survey\",\n            \"example\": \"Thanks for taking the survey\"\n          },\n          \"user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent who last modified this survey\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the survey was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the survey was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "name": "RetrieveChangeTask",
+  "fully_qualified_name": "FreshserviceApi.RetrieveChangeTask@1.0.0",
+  "description": "Retrieve task details from a specific Change request.\n\nFetches details of a task associated with a specified Change request using the change ID and task ID in Freshservice.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "change_request_id",
+        "required": true,
+        "description": "The unique identifier for the change request. This is required to retrieve the task associated with it.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of change request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "change_id"
+      },
+      {
+        "name": "task_id",
+        "required": true,
+        "description": "ID of the task to retrieve details from a Change request in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the task"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "task_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-change-task'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/changes/{change_id}/tasks/{task_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "change_id",
+        "tool_parameter_name": "change_request_id",
+        "description": "ID of change request",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of change request"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "task_id",
+        "tool_parameter_name": "task_id",
+        "description": "ID of the task",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the task"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

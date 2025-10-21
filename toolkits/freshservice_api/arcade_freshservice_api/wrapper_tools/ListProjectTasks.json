@@ -1,18 +1,18 @@
 {
   "name": "ListProjectTasks",
-  "fully_qualified_name": "FreshserviceApi.ListProjectTasks@0.1.0",
-  "description": "Retrieve a list of all project tasks in Freshservice.\n\nUse this tool to get all tasks associated with a specific project in Freshservice. Ideal for accessing detailed task information or project management purposes.",
+  "fully_qualified_name": "FreshserviceApi.ListProjectTasks@1.0.0",
+  "description": "Retrieve a list of all project tasks in Freshservice.\n\nThis tool fetches a list of all tasks associated with a given project in Freshservice. Use this when you need to view or manage tasks within a specific project.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "project_id",
         "required": true,
-        "description": "The ID of the project for which you want to retrieve tasks.",
+        "description": "The ID of the project for which to retrieve tasks.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "entries_per_page",
         "required": false,
-        "description": "The number of entries to retrieve in each page for pagination.",
+        "description": "Specify the number of task entries to retrieve per page in the list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "page_number",
         "required": false,
-        "description": "The specific page number of the task list to retrieve.",
+        "description": "The page number to retrieve in a paginated list of project tasks.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "task_filter",
         "required": false,
-        "description": "Filter tasks by status. Options: all, open, in_progress, completed, overdue, unassigned.",
+        "description": "Filter tasks by status, such as 'all', 'open', 'in_progress', 'completed', 'overdue', or 'unassigned'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -77,9 +77,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "task_parent_id",
+        "name": "task_filter_parent_id",
         "required": false,
-        "description": "Filter tasks by parent ID for specific task hierarchy or relationships.",
+        "description": "Filter tasks by their parent ID to narrow down the list of project tasks.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -113,10 +113,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -124,13 +124,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/tasks",
@@ -200,7 +200,7 @@
       },
       {
         "name": "parent_id",
-        "tool_parameter_name": "task_parent_id",
+        "tool_parameter_name": "task_filter_parent_id",
         "description": "Task filters",
         "value_schema": {
           "val_type": "integer",
@@ -238,21 +238,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

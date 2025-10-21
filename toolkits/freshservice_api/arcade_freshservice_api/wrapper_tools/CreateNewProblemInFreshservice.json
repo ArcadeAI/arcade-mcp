@@ -1,0 +1,911 @@
+{
+  "name": "CreateNewProblemInFreshservice",
+  "fully_qualified_name": "FreshserviceApi.CreateNewProblemInFreshservice@0.2.0",
+  "description": "Create a new problem in Freshservice.\n\nUse this tool to create a new problem in Freshservice. It should be called when there is a need to document or track a new issue that requires resolution.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "0.2.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "problem_details",
+        "required": true,
+        "description": "JSON object containing details of the problem, including identifiers, priority, impact, status, subject, timestamps, category, known errors, assets, attachments, custom and analysis fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Problem"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to whom the Problem is assigned"
+            },
+            "requester_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the user who raised the Problem"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group to which the Problem is assigned"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Problem 1-Low, 2-Medium, 3-High, 4-Urgent"
+            },
+            "impact": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Impact of the Problem 1-Low, 2-Medium, 3-High"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status identifier of the Problem. Open -> 1, Change Requested -> 2, Closed -> 3"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Problem"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem's resolution is due"
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the department initiating the Problem"
+            },
+            "category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Category of the Problem"
+            },
+            "sub_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sub-category of the Problem"
+            },
+            "item_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Item of the Problem"
+            },
+            "known_error": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the Problem is a known error, false otherwise"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem was last updated"
+            },
+            "assets": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of the asset"
+                },
+                "display_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "display id of the asset that is used for all operations"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display Name of the Asset"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the asset"
+                },
+                "asset_type_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the asset type."
+                },
+                "impact": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Impact of the asset (accepted values 'high' 'medium' 'low')"
+                },
+                "author_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset created by source"
+                },
+                "usage_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "permanent",
+                    "loaner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Usage type of the asset  (accepted values are 'permanent' & 'loaner')"
+                },
+                "asset_tag": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset tag of the asset"
+                },
+                "user_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used by of the asset"
+                },
+                "department_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the asset"
+                },
+                "location_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location of the asset"
+                },
+                "agent_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by of the asset"
+                },
+                "group_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by group of the asset"
+                },
+                "assigned_on": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Date and time when the asset was assigned"
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was created"
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was last modified"
+                },
+                "type_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fields specific to every asset type (Every asset will have default base fields and type specific fields)"
+                }
+              },
+              "description": "Assets associated with the Ticket"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "URLs of attachments attached to the Problem request"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "analysis_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "problem_cause": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Cause of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Cause"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem_symptoms": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Symptoms of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Symptom"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem_impact": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Impact"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the Problem"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-problem'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/problems",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "problem_details",
+        "description": "Details of the Problem",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Problem"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to whom the Problem is assigned"
+            },
+            "requester_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the user who raised the Problem"
+            },
+            "group_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent group to which the Problem is assigned"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Priority of the Problem 1-Low, 2-Medium, 3-High, 4-Urgent"
+            },
+            "impact": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Impact of the Problem 1-Low, 2-Medium, 3-High"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status identifier of the Problem. Open -> 1, Change Requested -> 2, Closed -> 3"
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the Problem"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem's resolution is due"
+            },
+            "department_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the department initiating the Problem"
+            },
+            "category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Category of the Problem"
+            },
+            "sub_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Sub-category of the Problem"
+            },
+            "item_category": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Item of the Problem"
+            },
+            "known_error": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the Problem is a known error, false otherwise"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Problem was last updated"
+            },
+            "assets": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "id of the asset"
+                },
+                "display_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "display id of the asset that is used for all operations"
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Display Name of the Asset"
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the asset"
+                },
+                "asset_type_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the asset type."
+                },
+                "impact": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Impact of the asset (accepted values 'high' 'medium' 'low')"
+                },
+                "author_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset created by source"
+                },
+                "usage_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "permanent",
+                    "loaner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Usage type of the asset  (accepted values are 'permanent' & 'loaner')"
+                },
+                "asset_tag": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asset tag of the asset"
+                },
+                "user_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Used by of the asset"
+                },
+                "department_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Department of the asset"
+                },
+                "location_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location of the asset"
+                },
+                "agent_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by of the asset"
+                },
+                "group_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Managed by group of the asset"
+                },
+                "assigned_on": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Date and time when the asset was assigned"
+                },
+                "created_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was created"
+                },
+                "updated_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Timestamp at which the asset was last modified"
+                },
+                "type_fields": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Fields specific to every asset type (Every asset will have default base fields and type specific fields)"
+                }
+              },
+              "description": "Assets associated with the Ticket"
+            },
+            "attachments": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "URLs of attachments attached to the Problem request"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            },
+            "analysis_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "problem_cause": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Cause of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Cause"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem_symptoms": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Symptoms of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Symptom"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem_impact": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Impact of the Problem"
+                    },
+                    "attachments": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "URLs of attachments attached for Problem Impact"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Details of the Problem"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,438 @@
+{
+  "name": "UpdateSolutionArticleFreshservice",
+  "fully_qualified_name": "FreshserviceApi.UpdateSolutionArticleFreshservice@1.0.0",
+  "description": "Update a solution article in Freshservice.\n\nThis tool updates a solution article in Freshservice using the article's ID. It should be called when you need to modify or update the content of an existing solution article.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "solution_article_id",
+        "required": true,
+        "description": "The ID of the solution article to update in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution article to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "article_id"
+      },
+      {
+        "name": "article_update_details",
+        "required": true,
+        "description": "JSON containing updated fields for the solution article, such as title, description, category, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution article"
+            },
+            "folder_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the folder under which the article is listed"
+            },
+            "category_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution category"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the solution article"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the solution article in HTML format"
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the solution article in plain-text format"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The rank of the solution article in the article listing"
+            },
+            "article_type": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the article. ( 1 - permanent, 2 - workaround )"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the article. ( 1 - draft, 2 - published )"
+            },
+            "thumbs_up": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of upvotes for the article"
+            },
+            "thumbs_down": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of downvotes for the article"
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user who created the article"
+            },
+            "created_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the department was created"
+            },
+            "updated_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user who last updated the article"
+            },
+            "updated_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the department was last modified"
+            },
+            "views": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "number of views for the article"
+            },
+            "search_keywords": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Keywords for which this article should be mapped"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tags associated to the article"
+            }
+          },
+          "inner_properties": null,
+          "description": "Article that needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-solution-article'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles/{article_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "article_id",
+        "tool_parameter_name": "solution_article_id",
+        "description": "ID of the solution article to update",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution article to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "article_update_details",
+        "description": "Article that needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution article"
+            },
+            "folder_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the folder under which the article is listed"
+            },
+            "category_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution category"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the solution article"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the solution article in HTML format"
+            },
+            "description_text": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content of the solution article in plain-text format"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The rank of the solution article in the article listing"
+            },
+            "article_type": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The type of the article. ( 1 - permanent, 2 - workaround )"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Status of the article. ( 1 - draft, 2 - published )"
+            },
+            "thumbs_up": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of upvotes for the article"
+            },
+            "thumbs_down": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of downvotes for the article"
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user who created the article"
+            },
+            "created_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the department was created"
+            },
+            "updated_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the user who last updated the article"
+            },
+            "updated_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the department was last modified"
+            },
+            "views": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "number of views for the article"
+            },
+            "search_keywords": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Keywords for which this article should be mapped"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The tags associated to the article"
+            }
+          },
+          "inner_properties": null,
+          "description": "Article that needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Article that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the solution article\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 1400020394823\n          },\n          \"folder_id\": {\n            \"type\": \"integer\",\n            \"description\": \"ID of the folder under which the article is listed\",\n            \"format\": \"int64\",\n            \"example\": 140000394234\n          },\n          \"category_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the solution category\",\n            \"format\": \"int64\",\n            \"example\": 1400023423\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Title of the solution article\",\n            \"example\": \"Unable to connect VPN\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Content of the solution article in HTML format\",\n            \"example\": \"<div>Login with AD credentials for VPN</div>\"\n          },\n          \"description_text\": {\n            \"type\": \"string\",\n            \"description\": \"Content of the solution article in plain-text format\",\n            \"example\": \"Login with AD credentials for VPN\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"description\": \"The rank of the solution article in the article listing\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"article_type\": {\n            \"type\": \"integer\",\n            \"description\": \"The type of the article. ( 1 - permanent, 2 - workaround )\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"Status of the article. ( 1 - draft, 2 - published )\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"thumbs_up\": {\n            \"type\": \"integer\",\n            \"description\": \"Number of upvotes for the article\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 34534\n          },\n          \"thumbs_down\": {\n            \"type\": \"integer\",\n            \"description\": \"Number of downvotes for the article\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 43\n          },\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"description\": \"ID of the user who created the article\",\n            \"format\": \"int64\",\n            \"example\": 140004343\n          },\n          \"created_time\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the department was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-24T11:30:00Z\"\n          },\n          \"updated_by\": {\n            \"type\": \"integer\",\n            \"description\": \"ID of the user who last updated the article\",\n            \"format\": \"int64\",\n            \"example\": 140004343\n          },\n          \"updated_time\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the department was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-24T11:30:00Z\"\n          },\n          \"views\": {\n            \"type\": \"integer\",\n            \"description\": \"number of views for the article\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 140004343\n          },\n          \"search_keywords\": {\n            \"type\": \"array\",\n            \"description\": \"Keywords for which this article should be mapped\",\n            \"example\": [\n              \"VPN\",\n              \"WiFi\",\n              \"Network\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"description\": \"The tags associated to the article\",\n            \"example\": [\n              \"VPN\",\n              \"WiFi\",\n              \"Network\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

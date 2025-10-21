@@ -1,0 +1,157 @@
+{
+  "name": "FetchFreshserviceProblems",
+  "fully_qualified_name": "FreshserviceApi.FetchFreshserviceProblems@1.0.0",
+  "description": "Retrieve a list of all Problems in Freshservice.\n\nUse this tool to get detailed information about all the problems in your Freshservice account. It provides a comprehensive list of current issues being tracked.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "retrieve_problems_updated_since",
+        "required": false,
+        "description": "Retrieve problems updated since this date (YYYY-MM-DD format).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve the problems by when it was last updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_since"
+      },
+      {
+        "name": "number_of_problems_per_page",
+        "required": false,
+        "description": "Number of problems to retrieve per page in the paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of problems to retrieve in each page of a paginated list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to retrieve when paginating through results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-problems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/problems",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "updated_since",
+        "tool_parameter_name": "retrieve_problems_updated_since",
+        "description": "Retrieve the problems by when it was last updated",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Retrieve the problems by when it was last updated"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "number_of_problems_per_page",
+        "description": "The number of problems to retrieve in each page of a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of problems to retrieve in each page of a paginated list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "The page number to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

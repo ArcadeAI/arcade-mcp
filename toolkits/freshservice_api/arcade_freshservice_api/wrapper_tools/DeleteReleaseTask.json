@@ -1,18 +1,18 @@
 {
   "name": "DeleteReleaseTask",
-  "fully_qualified_name": "FreshserviceApi.DeleteReleaseTask@0.1.0",
-  "description": "Delete a task from a specified release in Freshservice.\n\nUse this tool to remove a specific task from a release in Freshservice when you have both the release and task IDs.",
+  "fully_qualified_name": "FreshserviceApi.DeleteReleaseTask@1.0.0",
+  "description": "Delete a specific task from a release in Freshservice.\n\nUse this tool to delete a task from a specific release in Freshservice by providing the release ID and task ID.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "release_id",
         "required": true,
-        "description": "ID of the release from which the task will be deleted. This must be a valid integer.",
+        "description": "The unique ID of the release from which the task should be deleted.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "release_id"
       },
       {
-        "name": "task_id_integer",
+        "name": "task_id",
         "required": true,
-        "description": "The integer ID of the task to be deleted from the release.",
+        "description": "The unique identifier for the task within a release to be deleted.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,10 +61,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks/{task_id}",
@@ -105,7 +105,7 @@
       },
       {
         "name": "task_id",
-        "tool_parameter_name": "task_id_integer",
+        "tool_parameter_name": "task_id",
         "description": "ID of task",
         "value_schema": {
           "val_type": "integer",
@@ -125,21 +125,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

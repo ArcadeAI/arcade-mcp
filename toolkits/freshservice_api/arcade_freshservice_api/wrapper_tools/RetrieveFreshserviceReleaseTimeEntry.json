@@ -1,0 +1,124 @@
+{
+  "name": "RetrieveFreshserviceReleaseTimeEntry",
+  "fully_qualified_name": "FreshserviceApi.RetrieveFreshserviceReleaseTimeEntry@1.0.0",
+  "description": "Retrieve a specific time entry from Freshservice release.\n\nUse this tool to get details about a specific time entry associated with a release in Freshservice by providing the release and time entry IDs.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "release_id",
+        "required": true,
+        "description": "The ID of the release to retrieve the time entry from. Must be an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of release"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "release_id"
+      },
+      {
+        "name": "time_entry_id",
+        "required": true,
+        "description": "The unique identifier for the time entry you want to retrieve from a specific release in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the time entry"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_entry_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-release-time-entry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/releases/{release_id}/time_entries/{time_entry_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "release_id",
+        "tool_parameter_name": "release_id",
+        "description": "ID of release",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of release"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "time_entry_id",
+        "tool_parameter_name": "time_entry_id",
+        "description": "ID of the time entry",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the time entry"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

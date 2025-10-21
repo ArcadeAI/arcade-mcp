@@ -1,0 +1,695 @@
+{
+  "name": "CreateFreshserviceAgent",
+  "fully_qualified_name": "FreshserviceApi.CreateFreshserviceAgent@1.0.0",
+  "description": "Create a new agent in Freshservice.\n\nThis tool allows you to create a new agent in Freshservice. Use it when you need to add a team member to your Freshservice account.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "agent_details",
+        "required": true,
+        "description": "JSON object containing all necessary details about the agent to be created, such as name, contact info, role, and access levels.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First Name of the agent"
+            },
+            "occasional": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the agent is an occasional agent, and false if full-time agent."
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last Name of the agent"
+            },
+            "job_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Job Title of the agent"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the agent"
+            },
+            "work_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Work phone number of the agent"
+            },
+            "mobile_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile phone number of the agent"
+            },
+            "reporting_manager_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent's reporting manager"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone of the agent"
+            },
+            "language": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Language used by the agent"
+            },
+            "location_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the location associated with the agent"
+            },
+            "scoreboard_level_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the level of the agent in the Arcade. Possible values: * 1 - Beginner * 2 - Intermediate * 3 - Professional * 4 - Expert * 5 - Master * 6 - Guru\n"
+            },
+            "scope": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ticket": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "change": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "release": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "asset": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Access level of the agent in various modules"
+            },
+            "group_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<DEPRECATED> Unique IDs of the agent groups associated with the agent"
+            },
+            "member_of": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the agent groups that the agent is a member of"
+            },
+            "observer_of": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the agent groups that the agent is an observer of"
+            },
+            "role_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(DEPRECATED) Unique IDs of the agent roles associated with the agent"
+            },
+            "roles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "role_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the role assigned"
+                },
+                "assignment_scope": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "entire_helpdesk",
+                    "member_groups",
+                    "specified_groups",
+                    "assigned_items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The scope in which the agent can use the permissions granted by this role. Possible values are entire_helpdesk (all plans), member_groups (Blossom, Garden, and Estate), specified_groups (Forest only), and assigned_items (all plans)"
+                },
+                "groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Groups in which the permissions granted by the role applies. Returns an array of group identifiers when the assignment_scope is specified_groups, and null otherwise."
+                }
+              },
+              "description": null
+            },
+            "last_login_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of the agent's last successful login"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user is active, and false if the user account has been deactivated."
+            },
+            "has_logged_in": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user has logged in to Freshservice at least once, and false otherwise."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "Agent who needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-agent'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/agents",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "agent_details",
+        "description": "Agent who needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent"
+            },
+            "first_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "First Name of the agent"
+            },
+            "occasional": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the agent is an occasional agent, and false if full-time agent."
+            },
+            "last_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Last Name of the agent"
+            },
+            "job_title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Job Title of the agent"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Email address of the agent"
+            },
+            "work_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Work phone number of the agent"
+            },
+            "mobile_phone_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mobile phone number of the agent"
+            },
+            "reporting_manager_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent's reporting manager"
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone of the agent"
+            },
+            "language": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Language used by the agent"
+            },
+            "location_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the location associated with the agent"
+            },
+            "scoreboard_level_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the level of the agent in the Arcade. Possible values: * 1 - Beginner * 2 - Intermediate * 3 - Professional * 4 - Expert * 5 - Master * 6 - Guru\n"
+            },
+            "scope": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ticket": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "problem": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "change": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "release": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access",
+                    "Restricted Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "asset": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "Global Access",
+                    "Group Access"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": "Access level of the agent in various modules"
+            },
+            "group_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "<DEPRECATED> Unique IDs of the agent groups associated with the agent"
+            },
+            "member_of": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the agent groups that the agent is a member of"
+            },
+            "observer_of": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique IDs of the agent groups that the agent is an observer of"
+            },
+            "role_ids": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(DEPRECATED) Unique IDs of the agent roles associated with the agent"
+            },
+            "roles": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "role_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique identifier of the role assigned"
+                },
+                "assignment_scope": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "entire_helpdesk",
+                    "member_groups",
+                    "specified_groups",
+                    "assigned_items"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The scope in which the agent can use the permissions granted by this role. Possible values are entire_helpdesk (all plans), member_groups (Blossom, Garden, and Estate), specified_groups (Forest only), and assigned_items (all plans)"
+                },
+                "groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Groups in which the permissions granted by the role applies. Returns an array of group identifiers when the assignment_scope is specified_groups, and null otherwise."
+                }
+              },
+              "description": null
+            },
+            "last_login_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of the agent's last successful login"
+            },
+            "active": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user is active, and false if the user account has been deactivated."
+            },
+            "has_logged_in": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if the user has logged in to Freshservice at least once, and false otherwise."
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the agent was last modified"
+            }
+          },
+          "inner_properties": null,
+          "description": "Agent who needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Agent who needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"email\",\n          \"first_name\",\n          \"role_ids\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"first_name\": {\n            \"type\": \"string\",\n            \"description\": \"First Name of the agent\",\n            \"example\": \"Andrea\"\n          },\n          \"occasional\": {\n            \"type\": \"boolean\",\n            \"description\": \"True if the agent is an occasional agent, and false if full-time agent.\",\n            \"example\": true\n          },\n          \"last_name\": {\n            \"type\": \"string\",\n            \"description\": \"Last Name of the agent\",\n            \"example\": \"Smith\"\n          },\n          \"job_title\": {\n            \"type\": \"string\",\n            \"description\": \"Job Title of the agent\",\n            \"example\": \"Product Manager\"\n          },\n          \"email\": {\n            \"type\": \"string\",\n            \"description\": \"Email address of the agent\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"work_phone_number\": {\n            \"type\": \"string\",\n            \"description\": \"Work phone number of the agent\",\n            \"example\": \"+1-567-3492\"\n          },\n          \"mobile_phone_number\": {\n            \"type\": \"string\",\n            \"description\": \"Mobile phone number of the agent\",\n            \"example\": \"+1-567-3492\"\n          },\n          \"reporting_manager_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent's reporting manager\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"time_zone\": {\n            \"type\": \"string\",\n            \"description\": \"Time zone of the agent\",\n            \"example\": \"Eastern Time (US & Canada)\"\n          },\n          \"language\": {\n            \"type\": \"string\",\n            \"description\": \"Language used by the agent\",\n            \"example\": \"en\"\n          },\n          \"location_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the location associated with the agent\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"scoreboard_level_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the level of the agent in the Arcade. Possible values: * 1 - Beginner * 2 - Intermediate * 3 - Professional * 4 - Expert * 5 - Master * 6 - Guru\\n\",\n            \"format\": \"int64\",\n            \"example\": 2,\n            \"enum\": [\n              1,\n              2,\n              3,\n              4,\n              5,\n              6\n            ]\n          },\n          \"scope\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"ticket\": {\n                \"type\": \"string\",\n                \"example\": \"Global Access\",\n                \"enum\": [\n                  \"Global Access\",\n                  \"Group Access\",\n                  \"Restricted Access\"\n                ]\n              },\n              \"problem\": {\n                \"type\": \"string\",\n                \"example\": \"Group Access\",\n                \"enum\": [\n                  \"Global Access\",\n                  \"Group Access\",\n                  \"Restricted Access\"\n                ]\n              },\n              \"change\": {\n                \"type\": \"string\",\n                \"example\": \"Restricted Access\",\n                \"enum\": [\n                  \"Global Access\",\n                  \"Group Access\",\n                  \"Restricted Access\"\n                ]\n              },\n              \"release\": {\n                \"type\": \"string\",\n                \"example\": \"Group Access\",\n                \"enum\": [\n                  \"Global Access\",\n                  \"Group Access\",\n                  \"Restricted Access\"\n                ]\n              },\n              \"asset\": {\n                \"type\": \"string\",\n                \"example\": \"Global Access\",\n                \"enum\": [\n                  \"Global Access\",\n                  \"Group Access\"\n                ]\n              }\n            },\n            \"description\": \"Access level of the agent in various modules\",\n            \"readOnly\": true,\n            \"example\": {\n              \"ticket\": \"Global Access\",\n              \"problem\": \"Global Access\",\n              \"change\": \"Global Access\",\n              \"release\": \"Global Access\",\n              \"asset\": \"Global Access\"\n            }\n          },\n          \"group_ids\": {\n            \"type\": \"array\",\n            \"description\": \"<DEPRECATED> Unique IDs of the agent groups associated with the agent\",\n            \"example\": [\n              1400023424,\n              1400023423\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"member_of\": {\n            \"type\": \"array\",\n            \"description\": \"Unique IDs of the agent groups that the agent is a member of\",\n            \"example\": [\n              140002533,\n              140009834\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"observer_of\": {\n            \"type\": \"array\",\n            \"description\": \"Unique IDs of the agent groups that the agent is an observer of\",\n            \"example\": [\n              1300045345,\n              1300049484\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"role_ids\": {\n            \"type\": \"array\",\n            \"description\": \"(DEPRECATED) Unique IDs of the agent roles associated with the agent\",\n            \"example\": [\n              1300034059,\n              1300094583\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"roles\": {\n            \"type\": \"array\",\n            \"example\": [\n              {\n                \"role_id\": 14000234324\n              }\n            ],\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"role_id\": {\n                  \"type\": \"integer\",\n                  \"description\": \"Unique identifier of the role assigned\",\n                  \"format\": \"int64\",\n                  \"example\": 14000234324\n                },\n                \"assignment_scope\": {\n                  \"type\": \"string\",\n                  \"description\": \"The scope in which the agent can use the permissions granted by this role. Possible values are entire_helpdesk (all plans), member_groups (Blossom, Garden, and Estate), specified_groups (Forest only), and assigned_items (all plans)\",\n                  \"example\": \"entire_helpdesk\",\n                  \"enum\": [\n                    \"entire_helpdesk\",\n                    \"member_groups\",\n                    \"specified_groups\",\n                    \"assigned_items\"\n                  ]\n                },\n                \"groups\": {\n                  \"type\": \"array\",\n                  \"description\": \"Groups in which the permissions granted by the role applies. Returns an array of group identifiers when the assignment_scope is specified_groups, and null otherwise.\",\n                  \"example\": [\n                    1400034334,\n                    3523453453\n                  ],\n                  \"items\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\"\n                  }\n                }\n              }\n            }\n          },\n          \"last_login_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp of the agent's last successful login\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"active\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if the user is active, and false if the user account has been deactivated.\",\n            \"example\": true\n          },\n          \"has_logged_in\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if the user has logged in to Freshservice at least once, and false otherwise.\",\n            \"example\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the agent was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the agent was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

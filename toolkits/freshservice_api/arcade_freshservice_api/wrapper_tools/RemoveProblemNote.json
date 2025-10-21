@@ -1,0 +1,124 @@
+{
+  "name": "RemoveProblemNote",
+  "fully_qualified_name": "FreshserviceApi.RemoveProblemNote@1.0.0",
+  "description": "Delete a note from a problem in Freshservice.\n\nUse this tool to delete a specific note associated with a problem in Freshservice by providing the problem and note IDs.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "problem_id",
+        "required": true,
+        "description": "The unique ID of the problem from which the note will be deleted. This ID is required to specify the problem in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of problem"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "problem_id"
+      },
+      {
+        "name": "note_id",
+        "required": true,
+        "description": "Unique integer ID of the note to be deleted.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of note"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "note_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-problem-note'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/problems/{problem_id}/notes/{note_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "problem_id",
+        "tool_parameter_name": "problem_id",
+        "description": "ID of problem",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of problem"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "note_id",
+        "tool_parameter_name": "note_id",
+        "description": "ID of note",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of note"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

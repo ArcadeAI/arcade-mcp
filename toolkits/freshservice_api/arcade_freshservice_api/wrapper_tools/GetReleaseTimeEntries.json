@@ -1,18 +1,18 @@
 {
   "name": "GetReleaseTimeEntries",
-  "fully_qualified_name": "FreshserviceApi.GetReleaseTimeEntries@0.1.0",
-  "description": "Retrieve time entries for a specific release in Freshservice.\n\nUse this tool to get detailed time entry information associated with a specific release ID from Freshservice. It should be called when you need to analyze or report on time logged for release activities.",
+  "fully_qualified_name": "FreshserviceApi.GetReleaseTimeEntries@1.0.0",
+  "description": "Retrieve time entries for a specified release.\n\nThis tool retrieves the time entries associated with a given Release ID from Freshservice. It should be called when there's a need to review or analyze time tracking data for a specific release in Freshservice.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "release_id",
         "required": true,
-        "description": "The unique ID of the release for which time entries are to be retrieved in Freshservice.",
+        "description": "The ID of the release for which time entries are to be retrieved from Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "entries_per_page",
         "required": false,
-        "description": "The number of time entries to retrieve per page in the paginated list.",
+        "description": "The number of time entries to retrieve per page in a paginated list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "page_number_to_retrieve",
         "required": false,
-        "description": "The page number to retrieve in the paginated list of time entries.",
+        "description": "Specify the page number of the time entries to retrieve for the given release.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -76,10 +76,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries",
@@ -158,21 +158,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

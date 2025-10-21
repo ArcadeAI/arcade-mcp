@@ -1,0 +1,115 @@
+{
+  "name": "CreatePurchaseOrder",
+  "fully_qualified_name": "FreshserviceApi.CreatePurchaseOrder@1.0.0",
+  "description": "Create a new Purchase Order in Freshservice.\n\nThis tool is used to create a new Purchase Order in Freshservice. It should be called when a new order needs to be generated and recorded within the Freshservice system.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "purchase_order_details",
+        "required": true,
+        "description": "A JSON object containing details of the purchase order such as items, quantities, vendor info, and total cost.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-purchase-order-post'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "purchase_order_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"allOf\": [\n          {\n            \"title\": \"PurchaseOrder\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"ID of the purchase order\",\n                \"format\": \"int64\",\n                \"readOnly\": true,\n                \"example\": 10\n              },\n              \"vendor_id\": {\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"ID of the vendor with whom the order is placed\",\n                \"format\": \"int64\",\n                \"example\": 100001633\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"Title of the purchase order\",\n                \"example\": \"Procure Adobe License\"\n              },\n              \"po_number\": {\n                \"type\": \"string\",\n                \"description\": \"Purchase order number\",\n                \"example\": \"PO-10\"\n              },\n              \"vendor_details\": {\n                \"type\": \"string\",\n                \"description\": \"Details of the vendor with whom the order is placed\",\n                \"example\": \"1 Infinite Loop Cupertino California United States 95014\"\n              },\n              \"expected_delivery_date\": {\n                \"type\": \"string\",\n                \"description\": \"Expected delivery date of the purchase order\",\n                \"format\": \"date-time\",\n                \"example\": \"2020-01-01T05:00:01Z\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"Created date and time of the purchase order\",\n                \"format\": \"date-time\",\n                \"readOnly\": true,\n                \"example\": \"2021-08-30T04:22:14Z\"\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"Updated date and time of the purchase order\",\n                \"format\": \"date-time\",\n                \"readOnly\": true,\n                \"example\": \"2021-08-30T04:22:14Z\"\n              },\n              \"created_by\": {\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"ID of the agent who created purchase order\",\n                \"format\": \"int64\",\n                \"readOnly\": true,\n                \"example\": 1001001256\n              },\n              \"status\": {\n                \"type\": \"number\",\n                \"description\": \"Status of the purchase order\",\n                \"example\": 20.0\n              },\n              \"shipping_address\": {\n                \"type\": \"string\",\n                \"description\": \"Address to which the order should be shipped\",\n                \"example\": \"1 Infinite Loop Cupertino California\"\n              },\n              \"billing_same_as_shipping\": {\n                \"type\": \"boolean\",\n                \"description\": \"True if Billing address is same as Shipping address\",\n                \"example\": true\n              },\n              \"billing_address\": {\n                \"type\": \"string\",\n                \"description\": \"Address to which the order should be billed\",\n                \"example\": \"1 Infinite Loop Cupertino California\"\n              },\n              \"currency_code\": {\n                \"type\": \"string\",\n                \"description\": \"Currency unit used in the transaction\",\n                \"example\": \"USD\",\n                \"enum\": [\n                  \"AUD\",\n                  \"THB\",\n                  \"CAD\",\n                  \"CNY\",\n                  \"DKK\",\n                  \"AED\",\n                  \"USD\",\n                  \"EGP\",\n                  \"EUR\",\n                  \"HUF\",\n                  \"CHF\",\n                  \"HKD\",\n                  \"IDR\",\n                  \"ILS\",\n                  \"CZK\",\n                  \"ISK\",\n                  \"TRL\",\n                  \"MYR\",\n                  \"MXN\",\n                  \"NOK\",\n                  \"OMR\",\n                  \"PHP\",\n                  \"PLN\",\n                  \"GBP\",\n                  \"BWP\",\n                  \"QAR\",\n                  \"ZAR\",\n                  \"BRL\",\n                  \"RUB\",\n                  \"INR\",\n                  \"SAR\",\n                  \"SGD\",\n                  \"SEK\",\n                  \"TWD\",\n                  \"VND\",\n                  \"KRW\",\n                  \"JPY\",\n                  \"NZD\",\n                  \"JOD\"\n                ]\n              },\n              \"conversion_rate\": {\n                \"type\": \"number\",\n                \"description\": \"Conversion rate to convert selected currency unit to helpdesk currency\",\n                \"format\": \"float\",\n                \"example\": 1.0\n              },\n              \"department_id\": {\n                \"minimum\": 1,\n                \"type\": \"integer\",\n                \"description\": \"Unique ID of the department\",\n                \"format\": \"int64\",\n                \"example\": 10123\n              },\n              \"discount_percentage\": {\n                \"maximum\": 100,\n                \"minimum\": 0,\n                \"type\": \"number\",\n                \"description\": \"Percentage of discount on the order\",\n                \"format\": \"float\",\n                \"example\": 2.0\n              },\n              \"tax_percentage\": {\n                \"minimum\": 0,\n                \"type\": \"number\",\n                \"description\": \"Percentage of tax on the order\",\n                \"format\": \"float\",\n                \"example\": 5.0\n              },\n              \"shipping_cost\": {\n                \"minimum\": 0,\n                \"type\": \"number\",\n                \"description\": \"Total cost of shipping the order\",\n                \"format\": \"float\",\n                \"example\": 10.0\n              },\n              \"custom_fields\": {\n                \"type\": \"object\",\n                \"properties\": {},\n                \"example\": {\n                  \"manager\": \"andrea@freshservice.com\",\n                  \"department\": \"IT\"\n                }\n              }\n            },\n            \"x-tags\": [\n              \"Purchase Orders\"\n            ]\n          },\n          {\n            \"type\": \"object\",\n            \"properties\": {\n              \"purcahse_items\": {\n                \"type\": \"array\",\n                \"example\": [\n                  {\n                    \"item_type\": 2,\n                    \"item_name\": \"Macbook Air\",\n                    \"description\": \"Macbook Air\",\n                    \"cost\": 2,\n                    \"quantity\": 1,\n                    \"tax_percentage\": 5\n                  }\n                ],\n                \"items\": {\n                  \"title\": \"PurchaseItem\",\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"item_type\": {\n                      \"type\": \"integer\",\n                      \"description\": \"Type of item to be ordered\",\n                      \"format\": \"int64\",\n                      \"example\": 2,\n                      \"enum\": [\n                        1,\n                        2,\n                        3\n                      ]\n                    },\n                    \"item_name\": {\n                      \"type\": \"string\",\n                      \"description\": \"Name of the items to be ordered\",\n                      \"example\": \"Macbook Air\"\n                    },\n                    \"description\": {\n                      \"type\": \"string\",\n                      \"description\": \"Item description\",\n                      \"example\": \"Macbook Air\"\n                    },\n                    \"cost\": {\n                      \"minimum\": 0,\n                      \"type\": \"number\",\n                      \"description\": \"Cost of the item\",\n                      \"example\": 2.0\n                    },\n                    \"quantity\": {\n                      \"minimum\": 1,\n                      \"type\": \"integer\",\n                      \"description\": \"Quantity of item to be ordered\",\n                      \"example\": 1\n                    },\n                    \"tax_percentage\": {\n                      \"minimum\": 0,\n                      \"type\": \"number\",\n                      \"description\": \"Percentage of tax on item cost\",\n                      \"example\": 5.0\n                    }\n                  },\n                  \"x-tags\": [\n                    \"Purchase Orders\"\n                  ]\n                }\n              }\n            }\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

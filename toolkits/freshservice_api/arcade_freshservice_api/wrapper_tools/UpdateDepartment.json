@@ -1,0 +1,412 @@
+{
+  "name": "UpdateDepartment",
+  "fully_qualified_name": "FreshserviceApi.UpdateDepartment@1.0.0",
+  "description": "Update details of an existing department in Freshservice.\n\nUse this tool to change details of an existing department or company in Freshservice. Ideal for modifying department attributes such as name or other relevant information.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "department_id",
+        "required": true,
+        "description": "ID of the department to update. Required for identifying which department's information to modify.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of department to retrieve"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "department_id"
+      },
+      {
+        "name": "department_unique_id",
+        "required": false,
+        "description": "The unique identifier for the department to update.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "department_name",
+        "required": false,
+        "description": "The new name of the department to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "department_description",
+        "required": false,
+        "description": "Provide a description about the department. This is used to update the existing details of the department in Freshservice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description about the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "head_user_id",
+        "required": false,
+        "description": "Unique identifier for the agent or requester serving as the department head.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the agent or requester who serves as the head of the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "head_user_id"
+      },
+      {
+        "name": "prime_user_id",
+        "required": false,
+        "description": "Unique identifier of the agent or requester who serves as the prime user of the department.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the agent or requester who serves as the prime user of the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "prime_user_id"
+      },
+      {
+        "name": "email_domains",
+        "required": false,
+        "description": "List of email domains linked to the department, like ['example.com'].",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email domains associated with the department"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "domains"
+      },
+      {
+        "name": "custom_fields",
+        "required": false,
+        "description": "JSON object containing custom fields related to a Freshservice entity. Include key-value pairs for each field.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom fields that are associated with a Freshservice entity"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_fields"
+      },
+      {
+        "name": "department_creation_timestamp",
+        "required": false,
+        "description": "The timestamp indicating when the department was originally created in Freshservice. This should be formatted as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the department was created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "last_modified_timestamp",
+        "required": false,
+        "description": "Timestamp indicating when the department was last modified. Format: YYYY-MM-DDTHH:MM:SSZ.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the department was last modified"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-department'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/departments/{department_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "department_id",
+        "tool_parameter_name": "department_id",
+        "description": "ID of department to retrieve",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of department to retrieve"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "department_unique_id",
+        "description": "Unique identifier of the department",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "department_name",
+        "description": "Name of the department",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "department_description",
+        "description": "Description about the department",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Description about the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "head_user_id",
+        "tool_parameter_name": "head_user_id",
+        "description": "Unique identifier of the agent or requester who serves as the head of the department",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the agent or requester who serves as the head of the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "prime_user_id",
+        "tool_parameter_name": "prime_user_id",
+        "description": "Unique identifier of the agent or requester who serves as the prime user of the department",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the agent or requester who serves as the prime user of the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "domains",
+        "tool_parameter_name": "email_domains",
+        "description": "Email domains associated with the department",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Email domains associated with the department"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_fields",
+        "tool_parameter_name": "custom_fields",
+        "description": "Custom fields that are associated with a Freshservice entity",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Custom fields that are associated with a Freshservice entity"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "department_creation_timestamp",
+        "description": "Timestamp at which the department was created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the department was created"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at",
+        "tool_parameter_name": "last_modified_timestamp",
+        "description": "Timestamp at which the department was last modified",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the department was last modified"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Department that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the department\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the department\",\n            \"example\": \"IT Support\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description about the department\",\n            \"example\": \"IT Support\"\n          },\n          \"head_user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent or requester who serves as the head of the department\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"prime_user_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent or requester who serves as the prime user of the department\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          },\n          \"domains\": {\n            \"type\": \"array\",\n            \"description\": \"Email domains associated with the department\",\n            \"example\": [\n              \"support.freshservice.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"description\": \"Custom fields that are associated with a Freshservice entity\",\n            \"example\": {\n              \"field1\": \"Value 1\"\n            }\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the department was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the department was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-11-22T16:58:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

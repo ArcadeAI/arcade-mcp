@@ -1,11 +1,11 @@
 {
   "name": "DeleteRequesterAndTickets",
-  "fully_qualified_name": "FreshserviceApi.DeleteRequesterAndTickets@0.1.0",
-  "description": "Permanently delete a requester and their tickets.\n\nUse this tool to permanently delete a requester and all the tickets they have requested in Freshservice when such removal is necessary.",
+  "fully_qualified_name": "FreshserviceApi.DeleteRequesterAndTickets@1.0.0",
+  "description": "Permanently delete a requester and their tickets in Freshservice.\n\nThis tool is used to permanently remove a requester and all of their associated tickets from Freshservice. It should be called when you need to completely erase a requester's data, including all their ticket history.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
@@ -46,10 +46,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}/forget",
@@ -92,21 +92,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }
