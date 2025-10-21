@@ -1,18 +1,18 @@
 {
   "name": "DeleteFreshserviceAnnouncement",
-  "fully_qualified_name": "FreshserviceApi.DeleteFreshserviceAnnouncement@0.1.0",
-  "description": "Delete a specific announcement from Freshservice.\n\nUse this tool to delete an announcement in Freshservice by providing its ID. Useful for managing and removing outdated or incorrect announcements.",
+  "fully_qualified_name": "FreshserviceApi.DeleteFreshserviceAnnouncement@1.0.0",
+  "description": "Delete an announcement from Freshservice by ID.\n\nUse this tool to delete a specific announcement in Freshservice by providing the announcement ID. It confirms the successful deletion of the announcement.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "announcement_id_to_delete",
         "required": true,
-        "description": "The ID of the announcement to delete from Freshservice.",
+        "description": "ID of the announcement to delete from Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -46,10 +46,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/announcements/{announcement_id}",
@@ -92,21 +92,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

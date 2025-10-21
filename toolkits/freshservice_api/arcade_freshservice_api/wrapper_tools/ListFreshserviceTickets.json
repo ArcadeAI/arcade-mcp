@@ -1,0 +1,280 @@
+{
+  "name": "ListFreshserviceTickets",
+  "fully_qualified_name": "FreshserviceApi.ListFreshserviceTickets@1.0.0",
+  "description": "Fetch a list of tickets from Freshservice.\n\nUse this tool to retrieve all tickets currently in Freshservice. Ideal for viewing open or closed tickets and managing support inquiries.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "ticket_filter",
+        "required": false,
+        "description": "Apply a pre-defined filter to fetch specific types of tickets. Options are: new_and_my_open, watching, spam, deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pre-defined filters. The filters available are [new_and_my_open, watching, spam, deleted]."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "filter_by_requester_email",
+        "required": false,
+        "description": "Filter tickets by the requester's email address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets requester's email id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "requester_id_filter",
+        "required": false,
+        "description": "Filter tickets by the ID of the requester to view those created by a specific user.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets created by a particular requester."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requester_id"
+      },
+      {
+        "name": "updated_since",
+        "required": false,
+        "description": "Filter tickets based on their update timestamp. Use ISO 8601 format, e.g., '2015-01-19T02:00:00Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets based on updated time. E.g. '?updated_since=2015-01-19T02:00:00Z'."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_since"
+      },
+      {
+        "name": "include_fields_in_response",
+        "required": false,
+        "description": "Specify certain fields to include in the response. Examples: 'stats' for ticket's closed and resolved times, 'requester' for requester's details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to include certain fields in response. E.g. '?include=stats' Will return the ticket\u2019s closed_at, resolved_at and first_responded_at time. '?include=requester' Will return the requester's email, id, mobile, name, and phone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "ticket_sort_order",
+        "required": false,
+        "description": "Sort the list of tickets in ascending ('asc') or descending ('desc') order. Default is 'desc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to sort the list of tickets. Supported values - 'asc' and 'desc'. Default is 'desc'"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-tickets'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "ticket_filter",
+        "description": "Pre-defined filters. The filters available are [new_and_my_open, watching, spam, deleted].",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Pre-defined filters. The filters available are [new_and_my_open, watching, spam, deleted]."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "filter_by_requester_email",
+        "description": "Query param to filter out tickets requester's email id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets requester's email id."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requester_id",
+        "tool_parameter_name": "requester_id_filter",
+        "description": "Query param to filter out tickets created by a particular requester.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets created by a particular requester."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_since",
+        "tool_parameter_name": "updated_since",
+        "description": "Query param to filter out tickets based on updated time. E.g. '?updated_since=2015-01-19T02:00:00Z'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to filter out tickets based on updated time. E.g. '?updated_since=2015-01-19T02:00:00Z'."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "include_fields_in_response",
+        "description": "Query param to include certain fields in response. E.g. '?include=stats' Will return the ticket\u2019s closed_at, resolved_at and first_responded_at time. '?include=requester' Will return the requester's email, id, mobile, name, and phone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to include certain fields in response. E.g. '?include=stats' Will return the ticket\u2019s closed_at, resolved_at and first_responded_at time. '?include=requester' Will return the requester's email, id, mobile, name, and phone."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_type",
+        "tool_parameter_name": "ticket_sort_order",
+        "description": "Query param to sort the list of tickets. Supported values - 'asc' and 'desc'. Default is 'desc'",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to sort the list of tickets. Supported values - 'asc' and 'desc'. Default is 'desc'"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

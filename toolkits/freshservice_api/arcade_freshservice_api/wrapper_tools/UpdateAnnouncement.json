@@ -1,0 +1,406 @@
+{
+  "name": "UpdateAnnouncement",
+  "fully_qualified_name": "FreshserviceApi.UpdateAnnouncement@1.0.0",
+  "description": "Update an existing announcement in Freshservice.\n\nUse this tool to modify details of an existing announcement in Freshservice by providing the announcement ID and new content.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "announcement_id_to_update",
+        "required": true,
+        "description": "The unique integer ID of the announcement that needs to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of announcement to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "announcement_id"
+      },
+      {
+        "name": "announcement_update_details",
+        "required": true,
+        "description": "JSON object with the announcement details to update, including fields like `title`, `body`, `state`, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Announcement"
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to created this Announcement"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the Announcement active, archived, scheduled"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the Announcement"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the Announcement in plain text"
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the Announcement in HTML format"
+            },
+            "visible_from": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement becomes active"
+            },
+            "visible_till": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp until which Announcement is active"
+            },
+            "visibility": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Who can see the announcement. Values - everyone, agents_only, agents_and_groups"
+            },
+            "departments": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of Department IDs that can view this Announcement"
+            },
+            "groups": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of Group IDs that can view this Announcement"
+            },
+            "is_read": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the logged-in-user has read the announcement. False, otherwise"
+            },
+            "send_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the announcement needs to be sent via email as well. False, otherwise"
+            },
+            "additional_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional email addresses to which the announcement needs to be sent"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement was last updated"
+            }
+          },
+          "inner_properties": null,
+          "description": "Announcement details that needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-announcement'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/announcements/{announcement_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "announcement_id",
+        "tool_parameter_name": "announcement_id_to_update",
+        "description": "ID of announcement to update",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of announcement to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "announcement_update_details",
+        "description": "Announcement details that needs to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the Announcement"
+            },
+            "created_by": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the agent to created this Announcement"
+            },
+            "state": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "State of the Announcement active, archived, scheduled"
+            },
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Title of the Announcement"
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the Announcement in plain text"
+            },
+            "body_html": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the Announcement in HTML format"
+            },
+            "visible_from": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement becomes active"
+            },
+            "visible_till": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp until which Announcement is active"
+            },
+            "visibility": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Who can see the announcement. Values - everyone, agents_only, agents_and_groups"
+            },
+            "departments": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of Department IDs that can view this Announcement"
+            },
+            "groups": {
+              "val_type": "array",
+              "inner_val_type": "integer",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of Group IDs that can view this Announcement"
+            },
+            "is_read": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the logged-in-user has read the announcement. False, otherwise"
+            },
+            "send_email": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "True if the announcement needs to be sent via email as well. False, otherwise"
+            },
+            "additional_emails": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional email addresses to which the announcement needs to be sent"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement was created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which Announcement was last updated"
+            }
+          },
+          "inner_properties": null,
+          "description": "Announcement details that needs to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Announcement details that needs to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the Announcement\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 1400623\n          },\n          \"created_by\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the agent to created this Announcement\",\n            \"format\": \"int64\",\n            \"example\": 1407423\n          },\n          \"state\": {\n            \"type\": \"string\",\n            \"description\": \"State of the Announcement active, archived, scheduled\",\n            \"format\": \"string\",\n            \"readOnly\": true,\n            \"example\": \"active\"\n          },\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Title of the Announcement\",\n            \"example\": \"Welcome to Freshservice\"\n          },\n          \"body\": {\n            \"type\": \"string\",\n            \"description\": \"Body of the Announcement in plain text\",\n            \"readOnly\": true,\n            \"example\": \"Your Freshservice account is now ready.Here are a few quick links to get you started : Getting Started with Freshservice Implementing ITIL Workflows and Best Practices Setting up your Self Service Portal If you have any questions, just shoot out an email to support@freshservice.com or call us at +1-(877)-485-0317. Thanks, Freshservice Team. P.S.: This is a default announcement and can be removed whenever you want.\"\n          },\n          \"body_html\": {\n            \"type\": \"string\",\n            \"description\": \"Body of the Announcement in HTML format\",\n            \"example\": \"<div>Your Freshservice account is now ready.<br>Here are a few quick links to get you started : <ol> <li> <a href=\\\"http://support.freshservice.com/support/solutions/folders/251426\\\">Getting Started with Freshservice</a> </li><li> <a href=\\\"http://support.freshservice.com/support/solutions/folders/253208\\\">Implementing ITIL Workflows and Best Practices</a> </li><li> <a href=\\\"http://support.freshservice.com/support/solutions/folders/254554\\\">Setting up your Self Service Portal</a> </li> </ol>If you have any questions, just shoot out an email to support@freshservice.com or call us at +1-(877)-485-0317.<br>Thanks, <br> Freshservice Team. <br> P.S.: This is a default announcement and can be removed whenever you want.</div>\"\n          },\n          \"visible_from\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which Announcement becomes active\",\n            \"format\": \"date-time\",\n            \"example\": \"2019-06-11T07:16:43Z\"\n          },\n          \"visible_till\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp until which Announcement is active\",\n            \"format\": \"date-time\",\n            \"example\": \"2019-06-18T07:16:43Z\"\n          },\n          \"visibility\": {\n            \"type\": \"string\",\n            \"description\": \"Who can see the announcement. Values - everyone, agents_only, agents_and_groups\",\n            \"example\": \"everyone\"\n          },\n          \"departments\": {\n            \"type\": \"array\",\n            \"description\": \"Array of Department IDs that can view this Announcement\",\n            \"example\": [\n              1001,\n              1003\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"groups\": {\n            \"type\": \"array\",\n            \"description\": \"Array of Group IDs that can view this Announcement\",\n            \"example\": [\n              2002,\n              2004\n            ],\n            \"items\": {\n              \"type\": \"integer\",\n              \"format\": \"int64\"\n            }\n          },\n          \"is_read\": {\n            \"type\": \"boolean\",\n            \"description\": \"True if the logged-in-user has read the announcement. False, otherwise\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"send_email\": {\n            \"type\": \"boolean\",\n            \"description\": \"True if the announcement needs to be sent via email as well. False, otherwise\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"additional_emails\": {\n            \"type\": \"array\",\n            \"description\": \"Additional email addresses to which the announcement needs to be sent\",\n            \"example\": [\n              \"john.doe@acmecorp.com\",\n              \"alice@acmecorp.com\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which Announcement was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2019-06-18T13:45:11Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which Announcement was last updated\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2019-06-18T13:45:11Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

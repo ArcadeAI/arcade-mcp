@@ -1,18 +1,18 @@
 {
   "name": "GetAllLocations",
-  "fully_qualified_name": "FreshserviceApi.GetAllLocations@0.1.0",
-  "description": "Retrieve a list of all locations in Freshservice.\n\n",
+  "fully_qualified_name": "FreshserviceApi.GetAllLocations@1.0.0",
+  "description": "Retrieve a list of all locations in Freshservice.\n\nUse this tool to obtain information about all the locations stored in the Freshservice platform. It can be useful for managing or reviewing location data within the service.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "entries_per_page",
         "required": false,
-        "description": "The number of entries to retrieve per page when listing locations. Typically an integer value.",
+        "description": "The number of location entries to retrieve per page for pagination in Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "per_page"
       },
       {
-        "name": "page_number_to_retrieve",
+        "name": "page_number",
         "required": false,
-        "description": "The page number of locations to retrieve from Freshservice.",
+        "description": "The number of the page to retrieve from the list of locations.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,29 +59,22 @@
   },
   "requirements": {
     "authorization": null,
-    "secrets": [
-      {
-        "key": "FRESHSERVICE_API_KEY"
-      },
-      {
-        "key": "FRESHSERVICE_SUBDOMAIN"
-      }
-    ],
+    "secrets": null,
     "metadata": null
   },
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/locations",
+    "url": "https://api.freshservice.com/api/v2/locations",
     "http_method": "GET",
     "headers": {},
     "parameters": [
@@ -105,7 +98,7 @@
       },
       {
         "name": "page",
-        "tool_parameter_name": "page_number_to_retrieve",
+        "tool_parameter_name": "page_number",
         "description": "The page number to retrieve.",
         "value_schema": {
           "val_type": "integer",
@@ -123,23 +116,9 @@
       }
     ],
     "documentation_urls": [],
-    "secrets": [
-      {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
-        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
-        "parameter_name": "freshservice_subdomain",
-        "accepted_as": "path",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      }
-    ]
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "RetrieveChangeNote",
-  "fully_qualified_name": "FreshserviceApi.RetrieveChangeNote@0.1.0",
-  "description": "Retrieve a specific note from a change request in Freshservice.\n\nUse this tool to obtain a specific note from a change request by providing the change ID and note ID in Freshservice. It's helpful for tracking updates or comments on change requests.",
+  "fully_qualified_name": "FreshserviceApi.RetrieveChangeNote@1.0.0",
+  "description": "Retrieve a note on a Change request from Freshservice.\n\nUse this tool to get details of a specific note associated with a Change request by providing the change and note IDs.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "change_request_id",
         "required": true,
-        "description": "ID of the change request to retrieve its specific note.",
+        "description": "The unique identifier for the change request. Provide this to retrieve the specific note associated with it.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "change_id"
       },
       {
-        "name": "note_identifier",
+        "name": "note_id",
         "required": true,
-        "description": "The unique identifier for the note to be retrieved from a change request in Freshservice.",
+        "description": "The unique identifier for the note you want to retrieve from a Change request.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,10 +61,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes/{note_id}",
@@ -105,7 +105,7 @@
       },
       {
         "name": "note_id",
-        "tool_parameter_name": "note_identifier",
+        "tool_parameter_name": "note_id",
         "description": "ID of the note",
         "value_schema": {
           "val_type": "integer",
@@ -125,21 +125,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

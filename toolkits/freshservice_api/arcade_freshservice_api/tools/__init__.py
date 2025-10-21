@@ -8,10 +8,16 @@ BE OVERWRITTEN BY THE TRANSPILER.
 """
 
 import asyncio
+import json
+from enum import Enum
 from typing import Annotated, Any
 
 import httpx
+import jsonschema
 from arcade_tdk import ToolContext, tool
+from arcade_tdk.errors import RetryableToolError
+
+from .request_body_schemas import REQUEST_BODY_SCHEMAS
 
 # Retry configuration
 INITIAL_RETRY_DELAY = 0.5  # seconds
@@ -25,6 +31,13 @@ HTTP_CLIENT = httpx.AsyncClient(
 )
 
 
+class ToolMode(str, Enum):
+    """Mode for tools with complex request bodies."""
+
+    GET_REQUEST_SCHEMA = "get_request_schema"
+    EXECUTE = "execute"
+
+
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
 
@@ -34,6 +47,7 @@ async def make_request(
     method: str,
     params: dict[str, Any] | None = None,
     headers: dict[str, Any] | None = None,
+    content: str | None = None,
     data: dict[str, Any] | None = None,
     auth: tuple[str, str] | None = None,
     max_retries: int = 3,
@@ -47,7 +61,7 @@ async def make_request(
                 method=method,
                 params=params,
                 headers=headers,
-                data=data,
+                content=content,
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
@@ -68,28 +82,126 @@ async def make_request(
     raise httpx.RequestError("Max retries exceeded")  # noqa: TRY003
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+async def make_request_with_schema_validation(
+    url: str,
+    method: str,
+    request_data: dict[str, Any],
+    schema: dict[str, Any],
+    auth: tuple[str, str] | None = None,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, Any] | None = None,
+    max_retries: int = 3,
+) -> httpx.Response:
+    """Make an HTTP request with schema validation on format errors."""
+    try:
+        response = await make_request(
+            url=url,
+            auth=auth,
+            method=method,
+            params=params,
+            headers=headers,
+            content=json.dumps(request_data),
+            max_retries=max_retries,
+        )
+    except httpx.HTTPStatusError as e:
+        # Only provide schema validation for format-related errors
+        if e.response.status_code in (400, 422):
+            # Run validation to provide additional context
+            is_valid, validation_error = validate_json_against_schema(request_data, schema)
+
+            api_error_details = f"API returned {e.response.status_code}: {e.response.text}"
+
+            if not is_valid:
+                # Schema validation found issues - additional context
+                additional_context = (
+                    f"{api_error_details}\n\n"
+                    f"Schema validation found the following issues:\n"
+                    f"{validation_error}"
+                )
+            else:
+                # Schema validation passed - just show API error
+                additional_context = api_error_details
+
+            raise RetryableToolError(
+                message=(f"API request failed with validation error: {e.response.status_code}"),
+                developer_message=api_error_details,
+                additional_prompt_content=additional_context,
+            ) from e
+        else:
+            # For non-validation errors, re-raise as-is
+            raise
+    else:
+        return response
+
+
+def validate_json_against_schema(
+    json_data: dict[str, Any], schema: dict[str, Any]
+) -> tuple[bool, str | None]:
+    """Validate JSON data against an OpenAPI/JSON Schema.
+
+    This provides full JSON Schema Draft 7 validation including:
+    - Required fields, types, enums
+    - Pattern validation (regex)
+    - Format validation (email, uuid, date-time, etc.)
+    - Min/max length and values
+    - oneOf, anyOf, allOf
+    - And all other JSON Schema features
+
+    Args:
+        json_data: The JSON data to validate
+        schema: The JSON Schema to validate against
+
+    Returns:
+        Tuple of (is_valid, error_messages). If valid, error_messages is None.
+        If invalid, error_messages contains all validation errors.
+    """
+    try:
+        validator = jsonschema.Draft7Validator(
+            schema, format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER
+        )
+        # Collect ALL validation errors
+        errors = list(validator.iter_errors(json_data))
+        if errors:
+            # Format all errors with their paths
+            error_messages = []
+            for error in errors:
+                error_path = ".".join(str(p) for p in error.path) if error.path else "root"
+                error_messages.append(f"{error.message} at {error_path}")
+            # Join all errors with newlines
+            return False, "\n".join(error_messages)
+        else:
+            return True, None
+    except jsonschema.SchemaError as e:
+        return False, f"Invalid schema: {e.message}"
+    except Exception as e:
+        return False, f"Validation error: {e!s}"
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_freshservice_departments(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "The number of entries to retrieve per page in a paginated list."
+        int | None,
+        "The number of departments to retrieve in each page of a paginated list. Must be an integer.",  # noqa: E501
     ] = 10,
-    page_number: Annotated[
-        int | None, "The specific page number of departments to retrieve from Freshservice."
+    page_number_to_retrieve: Annotated[
+        int | None, "The page number of results to retrieve from Freshservice."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-departments'."]:
-    """Retrieve all departments from Freshservice.
+    """Retrieve a list of departments from Freshservice.
 
-    This tool retrieves a list of all departments or companies (in MSP Mode) from Freshservice. It should be used when you need to access the department or company information maintained in the Freshservice platform."""  # noqa: E501
+    Use this tool to get a list of all departments or companies (in MSP Mode) available in Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/departments".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -97,16 +209,84 @@ async def get_freshservice_departments(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_department_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_department(
+    context: ToolContext,
+    department_name: Annotated[str, "The name of the department to be created in Freshservice."],
+    custom_fields: Annotated[
+        dict[str, str] | None,
+        "JSON object of custom fields related to a Freshservice entity for creating a department.",
+    ] = None,
+    department_creation_timestamp: Annotated[
+        str | None,
+        "Timestamp indicating when the department was created. This should be provided in ISO 8601 format.",  # noqa: E501
+    ] = None,
+    department_description: Annotated[
+        str | None, "Provide a description about the department to be created."
+    ] = None,
+    department_id: Annotated[
+        int | None,
+        "Unique identifier for the department. This integer is used to specify the unique ID of the department to be created.",  # noqa: E501
+    ] = None,
+    email_domains: Annotated[
+        list[str] | None,
+        "A list of email domains associated with the department. Each domain should be a valid string.",  # noqa: E501
+    ] = None,
+    head_user_identifier: Annotated[
+        int | None, "ID of the agent or requester who is the head of the department."
+    ] = None,
+    last_modified_timestamp: Annotated[
+        str | None,
+        "Timestamp indicating when the department was last modified. Format as a string (e.g., 'YYYY-MM-DDTHH:MM:SSZ').",  # noqa: E501
+    ] = None,
+    prime_user_id: Annotated[
+        int | None,
+        "Unique identifier of the agent or requester who serves as the prime user of the department. Provide an integer value corresponding to the user ID.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-department'."]:
+    """Create a new department in Freshservice.
+
+    This tool is used to create a new department in Freshservice. It should be called when there is a need to organize teams or functions into new departments within the Freshservice platform."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": department_id,
+        "name": department_name,
+        "description": department_description,
+        "head_user_id": head_user_identifier,
+        "prime_user_id": prime_user_id,
+        "domains": email_domains,
+        "custom_fields": custom_fields,
+        "created_at": department_creation_timestamp,
+        "updated_at": last_modified_timestamp,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/departments".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_department_info(
     context: ToolContext,
     department_id: Annotated[
-        int, "The ID of the department to retrieve from Freshservice. Use only integer values."
+        int, "The ID of the department to retrieve details for from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-department'."]:
-    """Retrieve department details using department ID.
+    """Retrieve department details from Freshservice using an ID.
 
-    Use this tool to obtain detailed information about a specific department (or company in MSP mode) from Freshservice by providing the department ID."""  # noqa: E501
+    Use this tool to obtain detailed information about a department or company (in MSP Mode) from Freshservice by providing the specific department ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/departments/{department_id}".format(
@@ -116,7 +296,7 @@ async def retrieve_department_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -124,24 +304,69 @@ async def retrieve_department_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_department(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_department(
     context: ToolContext,
-    department_id: Annotated[int, "The unique ID of the department to delete from Freshservice."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-department'."]:
-    """Delete a department from Freshservice by ID.
+    department_id: Annotated[
+        int,
+        "ID of the department to update. Required for identifying which department's information to modify.",  # noqa: E501
+    ],
+    custom_fields: Annotated[
+        dict[str, str] | None,
+        "JSON object containing custom fields related to a Freshservice entity. Include key-value pairs for each field.",  # noqa: E501
+    ] = None,
+    department_creation_timestamp: Annotated[
+        str | None,
+        "The timestamp indicating when the department was originally created in Freshservice. This should be formatted as a string.",  # noqa: E501
+    ] = None,
+    department_description: Annotated[
+        str | None,
+        "Provide a description about the department. This is used to update the existing details of the department in Freshservice.",  # noqa: E501
+    ] = None,
+    department_name: Annotated[str | None, "The new name of the department to be updated."] = None,
+    department_unique_id: Annotated[
+        int | None, "The unique identifier for the department to update."
+    ] = None,
+    email_domains: Annotated[
+        list[str] | None, "List of email domains linked to the department, like ['example.com']."
+    ] = None,
+    head_user_id: Annotated[
+        int | None, "Unique identifier for the agent or requester serving as the department head."
+    ] = None,
+    last_modified_timestamp: Annotated[
+        str | None,
+        "Timestamp indicating when the department was last modified. Format: YYYY-MM-DDTHH:MM:SSZ.",
+    ] = None,
+    prime_user_id: Annotated[
+        int | None,
+        "Unique identifier of the agent or requester who serves as the prime user of the department.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-department'."]:
+    """Update details of an existing department in Freshservice.
 
-    Use this tool to delete a specific department from Freshservice using its ID. This is useful for managing and updating department records within the service."""  # noqa: E501
+    Use this tool to change details of an existing department or company in Freshservice. Ideal for modifying department attributes such as name or other relevant information."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": department_unique_id,
+        "name": department_name,
+        "description": department_description,
+        "head_user_id": head_user_id,
+        "prime_user_id": prime_user_id,
+        "domains": email_domains,
+        "custom_fields": custom_fields,
+        "created_at": department_creation_timestamp,
+        "updated_at": last_modified_timestamp,
+    })
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/departments/{department_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             department_id=department_id,
         ),
-        method="DELETE",
+        method="PUT",
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -149,13 +374,45 @@ async def delete_department(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_department_freshservice(
+    context: ToolContext,
+    department_id_to_delete: Annotated[
+        int,
+        "Specify the ID of the department or company to be deleted from Freshservice. This ID is required to identify which department to delete.",  # noqa: E501
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-department'."]:
+    """Delete a department or company in Freshservice by ID.
+
+    Use this tool to delete a specific department or company (in MSP Mode) from Freshservice by providing the department ID. It should be called when needing to remove a department permanently."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/departments/{department_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            department_id=department_id_to_delete,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_department_fields(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-department-fields'."]:
-    """Retrieve department or company fields from Freshservice.
+    """Retrieve department fields from Freshservice.
 
-    Use this tool to obtain the department or company fields as displayed in Freshservice. Especially useful for understanding the available fields and their order in the user interface."""  # noqa: E501
+    Use this tool to get the Department Fields or Company Fields (in MSP Mode) from Freshservice, displayed in the order found on the UI."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/department_fields".format(
@@ -164,7 +421,7 @@ async def get_department_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -172,26 +429,30 @@ async def get_department_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_freshservice_agent_groups(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_agent_groups(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Specify the number of entries to retrieve in each page of the list."
+        int | None, "The number of entries to retrieve per page for pagination."
     ] = 10,
-    page_number_to_retrieve: Annotated[
-        int | None, "The specific page number to retrieve from a paginated list of agent groups."
+    page_number: Annotated[
+        int | None, "The page number to retrieve for pagination in the list of agent groups."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-agent-groups'."]:
-    """Retrieve a list of all Agent Groups in Freshservice."""
+    """Retrieve a list of all agent groups from Freshservice.
+
+    Use this tool to obtain a list of all the agent groups configured in your Freshservice account. It is useful for managing groups and understanding team structures within the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -199,26 +460,121 @@ async def list_freshservice_agent_groups(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_agent_group_info(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_agent_group_freshservice(
     context: ToolContext,
-    agent_group_identifier: Annotated[
-        int, "The unique integer ID of the Freshservice agent group to retrieve."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-agent-group'."]:
+    """Create a new Agent Group in Freshservice.
+
+    This tool allows you to create a new Agent Group in Freshservice. Use it to organize and manage agents within your Freshservice account.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEAGENTGROUPFRESHSERVICE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEAGENTGROUPFRESHSERVICE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEAGENTGROUPFRESHSERVICE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEAGENTGROUPFRESHSERVICE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_agent_group_by_id(
+    context: ToolContext,
+    agent_group_id: Annotated[
+        int, "The unique ID of the agent group to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-agent-group'."]:
-    """Retrieve details of a Freshservice agent group by ID.
+    """Retrieve details of a specific agent group by ID.
 
-    Use this tool to get information about a specific agent group in Freshservice by providing the agent group ID."""  # noqa: E501
+    Use this tool to get information about an agent group from Freshservice using its unique ID."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups/{agent_group_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            agent_group_id=agent_group_identifier,
+            agent_group_id=agent_group_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -226,16 +582,133 @@ async def get_agent_group_info(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_agent_group(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    agent_group_id: Annotated[
+        int | None,
+        "The unique identifier of the agent group to update. This should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-agent-group'."]:
+    """Update an existing Agent Group in Freshservice.
+
+    This tool updates an existing agent group in Freshservice. It should be called when modifications to group details are required.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEAGENTGROUP"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not agent_group_id:
+        missing_params.append(("agent_group_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEAGENTGROUP"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEAGENTGROUP"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups/{agent_group_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            agent_group_id=agent_group_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEAGENTGROUP"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_agent_group(
     context: ToolContext,
     agent_group_id_to_delete: Annotated[
-        int, "The unique integer ID of the agent group to be deleted in Freshservice."
+        int, "The ID of the agent group you want to delete in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-agent-group'."]:
-    """Delete an agent group in Freshservice by ID.
+    """Deletes an Agent Group in Freshservice by ID.
 
-    Use this tool to delete an agent group from Freshservice by specifying the group's ID. This should be called when you need to remove an agent group permanently."""  # noqa: E501
+    Use this tool to delete an existing agent group in Freshservice by providing its ID. This is useful when you need to manage or reorganize agent groups by removing those that are no longer required."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_groups/{agent_group_id}".format(
@@ -245,7 +718,7 @@ async def delete_agent_group(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -253,28 +726,31 @@ async def delete_agent_group(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def list_all_products(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Specify the number of entries to retrieve in each page of the product list."
+        int | None,
+        "The number of entries to retrieve in each page of a paginated list. This controls the page size.",  # noqa: E501
     ] = 10,
-    page_number: Annotated[
-        int | None, "Specify the page number to retrieve from the paginated list of products."
+    page_number_to_fetch: Annotated[
+        int | None, "The specific page number to retrieve from the list of products."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-products'."]:
-    """Retrieve a comprehensive list of products from Freshservice.
+    """Retrieve all products from Freshservice.
 
-    Use this tool to obtain a complete list of products managed within Freshservice. This can be useful for inventory management, product categorization, and maintaining an updated product database."""  # noqa: E501
+    Use this tool to get a comprehensive list of all the products available in the Freshservice system. This helps in managing and reviewing product inventories effectively."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/products".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_fetch}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -282,17 +758,77 @@ async def list_all_products(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_product_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_product(
+    context: ToolContext,
+    product_asset_type_id: Annotated[
+        int, "Identifier for the asset type of the product, expected as an integer."
+    ],
+    product_name: Annotated[str, "Name of the Product to be added to the catalog."],
+    depreciation_type_id: Annotated[
+        int | None,
+        "Unique identifier for the type of depreciation used for the product. This should be an integer value corresponding to the desired depreciation method.",  # noqa: E501
+    ] = None,
+    depreciation_type_identifier: Annotated[
+        str | None, "Unique identifier for the depreciation type used for the product."
+    ] = None,
+    manufacturer_name: Annotated[
+        str | None, "The name of the product's manufacturer. It accepts free text input."
+    ] = None,
+    procurement_mode: Annotated[
+        int | None,
+        "Mode of procurement for the product. Use `1` for Buy, `2` for Lease, `3` for Both.",
+    ] = None,
+    product_status_id: Annotated[
+        int | None,
+        "The status of the product: `1` - In Production, `2` - In Pipeline, `3` - Retired.",
+    ] = None,
+    product_unique_id: Annotated[
+        int | None, "Unique identifier for the product in the catalog. It must be an integer."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-product'."]:
+    """Create a new product in the Freshservice catalog.
+
+    Use this tool to add a new product to the Freshservice Product Catalog. It is called when a new product entry is needed in the inventory or catalog database."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": product_unique_id,
+        "name": product_name,
+        "asset_type_id": product_asset_type_id,
+        "manufacturer": manufacturer_name,
+        "status_id": product_status_id,
+        "mode_of_procurement_id": procurement_mode,
+        "depreciation_type_id": depreciation_type_id,
+        "description": depreciation_type_identifier,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/products".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_product_info(
     context: ToolContext,
     product_id: Annotated[
-        int,
-        "The unique identifier for the product in the Freshservice Product Catalog to retrieve details.",  # noqa: E501
+        int, "The unique identifier of the product to retrieve from the catalog."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-product'."]:
     """Retrieve a specific Product from the Product Catalog.
 
-    Call this tool to get details about a specific product by providing the product ID. It accesses the Freshservice Product Catalog to retrieve the necessary information."""  # noqa: E501
+    Use this tool to get detailed information about a specific product using its ID from the Freshservice Product Catalog."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/products/{product_id}".format(
@@ -302,7 +838,7 @@ async def get_product_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -310,26 +846,64 @@ async def get_product_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_product(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_product_in_catalog(
     context: ToolContext,
-    product_identifier: Annotated[
-        int, "The unique ID of the product to be deleted from the Freshservice catalog."
+    product_unique_id: Annotated[
+        int, "The unique integer identifier for the product to be updated in the catalog."
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-product'."]:
-    """Delete a product from the Freshservice catalog.
+    asset_type_id: Annotated[
+        int | None,
+        "The unique identifier for the asset type of the product. It should be an integer.",
+    ] = None,
+    depreciation_type_description: Annotated[
+        str | None,
+        "A description of the depreciation type used for the product. Accepts textual information detailing the depreciation category or specifics.",  # noqa: E501
+    ] = None,
+    depreciation_type_identifier: Annotated[
+        int | None, "Unique identifier for the type of depreciation used for the product."
+    ] = None,
+    procurement_mode: Annotated[
+        int | None, "Specifies the mode of procurement: 1 for Buy, 2 for Lease, 3 for Both."
+    ] = None,
+    product_id_number: Annotated[
+        int | None, "Unique ID of the product to be updated in the catalog."
+    ] = None,
+    product_manufacturer_name: Annotated[
+        str | None, "The name of the product's manufacturer. Provide as free text."
+    ] = None,
+    product_name: Annotated[
+        str | None, "The name of the product to be updated in the catalog."
+    ] = None,
+    product_status: Annotated[
+        int | None,
+        "Specify the status of the product: `1` for In Production, `2` for In Pipeline, `3` for Retired.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-product'."]:
+    """Update an existing product in the catalog.
 
-    Use this tool to delete an existing product from the Freshservice Product Catalog. Provide the product ID to specify which product to remove."""  # noqa: E501
+    Use this tool to modify details of a product in the product catalog. Call this when a product's information needs to be updated."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": product_id_number,
+        "name": product_name,
+        "asset_type_id": asset_type_id,
+        "manufacturer": product_manufacturer_name,
+        "status_id": product_status,
+        "mode_of_procurement_id": procurement_mode,
+        "depreciation_type_id": depreciation_type_identifier,
+        "description": depreciation_type_description,
+    })
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/products/{product_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            product_id=product_identifier,
+            product_id=product_unique_id,
         ),
-        method="DELETE",
+        method="PUT",
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -337,29 +911,61 @@ async def delete_product(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_product_catalog_item(
+    context: ToolContext,
+    product_id_to_delete: Annotated[
+        int,
+        "The ID of the product to delete from the catalog. It should be an integer representing the unique identifier of the product.",  # noqa: E501
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-product'."]:
+    """Delete a product from the catalog.
+
+    Use this tool to remove an existing product from the Freshservice Product Catalog. Useful for managing inventory or updating product listings by deleting outdated or irrelevant entries."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/products/{product_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            product_id=product_id_to_delete,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_business_hours_configs(
     context: ToolContext,
     entries_per_page: Annotated[
         int | None,
-        "The number of Business Hours configurations to retrieve per page in the paginated list.",
+        "The number of business hours configurations to retrieve per page in the paginated result.",
     ] = 10,
-    requested_page_number: Annotated[
-        int | None, "Specify the page number of results you want to retrieve."
+    page_number: Annotated[
+        int | None, "The specific page number of business hours configurations to retrieve."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-business-hours-configs'."]:
-    """Retrieve a list of all Business Hours configurations from Freshservice.
+    """Retrieve all business hours configurations from Freshservice.
 
-    Call this tool to obtain the current Business Hours configurations from Freshservice. Useful for understanding operation times and support availability."""  # noqa: E501
+    This tool retrieves the entire list of business hours configurations from Freshservice. It should be called when you need to understand or display the business hours settings configured in the Freshservice system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/business_hours".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": requested_page_number}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -367,16 +973,18 @@ async def get_business_hours_configs(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_business_hours_config(
     context: ToolContext,
     business_hours_configuration_id: Annotated[
-        int, "The ID of the Business Hours configuration to retrieve from Freshservice."
+        int, "The unique ID of the Business Hours configuration to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-business-hours-config'."]:
-    """Retrieve Freshservice Business Hours configuration by ID.
+    """Retrieve the Business Hours configuration from Freshservice.
 
-    Use this tool to get the Business Hours configuration from Freshservice using the specified ID. It helps in accessing detailed information about business operating hours as configured in the Freshservice system."""  # noqa: E501
+    This tool retrieves the Business Hours configuration using the provided ID from Freshservice. It should be called when detailed information about specific business hours settings is required."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/business_hours/{business_hours_id}".format(
@@ -386,7 +994,7 @@ async def get_business_hours_config(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -394,18 +1002,22 @@ async def get_business_hours_config(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_all_locations(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_locations(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None,
-        "The number of entries to retrieve per page when listing locations. Typically an integer value.",  # noqa: E501
+        int | None, "The number of location entries to retrieve per page in the paginated list."
     ] = 10,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number of locations to retrieve from Freshservice."
+        int | None,
+        "The page number of the locations list you want to retrieve. Useful for navigating through paginated results.",  # noqa: E501
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-locations'."]:
-    """Retrieve a list of all locations in Freshservice."""
+    """Retrieve a list of all locations in Freshservice.
+
+    Call this tool to obtain a comprehensive list of all locations configured in the Freshservice system. Useful for management and administrative tasks requiring location data."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/locations".format(
@@ -414,7 +1026,7 @@ async def get_all_locations(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -422,27 +1034,211 @@ async def get_all_locations(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_location_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_location(
     context: ToolContext,
-    location_identifier: Annotated[
+    location_name: Annotated[str, "Provide the name of the new location to be created."],
+    address_line_2: Annotated[
+        str | None,
+        "The second line of the address, typically for additional location details or suite numbers.",  # noqa: E501
+    ] = None,
+    address_street_line_one: Annotated[
+        str | None, "First line of the street address for the new location in Freshservice."
+    ] = None,
+    city_name: Annotated[str | None, "The name of the city where the location is situated."] = None,
+    location_country: Annotated[
+        str | None, "Specify the country for the new location. This should be a valid country name."
+    ] = None,
+    location_unique_id: Annotated[
+        int | None,
+        "An integer representing the unique ID of the location to be created in Freshservice.",
+    ] = None,
+    location_zip_code: Annotated[
+        str | None, "Provide the Zip Code for the location to be created."
+    ] = None,
+    parent_location_id: Annotated[
+        int | None,
+        "The unique identifier of the parent location if applicable. Use this to nest the new location under an existing one.",  # noqa: E501
+    ] = None,
+    primary_contact_unique_id: Annotated[
+        int | None,
+        "Unique ID of the primary contact. This contact is a requester, and their details will be referenced for name, email, and phone number.",  # noqa: E501
+    ] = None,
+    state: Annotated[
+        str | None,
+        "The state or region of the location. This should be a string value representing the official name of the state.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-location'."]:
+    """Create a new location in Freshservice.
+
+    Use this tool to create a new location within the Freshservice platform. It should be called when there is a need to add a new geographical or organizational location to the service database."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": location_unique_id,
+        "name": location_name,
+        "parent_location_id": parent_location_id,
+        "primary_contact_id": primary_contact_unique_id,
+        "address_line1": address_street_line_one,
+        "address_line2": address_line_2,
+        "address_city": city_name,
+        "address_state": state,
+        "address_country": location_country,
+        "address_zipcode": location_zip_code,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/locations".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_ticket_location(
+    context: ToolContext,
+    location_id: Annotated[
         int,
-        "The ID of the location to be retrieved. It should be an integer representing a specific location in the Freshservice system.",  # noqa: E501
+        "The ID of the location to retrieve. This should be an integer representing the specific location's unique identifier in Freshservice.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-location'."]:
     """Retrieve details of a specific location by ID.
 
-    This tool is used to get information about a specific location using its ID in the Freshservice system. It should be called when detailed information about a location is needed."""  # noqa: E501
+    This tool retrieves detailed information about a specific location using its ID. It should be used when needing to fetch data related to a particular location in Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/locations/{location_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            location_id=location_id,
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_location_info(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    location_identifier: Annotated[
+        int | None,
+        "The unique integer ID of the location to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-location'."]:
+    """Update an existing location's information in Freshservice.
+
+    Use this tool to modify the details of an existing location in Freshservice. It should be called whenever there is a need to change location information, such as address or contact details.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATELOCATIONINFO"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not location_identifier:
+        missing_params.append(("location_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATELOCATIONINFO"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATELOCATIONINFO"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/locations/{location_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             location_id=location_identifier,
         ),
-        method="GET",
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATELOCATIONINFO"]),
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
     )
     try:
         return {"response_json": response.json()}
@@ -450,17 +1246,16 @@ async def fetch_location_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_existing_location(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_location(
     context: ToolContext,
-    location_id: Annotated[
-        int,
-        "The unique identifier of the location to be deleted. Provide the numeric ID corresponding to the location you wish to remove from Freshservice.",  # noqa: E501
-    ],
+    location_id: Annotated[int, "The unique ID of the location to be deleted in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-location'."]:
-    """Deletes an existing location from Freshservice.
+    """Deletes an existing location by ID.
 
-    Use this tool to remove an existing location in Freshservice by providing the location ID. It should be called when you need to delete a location from the system."""  # noqa: E501
+    Use this tool to delete a specified location by providing its ID in the Freshservice system."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/locations/{location_id}".format(
@@ -470,7 +1265,7 @@ async def delete_existing_location(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -478,20 +1273,23 @@ async def delete_existing_location(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_all_vendors(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_vendor_list(
     context: ToolContext,
     entries_per_page: Annotated[
         int | None,
-        "Specify the number of vendor entries to retrieve for each page when listing vendors.",
+        "Specify the number of vendor entries to retrieve in each page of a paginated list.",
     ] = 10,
     page_number: Annotated[
-        int | None, "Specify the page number to retrieve from the paginated list of vendors."
+        int | None,
+        "Specifies which page number of vendor entries to retrieve. Useful for navigating paginated results.",  # noqa: E501
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-vendors'."]:
-    """Retrieve and list all vendors from Freshservice.
+    """Retrieve a list of all vendors from Freshservice.
 
-    Call this tool to obtain a comprehensive list of all vendors stored in Freshservice."""
+    Use this tool to get a complete list of vendors stored in the Freshservice system. It's useful for acquiring vendor information when managing resources or contracts."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/vendors".format(
@@ -500,7 +1298,7 @@ async def fetch_all_vendors(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -508,27 +1306,206 @@ async def fetch_all_vendors(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_vendor_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_vendor(
     context: ToolContext,
-    vendor_identifier: Annotated[
-        int,
-        "The unique ID of the vendor to retrieve. This ID is an integer and identifies the vendor in the Freshservice system.",  # noqa: E501
-    ],
+    address_line_1: Annotated[
+        str | None, "The first line of the vendor's address, such as street name and number."
+    ] = None,
+    address_line_2: Annotated[
+        str | None,
+        "The second line of the vendor's address, typically used for apartment or suite numbers.",
+    ] = None,
+    country: Annotated[
+        str | None, "The country where the vendor is located. Provide the full name of the country."
+    ] = None,
+    location_zip_code: Annotated[str | None, "Zip Code of the vendor's location."] = None,
+    primary_contact_id: Annotated[
+        int | None,
+        "Unique ID of the primary contact for the vendor. This contact is a requester whose details (name, email, phone, mobile) are referenced from the requester database.",  # noqa: E501
+    ] = None,
+    state: Annotated[
+        str | None,
+        "The state or province where the vendor is located. Use a string value to specify the state.",  # noqa: E501
+    ] = None,
+    vendor_city: Annotated[str | None, "The city where the vendor is located."] = None,
+    vendor_description: Annotated[
+        str | None,
+        "Detailed description of the vendor, including any specific information or notes relevant to the vendor.",  # noqa: E501
+    ] = None,
+    vendor_name: Annotated[
+        str | None, "The name of the vendor to be created. It should be a string."
+    ] = None,
+    vendor_unique_id: Annotated[
+        int | None, "Unique integer ID of the vendor to be created in Freshservice."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-vendor'."]:
+    """Creates a new vendor in the Freshservice system.
+
+    Use this tool to create a new vendor in Freshservice. Call this tool when you need to add a vendor to your vendor list, providing necessary details to complete the registration."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": vendor_unique_id,
+        "name": vendor_name,
+        "description": vendor_description,
+        "primary_contact_id": primary_contact_id,
+        "address_line1": address_line_1,
+        "address_line2": address_line_2,
+        "address_city": vendor_city,
+        "address_state": state,
+        "address_country": country,
+        "address_zipcode": location_zip_code,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/vendors".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_vendor_details(
+    context: ToolContext,
+    vendor_id: Annotated[int, "The unique integer ID of the vendor to retrieve details for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-vendor'."]:
     """Retrieve details of a specific vendor by ID.
 
-    Use this tool to get detailed information about a vendor by providing the vendor ID. It is helpful for accessing vendor-related data from your Freshservice account."""  # noqa: E501
+    This tool fetches detailed information about a specific vendor using their vendor ID. It should be called when you need to access vendor information stored in Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/vendors/{vendor_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), vendor_id=vendor_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_vendor_info(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    vendor_identifier: Annotated[
+        int | None,
+        "The unique identifier for the vendor to be updated. It must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-vendor'."]:
+    """Update details of an existing vendor.
+
+    Use this tool to update information for an existing vendor in the Freshservice system, using the vendor ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEVENDORINFO"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not vendor_identifier:
+        missing_params.append(("vendor_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEVENDORINFO"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEVENDORINFO"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/vendors/{vendor_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             vendor_id=vendor_identifier,
         ),
-        method="GET",
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEVENDORINFO"]),
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
     )
     try:
         return {"response_json": response.json()}
@@ -536,16 +1513,16 @@ async def get_vendor_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_existing_vendor(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_vendor(
     context: ToolContext,
-    vendor_id: Annotated[
-        int, "The unique identifier of the vendor to be deleted. It should be an integer value."
-    ],
+    vendor_id: Annotated[int, "The unique integer ID of the vendor to be deleted in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-vendor'."]:
     """Delete an existing vendor in Freshservice.
 
-    Use this tool to delete a vendor from the Freshservice platform when a user requests vendor removal."""  # noqa: E501
+    This tool deletes a specified vendor in Freshservice. It should be called when a user needs to remove a vendor from the system using the vendor's unique ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/vendors/{vendor_id}".format(
@@ -554,7 +1531,7 @@ async def delete_existing_vendor(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -562,19 +1539,19 @@ async def delete_existing_vendor(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_asset_types(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_asset_types(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "The number of asset type entries to retrieve per page in the paginated list."
+        int | None, "The number of asset types to retrieve per page in the list."
     ] = 10,
-    page_number: Annotated[
-        int | None, "The page number to retrieve from the list of asset types."
-    ] = 1,
+    page_number: Annotated[int | None, "The page number to retrieve for paginated results."] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-types'."]:
-    """Retrieve all asset types from Freshservice.
+    """Fetch a list of all asset types from Freshservice.
 
-    Use this tool to get a comprehensive list of asset types available in Freshservice, useful for asset management and categorization."""  # noqa: E501
+    Use this to get an overview of all asset types defined within Freshservice. Useful for managing assets or integrating asset data with other systems."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types".format(
@@ -583,7 +1560,7 @@ async def get_asset_types(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -591,17 +1568,63 @@ async def get_asset_types(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_asset_type(
+    context: ToolContext,
+    asset_type_name: Annotated[str, "The name of the asset type to be created."],
+    asset_description_html: Annotated[
+        str | None, "Provide a short description of the asset type in HTML format for styling."
+    ] = None,
+    asset_type_id: Annotated[
+        int | None, "Unique identifier for the asset type to be created."
+    ] = None,
+    asset_type_plain_text_description: Annotated[
+        str | None, "Short description of the asset type in plain text format without HTML tags."
+    ] = None,
+    parent_asset_type_identifier: Annotated[
+        int | None,
+        "Unique identifier of the parent asset type. Use this to specify a hierarchy when creating a new asset type.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-asset-type'."]:
+    """Create a new asset type in Freshservice.
+
+    Use this tool to create a new asset type in Freshservice when setting up or managing assets. It automates the process of defining asset categories in the system."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": asset_type_id,
+        "name": asset_type_name,
+        "description": asset_description_html,
+        "description_text": asset_type_plain_text_description,
+        "parent_asset_type_id": parent_asset_type_identifier,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def retrieve_asset_type(
     context: ToolContext,
     asset_type_id: Annotated[
-        int,
-        "The unique integer identifier for the asset type to retrieve from Freshservice. Required for querying specific asset type details.",  # noqa: E501
+        int, "The unique ID of the asset type to retrieve. Must be an integer."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-asset-type'."]:
-    """Retrieve details of a specific asset type by ID.
+    """Retrieve details of a specific asset type from Freshservice.
 
-    Use this tool to retrieve information about a specific asset type using its ID. Ideal for obtaining detailed descriptions or attributes of an asset type in Freshservice."""  # noqa: E501
+    Use this tool to obtain information about a specific asset type identified by its asset type ID within the Freshservice system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}".format(
@@ -611,7 +1634,7 @@ async def retrieve_asset_type(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -619,17 +1642,64 @@ async def retrieve_asset_type(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_asset_type(
+    context: ToolContext,
+    asset_type_id: Annotated[int, "Unique identifier of the asset type to be updated."],
+    asset_id: Annotated[int | None, "Unique identifier of the asset type to be updated."] = None,
+    asset_type_description_html: Annotated[
+        str | None, "Provide a short HTML-formatted description of the asset type."
+    ] = None,
+    asset_type_name: Annotated[str | None, "The new name for the asset type to be updated."] = None,
+    parent_asset_type_id: Annotated[
+        int | None, "Unique identifier for the parent asset type to establish hierarchy."
+    ] = None,
+    plain_text_description: Annotated[
+        str | None,
+        "Provide a short plain text description of the asset type. Avoid using HTML or special formatting.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-asset-type'."]:
+    """Update an existing asset type in Freshservice.
+
+    Use this tool to update information about an existing asset type within the Freshservice platform. The asset type to be updated is identified by its asset_type_id."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": asset_id,
+        "name": asset_type_name,
+        "description": asset_type_description_html,
+        "description_text": plain_text_description,
+        "parent_asset_type_id": parent_asset_type_id,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            asset_type_id=asset_type_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_asset_type(
     context: ToolContext,
     asset_type_id: Annotated[
         int,
-        "The unique integer ID of the asset type to be deleted. This ID identifies which asset type should be removed from the Freshservice database.",  # noqa: E501
+        "The unique identifier for the asset type to be deleted. It should be an integer matching an existing asset type in Freshservice.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-asset-type'."]:
-    """Delete an existing asset type in Freshservice.
+    """Delete an existing asset type from Freshservice.
 
-    Use this tool to delete a specific asset type by providing its ID. This is useful for managing and updating the asset database by removing obsolete or incorrect asset types."""  # noqa: E501
+    This tool is used to delete an asset type in Freshservice. It should be called when an asset type is no longer needed and needs to be removed from the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}".format(
@@ -639,7 +1709,7 @@ async def delete_asset_type(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -647,16 +1717,19 @@ async def delete_asset_type(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_asset_fields(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_asset_type_fields(
     context: ToolContext,
     asset_type_identifier: Annotated[
-        int, "The unique identifier for the asset type to retrieve its fields in Freshservice."
+        int,
+        "The unique integer ID representing the specific asset type whose fields need to be retrieved.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-type-fields'."]:
-    """Retrieve asset fields for a specific asset type.
+    """Retrieve asset fields from Freshservice.
 
-    Use this tool to get the list of asset fields for a particular asset type in Freshservice. This includes both default fields and asset-type-specific fields, returned in the order they appear in the UI."""  # noqa: E501
+    Fetches asset fields for a specific asset type from Freshservice, including default and specific fields, in their UI display order."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}/fields".format(
@@ -666,7 +1739,7 @@ async def get_asset_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -674,20 +1747,21 @@ async def get_asset_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_component_types(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_component_types(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None,
-        "The number of component type entries to retrieve per page in a paginated list. Specify an integer value.",  # noqa: E501
+        int | None, "Specifies the number of component type entries to retrieve in each page."
     ] = 10,
     page_number: Annotated[
-        int | None, "The specific page number of component types to retrieve from Freshservice."
+        int | None, "The page number to retrieve in a paginated list of component types."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-component-types'."]:
-    """Retrieve all component types in Freshservice.
+    """Retrieve all Freshservice component types and their fields.
 
-    This tool calls the Freshservice API to get a list of all component types along with the specific fields for each type. Use it when you need detailed information about the component types within Freshservice."""  # noqa: E501
+    Use this tool to obtain a list of all component types available in Freshservice. It provides details about each component type and their specific fields, which can be useful for understanding how components are organized."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/component_types".format(
@@ -696,7 +1770,7 @@ async def get_component_types(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -704,33 +1778,34 @@ async def get_component_types(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_asset_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_assets(
     context: ToolContext,
+    asset_filter_query: Annotated[
+        str | None,
+        "A URL-encoded query string to filter the asset list. Supports parameters like asset_type_id, department_id, location_id, and more.",  # noqa: E501
+    ] = None,
     entries_per_page: Annotated[
         int | None,
-        "Specify the number of entries to retrieve per page for pagination. Not applicable with search or filter queries.",  # noqa: E501
+        "Specify the number of asset entries to retrieve per page in a paginated list. Not applicable when a search or filter is used.",  # noqa: E501
     ] = 30,
-    page_number: Annotated[
-        int | None, "The page number to retrieve for paginated asset lists."
-    ] = 1,
     include_asset_type_fields: Annotated[
-        str | None,
-        "Specify asset type fields to include in the response. Use this to get additional data about each asset type.",  # noqa: E501
+        str | None, "Specify asset type fields to include in the response."
     ] = None,
-    apply_asset_filter: Annotated[
-        str | None,
-        "A URL-encoded string to filter the asset list. Supports parameters like asset_type_id, department_id, and more.",  # noqa: E501
+    list_trashed_assets_only: Annotated[
+        bool | None, "Set to true to list only assets in the trash."
     ] = None,
-    asset_search_query: Annotated[
+    page_number: Annotated[int | None, "The page number to retrieve from the list of assets."] = 1,
+    search_query: Annotated[
         str | None,
-        "A simple query to search assets by name, asset_tag, or serial_number. Formulate queries like \"name:'dell monitor'\".",  # noqa: E501
+        "A simple query to search for an asset. Supports 'name', 'asset_tag', and 'serial_number'. Example: \"name:'dell monitor'\".",  # noqa: E501
     ] = None,
-    include_trashed_assets: Annotated[bool | None, "Set to true to list assets in trash."] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-assets'."]:
-    """Retrieve a list of all assets from Freshservice.
+    """Retrieve a list of all assets in Freshservice.
 
-    Use this tool to get details about all assets managed in Freshservice, such as hardware and software resources."""  # noqa: E501
+    This tool is used to get a complete list of all assets available in the Freshservice platform. It can be called to fetch detailed inventory information, aiding in asset management tasks."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets".format(
@@ -740,13 +1815,13 @@ async def get_asset_list(
         params=remove_none_values({
             "per_page": entries_per_page,
             "page": page_number,
-            "trashed": include_trashed_assets,
+            "trashed": list_trashed_assets_only,
             "include": include_asset_type_fields,
-            "filter": apply_asset_filter,
-            "search": asset_search_query,
+            "filter": asset_filter_query,
+            "search": search_query,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -754,16 +1829,111 @@ async def get_asset_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_asset_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_asset(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-asset'."]:
+    """Create a new asset in Freshservice.
+
+    Use this tool to add a new asset to the Freshservice system. Ideal for tracking and managing assets efficiently.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATENEWASSET"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWASSET"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWASSET"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATENEWASSET"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_asset_information(
     context: ToolContext,
     asset_display_id: Annotated[
-        int, "The unique display ID of the asset to retrieve details from Freshservice."
+        int, "The unique display ID of the asset you want to retrieve information for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-asset'."]:
-    """Retrieve details of a specific asset by ID.
+    """Retrieve detailed information about a specific asset.
 
-    This tool is used to obtain detailed information about a specific asset using its display ID in Freshservice."""  # noqa: E501
+    Use this tool to get detailed information about a specific asset in the Freshservice system using its display ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}".format(
@@ -773,7 +1943,7 @@ async def get_asset_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -781,17 +1951,133 @@ async def get_asset_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_asset(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_existing_asset(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    asset_display_id: Annotated[
+        int | None,
+        "The unique display ID of the asset to be updated in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-asset'."]:
+    """Update the details of an existing asset in Freshservice.
+
+    Use this tool to modify the information of an existing asset by its display ID in Freshservice.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEEXISTINGASSET"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not asset_display_id:
+        missing_params.append(("asset_display_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGASSET"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGASSET"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            display_id=asset_display_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEEXISTINGASSET"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def remove_asset_type(
     context: ToolContext,
     asset_display_id: Annotated[
-        int,
-        "The unique integer identifier of the asset to be deleted. Required to specify which asset to remove from Freshservice.",  # noqa: E501
+        int, "The unique integer identifier of the asset type to be deleted in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-asset'."]:
-    """Delete an existing asset in Freshservice.
+    """Delete an existing asset type in Freshservice.
 
-    Use this tool to remove an asset from the Freshservice platform when it is no longer needed or is being decommissioned."""  # noqa: E501
+    Use this tool to delete an asset type by providing its display ID. Call this tool when you need to remove an asset from the Freshservice system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}".format(
@@ -801,7 +2087,7 @@ async def delete_asset(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -809,17 +2095,18 @@ async def delete_asset(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_installed_software(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_installed_software_list(
     context: ToolContext,
     device_display_id: Annotated[
-        int,
-        "The unique integer identifier for the device whose installed software applications are to be retrieved.",  # noqa: E501
+        int, "The unique integer identifier for the device to fetch the software list."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-applications'."]:
     """Retrieve all software installed on a specific device.
 
-    Use this tool to get a comprehensive list of all software applications installed on a device identified by its display ID. Useful for inventory management or system audits."""  # noqa: E501
+    Use this tool to obtain a comprehensive list of software applications installed on a particular device by its display ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/applications".format(
@@ -829,7 +2116,7 @@ async def list_installed_software(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -837,16 +2124,19 @@ async def list_installed_software(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_asset_requests(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_asset_requests(
     context: ToolContext,
     asset_display_id: Annotated[
-        int, "The display ID of the asset for which to retrieve associated requests."
+        int,
+        "The unique display ID of the asset for which to retrieve requests. This should be an integer.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-requests'."]:
-    """Retrieve all requests linked to a specific asset.
+    """Retrieve requests linked to a specific asset.
 
-    Use this tool to get a comprehensive list of requests associated with a particular asset by providing its display ID."""  # noqa: E501
+    Use this tool to get a list of all requests associated with a specific asset by its display ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/requests".format(
@@ -856,7 +2146,7 @@ async def list_asset_requests(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -864,16 +2154,18 @@ async def list_asset_requests(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_asset_contracts(
     context: ToolContext,
     asset_display_id: Annotated[
-        int, "The unique display ID of the asset to retrieve contracts for."
+        int, "The unique integer ID of the asset to retrieve associated contracts for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-contracts'."]:
-    """Retrieve all contracts linked to a specific asset.
+    """Retrieve contracts linked to a specific asset.
 
-    This tool calls the Freshservice API to retrieve a list of contracts that are linked to a specified asset. It should be used whenever detailed information about asset contracts is needed."""  # noqa: E501
+    Use this tool to obtain all contracts associated with a particular asset identified by its display ID. Ideal for managing asset-related agreements and tracking contract details."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/contracts".format(
@@ -883,7 +2175,7 @@ async def get_asset_contracts(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -891,16 +2183,19 @@ async def get_asset_contracts(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_device_components(
     context: ToolContext,
     device_display_id: Annotated[
-        int, "The integer ID of the device whose components you want to list."
+        int,
+        "The unique display ID of the device whose components are to be listed. It must be an integer value.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-asset-components'."]:
-    """Retrieve all components of a specified device.
+    """Retrieve all components of a specific device.
 
-    Use this tool to get a comprehensive list of components for a specific device by its display ID. This is useful for inventory tracking, device management, or component verification."""  # noqa: E501
+    This tool retrieves a list of all components associated with a specified device by its display ID. Use this to gain detailed insights into the individual parts of a device."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/components".format(
@@ -910,7 +2205,7 @@ async def get_device_components(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -918,7 +2213,7 @@ async def get_device_components(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def add_asset_component(
     context: ToolContext,
     asset_display_id: Annotated[
@@ -928,7 +2223,9 @@ async def add_asset_component(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-asset-component'."]:
     """Add a new component to an existing asset.
 
-    Use this tool to add a new component to a specific asset in the Freshservice system. This is useful for updating asset details by appending components."""  # noqa: E501
+    Use this tool to add a new component for a specific asset in Freshservice. It should be called when you need to track additional components associated with an asset."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/components".format(
@@ -938,7 +2235,7 @@ async def add_asset_component(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -946,30 +2243,34 @@ async def add_asset_component(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def update_asset_component(
     context: ToolContext,
     asset_display_id: Annotated[
-        int, "The numeric identifier of the asset to be updated in Freshservice."
+        int,
+        "The unique display ID of the asset where the component is being updated. This is required to identify the specific asset in Freshservice.",  # noqa: E501
     ],
-    component_identifier: Annotated[
-        int, "The unique identifier of the component to be updated, as an integer."
+    component_id: Annotated[
+        int,
+        "The unique identifier for the component to update within the asset. This should be an integer representing the component's ID.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-asset-component'."]:
-    """Update a component in an asset.
+    """Update a specific component within an asset.
 
-    This tool updates a specific component within an asset in Freshservice. Call this tool when you need to modify details of a component associated with an asset."""  # noqa: E501
+    This tool updates a specified component within an asset in Freshservice. Use it to modify details of an existing component in an asset by providing the asset's display ID and the component's ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/components/{component_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             display_id=asset_display_id,
-            component_id=component_identifier,
+            component_id=component_id,
         ),
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -977,21 +2278,20 @@ async def update_asset_component(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_asset_component(
     context: ToolContext,
     asset_display_id: Annotated[
         int,
-        "The display ID of the asset from which the component will be deleted. This ID uniquely identifies the asset in the Freshservice system.",  # noqa: E501
+        "The unique identifier for the asset from which the component will be deleted. This must be an integer.",  # noqa: E501
     ],
-    component_id: Annotated[
-        int,
-        "The unique identifier of the component to be deleted. This is required to specify which component will be removed from the asset.",  # noqa: E501
-    ],
+    component_id: Annotated[int, "The unique identifier of the component to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-asset-component'."]:
-    """Delete a specific component from an asset.
+    """Delete a specific component from an asset in Freshservice.
 
-    This tool deletes an existing component from an asset using the asset's display ID and the component's ID. It should be called when there's a need to remove a component from an asset in the Freshservice system."""  # noqa: E501
+    Use this tool to delete a specific component from an asset using Freshservice. It requires the asset's display ID and the component ID to successfully process the deletion request."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/components/{component_id}".format(
@@ -1002,7 +2302,7 @@ async def delete_asset_component(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1010,28 +2310,31 @@ async def delete_asset_component(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_software_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_software_applications(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Number of software entries to retrieve per page for pagination."
+        int | None, "Specify the number of software application entries to retrieve per page."
     ] = 10,
-    page_number: Annotated[
-        int | None, "The page number of the software list to retrieve. Used for pagination."
+    page_number_to_retrieve: Annotated[
+        int | None,
+        "The specific page number of the software list to retrieve from Freshservice. Useful for navigating large lists.",  # noqa: E501
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-applications'."]:
-    """Retrieve all software applications in Freshservice.
+    """Retrieve a list of software applications from Freshservice.
 
-    Use this tool to get a complete list of software applications managed in Freshservice. It accesses the Freshservice API to provide detailed information about all registered software."""  # noqa: E501
+    Use this tool to get a comprehensive list of all software applications available in Freshservice. This can be helpful for inventory management or IT support inquiries."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/applications".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1039,27 +2342,27 @@ async def get_software_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_software_application(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_specific_software(
     context: ToolContext,
-    application_id: Annotated[
+    software_application_id: Annotated[
         int,
-        "The unique identifier for the specific software application in Freshservice to be retrieved. It must be an integer.",  # noqa: E501
+        "The unique integer identifier for the software application in Freshservice that you want to retrieve.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-application'."]:
-    """Retrieve a specific software application from Freshservice.
-
-    Use this tool to get detailed information about a specific software application by providing the application ID. Ideal for accessing software details and managing applications within Freshservice."""  # noqa: E501
+    """Fetch details of a specific software application from Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/applications/{application_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            application_id=application_id,
+            application_id=software_application_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1067,16 +2370,18 @@ async def retrieve_software_application(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_software_installation_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_application_installations(
     context: ToolContext,
     software_application_id: Annotated[
-        int, "The unique identifier of the software application to fetch the installation list."
+        int, "The unique identifier for the software application to get installation details."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-application-installations'."]:
-    """Retrieve a list of devices where specified software is installed.
+    """Retrieve all devices with a specific software installed.
 
-    Use this tool to get a list of all devices with a particular software application installed by providing the application ID."""  # noqa: E501
+    This tool fetches a list of devices where a specified software application is installed. It should be called when you need to determine which devices have a certain software application installed by providing the application ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/applications/{application_id}/installations".format(
@@ -1086,7 +2391,7 @@ async def get_software_installation_list(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1094,17 +2399,18 @@ async def get_software_installation_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_application_licenses(
     context: ToolContext,
     application_id: Annotated[
-        int,
-        "The unique identifier for the software application to retrieve licenses for. Provide as an integer.",  # noqa: E501
+        int, "The unique identifier for the software application to retrieve associated licenses."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-application-licenses'."]:
-    """Retrieve licenses linked to a specific software application.
+    """Retrieve licenses for a specified software application.
 
-    Use this tool to get a list of all licenses associated with a specific application by providing the application ID."""  # noqa: E501
+    Use this tool to get a list of all licenses linked to a particular software application within Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/applications/{application_id}/licenses".format(
@@ -1114,7 +2420,7 @@ async def get_application_licenses(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1122,23 +2428,22 @@ async def get_application_licenses(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_all_csat_surveys(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_csat_surveys(
     context: ToolContext,
-    filter_active_surveys: Annotated[
-        int | None, "Filter surveys by activity status. Use 1 for active and 0 for inactive."
-    ] = None,
     entries_per_page: Annotated[
-        int | None,
-        "The number of entries to retrieve per page in a paginated list. Specify an integer value.",
+        int | None, "The number of survey entries to retrieve per page in a paginated response."
     ] = 10,
-    survey_page_number: Annotated[
-        int | None, "The page number of CSAT surveys to retrieve for pagination."
+    filter_active_surveys: Annotated[
+        int | None, "Set to 1 to list active surveys or 0 for inactive surveys."
+    ] = None,
+    page_number_to_retrieve: Annotated[
+        int | None, "Specify the page number of the CSAT surveys to retrieve."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-surveys'."]:
-    """Retrieve a list of all CSAT surveys in Freshservice.
-
-    Use this tool to obtain a list of all Customer Satisfaction (CSAT) surveys available in Freshservice. This can be useful for analyzing survey data or managing customer feedback efforts."""  # noqa: E501
+    """Retrieve a list of all CSAT Surveys in Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys".format(
@@ -1148,10 +2453,10 @@ async def get_all_csat_surveys(
         params=remove_none_values({
             "active": filter_active_surveys,
             "per_page": entries_per_page,
-            "page": survey_page_number,
+            "page": page_number_to_retrieve,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1159,17 +2464,109 @@ async def get_all_csat_surveys(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_csat_survey(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_csat_survey(
     context: ToolContext,
-    csat_survey_id: Annotated[
-        int,
-        "The ID of the CSAT survey to retrieve from Freshservice. It should be an integer value.",
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-survey'."]:
-    """Retrieve a CSAT survey by its ID from Freshservice.
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-survey'."]:
+    """Create a new CSAT survey in Freshservice.
 
-    Use this tool to get detailed information about a specific CSAT survey in Freshservice by providing the survey ID."""  # noqa: E501
+    This tool is used to create a new Customer Satisfaction (CSAT) survey in Freshservice. Call this tool when you need to set up a survey to gather customer feedback.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATECSATSURVEY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECSATSURVEY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECSATSURVEY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATECSATSURVEY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_csat_survey(
+    context: ToolContext,
+    csat_survey_id: Annotated[int, "ID of the CSAT survey to retrieve from Freshservice."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-survey'."]:
+    """Retrieve a CSAT survey by ID from Freshservice.
+
+    Use this tool to fetch detailed information about a Customer Satisfaction (CSAT) survey from Freshservice by providing the survey ID. Ideal for accessing survey feedback and metrics."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys/{survey_id}".format(
@@ -1179,7 +2576,7 @@ async def get_csat_survey(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1187,16 +2584,133 @@ async def get_csat_survey(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_csat_survey(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    survey_id: Annotated[
+        int | None,
+        "The unique ID of the CSAT Survey to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-survey'."]:
+    """Update an existing CSAT Survey in Freshservice.
+
+    Use this tool to modify and update the content or settings of an existing CSAT Survey in Freshservice.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECSATSURVEY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not survey_id:
+        missing_params.append(("survey_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECSATSURVEY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECSATSURVEY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys/{survey_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), survey_id=survey_id
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATECSATSURVEY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_survey(
     context: ToolContext,
     survey_id_to_delete: Annotated[
-        int, "The ID of the survey you wish to delete from Freshservice."
+        int,
+        "The ID of the survey you wish to delete from Freshservice, including all underlying responses.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-survey'."]:
     """Delete a survey and its responses from Freshservice.
 
-    Use this tool to delete a specific survey and all its associated responses from Freshservice by providing the survey ID."""  # noqa: E501
+    Use this tool to delete a specific survey from Freshservice by providing the survey ID. This action will remove the survey along with all its underlying responses."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys/{survey_id}".format(
@@ -1206,7 +2720,7 @@ async def delete_survey(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1214,14 +2728,18 @@ async def delete_survey(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def activate_csat_survey(
     context: ToolContext,
-    csat_survey_id: Annotated[int, "The ID of the CSAT survey to activate in Freshservice."],
+    csat_survey_id: Annotated[
+        int, "The integer ID of the CSAT survey to activate in Freshservice."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'activate-survey'."]:
-    """Activate a CSAT survey in Freshservice using its ID.
+    """Activates a CSAT Survey by its ID in Freshservice.
 
-    Use this tool to activate the Customer Satisfaction (CSAT) Survey in Freshservice by providing the survey ID."""  # noqa: E501
+    Use this tool to activate a Customer Satisfaction (CSAT) Survey in Freshservice by providing the survey's ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys/{survey_id}/activate".format(
@@ -1231,7 +2749,7 @@ async def activate_csat_survey(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1239,14 +2757,16 @@ async def activate_csat_survey(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def deactivate_csat_survey(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def deactivate_freshservice_survey(
     context: ToolContext,
-    survey_id: Annotated[int, "The ID of the CSAT survey you wish to deactivate in Freshservice."],
+    survey_id: Annotated[int, "The integer ID of the CSAT survey to deactivate in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'deactivate-survey'."]:
-    """Deactivate a specified CSAT Survey in Freshservice.
+    """Deactivate a CSAT survey in Freshservice using its ID.
 
-    Use this tool to deactivate a CSAT Survey by its ID in Freshservice. It should be called when you need to disable a survey to stop collecting responses."""  # noqa: E501
+    Use this tool to deactivate a Customer Satisfaction (CSAT) survey in Freshservice by providing the survey's ID. This is helpful when a survey is no longer needed or should not be sent to customers."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/surveys/{survey_id}/deactivate".format(
@@ -1255,7 +2775,7 @@ async def deactivate_csat_survey(
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1263,24 +2783,28 @@ async def deactivate_csat_survey(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def view_service_item(
     context: ToolContext,
-    service_item_id: Annotated[int, "The ID of the service item you want to retrieve."],
+    service_item_identifier: Annotated[
+        int, "The ID of the service item you want to retrieve from Freshservice."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-service-item'."]:
-    """Retrieve details of a specific service item.
+    """View a service item's details using its ID.
 
-    This tool is used to fetch and view details of a specific service item from Freshservice by providing its ID. It should be called when users need information about a particular service-related entry."""  # noqa: E501
+    Use this tool to retrieve and view details of a specific service item by providing its ID. Call this tool when you need information about a service item from Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/service_items/{service_item_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            service_item_id=service_item_id,
+            service_item_id=service_item_identifier,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1288,26 +2812,31 @@ async def view_service_item(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_service_items_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_service_items(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "The number of service items to retrieve per page in a paginated list."
+        int | None,
+        "Specifies the number of entries to retrieve in each page of the service items list.",
     ] = 10,
-    page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve for paginated service items."
+    page_number: Annotated[
+        int | None, "The page number to retrieve from the list of service items."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-service-items'."]:
-    """Retrieve a list of all Service Items in Freshservice."""
+    """Retrieve a list of all service items in Freshservice.
+
+    Use this tool to get a complete list of service items available in your Freshservice account. It should be called when you need detailed information about the service items."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/service_items".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1315,17 +2844,18 @@ async def get_service_items_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_catalog_item_fields(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_service_item_fields(
     context: ToolContext,
     service_item_id: Annotated[
-        int,
-        "The ID of the service item to retrieve. Use an integer value representing the specific catalog item.",  # noqa: E501
+        int, "The integer ID of the service item to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-catalog-item-fields'."]:
-    """Retrieve all fields for a specific service catalog item.
+    """Retrieve all fields of a specified service item in Freshservice.
 
-    Use this tool to get detailed information about all fields associated with a particular service catalog item in Freshservice. It should be called when you need to understand the structure and content of a service item."""  # noqa: E501
+    This tool retrieves detailed information about all the fields of a specified service item from Freshservice, using the service item's ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/catalog/item/{service_item_id}/fields".format(
@@ -1335,7 +2865,7 @@ async def get_catalog_item_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1343,26 +2873,189 @@ async def get_catalog_item_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_service_request_in_freshservice(
+    context: ToolContext,
+    item_id: Annotated[int, "The unique identifier for the item to be requested in Freshservice."],
+    requester_email: Annotated[
+        str,
+        "The email address of the requester submitting the service request. If not provided, the request is created on behalf of the authenticated agent.",  # noqa: E501
+    ],
+    custom_fields_data: Annotated[
+        dict[str, str] | None,
+        "JSON object containing custom fields associated with the Freshservice entity. Use proper key-value pairs relevant to the request.",  # noqa: E501
+    ] = None,
+    item_quantity: Annotated[
+        int | None, "The number of units of the item needed by the requester. Default is 1."
+    ] = None,
+    user_requested_email: Annotated[
+        str | None, "Email ID of the user for whom the service is requested."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-service-request'."]:
+    """Create a service request in Freshservice.
+
+    This tool is used to submit a new service request in Freshservice. Call this tool when you need to create or initiate a service request in the Freshservice platform."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": item_id,
+        "quantity": item_quantity,
+        "requester_email": requester_email,
+        "requested_for_email": user_requested_email,
+        "custom_fields": custom_fields_data,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/service_requests".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_service_request(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    service_request_id: Annotated[
+        int | None,
+        "The unique integer ID of the service request that needs to be updated in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-service-request'."]:
+    """Update an existing service request in Freshservice.
+
+    Use this tool to update details of an existing service request in Freshservice when changes are needed.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATESERVICEREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not service_request_id:
+        missing_params.append(("service_request_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESERVICEREQUEST"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESERVICEREQUEST"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/service_requests/{service_request_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            service_request_id=service_request_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATESERVICEREQUEST"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_solution_articles(
     context: ToolContext,
-    entries_per_page: Annotated[
+    category_identifier: Annotated[
         int | None,
-        "Specify the number of solution articles to retrieve per page in the paginated results.",
+        "The unique identifier for the category whose solution articles need to be retrieved.",
+    ] = None,
+    entries_per_page: Annotated[
+        int | None, "The number of solution articles to retrieve per page for pagination."
     ] = 30,
+    folder_id: Annotated[
+        int | None, "The ID of the folder whose solution articles need to be retrieved."
+    ] = None,
     page_number: Annotated[
-        int | None, "The page number of the solution articles to retrieve from Freshservice."
+        int | None, "The specific page number of the solution articles to retrieve."
     ] = 1,
-    folder_identifier: Annotated[
-        int | None, "The numeric ID of the folder to list solution articles from."
-    ] = None,
-    solution_category_id: Annotated[
-        int | None, "Specify the ID of the category whose solution articles are to be retrieved."
-    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-solution-article'."]:
-    """Retrieve a list of Solution articles from Freshservice.
+    """Retrieve all Solution articles from Freshservice.
 
-    Use this tool to get a comprehensive list of all Solution articles available in Freshservice."""
+    This tool is used to gather a complete list of Solution articles available in Freshservice. It should be called when you need to access or display the entire collection of articles."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles".format(
@@ -1372,11 +3065,11 @@ async def get_solution_articles(
         params=remove_none_values({
             "per_page": entries_per_page,
             "page": page_number,
-            "folder_id": folder_identifier,
-            "category_id": solution_category_id,
+            "folder_id": folder_id,
+            "category_id": category_identifier,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1384,16 +3077,111 @@ async def get_solution_articles(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_solution_article(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-solution-article'."]:
+    """Create a new solution article in Freshservice.
+
+    Use this tool to add a new solution article to Freshservice. Call this tool when you need to document solutions or FAQs within the Freshservice platform.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATESOLUTIONARTICLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATESOLUTIONARTICLE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATESOLUTIONARTICLE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATESOLUTIONARTICLE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def view_solution_article(
     context: ToolContext,
     solution_article_id: Annotated[
-        int, "The unique integer ID of the solution article to retrieve."
+        int, "The unique ID of the solution article to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-solution-article'."]:
-    """Retrieve details of a Freshservice solution article.
+    """Retrieve details of a solution article by ID in Freshservice.
 
-    Use this tool to get information about a specific solution article from Freshservice, identified by its article ID."""  # noqa: E501
+    Use this tool to view detailed information of a specific solution article in Freshservice. Provide the article ID to retrieve the content and metadata of the article."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles/{article_id}".format(
@@ -1403,7 +3191,7 @@ async def view_solution_article(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1411,16 +3199,131 @@ async def view_solution_article(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_solution_article(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    solution_article_id: Annotated[
+        int | None,
+        "The ID of the Freshservice solution article to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-solution-article'."]:
+    """Update a Freshservice solution article by ID.
+
+    This tool updates a solution article in Freshservice using the provided article ID. It should be called when you need to modify the details of an existing solution article.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATESOLUTIONARTICLE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not solution_article_id:
+        missing_params.append(("solution_article_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESOLUTIONARTICLE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESOLUTIONARTICLE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles/{article_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            article_id=solution_article_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATESOLUTIONARTICLE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_solution_article(
     context: ToolContext,
-    solution_article_id: Annotated[
-        int, "ID of the solution article to be deleted from Freshservice."
-    ],
+    solution_article_id: Annotated[int, "ID of the solution article to delete from Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-solution-article'."]:
-    """Delete a solution article from Freshservice by ID.
+    """Delete a specific solution article from Freshservice.
 
-    Use this tool to delete a specified solution article in Freshservice by providing its ID. It's useful for managing and maintaining the solution knowledge base."""  # noqa: E501
+    Use this tool to delete a solution article in Freshservice by providing its ID. This can be useful for managing outdated or incorrect articles within the service."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles/{article_id}".format(
@@ -1430,7 +3333,7 @@ async def delete_solution_article(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1438,22 +3341,25 @@ async def delete_solution_article(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_solution_folders(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_solution_folders(
     context: ToolContext,
-    solution_category_id: Annotated[
-        int | None, "ID of the solution category where the folders reside."
-    ] = None,
-    per_page_count: Annotated[
-        int | None, "Specifies the number of solution folders to retrieve per page for pagination."
+    entries_per_page: Annotated[
+        int | None, "The number of solution folder entries to retrieve per page."
     ] = 30,
-    page_number_to_retrieve: Annotated[
-        int | None, "Specify the page number to retrieve from the paginated solution folders list."
+    pagination_page_number: Annotated[
+        int | None, "Specify the page number to retrieve in a paginated list of solution folders."
     ] = 1,
+    solution_category_id: Annotated[
+        int | None,
+        "ID of the solution category where the folders reside. This specifies which category's folders to retrieve.",  # noqa: E501
+    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-solution-folders'."]:
-    """Retrieve all Solution Folders from Freshservice.
+    """Retrieve all solution folders from Freshservice.
 
-    Use this tool to fetch a comprehensive list of all the Solution Folders within Freshservice."""
+    Use this tool to get a list of all solution folders available in Freshservice. Useful for organizing or managing solution articles."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders".format(
@@ -1462,11 +3368,11 @@ async def list_solution_folders(
         method="GET",
         params=remove_none_values({
             "category_id": solution_category_id,
-            "per_page": per_page_count,
-            "page": page_number_to_retrieve,
+            "per_page": entries_per_page,
+            "page": pagination_page_number,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1474,14 +3380,111 @@ async def list_solution_folders(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_solution_folder(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-solution-folder'."]:
+    """Create a new solution folder in Freshservice.
+
+    Use this tool to create a new solution folder in Freshservice, helping organize solutions efficiently.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATESOLUTIONFOLDER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATESOLUTIONFOLDER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATESOLUTIONFOLDER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATESOLUTIONFOLDER"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def view_solution_folder(
     context: ToolContext,
-    solution_folder_id: Annotated[int, "The unique ID of the solution folder to retrieve details."],
+    solution_folder_id: Annotated[
+        int, "Provide the integer ID of the solution folder you wish to view in Freshservice."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-solution-folder'."]:
-    """Retrieve details of a specific solution folder.
+    """Retrieve details of a specific solution folder in Freshservice.
 
-    Use this tool to obtain information about a particular solution folder by specifying its folder ID within the Freshservice platform."""  # noqa: E501
+    Use this tool to obtain information about a specific solution folder within Freshservice by providing the folder ID. It returns detailed data about the folder, which can be useful for managing and organizing IT solutions."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders/{folder_id}".format(
@@ -1491,7 +3494,7 @@ async def view_solution_folder(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1499,16 +3502,131 @@ async def view_solution_folder(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_solution_folder(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    solution_folder_id: Annotated[
+        int | None,
+        "ID of the solution folder to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-solution-folder'."]:
+    """Update a solution folder in Freshservice by ID.
+
+    Use this tool to update a specific solution folder in Freshservice by providing the folder ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATESOLUTIONFOLDER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not solution_folder_id:
+        missing_params.append(("solution_folder_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESOLUTIONFOLDER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESOLUTIONFOLDER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders/{folder_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            folder_id=solution_folder_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATESOLUTIONFOLDER"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_solution_folder(
     context: ToolContext,
-    solution_folder_id: Annotated[
-        int, "ID of the solution folder to be deleted from Freshservice."
-    ],
+    solution_folder_id: Annotated[int, "ID of the solution folder to delete from Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-solution-folder'."]:
-    """Delete a solution folder in Freshservice.
+    """Delete a solution folder from Freshservice.
 
-    Use this tool to delete a solution folder from Freshservice by specifying its ID."""
+    Use this tool to delete a solution folder by its ID in Freshservice when cleanup or reorganization is needed."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders/{folder_id}".format(
@@ -1518,7 +3636,7 @@ async def delete_solution_folder(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1526,17 +3644,19 @@ async def delete_solution_folder(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_solution_categories(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "The number of entries to retrieve per page in the paginated list."
+        int | None, "Specify the number of entries to retrieve per page in a paginated list."
     ] = 30,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve in the paginated list of solution categories."
+        int | None, "The page number of solution categories to retrieve from Freshservice."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-solution-category'."]:
     """Retrieve a list of all solution categories in Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories".format(
@@ -1545,7 +3665,7 @@ async def get_solution_categories(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1553,14 +3673,67 @@ async def get_solution_categories(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_solution_category(
+    context: ToolContext,
+    solution_category_name: Annotated[
+        str,
+        "The desired name for the new solution category to be created in Freshservice. It should be descriptive and unique.",  # noqa: E501
+    ],
+    is_default_category: Annotated[
+        bool | None,
+        "Set to true if the category is a default one shipped with the product; such categories cannot have folders added or be renamed or deleted.",  # noqa: E501
+    ] = None,
+    solution_category_description: Annotated[
+        str | None, "Provide a description for the solution category."
+    ] = None,
+    solution_category_id: Annotated[
+        int | None, "The unique identifier for the solution category to be created in Freshservice."
+    ] = None,
+    solution_category_position: Annotated[
+        int | None,
+        "The position to display the solution category in Freshservice's category listing.",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-solution-category'."]:
+    """Create a new solution category in Freshservice.
+
+    This tool is used to create a new solution category in Freshservice. It should be called when you need to organize solutions by adding a new category in the Freshservice platform."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": solution_category_id,
+        "name": solution_category_name,
+        "description": solution_category_description,
+        "position": solution_category_position,
+        "default_category": is_default_category,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def view_solution_category(
     context: ToolContext,
-    solution_category_id: Annotated[int, "ID of the solution category to retrieve details for."],
+    solution_category_id: Annotated[
+        int, "The unique ID of the solution category to retrieve details for."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-solution-category'."]:
     """Retrieve details of a specific solution category.
 
-    Use this tool to fetch and view information about a specific solution category by its ID in the Freshservice system."""  # noqa: E501
+    Use this tool to view and retrieve details about a specific solution category using its ID."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories/{category_id}".format(
@@ -1570,7 +3743,7 @@ async def view_solution_category(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1578,16 +3751,71 @@ async def view_solution_category(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_solution_category(
+    context: ToolContext,
+    solution_category_id: Annotated[
+        int, "The ID of the solution category to be updated in Freshservice."
+    ],
+    category_unique_id: Annotated[
+        int | None, "Unique identifier of the solution category to update. It must be an integer."
+    ] = None,
+    is_default_category: Annotated[
+        bool | None,
+        "Indicates if the solution category is a default one, which restricts modifications like adding folders, deletion, or renaming.",  # noqa: E501
+    ] = None,
+    solution_category_description: Annotated[
+        str | None,
+        "Provide a description for the solution category being updated. This should be a brief textual summary.",  # noqa: E501
+    ] = None,
+    solution_category_name: Annotated[
+        str | None, "The new name for the solution category to be updated."
+    ] = None,
+    solution_category_position: Annotated[
+        int | None,
+        "The position of the solution category in the category listing. Determines the order when there are multiple categories.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-solution-category'."]:
+    """Update a solution category in Freshservice by ID.
+
+    Use this tool to update a specific solution category in Freshservice by providing the category ID."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": category_unique_id,
+        "name": solution_category_name,
+        "description": solution_category_description,
+        "position": solution_category_position,
+        "default_category": is_default_category,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories/{category_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            category_id=solution_category_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_solution_category(
     context: ToolContext,
     solution_category_id: Annotated[
-        int, "The unique ID of the solution category to be deleted from Freshservice."
+        int, "ID of the solution category to delete from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-solution-category'."]:
-    """Delete a solution category by its ID from Freshservice.
+    """Delete a solution category in Freshservice by ID.
 
-    Use this tool to delete a solution category in Freshservice using its unique category ID. This tool ensures that the specified category is permanently removed from the system."""  # noqa: E501
+    Use this tool to delete a specific solution category from Freshservice using the category ID. This is useful when you need to remove outdated or incorrect categories from your knowledge base."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/categories/{category_id}".format(
@@ -1597,7 +3825,7 @@ async def delete_solution_category(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1605,37 +3833,40 @@ async def delete_solution_category(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_all_freshservice_requesters(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_all_requesters(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Number of entries to retrieve in each page of the paginated list."
+        int | None, "The number of requesters to retrieve per page in the list."
     ] = 10,
-    page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve from the list of Freshservice requesters."
-    ] = 1,
-    requester_email: Annotated[
-        str | None, "The email address to find the corresponding requester."
-    ] = None,
     filter_by_mobile_phone_number: Annotated[
-        str | None, "Filter requesters by their mobile phone number to return matching entries."
+        str | None, "The mobile phone number to filter and list corresponding requesters."
     ] = None,
-    work_phone_number_for_requesters: Annotated[
+    filter_by_work_phone_number: Annotated[
         str | None,
-        "The work phone number to filter requesters with that specific number in Freshservice.",
+        "The work phone number to filter requesters by. Returns requesters matching the specified work phone number.",  # noqa: E501
     ] = None,
-    query_filter: Annotated[
-        str | None,
-        "URL-encoded query filter to apply to the list of requesters. Supports first_name, last_name, job_title, primary_email, and more.",  # noqa: E501
-    ] = None,
-    filter_active_accounts: Annotated[
+    list_active_user_accounts: Annotated[
         bool | None,
-        "Include only active user accounts if true. If false, include only deactivated accounts. Leaving unspecified returns both.",  # noqa: E501
+        "Set to true to list only active user accounts. If false or not set, both active and deactivated accounts are returned.",  # noqa: E501
     ] = None,
+    requester_email: Annotated[
+        str | None,
+        "The email address to list the corresponding requester. Use this to filter results to a specific requester by email.",  # noqa: E501
+    ] = None,
+    requester_filter_query: Annotated[
+        str | None,
+        "A URL-encoded string to filter the list of requesters. Use parameters like first_name, job_title, etc. Example: \"job_title:'HR Manager' AND created_at:>'2018-08-10'\".",  # noqa: E501
+    ] = None,
+    retrieve_page_number: Annotated[
+        int | None, "Specify the page number to retrieve in the list of requesters."
+    ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-requesters'."]:
     """Retrieve a list of all requesters in Freshservice.
 
-    Use this tool to get a comprehensive list of all requesters from the Freshservice platform, suitable for managing or reviewing requester information."""  # noqa: E501
+    Call this tool to get a comprehensive list of all requesters from the Freshservice platform."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters".format(
@@ -1644,15 +3875,15 @@ async def get_all_freshservice_requesters(
         method="GET",
         params=remove_none_values({
             "per_page": entries_per_page,
-            "page": page_number_to_retrieve,
+            "page": retrieve_page_number,
             "email": requester_email,
             "mobile_phone_number": filter_by_mobile_phone_number,
-            "work_phone_number": work_phone_number_for_requesters,
-            "active": filter_active_accounts,
-            "query": query_filter,
+            "work_phone_number": filter_by_work_phone_number,
+            "active": list_active_user_accounts,
+            "query": requester_filter_query,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1660,16 +3891,111 @@ async def get_all_freshservice_requesters(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_freshservice_requester(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_requester(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-requester'."]:
+    """Create a new requester in Freshservice.
+
+    Use this tool to add a new requester to Freshservice whenever you need to register someone in the system.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATENEWREQUESTER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWREQUESTER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWREQUESTER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATENEWREQUESTER"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_requester_info(
     context: ToolContext,
     requester_id: Annotated[
-        int, "The unique integer ID of the requester to retrieve from Freshservice."
+        int, "Integer representing the ID of the requester to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-requester'."]:
-    """Retrieve a requester by ID from Freshservice.
+    """Retrieve requester details using their ID from Freshservice.
 
-    This tool is used to obtain information about a specific requester in Freshservice using their unique ID. Call this tool when you need details about a requester such as their profile or contact information."""  # noqa: E501
+    Use this tool to get detailed information about a requester by providing their ID through Freshservice's API."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}".format(
@@ -1679,7 +4005,7 @@ async def get_freshservice_requester(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1687,26 +4013,144 @@ async def get_freshservice_requester(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_requester_from_freshservice(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_requester_in_freshservice(
     context: ToolContext,
-    requester_id_to_delete: Annotated[
-        int, "The ID of the requester to be deleted from Freshservice. This should be an integer."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    requester_id_to_update: Annotated[
+        int | None,
+        "The unique integer ID of the requester to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-requester'."]:
+    """Update an existing requester in Freshservice.
+
+    Use this tool to modify details of an existing requester in Freshservice by specifying their unique ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEREQUESTERINFRESHSERVICE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not requester_id_to_update:
+        missing_params.append(("requester_id_to_update", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEREQUESTERINFRESHSERVICE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEREQUESTERINFRESHSERVICE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            requester_id=requester_id_to_update,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEREQUESTERINFRESHSERVICE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_requester(
+    context: ToolContext,
+    requester_id: Annotated[
+        int,
+        "The unique ID of the requester to be deleted from Freshservice. This ID should be an integer and is required to identify which requester needs to be removed.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-requester'."]:
-    """Delete a requester by ID from Freshservice.
+    """Delete a requester from Freshservice by ID.
 
-    Use this tool to delete a specific requester from Freshservice by providing their ID."""
+    Use this tool to remove a requester from Freshservice using their unique ID. It should be called when a requester needs to be permanently deleted from the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            requester_id=requester_id_to_delete,
+            requester_id=requester_id,
         ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1714,16 +4158,18 @@ async def delete_requester_from_freshservice(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_requester_and_tickets(
     context: ToolContext,
     requester_id_to_delete: Annotated[
         int, "The ID of the requester to permanently delete along with their tickets."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'forget-requester'."]:
-    """Permanently delete a requester and their tickets.
+    """Permanently delete a requester and their tickets in Freshservice.
 
-    Use this tool to permanently delete a requester and all the tickets they have requested in Freshservice when such removal is necessary."""  # noqa: E501
+    This tool is used to permanently remove a requester and all of their associated tickets from Freshservice. It should be called when you need to completely erase a requester's data, including all their ticket history."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}/forget".format(
@@ -1733,7 +4179,7 @@ async def delete_requester_and_tickets(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1741,26 +4187,28 @@ async def delete_requester_and_tickets(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def convert_requester_to_agent(
     context: ToolContext,
-    requester_identifier: Annotated[
-        int, "The integer ID of the requester to convert into an occasional agent."
+    requester_id_to_convert: Annotated[
+        int, "The numeric ID of the requester to be converted into an agent."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'convert-requester-to-agent'."]:
-    """Convert a requester into an occasional agent.
+    """Convert a requester to an agent in Freshservice.
 
-    This tool is used to convert a Freshservice requester into an occasional agent, assigning them the SD Agent role with no group memberships. Use this when you need to change a requester's role to facilitate agent tasks."""  # noqa: E501
+    Use this tool to convert a Freshservice requester into an occasional agent with the SD Agent role. This action removes any existing group memberships from the requester."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{requester_id}/convert_to_agent".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            requester_id=requester_identifier,
+            requester_id=requester_id_to_convert,
         ),
         method="PUT",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1768,19 +4216,21 @@ async def convert_requester_to_agent(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def merge_requesters(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def merge_secondary_requesters(
     context: ToolContext,
-    secondary_requester_ids: Annotated[
-        list[int], "List of IDs for the secondary requesters to merge into the primary."
-    ],
     primary_requester_id: Annotated[
-        int, "Specify the ID of the primary requester to merge secondary requesters into."
+        int, "The ID of the primary requester to merge other requesters into."
+    ],
+    secondary_requester_ids: Annotated[
+        list[int], "List of IDs of secondary requesters to be merged into the primary requester."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'merge-requester'."]:
     """Merge secondary requesters into a primary requester.
 
-    This tool merges one or more secondary requesters into a specified primary requester. It is useful when consolidating duplicate or related entries under a single master requester. Use this to streamline requester management in Freshservice."""  # noqa: E501
+    Use this tool to combine one or more secondary requester profiles into a primary requester profile, consolidating their information into a single account."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{primary_requester_id}/merge".format(
@@ -1790,7 +4240,7 @@ async def merge_requesters(
         method="PUT",
         params=remove_none_values({"secondary_requesters": secondary_requester_ids}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1798,29 +4248,30 @@ async def merge_requesters(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_requester_fields(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_requester_fields(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None,
-        "The number of entries to retrieve per page in a paginated list for requester fields.",
+        int | None, "Number of requester fields to retrieve per page in the paginated list."
     ] = 10,
-    page_number_to_retrieve: Annotated[
-        int | None, "Specify the page number of requester fields to retrieve from Freshservice."
+    page_number: Annotated[
+        int | None, "The page number to retrieve in a paginated list of requester fields."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-requester-fields'."]:
-    """Retrieve all requester fields from Freshservice.
+    """Retrieve a list of all requester fields in Freshservice.
 
-    Call this tool to obtain a comprehensive list of requester fields available in Freshservice. Useful for understanding the structure and available fields for requesters within the system."""  # noqa: E501
+    Use this tool to obtain a complete list of requester fields in your Freshservice instance."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/requester_fields".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
         method="GET",
-        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1828,43 +4279,42 @@ async def get_requester_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_freshservice_agents(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_freshservice_agents(
     context: ToolContext,
-    entries_per_page: Annotated[
-        int | None,
-        "The number of agent entries to retrieve in each page of a paginated list. Useful for controlling the size of paginated results.",  # noqa: E501
-    ] = 10,
-    page_number_to_retrieve: Annotated[
-        int | None, "The specific page number of the agent list to retrieve."
-    ] = 1,
-    requester_email: Annotated[
+    agent_employment_status: Annotated[
         str | None,
-        "The email address of the requester for which the corresponding agent needs to be listed.",
+        "Specifies if the list should include full-time or occasional agents. Use 'fulltime' or 'occasional'.",  # noqa: E501
     ] = None,
+    entries_per_page: Annotated[
+        int | None, "Specify the number of entries to retrieve per page in the result set."
+    ] = 10,
     filter_by_mobile_phone_number: Annotated[
-        str | None,
-        "Filter agents by a specific mobile phone number to list the corresponding requesters.",
+        str | None, "Filter agents by the given mobile phone number."
     ] = None,
     filter_by_work_phone_number: Annotated[
-        str | None,
-        "Work phone number to filter the list of agents by their corresponding requesters.",
+        str | None, "Filter agents by their work phone number to retrieve corresponding requesters."
     ] = None,
-    agent_type: Annotated[
-        str | None, "Filter agents by employment type: 'fulltime' or 'occasional'."
-    ] = None,
-    agent_query_filter: Annotated[
-        str | None,
-        "URL-encoded string for filtering agents. Supports parameters like first_name, last_name, job_title, email, etc.",  # noqa: E501
-    ] = None,
-    filter_active_users: Annotated[
+    list_active_accounts: Annotated[
         bool | None,
-        "Set to true to list active accounts, false to list deactivated ones, or omit to include both.",  # noqa: E501
+        "List only active user accounts. Use true for active accounts, false for deactivated ones.",
+    ] = None,
+    page_number_to_retrieve: Annotated[
+        int | None, "The specific page number to retrieve in the list of Freshservice agents."
+    ] = 1,
+    query_filter: Annotated[
+        str | None,
+        "A URL-encoded query string to filter agents based on parameters like first_name, job_title, etc. Example: \"job_title:'HR Manager' AND created_at:>'2018-08-10'\".",  # noqa: E501
+    ] = None,
+    requester_email: Annotated[
+        str | None, "The email address to find the corresponding requester agent in Freshservice."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-agents'."]:
-    """Retrieve a list of all Agents in Freshservice.
+    """Retrieve a list of all agents from Freshservice.
 
-    Use this tool to get a comprehensive list of all agents currently active in Freshservice, useful for administrative and reporting purposes."""  # noqa: E501
+    Call this tool to get a comprehensive list of all agents present in your Freshservice account. It will return the agent details necessary for managing or reviewing team configurations."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents".format(
@@ -1877,12 +4327,12 @@ async def get_freshservice_agents(
             "email": requester_email,
             "mobile_phone_number": filter_by_mobile_phone_number,
             "work_phone_number": filter_by_work_phone_number,
-            "state": agent_type,
-            "active": filter_active_users,
-            "query": agent_query_filter,
+            "state": agent_employment_status,
+            "active": list_active_accounts,
+            "query": query_filter,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1890,53 +4340,119 @@ async def get_freshservice_agents(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_freshservice_agent(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_agent(
     context: ToolContext,
-    agent_id: Annotated[
-        int, "The unique integer ID of the Freshservice agent to retrieve details for."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-agent'."]:
+    """Create a new agent in Freshservice.
+
+    This tool allows you to create a new agent in Freshservice. Use it when you need to add a team member to your Freshservice account.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEAGENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEAGENT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEAGENT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEAGENT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_agent_info(
+    context: ToolContext,
+    agent_identifier: Annotated[int, "The unique ID of the agent to retrieve from Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-agent'."]:
     """Retrieve details of a Freshservice agent by ID.
 
-    This tool retrieves the details of a specific agent from Freshservice using their agent ID. It should be called when detailed information about an agent is needed."""  # noqa: E501
-    response = await make_request(
-        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
-        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents/{agent_id}".format(
-            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), agent_id=agent_id
-        ),
-        method="GET",
-        params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def convert_agent_to_requester(
-    context: ToolContext,
-    agent_id_for_conversion: Annotated[
-        int,
-        "The ID of the agent to be converted into a requester. This must be a valid integer representing the agent's ID in Freshservice.",  # noqa: E501
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-agent'."]:
-    """Convert an agent into a requester in Freshservice.
-
-    Use this tool to change the status of an agent by converting them into a requester. This is useful when the agent no longer needs to handle support tickets or requires access to agent-level features."""  # noqa: E501
+    Use this tool to obtain information about a specific agent in Freshservice by providing the agent's ID. It can be called when detailed agent information is needed for administration or support purposes."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents/{agent_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            agent_id=agent_id_for_conversion,
+            agent_id=agent_identifier,
         ),
-        method="DELETE",
+        method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1944,17 +4460,160 @@ async def convert_agent_to_requester(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_existing_agent(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    agent_identifier: Annotated[
+        int | None,
+        "ID of the agent to be updated in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-agent'."]:
+    """Update an existing agent in Freshservice.
+
+    Use this tool to modify details of an existing agent in the Freshservice platform. It's suitable when you need to change agent information such as name, email, or role.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEEXISTINGAGENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not agent_identifier:
+        missing_params.append(("agent_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGAGENT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGAGENT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents/{agent_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            agent_id=agent_identifier,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEEXISTINGAGENT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def convert_agent_to_requester(
+    context: ToolContext,
+    agent_id_to_convert: Annotated[int, "The unique ID of the agent to convert to a requester."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-agent'."]:
+    """Convert an agent to a requester in Freshservice.
+
+    Use this tool to convert an agent, identified by their ID, into a requester in Freshservice. This action is typically used when an agent no longer needs agent-level access."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents/{agent_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            agent_id=agent_id_to_convert,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_agent_and_tickets(
     context: ToolContext,
     agent_id_to_delete: Annotated[
-        int,
-        "The ID of the agent to permanently delete along with their tickets. This is irreversible.",
+        int, "The ID of the agent to permanently delete along with their tickets."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'forget-agent'."]:
-    """Permanently deletes an agent and their tickets.
+    """Permanently delete an agent and their requested tickets.
 
-    Use this tool to permanently remove an agent from the system, along with any tickets they have requested. This action is irreversible."""  # noqa: E501
+    Use this tool to permanently delete an agent from the system along with any tickets they have requested."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agents/{agent_id}/forget".format(
@@ -1964,7 +4623,7 @@ async def delete_agent_and_tickets(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1972,17 +4631,21 @@ async def delete_agent_and_tickets(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_agent_fields(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_agent_fields(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "The number of entries to retrieve per page in a paginated list."
+        int | None, "Specify the number of entries to retrieve per page in the paginated list."
     ] = 10,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve for paginated results."
+        int | None, "The page number to retrieve in the list of agent fields."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-agent-fields'."]:
-    """Retrieve a list of all Agent Fields in Freshservice."""
+    """Retrieve all agent fields in Freshservice.
+
+    Use this tool to get a complete list of agent fields from Freshservice. This could be useful for understanding the available fields when managing agents."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/agent_fields".format(
@@ -1991,7 +4654,7 @@ async def retrieve_agent_fields(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -1999,35 +4662,38 @@ async def retrieve_agent_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_ticket_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_freshservice_tickets(
     context: ToolContext,
-    ticket_filter_type: Annotated[
+    filter_by_requester_email: Annotated[
+        str | None, "Filter tickets by the requester's email address."
+    ] = None,
+    include_fields_in_response: Annotated[
         str | None,
-        "Apply pre-defined filters to fetch specific ticket sets. Options: 'new_and_my_open', 'watching', 'spam', 'deleted'.",  # noqa: E501
+        "Specify certain fields to include in the response. Examples: 'stats' for ticket's closed and resolved times, 'requester' for requester's details.",  # noqa: E501
     ] = None,
-    requester_email_filter: Annotated[
-        str | None, "Filter tickets by the requester's email ID to retrieve specific ticket data."
+    requester_id_filter: Annotated[
+        int | None,
+        "Filter tickets by the ID of the requester to view those created by a specific user.",
     ] = None,
-    filter_by_requester_id: Annotated[
-        int | None, "Filter tickets created by a specific requester using their ID."
-    ] = None,
-    filter_by_updated_since: Annotated[
+    ticket_filter: Annotated[
         str | None,
-        "Specify the ISO 8601 date-time to filter tickets updated since that time. Example: '2015-01-19T02:00:00Z'.",  # noqa: E501
+        "Apply a pre-defined filter to fetch specific types of tickets. Options are: new_and_my_open, watching, spam, deleted.",  # noqa: E501
     ] = None,
-    fields_to_include_in_response: Annotated[
+    ticket_sort_order: Annotated[
         str | None,
-        "Specify which additional fields to include in the ticket response. Options are 'stats' and 'requester'.",  # noqa: E501
+        "Sort the list of tickets in ascending ('asc') or descending ('desc') order. Default is 'desc'.",  # noqa: E501
     ] = None,
-    sort_order: Annotated[
+    updated_since: Annotated[
         str | None,
-        "Order to sort the ticket list. Supported values: 'asc' for ascending and 'desc' for descending. Default is 'desc'.",  # noqa: E501
+        "Filter tickets based on their update timestamp. Use ISO 8601 format, e.g., '2015-01-19T02:00:00Z'.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-tickets'."]:
-    """Fetches the list of all support tickets in Freshservice.
+    """Fetch a list of tickets from Freshservice.
 
-    Use this tool to obtain a comprehensive list of all tickets available in the Freshservice system. Ideal for reviewing, updating, or analyzing support requests."""  # noqa: E501
+    Use this tool to retrieve all tickets currently in Freshservice. Ideal for viewing open or closed tickets and managing support inquiries."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets".format(
@@ -2035,15 +4701,15 @@ async def fetch_ticket_list(
         ),
         method="GET",
         params=remove_none_values({
-            "filter": ticket_filter_type,
-            "email": requester_email_filter,
-            "requester_id": filter_by_requester_id,
-            "updated_since": filter_by_updated_since,
-            "include": fields_to_include_in_response,
-            "order_type": sort_order,
+            "filter": ticket_filter,
+            "email": filter_by_requester_email,
+            "requester_id": requester_id_filter,
+            "updated_since": updated_since,
+            "include": include_fields_in_response,
+            "order_type": ticket_sort_order,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2051,27 +4717,122 @@ async def fetch_ticket_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_ticket_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_ticket(
     context: ToolContext,
-    ticket_id: Annotated[int, "ID of the Freshservice ticket to be retrieved."],
-    include_fields_in_ticket_response: Annotated[
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
         str | None,
-        "Specify fields to include in the ticket response, such as 'stats', 'requester', 'conversations', etc.",  # noqa: E501
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket'."]:
+    """Create a new support ticket in Freshservice.
+
+    Use this tool to generate a new support ticket in Freshservice, which is useful for tracking and managing customer support issues.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICETICKET"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICETICKET"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICETICKET"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICETICKET"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_ticket_details(
+    context: ToolContext,
+    ticket_id: Annotated[int, "The unique ID of the FreshService ticket to fetch details for."],
+    include_additional_ticket_fields: Annotated[
+        str | None,
+        "Specify fields to include in the ticket response, like 'stats' or 'requester'. Supported options are conversations, requester, problem, stats, assets, change, related_tickets.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-ticket'."]:
-    """Retrieve details of a FreshService ticket using its ID.
+    """Retrieve details of a FreshService ticket by ID.
 
-    Use this tool to obtain detailed information about a specific ticket in FreshService by providing the ticket ID."""  # noqa: E501
+    Use this tool to obtain detailed information about a specific ticket in Freshservice when given a ticket ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
         ),
         method="GET",
-        params=remove_none_values({"include": include_fields_in_ticket_response}),
+        params=remove_none_values({"include": include_additional_ticket_fields}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2079,24 +4840,139 @@ async def fetch_ticket_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def edit_freshservice_ticket(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id: Annotated[
+        int | None,
+        "The ID of the Freshservice ticket to update. Must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-ticket'."]:
+    """Edit a Freshservice ticket efficiently.
+
+    This tool is used to update the details of an existing ticket in Freshservice. It should be called when modifications or updates to a ticket's information are needed, such as changing the status, priority, or other relevant ticket details.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["EDITFRESHSERVICETICKET"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id:
+        missing_params.append(("ticket_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["EDITFRESHSERVICETICKET"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["EDITFRESHSERVICETICKET"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["EDITFRESHSERVICETICKET"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def remove_freshservice_ticket(
     context: ToolContext,
-    ticket_id_to_delete: Annotated[int, "ID of the Freshservice support ticket to delete."],
+    ticket_id: Annotated[int, "The unique ID of the Freshservice ticket to delete."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-ticket'."]:
-    """Remove a Freshservice support ticket by ID.
+    """Remove a ticket from Freshservice.
 
-    Use this tool to delete a specific support ticket in Freshservice using its ticket ID."""
+    Use this tool to delete a ticket in Freshservice by providing the ticket ID. It should be called when a ticket needs to be removed from the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}".format(
-            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            ticket_id=ticket_id_to_delete,
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
         ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2104,26 +4980,27 @@ async def remove_freshservice_ticket(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def restore_deleted_ticket(
     context: ToolContext,
-    ticket_id_to_restore: Annotated[
-        int, "The ID of the Freshservice ticket to be restored. This must be an integer."
+    ticket_id: Annotated[
+        int, "Provide the integer ID of the ticket you want to restore in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'restore-ticket'."]:
-    """Restore a deleted Freshservice ticket.
+    """Restore a deleted ticket in Freshservice.
 
-    Use this tool to restore a deleted ticket in Freshservice by providing the ticket ID."""
+    Use this tool to restore a deleted ticket in Freshservice by specifying the ticket ID. Call this when you need to recover a ticket that was previously deleted."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/restore".format(
-            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            ticket_id=ticket_id_to_restore,
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2131,17 +5008,360 @@ async def restore_deleted_ticket(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_child_ticket(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    parent_ticket_id: Annotated[
+        int | None,
+        "ID of the main ticket for which a child ticket will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-child-ticket'."]:
+    """Create a new child ticket on a Freshservice ticket.
+
+    Use this tool to add a child ticket to an existing ticket in Freshservice. It is useful for managing ticket hierarchies and organizing support tasks.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATECHILDTICKET"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not parent_ticket_id:
+        missing_params.append(("parent_ticket_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECHILDTICKET"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECHILDTICKET"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/create_child_ticket".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=parent_ticket_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATECHILDTICKET"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def post_ticket_reply(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id: Annotated[
+        int | None,
+        "ID of the ticket to which the reply will be added. This must be an integer representing the unique identifier of the ticket.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket-reply'."]:
+    """Add a reply to a Freshservice ticket.
+
+    This tool allows you to post a new reply to a specified ticket in Freshservice. Use it when you need to update a ticket with additional information or respond to queries.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["POSTTICKETREPLY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id:
+        missing_params.append(("ticket_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["POSTTICKETREPLY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["POSTTICKETREPLY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/reply".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["POSTTICKETREPLY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def add_ticket_note(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id_to_add_note: Annotated[
+        int | None,
+        "The ID of the Freshservice ticket to which the note will be added. This ID is required to specify the particular ticket to update.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket-note'."]:
+    """Add a new note to a Freshservice ticket.
+
+    Use this tool to post a new note on a specific Freshservice ticket by providing the ticket ID. This is useful for updating ticket information, providing status updates, or adding additional details related to the ticket.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDTICKETNOTE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id_to_add_note:
+        missing_params.append(("ticket_id_to_add_note", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["ADDTICKETNOTE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["ADDTICKETNOTE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/notes".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=ticket_id_to_add_note,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["ADDTICKETNOTE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_ticket_conversations(
     context: ToolContext,
-    ticket_id: Annotated[
-        int,
-        "The ID of the Freshservice ticket for which conversations need to be fetched. This should be an integer.",  # noqa: E501
-    ],
+    ticket_id: Annotated[int, "ID of the ticket from Freshservice for fetching conversations."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-ticket-conversations'."]:
-    """Fetches all conversations for a specific Freshservice ticket.
+    """Fetches all conversations from a specified Freshservice ticket.
 
-    Use this tool to get a list of all conversations associated with a specific ticket in Freshservice. It's useful for retrieving detailed communication history related to a ticket."""  # noqa: E501
+    Use this tool to retrieve a list of all conversations associated with a specific ticket in Freshservice. This can be helpful for reviewing past interactions and understanding communication history related to the ticket."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/conversations".format(
@@ -2150,7 +5370,7 @@ async def get_ticket_conversations(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2158,30 +5378,154 @@ async def get_ticket_conversations(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def edit_ticket_conversation(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_identifier: Annotated[
+        int | None,
+        "Integer representing the ID of the ticket whose conversation needs editing.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    conversation_id: Annotated[
+        int | None,
+        "ID of the reply or note that needs to be updated in the Freshservice ticket.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-ticket-conversation'."]:
+    """Edit a conversation in a Freshservice ticket.
+
+    Use this tool to edit the conversation on an existing Freshservice ticket. It is useful for updating information, correcting errors, or adding new details to a specific conversation within a ticket.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["EDITTICKETCONVERSATION"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_identifier:
+        missing_params.append(("ticket_identifier", "path"))
+    if not conversation_id:
+        missing_params.append(("conversation_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["EDITTICKETCONVERSATION"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["EDITTICKETCONVERSATION"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/conversations/{conversation_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=ticket_identifier,
+            conversation_id=conversation_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["EDITTICKETCONVERSATION"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def remove_ticket_conversation(
     context: ToolContext,
-    conversation_ticket_id: Annotated[
-        int, "The ID of the ticket from which the conversation should be removed."
+    conversation_id: Annotated[
+        int, "ID of the reply or note that needs to be deleted from a Freshservice ticket."
     ],
-    conversation_id_to_remove: Annotated[
-        int, "The ID of the specific reply or note to delete from a Freshservice ticket."
+    ticket_id_for_removal: Annotated[
+        int, "The ID of the Freshservice ticket from which the conversation should be removed."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-ticket-conversation'."]:
     """Remove a conversation from a Freshservice ticket.
 
-    This tool is used to delete a specific conversation from a ticket in Freshservice. It should be called when there is a need to remove unnecessary or incorrect conversation threads from a support ticket."""  # noqa: E501
+    Use this tool to delete a specific conversation from a Freshservice ticket. Ideal for managing ticket discussions by removing unnecessary or old conversations."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/conversations/{conversation_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            ticket_id=conversation_ticket_id,
-            conversation_id=conversation_id_to_remove,
+            ticket_id=ticket_id_for_removal,
+            conversation_id=conversation_id,
         ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2189,22 +5533,24 @@ async def remove_ticket_conversation(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_ticket_tasks(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_ticket_tasks(
     context: ToolContext,
     ticket_request_id: Annotated[
-        int, "ID of the Freshservice ticket for which tasks are to be retrieved."
+        int, "The unique ID of the ticket request to retrieve associated tasks from Freshservice."
     ],
-    tasks_per_page: Annotated[
-        int | None, "Specify the number of tasks to retrieve per page in the paginated list."
-    ] = 30,
-    page_number: Annotated[
-        int | None, "The specific page number to retrieve from the paginated list of tasks."
+    page_number_to_retrieve: Annotated[
+        int | None, "The page number of tasks to retrieve from the paginated list."
     ] = 1,
+    tasks_per_page: Annotated[
+        int | None, "Specify the number of tasks to retrieve per page in a paginated response."
+    ] = 30,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-ticket-tasks'."]:
-    """Retrieve tasks for a specific Freshservice ticket.
+    """Retrieve tasks for a specific ticket ID.
 
-    Use this tool to obtain all tasks linked to a given ticket in Freshservice by providing the ticket ID."""  # noqa: E501
+    This tool is used to fetch the list of tasks associated with a specific ticket request from Freshservice, using the ticket ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks".format(
@@ -2212,9 +5558,9 @@ async def get_ticket_tasks(
             ticket_id=ticket_request_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": tasks_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": tasks_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2222,31 +5568,147 @@ async def get_ticket_tasks(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_ticket_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id_for_task_creation: Annotated[
+        int | None,
+        "Integer ID of the ticket request for which a new task is to be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket-task'."]:
+    """Create a new task for a ticket in Freshservice.
+
+    Use this tool to add a new task to an existing ticket in Freshservice. It should be called when a new task needs to be organized or managed within a specific ticket.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATETICKETTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id_for_task_creation:
+        missing_params.append(("ticket_id_for_task_creation", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATETICKETTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATETICKETTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=ticket_id_for_task_creation,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATETICKETTASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def retrieve_ticket_task(
     context: ToolContext,
-    ticket_request_id: Annotated[
-        int, "The ID of the ticket request to retrieve the specific task from Freshservice."
+    task_id: Annotated[
+        int, "The unique integer ID of the task to retrieve from the ticket request."
     ],
-    task_identifier: Annotated[
-        int,
-        "The unique identifier for the task to be retrieved. Provide this to get task details from a ticket.",  # noqa: E501
+    ticket_request_id: Annotated[
+        int, "The unique integer ID of the ticket request in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-ticket-task'."]:
-    """Retrieve details of a task from a ticket in Freshservice.
+    """Retrieve a specific task from a ticket request.
 
-    Use this tool to get specific information about a task associated with a ticket by providing the ticket and task IDs. It is useful for accessing task details in Freshservice."""  # noqa: E501
+    Use this tool to get information about a task associated with a specific ticket in Freshservice by providing the ticket and task IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks/{task_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             ticket_id=ticket_request_id,
-            task_id=task_identifier,
+            task_id=task_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2254,26 +5716,121 @@ async def retrieve_ticket_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_ticket_task(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_freshservice_ticket_task(
     context: ToolContext,
-    ticket_id: Annotated[int, "The unique ID of the ticket from which you want to delete a task."],
-    task_id: Annotated[int, "The unique identifier for the task to be deleted from the ticket."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-ticket-task'."]:
-    """Deletes a task from a specified ticket in Freshservice.
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id: Annotated[
+        int | None,
+        "The ID of the ticket request to identify the specific ticket in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    task_id: Annotated[
+        int | None,
+        "The unique ID of the task to be updated in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-ticket-task'."]:
+    """Update a task on a Freshservice ticket.
 
-    This tool should be called when you need to delete a specific task from a ticket in Freshservice using the ticket and task IDs."""  # noqa: E501
-    response = await make_request(
+    Use this tool to update an existing task on a ticket in Freshservice. This is helpful for modifying task details such as status, description, or other properties associated with a ticket's task.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICETICKETTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id:
+        missing_params.append(("ticket_id", "path"))
+    if not task_id:
+        missing_params.append(("task_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICETICKETTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICETICKETTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks/{task_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             ticket_id=ticket_id,
             task_id=task_id,
         ),
-        method="DELETE",
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICETICKETTASK"]),
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
     )
     try:
         return {"response_json": response.json()}
@@ -2281,22 +5838,56 @@ async def delete_ticket_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_ticket_task(
+    context: ToolContext,
+    task_id: Annotated[int, "The unique ID of the task to delete from a Freshservice ticket."],
+    ticket_identifier: Annotated[
+        int, "The unique integer ID of the ticket containing the task to be deleted."
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-ticket-task'."]:
+    """Deletes a task from a Freshservice ticket.
+
+    This tool deletes a specific task associated with a ticket in Freshservice, identified by the ticket and task ID. Use this to manage and update tasks on tickets efficiently."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks/{task_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=ticket_identifier,
+            task_id=task_id,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_ticket_time_entries(
     context: ToolContext,
     ticket_request_id: Annotated[
-        int, "The unique ID of the ticket request to retrieve time entries for."
+        int,
+        "The ID of the ticket request for which the time entries need to be retrieved. This should be an integer value identifying a specific ticket in Freshservice.",  # noqa: E501
     ],
-    number_of_entries_per_page: Annotated[
-        int | None, "The number of time entries to retrieve in each page of a paginated list."
+    entries_per_page: Annotated[
+        int | None, "Number of time entries to retrieve per page in a paginated list."
     ] = 30,
     page_number: Annotated[
-        int | None, "The page number to retrieve from the paginated list of time entries."
+        int | None, "The page number of time entries to retrieve for the given ticket ID."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-ticket-time-entries'."]:
-    """Retrieve time entries for a given ticket ID.
+    """Retrieve time entries for a specific ticket in Freshservice.
 
-    Use this tool to fetch all time entries associated with a specific ticket ID on Freshservice. It helps track time spent on each ticket."""  # noqa: E501
+    Use this tool to get all time entries associated with a specific ticket ID from Freshservice. Ideal for tracking time spent and managing ticket details."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries".format(
@@ -2304,9 +5895,9 @@ async def get_ticket_time_entries(
             ticket_id=ticket_request_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": number_of_entries_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2314,21 +5905,136 @@ async def get_ticket_time_entries(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_ticket_time_entry(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_ticket_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_id: Annotated[
+        int | None,
+        "The ID of the ticket request for which the time entry will be created.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket-time-entry'."]:
+    """Create a new time entry on a Freshservice ticket.
+
+    Use this tool to log a new time entry for a specific ticket in Freshservice. Useful for tracking time spent on ticket resolution or management.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATETICKETTIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_id:
+        missing_params.append(("ticket_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATETICKETTIMEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATETICKETTIMEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), ticket_id=ticket_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATETICKETTIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_ticket_time_entry(
     context: ToolContext,
     ticket_request_id: Annotated[
         int,
-        "The ID of the specific ticket request for which you want to retrieve the time entry. It must be an integer.",  # noqa: E501
+        "The unique integer ID of the ticket request for which the time entry details are needed.",
     ],
     time_entry_id: Annotated[
-        int,
-        "Provide the ID of the time entry to retrieve specific details from a ticket in Freshservice.",  # noqa: E501
+        int, "The unique identifier for the time entry you want to retrieve details for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-ticket-time-entry'."]:
-    """Retrieve a time entry for a specific ticket in Freshservice.
+    """Retrieve a specific time entry for a ticket in Freshservice.
 
-    Use this tool to access details of a time entry associated with a specific ticket request in Freshservice. It is useful for monitoring or auditing time spent on ticket resolutions."""  # noqa: E501
+    This tool is used to fetch details of a specific time entry associated with a ticket in Freshservice by providing the ticket and time entry IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries/{time_entry_id}".format(
@@ -2339,7 +6045,7 @@ async def get_ticket_time_entry(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2347,20 +6053,142 @@ async def get_ticket_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_ticket_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    ticket_request_id: Annotated[
+        int | None,
+        "The unique integer ID of the ticket request to update the time entry for.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    time_entry_id: Annotated[
+        int | None,
+        "The unique integer ID of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-ticket-time-entry'."]:
+    """Update time entry for a ticket in Freshservice.
+
+    Use this tool to update an existing time entry on a ticket in Freshservice. It's suitable for modifying the details of time tracked on support tickets to ensure accurate record-keeping.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATETICKETTIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not ticket_request_id:
+        missing_params.append(("ticket_request_id", "path"))
+    if not time_entry_id:
+        missing_params.append(("time_entry_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATETICKETTIMEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATETICKETTIMEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries/{time_entry_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            ticket_id=ticket_request_id,
+            time_entry_id=time_entry_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATETICKETTIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_ticket_time_entry(
     context: ToolContext,
     ticket_id: Annotated[
         int,
-        "The unique identifier for the Freshservice ticket from which the time entry will be deleted. This must be an integer.",  # noqa: E501
+        "The unique identifier of the ticket from which the time entry will be deleted. Provide a valid ticket ID.",  # noqa: E501
     ],
-    time_entry_id: Annotated[
-        int, "The unique integer ID of the time entry to be deleted from the Freshservice ticket."
-    ],
+    time_entry_id: Annotated[int, "The ID of the time entry to be deleted from the ticket."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-ticket-time-entry'."]:
-    """Deletes a time entry from a Freshservice ticket.
+    """Delete a time entry from a Freshservice ticket.
 
-    Use this tool to delete a specific time entry associated with a ticket in Freshservice. This is helpful when you need to update or correct time tracking records."""  # noqa: E501
+    Use this tool to delete a specific time entry from a ticket in Freshservice when it is no longer needed or was added incorrectly."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries/{time_entry_id}".format(
@@ -2371,7 +6199,7 @@ async def delete_ticket_time_entry(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2379,33 +6207,87 @@ async def delete_ticket_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_freshservice_changes(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_custom_ticket_source(
     context: ToolContext,
-    change_filter_name: Annotated[
+    source_name: Annotated[str, "Specify the name for the custom ticket source in Freshservice."],
+    created_timestamp: Annotated[
         str | None,
-        "Specify the filter name to retrieve changes. Possible values: 'my_open', 'unassigned', 'closed', 'release_requested', 'deleted', 'all'.",  # noqa: E501
+        "The timestamp when the source was created in Freshservice. Format: YYYY-MM-DDTHH:MM:SSZ.",
     ] = None,
-    requester_id: Annotated[
-        str | None, "ID of the person who requested the changes to filter results."
+    is_visible_for_selection: Annotated[
+        bool | None, "True if the source value is visible for selection in Freshservice."
     ] = None,
-    requester_email: Annotated[
-        str | None, "Retrieve changes by the requester's email address in Freshservice."
-    ] = None,
-    updated_since: Annotated[
+    last_modified_timestamp: Annotated[
         str | None,
-        "Retrieve changes updated after a specified date. Date format should be YYYY-MM-DD.",
+        "The timestamp indicating when the custom ticket source was last modified. Expected in ISO 8601 format.",  # noqa: E501
     ] = None,
-    page_size: Annotated[
+    source_id: Annotated[int | None, "Unique identifier for the custom ticket source."] = None,
+    source_position_in_list: Annotated[
+        int | None,
+        "The position of the custom ticket source in the source list. It determines where this source appears in the list of sources.",  # noqa: E501
+    ] = None,
+    source_present_by_default: Annotated[
+        bool | None, "Set to true if the source value is present by default in Freshservice."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-ticket-field-source'."]:
+    """Create a custom ticket source in Freshservice.
+
+    Use this tool to create a custom ticket source within the Freshservice platform. Ideal for when you need to define new ticket origin types beyond the defaults provided."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": source_id,
+        "name": source_name,
+        "position": source_position_in_list,
+        "default": source_present_by_default,
+        "visible": is_visible_for_selection,
+        "created_at": created_timestamp,
+        "updated_at": last_modified_timestamp,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/ticket_fields/sources".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_change_list(
+    context: ToolContext,
+    changes_per_page: Annotated[
         int | None, "Specify the number of changes to retrieve per page in a paginated list."
     ] = 30,
+    filter_by_updated_since: Annotated[
+        str | None, "Retrieve changes updated since a specific date (in ISO 8601 format)."
+    ] = None,
+    filter_name_for_change_retrieval: Annotated[
+        str | None,
+        "Specify the filter to retrieve changes, such as 'my_open', 'unassigned', or 'closed'.",
+    ] = None,
     page_number: Annotated[
-        int | None, "The specific page number to retrieve in a paginated list of changes."
+        int | None, "The page number of the change list to retrieve from Freshservice."
     ] = 1,
+    requester_email: Annotated[
+        str | None, "The email address of the requester to filter changes by their email."
+    ] = None,
+    requester_id: Annotated[
+        str | None, "Specify the requester ID to filter changes associated with this ID."
+    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-changes'."]:
-    """Retrieve all changes from Freshservice.
+    """Retrieve a list of all changes in Freshservice.
 
-    Use this tool to get a comprehensive list of all changes in the Freshservice system. Ideal for tracking updates and modifications within the service."""  # noqa: E501
+    Use this tool to get a comprehensive list of changes in Freshservice. It can be called when you need to access or review all changes recorded in the Freshservice system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes".format(
@@ -2413,15 +6295,15 @@ async def list_freshservice_changes(
         ),
         method="GET",
         params=remove_none_values({
-            "filter_name": change_filter_name,
+            "filter_name": filter_name_for_change_retrieval,
             "requester_id": requester_id,
             "email": requester_email,
-            "updated_since": updated_since,
-            "per_page": page_size,
+            "updated_since": filter_by_updated_since,
+            "per_page": changes_per_page,
             "page": page_number,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2429,14 +6311,113 @@ async def list_freshservice_changes(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_change_request(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_change_request(
     context: ToolContext,
-    change_request_id: Annotated[int, "ID of the Change request to retrieve from Freshservice."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-change'."]:
-    """Fetch a Change request by ID from Freshservice.
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-change'."]:
+    """Create a new Change request in Freshservice.
 
-    Use this tool to retrieve detailed information about a specific Change request using its ID from the Freshservice platform."""  # noqa: E501
+    Use this tool to initiate a new Change request within the Freshservice platform. This is typically called when a user wants to propose a change that needs to be tracked and managed through Freshservice.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGEREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGEREQUEST"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGEREQUEST"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGEREQUEST"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_change_request(
+    context: ToolContext,
+    change_request_id: Annotated[int, "ID of the change request to retrieve from Freshservice."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-change'."]:
+    """Retrieve a specific change request by ID from Freshservice.
+
+    Use this tool to access information about a specific change request in Freshservice by providing its unique ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}".format(
@@ -2446,7 +6427,7 @@ async def retrieve_change_request(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2454,14 +6435,133 @@ async def retrieve_change_request(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_freshservice_change(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_change_request(
     context: ToolContext,
-    change_request_id: Annotated[int, "The ID of the change request to delete from Freshservice."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change'."]:
-    """Deletes a specified change request from Freshservice.
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    change_request_id: Annotated[
+        int | None,
+        "The unique identifier for the Change request to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-change'."]:
+    """Update an existing Change request in Freshservice.
 
-    Use this tool to delete a change request by its ID in Freshservice. It should be called when a user wants to permanently remove a change request from the system."""  # noqa: E501
+    Use this tool to modify the details of an existing Change request in Freshservice. Useful for updating information or status of Change requests.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECHANGEREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not change_request_id:
+        missing_params.append(("change_request_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECHANGEREQUEST"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECHANGEREQUEST"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATECHANGEREQUEST"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_change_request(
+    context: ToolContext,
+    change_request_id: Annotated[
+        int, "The unique integer ID of the change request to delete from Freshservice."
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change'."]:
+    """Delete a change request by ID from Freshservice.
+
+    Use this tool to delete a specific change request from Freshservice by providing the change ID. It confirms the deletion of the request."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}".format(
@@ -2471,7 +6571,7 @@ async def delete_freshservice_change(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2479,23 +6579,23 @@ async def delete_freshservice_change(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_change_notes(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_change_request_notes(
     context: ToolContext,
     change_request_id: Annotated[
         int,
-        "ID of the change request for which notes are to be retrieved. This is an integer value.",
+        "The unique ID of the change request to retrieve notes for, required to access specific change request data.",  # noqa: E501
     ],
     notes_per_page: Annotated[
-        int | None, "The number of notes to retrieve per page in a paginated list."
+        int | None, "Specify the number of notes to retrieve per page for pagination."
     ] = 30,
-    page_number_to_retrieve: Annotated[
-        int | None, "The specific page number of notes to retrieve for pagination."
-    ] = 1,
+    page_number: Annotated[int | None, "The page number to retrieve for paginated notes."] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-change-notes'."]:
-    """Retrieve notes from a specific change request.
+    """Retrieve notes from a Freshservice change request.
 
-    Use this tool to retrieve the notes related to a specific change request in Freshservice by providing the change ID."""  # noqa: E501
+    Use this tool to get all notes associated with a specific change request ID in Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes".format(
@@ -2503,9 +6603,9 @@ async def retrieve_change_notes(
             change_id=change_request_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": notes_per_page, "page": page_number_to_retrieve}),
+        params=remove_none_values({"per_page": notes_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2513,29 +6613,93 @@ async def retrieve_change_notes(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_change_note(
+    context: ToolContext,
+    change_request_id: Annotated[
+        int, "ID of the change request to which the new note will be added."
+    ],
+    note_body_html: Annotated[
+        str,
+        "The body of the note in HTML format. Use this to format the note with HTML tags for styling.",  # noqa: E501
+    ],
+    note_body_plain_text: Annotated[
+        str | None, "The content of the change note in plain text format."
+    ] = None,
+    note_creation_datetime: Annotated[
+        str | None,
+        "The date and time when the note was created, in ISO 8601 format (e.g., '2023-01-01T12:00:00Z').",  # noqa: E501
+    ] = None,
+    note_last_updated: Annotated[
+        str | None, "Date and time when the note was last updated, in ISO 8601 format."
+    ] = None,
+    note_unique_id: Annotated[
+        int | None, "Unique identifier for the note being created. Must be an integer."
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None, "List of email addresses to notify about the change note."
+    ] = None,
+    user_identifier_for_note_creator: Annotated[
+        int | None, "Unique ID of the user who created the note in Freshservice."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-change-note'."]:
+    """Create a new note on a change request in Freshservice.
+
+    This tool creates a new note attached to a specific change request in Freshservice. It should be called when there's a need to append additional information or updates related to an ongoing change request."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": user_identifier_for_note_creator,
+        "notify_emails": notification_email_addresses,
+        "body": note_body_html,
+        "body_text": note_body_plain_text,
+        "created_at": note_creation_datetime,
+        "updated_at": note_last_updated,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def retrieve_change_note(
     context: ToolContext,
-    change_request_id: Annotated[int, "ID of the change request to retrieve its specific note."],
-    note_identifier: Annotated[
+    change_request_id: Annotated[
         int,
-        "The unique identifier for the note to be retrieved from a change request in Freshservice.",
+        "The unique identifier for the change request. Provide this to retrieve the specific note associated with it.",  # noqa: E501
+    ],
+    note_id: Annotated[
+        int, "The unique identifier for the note you want to retrieve from a Change request."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-change-note'."]:
-    """Retrieve a specific note from a change request in Freshservice.
+    """Retrieve a note on a Change request from Freshservice.
 
-    Use this tool to obtain a specific note from a change request by providing the change ID and note ID in Freshservice. It's helpful for tracking updates or comments on change requests."""  # noqa: E501
+    Use this tool to get details of a specific note associated with a Change request by providing the change and note IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes/{note_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             change_id=change_request_id,
-            note_id=note_identifier,
+            note_id=note_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2543,19 +6707,87 @@ async def retrieve_change_note(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_change_note(
+    context: ToolContext,
+    change_request_id: Annotated[int, "Unique identifier for the change request to be updated."],
+    note_id: Annotated[
+        int,
+        "The ID of the existing note to be updated. Provide the unique integer identifier for the note.",  # noqa: E501
+    ],
+    note_body_html: Annotated[
+        str | None,
+        "The body of the note in HTML format. Use HTML tags to style the content appropriately.",
+    ] = None,
+    note_body_text: Annotated[
+        str | None, "The content of the note in plain text format to be updated."
+    ] = None,
+    note_creation_time: Annotated[
+        str | None,
+        "Date and time when the note was created; format should follow ISO 8601 standard.",
+    ] = None,
+    note_unique_id: Annotated[
+        int | None, "The unique identifier for the specific note to be updated."
+    ] = None,
+    note_updated_datetime: Annotated[
+        str | None, "The date and time when the note was last updated. Use ISO 8601 format."
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None,
+        "Email addresses to notify about the updated note. Provide as an array of strings.",
+    ] = None,
+    user_id_of_note_creator: Annotated[
+        int | None,
+        "Unique ID of the user who originally created the note. Used to identify the note's author.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-change-note'."]:
+    """Update an existing note on a Freshservice change request.
+
+    Use this tool to modify an existing note on a specific change request in Freshservice by providing the change and note IDs."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": user_id_of_note_creator,
+        "notify_emails": notification_email_addresses,
+        "body": note_body_html,
+        "body_text": note_body_text,
+        "created_at": note_creation_time,
+        "updated_at": note_updated_datetime,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes/{note_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+            note_id=note_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_change_note(
     context: ToolContext,
     change_request_id: Annotated[
-        int, "The unique ID of the Change request from which the note will be deleted."
+        int, "The unique identifier of the Change request from which the note is to be deleted."
     ],
     note_id: Annotated[
-        int, "The unique identifier of the note to delete from a Change request in Freshservice."
+        int,
+        "The unique identifier of the note to be deleted from the Change request in Freshservice. This is an integer value.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change-note'."]:
-    """Delete a note from a Change request in Freshservice.
+    """Delete a note from a Change request by ID in Freshservice.
 
-    Use this tool to delete a specific note from a Change request in Freshservice by providing the relevant Change and Note IDs."""  # noqa: E501
+    Use this tool to delete a specific note from a Change request in Freshservice by providing the change ID and note ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/notes/{note_id}".format(
@@ -2566,7 +6798,7 @@ async def delete_change_note(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2574,22 +6806,24 @@ async def delete_change_note(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_change_tasks(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_change_request_tasks(
     context: ToolContext,
     change_request_id: Annotated[
-        int, "ID of the Change request for retrieving associated tasks from Freshservice."
+        int, "ID of the Change request to retrieve tasks for in Freshservice."
     ],
-    tasks_per_page: Annotated[
-        int | None, "Specify the number of tasks to retrieve per page in the paginated list."
-    ] = 10,
-    page_number: Annotated[
-        int | None, "Specify the page number of tasks to retrieve for the Change request."
+    page_number_to_retrieve: Annotated[
+        int | None, "The specific page number of tasks to be retrieved for a Change request."
     ] = 1,
+    tasks_per_page: Annotated[
+        int | None, "Specify the number of tasks to retrieve per page in a paginated response."
+    ] = 10,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-change-tasks'."]:
-    """Retrieve tasks for a specific Change request in Freshservice.
+    """Retrieve tasks for a specific Change request from Freshservice.
 
-    Use this tool to obtain a list of tasks associated with a specific Change request by providing the Change ID. It helps in tracking and managing tasks related to changes efficiently."""  # noqa: E501
+    Use this tool to get all tasks associated with a specific Change request using its ID in Freshservice. Ideal for managing or reviewing change tasks."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/tasks".format(
@@ -2597,9 +6831,9 @@ async def retrieve_change_tasks(
             change_id=change_request_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": tasks_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": tasks_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2607,28 +6841,148 @@ async def retrieve_change_tasks(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_change_task_info(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_change_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    change_request_id: Annotated[
+        int | None,
+        "ID of the change request to add a task to. It should be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-change-task'."]:
+    """Create a task on a change request in Freshservice.
+
+    This tool creates a new task on a specified change request within Freshservice. It should be called when you need to add tasks to an ongoing change request to track specific actions or activities.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATECHANGETASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not change_request_id:
+        missing_params.append(("change_request_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECHANGETASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATECHANGETASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/tasks".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATECHANGETASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_freshservice_change_task(
     context: ToolContext,
     change_request_id: Annotated[
-        int, "ID of the change request to retrieve the corresponding task details."
+        int, "The unique integer ID of the change request to retrieve the task from."
     ],
-    task_identifier: Annotated[int, "Provide the integer ID of the task to retrieve its details."],
+    task_id: Annotated[
+        int,
+        "The unique integer ID of the task to be retrieved from a Change request in Freshservice.",
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-change-task'."]:
-    """Retrieve details of a task in a change request.
+    """Retrieve a task from a Freshservice Change request by ID.
 
-    Use this tool to get detailed information about a specific task within a change request using its ID in Freshservice."""  # noqa: E501
+    Use this tool to fetch details of a specific task associated with a Change request in Freshservice, identified by its task and change IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/tasks/{task_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             change_id=change_request_id,
-            task_id=task_identifier,
+            task_id=task_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2636,31 +6990,121 @@ async def retrieve_change_task_info(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def remove_change_task(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_existing_change_task(
     context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
     change_request_id: Annotated[
-        int,
-        "The unique identifier for the change request from which a task will be deleted. This should be an integer.",  # noqa: E501
-    ],
+        int | None,
+        "The unique identifier for the Change request to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
     task_identifier: Annotated[
-        int, "The unique integer ID of the task to delete from a change request in Freshservice."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change-task'."]:
-    """Delete a task from a change request in Freshservice.
+        int | None,
+        "The unique ID of the task to be updated in the Freshservice Change request.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-change-task'."]:
+    """Update a task within a Freshservice Change request.
 
-    Use this tool to remove a specific task from a change request in Freshservice by specifying the change and task IDs."""  # noqa: E501
-    response = await make_request(
+    Use this tool to update an existing task on a Change request in Freshservice. It should be called when a task associated with a change needs to be modified, such as changing its status, description, or other attributes.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEEXISTINGCHANGETASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not change_request_id:
+        missing_params.append(("change_request_id", "path"))
+    if not task_identifier:
+        missing_params.append(("task_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGCHANGETASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEEXISTINGCHANGETASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/tasks/{task_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             change_id=change_request_id,
             task_id=task_identifier,
         ),
-        method="DELETE",
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEEXISTINGCHANGETASK"]),
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
     )
     try:
         return {"response_json": response.json()}
@@ -2668,24 +7112,57 @@ async def remove_change_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_change_time_entries(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_change_request_task(
     context: ToolContext,
     change_request_id: Annotated[
-        int,
-        "ID of the change request for which time entries should be retrieved. This is necessary to specify which change request's time entries are needed.",  # noqa: E501
+        int, "The unique integer ID of the change request from which the task will be deleted."
     ],
-    time_entries_per_page: Annotated[
-        int | None,
-        "Specify the number of time entries to retrieve per page. Helps in paginated responses.",
+    task_id: Annotated[
+        int, "The ID of the task to be deleted from the change request in Freshservice."
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change-task'."]:
+    """Delete a task from a Freshservice change request.
+
+    This tool deletes a specified task from a change request in Freshservice using the change and task IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/tasks/{task_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+            task_id=task_id,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_change_request_time_entries(
+    context: ToolContext,
+    change_request_id: Annotated[
+        int, "The ID of the Change request to retrieve time entries for in Freshservice."
+    ],
+    entries_per_page: Annotated[
+        int | None, "Number of time entries to retrieve per page in the paginated list."
     ] = 10,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve from the paginated list of time entries."
+        int | None, "Specify the page number of the time entries to retrieve for paginated results."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-change-time-entries'."]:
     """Retrieve time entries for a specific Change request.
 
-    Use this tool to get the time entries associated with a particular Change request in Freshservice by providing the Change ID."""  # noqa: E501
+    Use this tool to get all time entries associated with a specific Change request in Freshservice by providing the Change ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries".format(
@@ -2693,12 +7170,9 @@ async def get_change_time_entries(
             change_id=change_request_id,
         ),
         method="GET",
-        params=remove_none_values({
-            "per_page": time_entries_per_page,
-            "page": page_number_to_retrieve,
-        }),
+        params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2706,20 +7180,138 @@ async def get_change_time_entries(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_change_request_time_entry(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_change_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    change_request_id: Annotated[
+        int | None,
+        "The unique identifier of the change request for which you want to create a time entry.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-change-time-entry'."]:
+    """Create a time entry for a change request in Freshservice.
+
+    Use this tool to log a new time entry associated with a specific change request in Freshservice.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGETIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not change_request_id:
+        missing_params.append(("change_request_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGETIMEENTRY"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGETIMEENTRY"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECHANGETIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_change_time_entry(
     context: ToolContext,
     change_request_id: Annotated[
-        int,
-        "The ID of the Change request to retrieve the time entry from. This must be an integer.",
+        int, "ID of the change request to retrieve the specific time entry."
     ],
-    time_entry_id: Annotated[
-        int, "The numeric ID of the time entry to retrieve details for from a Change request."
-    ],
+    time_entry_id: Annotated[int, "The unique ID of the specific time entry to be retrieved."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-change-time-entry'."]:
-    """Retrieve a time entry from a Change request by ID.
+    """Retrieve a time entry on a Change request by ID.
 
-    Use this tool to obtain information about a specific time entry associated with a Change request in Freshservice by providing the change ID and time entry ID."""  # noqa: E501
+    Use this tool to obtain details about a specific time entry associated with a Change request in Freshservice, identified by its Change ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries/{time_entry_id}".format(
@@ -2730,7 +7322,7 @@ async def retrieve_change_request_time_entry(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2738,21 +7330,148 @@ async def retrieve_change_request_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_change_time_entry_freshservice(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_freshservice_change_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    change_request_id: Annotated[
+        int | None,
+        "ID of the change request to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    time_entry_identifier: Annotated[
+        int | None,
+        "Provide the integer ID of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-change-time-entry'."]:
+    """Update a time entry on a Freshservice Change request.
+
+    Use this tool to modify an existing time entry for a Change request in Freshservice, specifying the Change ID and the Time Entry ID to update.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICECHANGETIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not change_request_id:
+        missing_params.append(("change_request_id", "path"))
+    if not time_entry_identifier:
+        missing_params.append(("time_entry_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICECHANGETIMEENTRY"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICECHANGETIMEENTRY"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries/{time_entry_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            change_id=change_request_id,
+            time_entry_id=time_entry_identifier,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICECHANGETIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_change_time_entry(
     context: ToolContext,
     change_request_id: Annotated[
         int,
-        "The unique identifier of the Change request from which the time entry will be deleted. This integer ID specifies the specific change.",  # noqa: E501
+        "The unique identifier of the change request from which the time entry will be deleted. This is required to specify the change for the deletion process.",  # noqa: E501
     ],
     time_entry_id: Annotated[
-        int,
-        "ID of the time entry to be deleted from the Change request in Freshservice. Integer value expected.",  # noqa: E501
+        int, "The unique identifier for the time entry to be deleted from a change request."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-change-time-entry'."]:
-    """Delete a time entry from a Change request in Freshservice.
+    """Deletes a specific time entry from a change request in Freshservice.
 
-    Use this tool to delete a specific time entry associated with a Change request in Freshservice. Provide the Change ID and the Time Entry ID to perform the deletion."""  # noqa: E501
+    Use this tool to delete a time entry associated with a specific change request in Freshservice. It requires the IDs of the change request and the time entry to process the deletion."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries/{time_entry_id}".format(
@@ -2763,7 +7482,7 @@ async def delete_change_time_entry_freshservice(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2771,25 +7490,28 @@ async def delete_change_time_entry_freshservice(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_all_projects(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def list_freshservice_projects(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Specify the number of project entries to retrieve per page for pagination."
+        int | None,
+        "The number of projects to retrieve per page in a paginated result set from Freshservice.",
     ] = 30,
-    page_number: Annotated[
-        int | None, "Specify the page number to retrieve in a paginated list of projects."
-    ] = 1,
-    project_status_filter: Annotated[
-        str | None, "Filter projects by status: 'all', 'open', 'in_progress', or 'completed'."
-    ] = "all",
     filter_archived_projects: Annotated[
-        bool | None, "If true, filter for archived projects; if false, filter for active projects."
+        bool | None, "Set to true to retrieve archived projects, false for active projects."
     ] = False,
+    filter_project_status: Annotated[
+        str | None, "Filter projects based on their status: all, open, in_progress, or completed."
+    ] = "all",
+    page_number: Annotated[
+        int | None, "The specific page number of projects to retrieve for paginated results."
+    ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-projects'."]:
-    """Retrieve a list of all projects in Freshservice.
+    """Retrieve all projects from Freshservice.
 
-    Call this tool to get a comprehensive list of all projects managed within the Freshservice platform."""  # noqa: E501
+    Use this tool to obtain a comprehensive list of projects stored in the Freshservice platform. Ideal for users needing to access or review project details managed within Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects".format(
@@ -2799,11 +7521,11 @@ async def retrieve_all_projects(
         params=remove_none_values({
             "per_page": entries_per_page,
             "page": page_number,
-            "status": project_status_filter,
+            "status": filter_project_status,
             "archived": filter_archived_projects,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2811,16 +7533,109 @@ async def retrieve_all_projects(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_freshservice_project(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_project(
     context: ToolContext,
-    project_id: Annotated[
-        int, "The unique integer ID of the project to retrieve from Freshservice."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-project'."]:
-    """Retrieve project details from Freshservice by ID.
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-project'."]:
+    """Create a new project in Freshservice.
 
-    Use this tool to access project information from Freshservice by providing the project ID."""
+    Use this tool to create a new project within the Freshservice platform. This is useful for managing tasks, timelines, and resources efficiently in Freshservice.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROJECT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROJECT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROJECT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROJECT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_project_details(
+    context: ToolContext,
+    project_id: Annotated[int, "The integer ID of the project to retrieve from Freshservice."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-project'."]:
+    """Retrieve detailed information about a specific project.
+
+    Use this tool to obtain comprehensive data for a project by specifying the project ID. It accesses the Freshservice API to fetch and return details, helping in managing and understanding ongoing projects."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}".format(
@@ -2830,7 +7645,7 @@ async def retrieve_freshservice_project(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2838,17 +7653,134 @@ async def retrieve_freshservice_project(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_project(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    project_id: Annotated[
+        int | None,
+        "The unique identifier of the project to update. Must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-project'."]:
+    """Update an existing project in Freshservice.
+
+    Use this tool to modify details of an existing project in Freshservice. Ideal for changes or updates to project information.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEPROJECT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not project_id:
+        missing_params.append(("project_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROJECT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROJECT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            project_id=project_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEPROJECT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_freshservice_project(
     context: ToolContext,
     project_id: Annotated[
         int,
-        "The ID of the project in Freshservice to delete. This should be an integer representing the specific project you wish to remove.",  # noqa: E501
+        "The unique identifier of the project to be deleted in Freshservice. This should be a numeric value.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-project'."]:
-    """Deletes a project in Freshservice by ID.
+    """Delete an existing project in Freshservice.
 
-    Use this tool to delete an existing project in Freshservice by providing the project ID. It is called when a user wants to remove a project from their Freshservice account."""  # noqa: E501
+    Use this tool to delete a specified project by its ID in the Freshservice platform. Ideal for managing and removing outdated or unnecessary projects."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}".format(
@@ -2858,7 +7790,7 @@ async def delete_freshservice_project(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2866,16 +7798,16 @@ async def delete_freshservice_project(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def archive_project(
     context: ToolContext,
-    project_id: Annotated[
-        int, "The unique ID of the project to be archived in Freshservice. Provide a valid integer."
-    ],
+    project_id: Annotated[int, "The unique integer ID of the project to archive in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'archive-project'."]:
     """Archive an existing project in Freshservice.
 
-    Use this tool to archive a specified project in Freshservice. This is useful when a project is completed or no longer active and you want to store it without deletion."""  # noqa: E501
+    Use this tool to archive a project within Freshservice. This is useful for organizing and managing completed or inactive projects."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/archive".format(
@@ -2884,7 +7816,7 @@ async def archive_project(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2892,17 +7824,18 @@ async def archive_project(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def restore_archived_project(
     context: ToolContext,
     project_id: Annotated[
-        int,
-        "The identifier of the archived project to be restored in Freshservice. It should be an integer value.",  # noqa: E501
+        int, "The unique integer ID of the archived project to restore in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'restore-project'."]:
-    """Restores an archived project in Freshservice.
+    """Restore an archived project in Freshservice.
 
-    Use this tool to unarchive and restore a project that has been previously archived in Freshservice. Ideal for retrieving projects that need to be active again."""  # noqa: E501
+    Use this tool to restore a previously archived project within the Freshservice platform. It is useful when you need to reactivate a project for continued work or review."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/restore".format(
@@ -2911,7 +7844,7 @@ async def restore_archived_project(
         method="POST",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2919,27 +7852,30 @@ async def restore_archived_project(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_project_tasks(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_project_tasks(
     context: ToolContext,
-    project_id: Annotated[int, "The ID of the project for which you want to retrieve tasks."],
+    project_id: Annotated[int, "The ID of the project whose tasks are to be retrieved."],
     entries_per_page: Annotated[
-        int | None, "The number of entries to retrieve in each page for pagination."
+        int | None, "Specify the number of entries to retrieve per page in a paginated task list."
     ] = 30,
-    page_number: Annotated[
-        int | None, "The specific page number of the task list to retrieve."
+    page_number_to_retrieve: Annotated[
+        int | None, "The page number of the project tasks list to retrieve."
     ] = 1,
     task_filter: Annotated[
         str | None,
-        "Filter tasks by status. Options: all, open, in_progress, completed, overdue, unassigned.",
+        "Filter tasks by status: all, open, in_progress, completed, overdue, unassigned.",
     ] = "all",
     task_parent_id: Annotated[
-        int | None, "Filter tasks by parent ID for specific task hierarchy or relationships."
+        int | None,
+        "Filter tasks by their parent task ID. Useful for narrowing down tasks under specific parent tasks.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-project-tasks'."]:
-    """Retrieve a list of all project tasks in Freshservice.
+    """Retrieve a list of project tasks from Freshservice.
 
-    Use this tool to get all tasks associated with a specific project in Freshservice. Ideal for accessing detailed task information or project management purposes."""  # noqa: E501
+    Use this tool to get a list of all tasks within a specific project in Freshservice. It should be called when you need detailed task information for project management or tracking purposes."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/tasks".format(
@@ -2948,12 +7884,12 @@ async def list_project_tasks(
         method="GET",
         params=remove_none_values({
             "per_page": entries_per_page,
-            "page": page_number,
+            "page": page_number_to_retrieve,
             "filter": task_filter,
             "parent_id": task_parent_id,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2961,26 +7897,144 @@ async def list_project_tasks(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_project_task_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_project_task(
     context: ToolContext,
-    task_id: Annotated[int, "The unique identifier for the task to retrieve details."],
-    project_id: Annotated[int, "The unique identifier for the project to which the task belongs."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-project-task'."]:
-    """Retrieve detailed information about a project task in Freshservice.
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    project_id: Annotated[
+        int | None,
+        "ID of the project to which the task will be added. This must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-project-task'."]:
+    """Create a new project task in Freshservice.
 
-    Use this tool to get comprehensive details about a specific task within a project on Freshservice, including its status, assigned personnel, and other relevant information."""  # noqa: E501
+    Use this tool to create a new project task within Freshservice. It should be called when you need to add a task to an existing project.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEPROJECTTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not project_id:
+        missing_params.append(("project_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPROJECTTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPROJECTTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{id}/tasks".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"), id=project_id
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEPROJECTTASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def view_project_task_details(
+    context: ToolContext,
+    project_id_for_task: Annotated[
+        int, "The unique identifier of the project to which the task belongs."
+    ],
+    task_id: Annotated[int, "The unique identifier for the task you want to retrieve details for."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-project-task'."]:
+    """Retrieve details of a specific project task.
+
+    Use this tool to view detailed information about a task within a specified project on Freshservice. Ideal for retrieving task status, assignees, or due dates."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}/tasks/{id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             id=task_id,
-            project_id=project_id,
+            project_id=project_id_for_task,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -2988,20 +8042,141 @@ async def get_project_task_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_project_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    project_identifier: Annotated[
+        int | None,
+        "The unique ID of the project containing the task to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    task_id: Annotated[
+        int | None,
+        "The ID of the task to be updated in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-project-task'."]:
+    """Update an existing project task in Freshservice.
+
+    This tool updates an existing project task in Freshservice. It should be called when modifications to task details are needed.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEPROJECTTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not project_identifier:
+        missing_params.append(("project_identifier", "path"))
+    if not task_id:
+        missing_params.append(("task_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROJECTTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROJECTTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}/tasks/{id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            project_id=project_identifier,
+            id=task_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEPROJECTTASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_project_task(
     context: ToolContext,
     project_identifier: Annotated[
-        int,
-        "The unique identifier for the project containing the task to be deleted. This is required to specify which project's task needs to be removed.",  # noqa: E501
+        int, "The unique identifier of the project from which the task should be deleted."
     ],
-    task_id_to_delete: Annotated[
-        int, "ID of the task to be deleted from a project in Freshservice."
-    ],
+    task_id_to_delete: Annotated[int, "ID of the task to be deleted in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-project-task'."]:
-    """Deletes a specified project task in Freshservice.
+    """Delete a project task in Freshservice.
 
-    Use this tool to remove an existing project task from a Freshservice project when you need to manage or clean up tasks."""  # noqa: E501
+    This tool deletes an existing project task in Freshservice. Use it when you need to remove a specific task from a project by providing the project and task identifiers."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/projects/{project_id}/tasks/{id}".format(
@@ -3012,7 +8187,7 @@ async def delete_project_task(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3020,13 +8195,15 @@ async def delete_project_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_change_form_fields(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-change-form-fields'."]:
-    """Retrieve all fields in the Change Object of Freshservice.
+    """Retrieve fields for the Change Object in Freshservice.
 
-    Call this tool to obtain a list of all fields that make up the Change Object in Freshservice."""
+    Use this tool to obtain a list of all fields that make up the Change Object in Freshservice. Ideal for understanding the structure or schema of change forms."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/change_form_fields".format(
@@ -3035,7 +8212,7 @@ async def get_change_form_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3043,13 +8220,15 @@ async def get_change_form_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_release_form_fields(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-release-form-fields'."]:
-    """Retrieve all fields of the release object form.
+    """Retrieve fields of the Release Object in Freshservice.
 
-    Use this tool to obtain all the fields that constitute a release object in the Freshservice platform."""  # noqa: E501
+    Use this tool to obtain all fields that make up the Release Object in Freshservice. This is useful when needing to understand or display the structure of a release form."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/release_form_fields".format(
@@ -3058,7 +8237,7 @@ async def get_release_form_fields(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3066,24 +8245,22 @@ async def get_release_form_fields(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_freshservice_announcements(
     context: ToolContext,
     announcement_state: Annotated[
-        str | None,
-        "Specify the state of the announcements to retrieve: archived, active, scheduled, or unread.",  # noqa: E501
+        str | None, "Filter announcements by their state: archived, active, scheduled, or unread."
     ] = None,
     announcements_per_page: Annotated[
         int | None, "Specify the number of announcements to retrieve per page for pagination."
     ] = 30,
-    retrieve_page_number: Annotated[
-        int | None,
-        "Specify the page number of announcements to retrieve. Useful for navigating through paginated results.",  # noqa: E501
-    ] = 1,
+    page_number: Annotated[int | None, "The page number to retrieve for paginated results."] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-announcement'."]:
-    """Retrieve all announcements from Freshservice.
+    """Retrieve a list of all announcements from Freshservice.
 
-    Use this tool to get a list of all announcements available in Freshservice. It should be called when you need to display or review information about current announcements."""  # noqa: E501
+    Use this tool to get all current announcements in Freshservice. Call this when you need to display or access information about company or service announcements."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/announcements".format(
@@ -3093,10 +8270,10 @@ async def get_freshservice_announcements(
         params=remove_none_values({
             "state": announcement_state,
             "per_page": announcements_per_page,
-            "page": retrieve_page_number,
+            "page": page_number,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3104,16 +8281,111 @@ async def get_freshservice_announcements(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_announcement_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_announcement(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-announcement'."]:
+    """Create a new announcement in Freshservice.
+
+    Use this tool to create a new announcement in Freshservice, ideal for disseminating information or updates within your service platform.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEANNOUNCEMENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEANNOUNCEMENT"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEANNOUNCEMENT"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/announcements".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEANNOUNCEMENT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_announcement(
     context: ToolContext,
     announcement_id: Annotated[
-        int, "The unique integer ID of the announcement to retrieve from Freshservice."
+        int, "The unique integer ID of the announcement to be retrieved from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-announcement'."]:
-    """Retrieve specific announcement details from Freshservice.
+    """Retrieve a specific announcement from Freshservice.
 
-    Use this tool to fetch details of a specific announcement using its ID in Freshservice."""
+    Call this tool to get details of an announcement using its ID from Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/announcements/{announcement_id}".format(
@@ -3123,7 +8395,7 @@ async def fetch_announcement_details(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3131,16 +8403,137 @@ async def fetch_announcement_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_freshservice_announcement(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    announcement_id: Annotated[
+        int | None,
+        "The unique ID of the announcement to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-announcement'."]:
+    """Update an existing Freshservice announcement.
+
+    Use this tool to modify an existing announcement in Freshservice. This is useful for updating content, title, or any other property of an announcement identified by its ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEANNOUNCEMENT"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not announcement_id:
+        missing_params.append(("announcement_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEANNOUNCEMENT"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEANNOUNCEMENT"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/announcements/{announcement_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            announcement_id=announcement_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEANNOUNCEMENT"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_freshservice_announcement(
     context: ToolContext,
     announcement_id_to_delete: Annotated[
-        int, "The ID of the announcement to delete from Freshservice."
+        int, "ID of the announcement to delete from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-announcement'."]:
-    """Delete a specific announcement from Freshservice.
+    """Delete an announcement from Freshservice by ID.
 
-    Use this tool to delete an announcement in Freshservice by providing its ID. Useful for managing and removing outdated or incorrect announcements."""  # noqa: E501
+    Use this tool to delete a specific announcement in Freshservice by providing the announcement ID. It confirms the successful deletion of the announcement."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/announcements/{announcement_id}".format(
@@ -3150,7 +8543,7 @@ async def delete_freshservice_announcement(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3158,23 +8551,24 @@ async def delete_freshservice_announcement(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_freshservice_problems(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_problems(
     context: ToolContext,
-    updated_since: Annotated[
-        str | None, "Retrieve problems updated since the specified date. Format: YYYY-MM-DD."
-    ] = None,
-    problems_per_page: Annotated[
-        int | None,
-        "The number of problems to retrieve per page in a paginated list from Freshservice.",
-    ] = 30,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number of the problems list to retrieve from Freshservice."
+        int | None, "Specify the page number to retrieve from the paginated list of problems."
     ] = 1,
+    problems_per_page: Annotated[
+        int | None, "Specify the number of problems to retrieve per page in a paginated list."
+    ] = 30,
+    retrieve_problems_updated_since: Annotated[
+        str | None, "Retrieve problems updated since the specified date (in ISO 8601 format)."
+    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-problems'."]:
     """Retrieve all problems from Freshservice.
 
-    Call this tool to get a list of all problems currently recorded in Freshservice, useful for tracking and management purposes."""  # noqa: E501
+    This tool fetches a list of all problems recorded in Freshservice. It should be called when there is a need to access or review issues tracked in the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems".format(
@@ -3182,12 +8576,12 @@ async def retrieve_freshservice_problems(
         ),
         method="GET",
         params=remove_none_values({
-            "updated_since": updated_since,
+            "updated_since": retrieve_problems_updated_since,
             "per_page": problems_per_page,
             "page": page_number_to_retrieve,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3195,26 +8589,92 @@ async def retrieve_freshservice_problems(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_freshservice_problem(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_new_problem(
     context: ToolContext,
-    problem_identifier: Annotated[
-        int, "The unique ID of the problem in Freshservice to retrieve details for."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-problem'."]:
-    """Retrieve a specific problem in Freshservice by ID.
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-problem'."]:
+    """Create a new problem in Freshservice.
 
-    This tool fetches the details of a problem from Freshservice using the problem ID. It should be called when there's a need to access information about a particular problem within Freshservice."""  # noqa: E501
-    response = await make_request(
+    Use this tool to create a new problem in Freshservice when you need to log an issue or fault that may require investigation and resolution.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATENEWPROBLEM"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWPROBLEM"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATENEWPROBLEM"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
-        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problem/{problem_id}".format(
-            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            problem_id=problem_identifier,
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
         ),
-        method="GET",
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATENEWPROBLEM"]),
         params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
     )
     try:
         return {"response_json": response.json()}
@@ -3222,24 +8682,26 @@ async def retrieve_freshservice_problem(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_problem(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_problem_details(
     context: ToolContext,
-    problem_id: Annotated[int, "The unique ID of the problem to delete from Freshservice."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-problem'."]:
-    """Delete a problem using its ID from Freshservice.
+    problem_id: Annotated[int, "ID of the problem to retrieve from Freshservice."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-problem'."]:
+    """Retrieve details of a specific problem by ID.
 
-    Use this tool to delete a problem from Freshservice by providing its unique ID."""
+    Use this tool to get detailed information about a problem in Freshservice by specifying its ID. Useful for retrieving specific problem data for analysis or reporting."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problem/{problem_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             problem_id=problem_id,
         ),
-        method="DELETE",
+        method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3247,23 +8709,168 @@ async def delete_problem(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_problem_notes(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_service_problem(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    problem_id: Annotated[
+        int | None,
+        "The integer ID of the problem to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-problem'."]:
+    """Update details of an existing problem in Freshservice.
+
+    Use this tool to update information for a specific problem within the Freshservice platform by providing the necessary problem ID and details to modify.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATESERVICEPROBLEM"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not problem_id:
+        missing_params.append(("problem_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESERVICEPROBLEM"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATESERVICEPROBLEM"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problem/{problem_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATESERVICEPROBLEM"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_freshservice_problem(
+    context: ToolContext,
+    problem_id_to_delete: Annotated[
+        int, "Enter the ID of the problem you want to delete from Freshservice."
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-problem'."]:
+    """Delete a problem by ID from Freshservice.
+
+    Use this tool to delete a specific problem from Freshservice using its ID. This operation is useful when you need to remove a resolved or irrelevant problem from the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problem/{problem_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id_to_delete,
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_problem_notes(
     context: ToolContext,
     problem_id: Annotated[
-        int,
-        "The unique integer ID of the problem for which you want to retrieve notes from Freshservice.",  # noqa: E501
+        int, "The integer ID of the problem for which notes will be retrieved from Freshservice."
     ],
     notes_per_page: Annotated[
-        int | None, "The number of notes to retrieve per page in the paginated results."
+        int | None, "Specify the number of notes to retrieve per page in the paginated list."
     ] = 30,
-    page_number: Annotated[
-        int | None, "The page number of the notes to retrieve for pagination purposes."
+    page_number_to_retrieve: Annotated[
+        int | None, "The page number of notes to retrieve from Freshservice."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-problem-notes'."]:
-    """Retrieve notes for a specific problem ID in Freshservice.
+    """Retrieve notes from a specific problem in Freshservice.
 
-    This tool retrieves the notes for a problem specified by its ID from Freshservice. It should be called when you need to access detailed notes or updates associated with a particular problem in the Freshservice system."""  # noqa: E501
+    Use this tool to get all notes associated with a specific problem in Freshservice by providing the problem's ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes".format(
@@ -3271,9 +8878,9 @@ async def get_problem_notes(
             problem_id=problem_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": notes_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": notes_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3281,28 +8888,93 @@ async def get_problem_notes(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def add_note_to_problem(
+    context: ToolContext,
+    note_html_body: Annotated[
+        str, "The HTML formatted content of the note to be added to the problem."
+    ],
+    problem_id: Annotated[int, "The ID of the problem to which the note will be added."],
+    note_body_text: Annotated[
+        str | None,
+        "The content of the note in plain text format to be added to the problem in Freshservice.",
+    ] = None,
+    note_creation_datetime: Annotated[
+        str | None, "The date and time when the note was created, formatted as a string."
+    ] = None,
+    note_creator_user_id: Annotated[
+        int | None,
+        "The unique ID of the user creating the note. This identifies who is responsible for the note addition.",  # noqa: E501
+    ] = None,
+    note_unique_id: Annotated[
+        int | None,
+        "The unique ID to be assigned to the note, ensuring it is distinct within Freshservice.",
+    ] = None,
+    note_updated_datetime: Annotated[
+        str | None,
+        "The date and time when the note was last updated. Use the format 'YYYY-MM-DDTHH:MM:SSZ'.",
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None,
+        "A list of email addresses to notify about the note. Each address should be in string format.",  # noqa: E501
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-problem-note'."]:
+    """Add a new note to a problem in Freshservice.
+
+    Use this tool to create and add a new note to an existing problem in Freshservice, helping track updates or relevant information."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": note_creator_user_id,
+        "notify_emails": notification_email_addresses,
+        "body": note_html_body,
+        "body_text": note_body_text,
+        "created_at": note_creation_datetime,
+        "updated_at": note_updated_datetime,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def retrieve_problem_note(
     context: ToolContext,
-    problem_identifier: Annotated[
-        int, "The unique ID of the problem to retrieve the note from. Must be an integer."
+    note_id: Annotated[
+        int, "The unique integer ID of the note to be retrieved on the Freshservice problem."
     ],
-    note_id: Annotated[int, "The unique identifier for the note to be retrieved."],
+    problem_id: Annotated[
+        int, "The ID of the problem for which the note is being retrieved. It should be an integer."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-problem-note'."]:
-    """Retrieve a specific note from a problem in Freshservice.
+    """Retrieve a note on a Freshservice problem using IDs.
 
-    This tool retrieves a specific note from a problem in Freshservice using the problem and note IDs. It should be called when you need to access detailed information about a note associated with a specific problem."""  # noqa: E501
+    Use this tool to get detailed information about a specific note associated with a problem in Freshservice by providing the problem and note IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes/{note_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            problem_id=problem_identifier,
+            problem_id=problem_id,
             note_id=note_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3310,20 +8982,80 @@ async def retrieve_problem_note(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_problem_note(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_problem_note(
     context: ToolContext,
+    note_id: Annotated[int, "ID of the note to be updated."],
+    problem_id: Annotated[int, "The unique ID of the problem to update the note for."],
+    creator_user_id: Annotated[
+        int | None,
+        "Unique ID of the user who originally created the note. This is necessary for update operations to ensure the note's authorship is correctly handled.",  # noqa: E501
+    ] = None,
+    note_body_html: Annotated[
+        str | None, "The body of the note in HTML format for updating an existing note."
+    ] = None,
+    note_body_text: Annotated[
+        str | None, "The content of the note in plain text format for the problem note update."
+    ] = None,
+    note_created_datetime: Annotated[
+        str | None,
+        "The datetime when the note was initially created in ISO 8601 format (e.g., '2023-03-10T10:00:00Z').",  # noqa: E501
+    ] = None,
+    note_unique_id: Annotated[int | None, "The unique ID of the note to be updated."] = None,
+    note_update_datetime: Annotated[
+        str | None, "The date and time at which the note was updated, in ISO 8601 format."
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None, "List of email addresses to notify about the note update."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-problem-note'."]:
+    """Update a note on an existing problem in Freshservice.
+
+    This tool updates an existing note on a specified problem in Freshservice. Use this when you need to modify details or correct information in a note associated with a problem."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": creator_user_id,
+        "notify_emails": notification_email_addresses,
+        "body": note_body_html,
+        "body_text": note_body_text,
+        "created_at": note_created_datetime,
+        "updated_at": note_update_datetime,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes/{note_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+            note_id=note_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_freshservice_problem_note(
+    context: ToolContext,
+    note_id: Annotated[
+        int, "The unique ID of the note to be deleted from a problem in Freshservice."
+    ],
     problem_id: Annotated[
         int,
-        "The unique identifier for the problem from which the note will be deleted. This should be an integer corresponding to the specific problem in Freshservice.",  # noqa: E501
-    ],
-    note_id: Annotated[
-        int, "The unique identifier for the note to be deleted from a problem in Freshservice."
+        "The unique ID of the problem from which you want to delete a note. This ID is required to specify the target problem in Freshservice.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-problem-note'."]:
-    """Delete a note from a specific problem in Freshservice.
+    """Delete a specific note from a problem in Freshservice.
 
-    Use this tool to delete a note associated with a specific problem in Freshservice by providing the problem and note IDs."""  # noqa: E501
+    Use this tool to delete a specific note from a problem in Freshservice by providing the problem ID and note ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes/{note_id}".format(
@@ -3334,7 +9066,7 @@ async def delete_problem_note(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3342,20 +9074,23 @@ async def delete_problem_note(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_problem_tasks(
     context: ToolContext,
     problem_id: Annotated[
-        int, "The ID of the problem for which tasks need to be retrieved from Freshservice."
+        int,
+        "The ID of the problem for which tasks need to be retrieved. This identifies the specific problem in Freshservice.",  # noqa: E501
     ],
+    page_number: Annotated[int | None, "The page number of the task list to retrieve."] = 1,
     tasks_per_page: Annotated[
-        int | None, "Specify the number of tasks to retrieve per page for pagination."
+        int | None, "The number of tasks to retrieve per page in the paginated list."
     ] = 10,
-    page_number: Annotated[int | None, "The specific page number of tasks to retrieve."] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-problem-tasks'."]:
-    """Retrieve tasks for a specific problem from Freshservice.
+    """Retrieve tasks associated with a specific problem ID.
 
-    Use this tool to get a list of tasks associated with a specific problem by providing the problem ID."""  # noqa: E501
+    Use this tool to get the list of tasks related to a particular problem in Freshservice by providing the problem ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks".format(
@@ -3365,7 +9100,7 @@ async def get_problem_tasks(
         method="GET",
         params=remove_none_values({"per_page": tasks_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3373,19 +9108,137 @@ async def get_problem_tasks(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_problem_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    problem_identifier: Annotated[
+        int | None,
+        "ID of the problem for which a new task will be created. It must be an integer representing the specific problem in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-problem-task'."]:
+    """Create a new task on a problem in Freshservice.
+
+    This tool creates a new task associated with a specific problem in the Freshservice system. Use it when you need to assign tasks to a problem for better issue management.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROBLEMTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not problem_identifier:
+        missing_params.append(("problem_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROBLEMTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROBLEMTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_identifier,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICEPROBLEMTASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def retrieve_problem_task(
     context: ToolContext,
     problem_id: Annotated[
-        int, "The unique integer ID of the problem to retrieve the task from in Freshservice."
+        int,
+        "The unique identifier for the problem used to retrieve the task details from Freshservice.",  # noqa: E501
     ],
     task_id: Annotated[
-        int, "The unique identifier for the task to retrieve from the specified problem."
+        int, "ID of the task to be retrieved from the specified problem, expected as an integer."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-problem-task'."]:
-    """Retrieve details of a specific task from a problem in Freshservice.
+    """Retrieve a specific task from a problem in Freshservice.
 
-    Use this tool to get information about a specific task linked to a problem in Freshservice using the task and problem IDs."""  # noqa: E501
+    This tool retrieves the details of a task associated with a specific problem in Freshservice, using the problem and task IDs provided."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks/{task_id}".format(
@@ -3396,7 +9249,7 @@ async def retrieve_problem_task(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3404,15 +9257,143 @@ async def retrieve_problem_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_problem_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    problem_id: Annotated[
+        int | None,
+        "The unique identifier for the problem to which the task is linked. This is an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    task_identifier: Annotated[
+        int | None,
+        "Unique integer identifier for the specific task to update within a problem in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-problem-task'."]:
+    """Update an existing task on a Freshservice problem.
+
+    This tool updates a specific task linked to an existing problem in Freshservice. Use it to modify details of a task within a problem context.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEPROBLEMTASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not problem_id:
+        missing_params.append(("problem_id", "path"))
+    if not task_identifier:
+        missing_params.append(("task_identifier", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROBLEMTASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPROBLEMTASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks/{task_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+            task_id=task_identifier,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEPROBLEMTASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_problem_task(
     context: ToolContext,
-    problem_id: Annotated[int, "The unique ID of the problem from which the task will be deleted."],
-    task_id: Annotated[int, "The unique identifier of the task to be deleted in Freshservice."],
+    problem_id: Annotated[
+        int, "The unique identifier for the problem from which the task will be deleted."
+    ],
+    task_id: Annotated[
+        int, "The unique integer ID of the task to be deleted from the specified problem."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-problem-task'."]:
-    """Delete a task from a problem in Freshservice.
+    """Delete a specific task from a problem in Freshservice.
 
-    Use this tool to delete a specific task associated with a problem in Freshservice by providing the problem ID and task ID."""  # noqa: E501
+    Use this tool to delete a task associated with a specific problem in Freshservice by providing the problem and task IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/tasks/{task_id}".format(
@@ -3423,7 +9404,7 @@ async def delete_problem_task(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3431,23 +9412,25 @@ async def delete_problem_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_problem_time_entries(
     context: ToolContext,
     problem_id: Annotated[
-        int,
-        "ID of the problem for which time entries need to be retrieved. This is an integer value.",
+        int, "The unique ID of the Freshservice problem to retrieve time entries for."
     ],
     entries_per_page: Annotated[
-        int | None, "The number of time entries to retrieve per page in a paginated list."
+        int | None, "The number of time entries to retrieve in each page of a paginated list."
     ] = 10,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve in the paginated list of time entries."
+        int | None,
+        "The page number to retrieve from the paginated list of time entries for the specified problem.",  # noqa: E501
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-problem-time-entries'."]:
-    """Retrieve time entries for a specific problem by ID.
+    """Retrieve time entries for a specific Freshservice problem.
 
-    Use this tool to get the time entries associated with a problem by providing its ID. Useful for tracking and managing the time spent on problem resolution."""  # noqa: E501
+    Use this tool to get all time entries associated with a particular problem in Freshservice by providing the problem ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/time_entries".format(
@@ -3457,7 +9440,7 @@ async def get_problem_time_entries(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3465,17 +9448,136 @@ async def get_problem_time_entries(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_problem_time_entry(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_problem_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    problem_id: Annotated[
+        int | None,
+        "The ID of the problem for which the time entry is to be created. Must be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-problem-time-entry'."]:
+    """Create a new time entry for a problem in Freshservice.
+
+    This tool creates a new time entry on a specified problem in Freshservice. It should be called when you need to log time spent on a problem within the service.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEPROBLEMTIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not problem_id:
+        missing_params.append(("problem_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPROBLEMTIMEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPROBLEMTIMEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/time_entries".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEPROBLEMTIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_problem_time_entry(
     context: ToolContext,
     problem_id: Annotated[
-        int, "The unique identifier for the problem to retrieve a time entry from in Freshservice."
+        int, "The unique identifier for the problem to retrieve the associated time entry."
     ],
-    time_entry_id: Annotated[int, "The unique integer ID of the time entry to be retrieved."],
+    time_entry_id: Annotated[
+        int, "An integer representing the ID of the specific time entry to be retrieved."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-problem-time-entry'."]:
-    """Retrieve time entry details for a specific problem.
+    """Retrieve a time entry for a specific problem in Freshservice.
 
-    Use this tool to obtain information about a particular time entry associated with a problem in Freshservice. This can be useful for tracking time spent on solving issues."""  # noqa: E501
+    Use this tool to get detailed information about a time entry associated with a specific problem in Freshservice when provided with the problem ID and time entry ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/time_entries/{time_entry_id}".format(
@@ -3486,7 +9588,7 @@ async def get_problem_time_entry(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3494,30 +9596,160 @@ async def get_problem_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_problem_time_entry(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_freshservice_problem_time_entry(
     context: ToolContext,
-    problem_identifier: Annotated[
-        int, "The unique ID representing the problem from which you want to delete a time entry."
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    problem_id: Annotated[
+        int | None,
+        "ID of the problem whose time entry needs to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    time_entry_id: Annotated[
+        int | None,
+        "The unique integer ID of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-problem-time-entry'."]:
+    """Update an existing time entry on a Freshservice problem.
+
+    Use this tool to modify details of a time entry recorded on a specific problem within Freshservice. This is helpful for correcting or adjusting recorded time related to problem management.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEPROBLEMTIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not problem_id:
+        missing_params.append(("problem_id", "path"))
+    if not time_entry_id:
+        missing_params.append(("time_entry_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEPROBLEMTIMEENTRY"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEPROBLEMTIMEENTRY"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/time_entries/{time_entry_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            problem_id=problem_id,
+            time_entry_id=time_entry_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICEPROBLEMTIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_freshservice_problem_time_entry(
+    context: ToolContext,
+    problem_id: Annotated[
+        int,
+        "ID of the problem from which the time entry will be deleted. This should be an integer value.",  # noqa: E501
     ],
     time_entry_id: Annotated[
-        int, "The unique identifier for the time entry to be deleted from the specified problem."
+        int,
+        "The numeric ID of the time entry to be deleted. This is required to identify which time entry to remove from the specified Freshservice problem.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-problem-time-entry'."]:
-    """Delete a time entry from a specified problem in Freshservice.
+    """Delete a specific time entry from a Freshservice problem.
 
-    Use this tool to delete a time entry associated with a specific problem in Freshservice. Call it when you need to remove a recorded time entry from a problem."""  # noqa: E501
+    Use this tool to delete a specific time entry associated with a problem in Freshservice by providing the problem and time entry IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/time_entries/{time_entry_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            problem_id=problem_identifier,
+            problem_id=problem_id,
             time_entry_id=time_entry_id,
         ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3525,13 +9757,108 @@ async def delete_problem_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_onboarding_request_form(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-onboarding-request-form'."]:
+    """Retrieve all fields in the onboarding request form.
+
+    This tool retrieves a list of all fields in the initiator onboarding request form from Freshservice, which can be used to understand the data structure required for the onboarding process.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["GETONBOARDINGREQUESTFORM"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["GETONBOARDINGREQUESTFORM"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["GETONBOARDINGREQUESTFORM"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/onboarding_requests/form".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="GET",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["GETONBOARDINGREQUESTFORM"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_user_onboarding_requests(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-onboarding-requests'."]:
-    """Retrieve onboarding requests for a user.
+    """Retrieve all onboarding requests for a specific user.
 
-    This tool fetches all onboarding requests related to a specific user from Freshservice. It should be called when you need to view or manage a user's onboarding process and details."""  # noqa: E501
+    Use this tool to obtain all onboarding requests associated with a particular user, aiding in user management and tracking."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/onboarding_requests".format(
@@ -3540,7 +9867,7 @@ async def get_user_onboarding_requests(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3548,16 +9875,112 @@ async def get_user_onboarding_requests(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_onboarding_request(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_onboarding_request(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-onboarding-request'."]:
+    """Create a new onboarding request in Freshservice.
+
+    Use this tool to initiate a new employee onboarding process in Freshservice. It should be called when a new hire needs to be onboarded, capturing all necessary details and confirming the creation of the request.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEONBOARDINGREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEONBOARDINGREQUEST"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEONBOARDINGREQUEST"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/onboarding_requests".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEONBOARDINGREQUEST"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_onboarding_request(
     context: ToolContext,
     onboarding_request_id: Annotated[
-        int, "The unique display ID of the onboarding request to retrieve details for."
+        int,
+        "The ID number representing the specific onboarding request to retrieve from Freshservice.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-onboarding-request'."]:
-    """Retrieve details of a specific onboarding request.
+    """Retrieve a specific onboarding request by ID.
 
-    Call this tool to get information about a specific onboarding request using its ID. Useful for accessing details related to employee onboarding processes."""  # noqa: E501
+    Use this tool to get details about a specific onboarding request from Freshservice by providing the request ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/onboarding_requests/{request_id}".format(
@@ -3567,7 +9990,7 @@ async def retrieve_onboarding_request(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3575,13 +9998,15 @@ async def retrieve_onboarding_request(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_onboarding_request_tickets(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def fetch_onboarding_tickets(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-onboarding-request-tickets'."]:
-    """Retrieve FreshService Tickets for a specific Onboarding Request.
+    """Retrieve tickets for specific onboarding requests.
 
-    Use this tool to get detailed information about the FreshService Tickets linked to a specific Onboarding Request. It's useful for tracking the progress and details of onboarding activities."""  # noqa: E501
+    This tool fetches details of FreshService Tickets linked to a particular Onboarding Request. Use it to access related ticket information based on the onboarding request ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/onboarding_requests/id/tickets".format(
@@ -3590,7 +10015,7 @@ async def get_onboarding_request_tickets(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3598,13 +10023,13 @@ async def get_onboarding_request_tickets(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_canned_responses(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_canned_responses(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-canned-responses'."]:
-    """Retrieve all canned responses from Freshservice.
-
-    Call this tool to retrieve a list of all available canned responses stored in Freshservice."""
+    """Retrieve a list of all Canned Responses in Freshservice."""
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_responses".format(
@@ -3613,7 +10038,7 @@ async def get_canned_responses(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3621,16 +10046,115 @@ async def get_canned_responses(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_freshservice_canned_response(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-canned-response'."]:
+    """Create a new canned response in Freshservice.
+
+    Use this tool to create a new canned response in a Freshservice account. It should be called when there is a need to automate the creation of standard replies to frequent inquiries.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECANNEDRESPONSE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECANNEDRESPONSE"]
+                + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n"
+                + REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECANNEDRESPONSE"]
+                + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_responses".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEFRESHSERVICECANNEDRESPONSE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_canned_response(
     context: ToolContext,
     canned_response_id: Annotated[
-        int, "The unique ID of the Canned Response you want to retrieve from Freshservice."
+        int, "The unique ID of the canned response to retrieve from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-canned-response'."]:
-    """Retrieve a specific Canned Response by ID from Freshservice.
+    """Retrieve details of a Freshservice canned response by ID.
 
-    Call this tool to get details of a specific Canned Response using its ID. Useful for accessing predefined responses in Freshservice."""  # noqa: E501
+    Use this tool to obtain the details of a specific canned response from Freshservice, given its unique ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response/{canned_response_id}".format(
@@ -3640,7 +10164,7 @@ async def get_canned_response(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3648,16 +10172,133 @@ async def get_canned_response(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_canned_response(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    canned_response_id: Annotated[
+        int | None,
+        "The ID of the canned response you wish to update. This should be an integer value that uniquely identifies the response within Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-canned-response'."]:
+    """Update a canned response in Freshservice.
+
+    Use this tool to update an existing canned response in Freshservice. It modifies the details of a specific canned response identified by its ID.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATECANNEDRESPONSE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not canned_response_id:
+        missing_params.append(("canned_response_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECANNEDRESPONSE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATECANNEDRESPONSE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response/{canned_response_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            canned_response_id=canned_response_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATECANNEDRESPONSE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_canned_response(
     context: ToolContext,
     canned_response_id: Annotated[
-        int, "The unique integer ID of the canned response to delete from Freshservice."
+        int, "The unique ID of the canned response you want to delete from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-canned-response'."]:
-    """Delete a specific canned response from Freshservice.
+    """Delete a Canned Response from Freshservice.
 
-    Use this tool to delete a canned response from Freshservice by providing its unique ID."""
+    Use this tool to delete a specific Canned Response in Freshservice by providing its ID. Ideal for managing and cleaning up unused or outdated responses."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response/{canned_response_id}".format(
@@ -3667,7 +10308,7 @@ async def delete_canned_response(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3675,13 +10316,15 @@ async def delete_canned_response(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_freshservice_canned_response_folders(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_canned_response_folders(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-canned-response-folders'."]:
     """Retrieve all canned response folders from Freshservice.
 
-    Use this tool to retrieve a list of all canned response folders available in Freshservice. This can be useful for managing quick reply templates or automated responses within the Freshservice platform."""  # noqa: E501
+    This tool retrieves a list of all canned response folders available in Freshservice. It should be called when you need to access or manage pre-written responses for different scenarios or queries in Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folders".format(
@@ -3690,7 +10333,7 @@ async def get_freshservice_canned_response_folders(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3698,17 +10341,70 @@ async def get_freshservice_canned_response_folders(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_canned_response_folder(
+    context: ToolContext,
+    folder_name: Annotated[
+        str, "The name of the new canned response folder to be created in Freshservice."
+    ],
+    canned_response_folder_id: Annotated[
+        int | None, "Unique identifier for the canned response folder. It must be an integer value."
+    ] = None,
+    folder_created_at: Annotated[
+        str | None, "The timestamp indicating when the folder was created, formatted as a string."
+    ] = None,
+    folder_type: Annotated[
+        str | None,
+        "Specifies the type of the canned response folder, indicating its purpose or categorization.",  # noqa: E501
+    ] = None,
+    initial_responses_count: Annotated[
+        int | None,
+        "Specify the initial number of responses in the new canned response folder, typically starting at 0.",  # noqa: E501
+    ] = None,
+    updated_at_timestamp: Annotated[
+        str | None, "The timestamp of the last update to the folder in ISO 8601 format."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-canned-response-folder'."]:
+    """Create a new canned response folder in Freshservice.
+
+    This tool creates a new canned response folder in Freshservice. Use it when you need to organize canned responses into a new folder within the Freshservice platform."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": canned_response_folder_id,
+        "name": folder_name,
+        "type": folder_type,
+        "responses_count": initial_responses_count,
+        "created_at": folder_created_at,
+        "updated_at": updated_at_timestamp,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folders".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_canned_response_folder(
     context: ToolContext,
     canned_response_folder_id: Annotated[
-        int,
-        "The ID of the canned response folder to retrieve from Freshservice. It should be an integer.",  # noqa: E501
+        int, "ID of the canned response folder to be retrieved from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-canned-response-folder'."]:
     """Retrieve a specific canned response folder from Freshservice.
 
-    Use this tool to fetch details of a specific canned response folder in Freshservice by providing the folder ID."""  # noqa: E501
+    Use this tool to fetch the details of a specific canned response folder by its ID from Freshservice. It is helpful for accessing pre-defined response templates for customer support or information retrieval."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folder/{canned_response_folder_id}".format(
@@ -3718,7 +10414,7 @@ async def get_canned_response_folder(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3726,17 +10422,77 @@ async def get_canned_response_folder(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_canned_response_folder(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_canned_response_folder(
     context: ToolContext,
     canned_response_folder_id: Annotated[
         int,
-        "ID of the canned response folder to delete. This is required to identify which folder should be removed from Freshservice.",  # noqa: E501
+        "The ID of the canned response folder to update in Freshservice. This is required to identify which folder needs modification.",  # noqa: E501
+    ],
+    folder_creation_date: Annotated[
+        str | None,
+        "The date and time the canned response folder was originally created. Expected format is ISO 8601 (e.g., '2023-10-12T10:20:30Z').",  # noqa: E501
+    ] = None,
+    folder_name: Annotated[
+        str | None,
+        "The new name for the canned response folder. This will replace the current name.",
+    ] = None,
+    folder_responses_count: Annotated[
+        int | None, "Specifies the number of responses in the canned response folder to update."
+    ] = None,
+    folder_type: Annotated[
+        str | None,
+        "Specify the type of the canned response folder. This may relate to its category or purpose.",  # noqa: E501
+    ] = None,
+    last_updated_timestamp: Annotated[
+        str | None,
+        "The timestamp of when the folder was last updated. Expected in ISO 8601 format.",
+    ] = None,
+    new_folder_id: Annotated[
+        int | None, "The new ID to assign to the canned response folder. This should be an integer."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-canned-response-folder'."]:
+    """Update an existing Canned Response Folder in Freshservice.
+
+    Use this tool to modify details of a specific canned response folder in Freshservice by providing the folder ID and required updates."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": new_folder_id,
+        "name": folder_name,
+        "type": folder_type,
+        "responses_count": folder_responses_count,
+        "created_at": folder_creation_date,
+        "updated_at": last_updated_timestamp,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folder/{canned_response_folder_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            canned_response_folder_id=canned_response_folder_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_canned_response_folder(
+    context: ToolContext,
+    canned_response_folder_id: Annotated[
+        int, "The unique ID of the Canned Response Folder to delete in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-caned-response-folder'."]:
-    """Delete a Canned Response Folder in Freshservice.
+    """Deletes a specified Canned Response Folder in Freshservice.
 
-    Use this tool to delete a specified Canned Response Folder by its ID in Freshservice. This is useful for managing your canned responses by removing folders that are no longer needed."""  # noqa: E501
+    This tool deletes a Canned Response Folder from Freshservice using the provided folder ID. Use it when you need to remove a specific folder."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folder/{canned_response_folder_id}".format(
@@ -3746,7 +10502,7 @@ async def delete_canned_response_folder(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3754,19 +10510,21 @@ async def delete_canned_response_folder(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def list_canned_responses(
     context: ToolContext,
     canned_response_folder_id: Annotated[
-        int, "ID of the canned response folder to retrieve responses from."
+        int, "The ID of the canned response folder to retrieve responses from."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'list-canned-response-folders-canned-responses'.",
 ]:
-    """Retrieve all canned responses from a specified folder.
+    """Retrieve canned responses from a specified folder in Freshservice.
 
-    This tool fetches all available canned responses within a specified canned response folder in Freshservice. It is useful for accessing pre-defined replies for ticket responses."""  # noqa: E501
+    Call this tool to obtain a list of all canned responses within a specified canned response folder in Freshservice. It's useful for accessing predefined replies saved in a particular folder."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folders/{canned_response_folder_id}/canned_responses".format(
@@ -3776,7 +10534,7 @@ async def list_canned_responses(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3784,22 +10542,24 @@ async def list_canned_responses(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_releases_list(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_releases(
     context: ToolContext,
-    fetch_releases_updated_since: Annotated[
-        str | None, "Retrieve releases updated since a specific date in YYYY-MM-DD format."
+    page_number: Annotated[
+        int | None, "Indicates which page of the release list to retrieve in a paginated response."
+    ] = 1,
+    release_updated_since: Annotated[
+        str | None, "Retrieve releases updated after the specified date (in YYYY-MM-DD format)."
     ] = None,
     releases_per_page: Annotated[
         int | None, "The number of releases to retrieve per page in the paginated list."
     ] = 30,
-    page_number_to_retrieve: Annotated[
-        int | None, "Specify the page number of release data to retrieve for pagination."
-    ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-releases'."]:
     """Retrieve a list of all Releases in Freshservice.
 
-    Use this tool to get information on all current and past releases managed within Freshservice. It should be called when there's a need to gather release details for projects or updates."""  # noqa: E501
+    Use this tool to obtain a complete list of all Releases within the Freshservice platform. Useful for tracking, managing, and reviewing release information."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases".format(
@@ -3807,12 +10567,12 @@ async def get_releases_list(
         ),
         method="GET",
         params=remove_none_values({
-            "updated_since": fetch_releases_updated_since,
+            "updated_since": release_updated_since,
             "per_page": releases_per_page,
-            "page": page_number_to_retrieve,
+            "page": page_number,
         }),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3820,27 +10580,119 @@ async def get_releases_list(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_release_details(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_release_request(
     context: ToolContext,
-    release_identifier: Annotated[
-        int,
-        "The ID of the release you want to retrieve from Freshservice. Provide the specific release ID as an integer to get its details.",  # noqa: E501
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
     ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release'."]:
-    """Retrieve details of a specific release by ID in Freshservice.
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-release'."]:
+    """Initiate a new release request in Freshservice.
 
-    Use this tool to get information about a release from Freshservice by providing the release ID. It fetches the release details from the Freshservice platform."""  # noqa: E501
+    This tool is used to create a new release request in Freshservice. It should be called when a user wants to start tracking or managing a release process within the Freshservice platform.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATERELEASEREQUEST"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATERELEASEREQUEST"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATERELEASEREQUEST"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATERELEASEREQUEST"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_release(
+    context: ToolContext,
+    release_id: Annotated[int, "ID of the release to retrieve from Freshservice."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release'."]:
+    """Retrieve release details from Freshservice by ID.
+
+    Call this tool to obtain specific release details from Freshservice using a provided release ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/release/{release_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            release_id=release_identifier,
+            release_id=release_id,
         ),
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3848,26 +10700,141 @@ async def get_release_details(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_freshservice_release(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    release_id: Annotated[
+        int | None,
+        "The unique ID of the release to update in Freshservice.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-release'."]:
+    """Update an existing Release in Freshservice.
+
+    Use this tool to modify details of an existing release in Freshservice. This is useful for updating information such as release dates, descriptions, or status.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICERELEASE"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not release_id:
+        missing_params.append(("release_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICERELEASE"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICERELEASE"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/release/{release_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEFRESHSERVICERELEASE"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_freshservice_release(
     context: ToolContext,
-    release_id_for_deletion: Annotated[
-        int, "The unique integer ID of the release to delete from Freshservice."
-    ],
+    release_id: Annotated[int, "The unique integer ID of the release to delete in Freshservice."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-release'."]:
-    """Delete a specific release in Freshservice.
+    """Delete a release from Freshservice by its ID.
 
-    Use this tool to delete a release from Freshservice by providing the release ID. It is useful for managing releases and ensuring outdated or incorrect entries are removed from the system."""  # noqa: E501
+    Use this tool to delete a specific release in Freshservice when you have the release ID available. This is useful for managing and cleaning up outdated or erroneous releases in the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/release/{release_id}".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            release_id=release_id_for_deletion,
+            release_id=release_id,
         ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3875,31 +10842,93 @@ async def delete_freshservice_release(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_release_notes(
     context: ToolContext,
-    release_id: Annotated[int, "The ID of the release for which notes are to be retrieved."],
+    release_identifier: Annotated[
+        int, "The ID representing the release for which notes are to be retrieved."
+    ],
     notes_per_page: Annotated[
-        int | None, "The number of release notes to retrieve in each page."
+        int | None, "The number of notes to retrieve per page in the paginated result."
     ] = 30,
-    retrieve_page_number: Annotated[
-        int | None,
-        "The specific page number of release notes to retrieve. Useful for paginated results.",
+    page_number_to_retrieve: Annotated[
+        int | None, "Indicates which page of notes to retrieve for the specified release."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-release-note'."]:
-    """Retrieve release notes from Freshservice using a release ID.
+    """Retrieve notes for a specified release in Freshservice.
 
-    Use this tool to get the notes associated with a specific release in Freshservice by providing the release ID."""  # noqa: E501
+    Use this tool to get detailed notes on a release by providing the release ID. It is useful for obtaining updates and information documented in a particular release within Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/notes".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_identifier,
+        ),
+        method="GET",
+        params=remove_none_values({"per_page": notes_per_page, "page": page_number_to_retrieve}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def add_release_note(
+    context: ToolContext,
+    release_id: Annotated[int, "The unique ID of the release to which the note will be added."],
+    note_body_html: Annotated[
+        str | None, "Provide the note content in HTML format for the release."
+    ] = None,
+    note_body_plain_text: Annotated[
+        str | None,
+        "The body of the release note in plain text format. Use this for non-HTML content.",
+    ] = None,
+    note_creation_datetime: Annotated[
+        str | None,
+        "Specify the date and time when the note was created. Format: YYYY-MM-DDTHH:MM:SSZ (ISO 8601 standard).",  # noqa: E501
+    ] = None,
+    note_creator_user_id: Annotated[
+        int | None,
+        "Unique ID of the user who created the note. This ID should correspond to the user in Freshservice responsible for the note's content.",  # noqa: E501
+    ] = None,
+    note_unique_id: Annotated[
+        int | None, "Integer representing the unique ID of the note to be created."
+    ] = None,
+    note_updated_at: Annotated[
+        str | None, "The date and time when the note was last updated, in ISO 8601 format."
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None, "Array of email addresses to notify about the note."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-release-note'."]:
+    """Create a new note on a release in Freshservice.
+
+    Use this tool to add a note to a specific release in Freshservice. It should be called when you need to document or update information about a release."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": note_creator_user_id,
+        "notify_emails": notification_email_addresses,
+        "body": note_body_html,
+        "body_text": note_body_plain_text,
+        "created_at": note_creation_datetime,
+        "updated_at": note_updated_at,
+    })
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/notes".format(
             freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
             release_id=release_id,
         ),
-        method="GET",
-        params=remove_none_values({"per_page": notes_per_page, "page": retrieve_page_number}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3907,20 +10936,19 @@ async def get_release_notes(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_release_note(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_release_note(
     context: ToolContext,
+    note_id: Annotated[int, "The unique integer ID of the note to be retrieved from the release."],
     release_id: Annotated[
-        int,
-        "The unique integer ID representing the release in Freshservice to retrieve the note from.",
-    ],
-    note_id: Annotated[
-        int, "The unique identifier for the note to be retrieved. It must be an integer."
+        int, "The unique identifier for a specific release to retrieve the note from."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release-note'."]:
-    """Retrieve a note on a release by ID from Freshservice.
+    """Retrieve a note from a specific release in Freshservice.
 
-    Call this tool to get details of a specific note from a release by providing the release ID and note ID in Freshservice."""  # noqa: E501
+    This tool retrieves a specific note associated with a given release ID from Freshservice. It is useful for accessing detailed notes or updates related to particular releases."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/notes/{note_id}".format(
@@ -3931,7 +10959,7 @@ async def fetch_release_note(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3939,20 +10967,79 @@ async def fetch_release_note(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_release_note_freshservice(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_release_note(
     context: ToolContext,
-    release_id: Annotated[
-        int,
-        "The numeric ID of the release from which the note will be deleted. This ID is required to identify the specific release in Freshservice.",  # noqa: E501
-    ],
+    note_id: Annotated[int, "The unique identifier of the note to be updated."],
+    release_identifier: Annotated[int, "The unique integer ID of the release to be updated."],
+    note_body_plain_text: Annotated[
+        str | None, "The content of the release note in plain text format, without any HTML tags."
+    ] = None,
+    note_created_datetime: Annotated[
+        str | None,
+        "The date and time when the note was initially created, in ISO 8601 format (e.g., YYYY-MM-DDTHH:MM:SSZ).",  # noqa: E501
+    ] = None,
+    note_html_body: Annotated[
+        str | None, "The HTML content of the note to be updated. Use valid HTML format."
+    ] = None,
+    note_unique_id: Annotated[int | None, "The unique ID of the note to update."] = None,
+    note_updated_at: Annotated[
+        str | None,
+        "Date and time when the note was updated, in ISO 8601 format (e.g., '2023-03-27T14:00:00Z').",  # noqa: E501
+    ] = None,
+    notification_email_addresses: Annotated[
+        list[str] | None, "An array of email addresses to notify about the updated release note."
+    ] = None,
+    user_id_of_note_creator: Annotated[
+        int | None, "Unique ID of the user who created the note."
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-release-note'."]:
+    """Update an existing release note in Freshservice.
+
+    This tool updates an existing note on a specified release in Freshservice. Call this when you need to modify the content of a release note within the platform."""  # noqa: E501
+    request_data = remove_none_values({
+        "id": note_unique_id,
+        "user_id": user_id_of_note_creator,
+        "notify_emails": notification_email_addresses,
+        "body": note_html_body,
+        "body_text": note_body_plain_text,
+        "created_at": note_created_datetime,
+        "updated_at": note_updated_at,
+    })
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/notes/{note_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_identifier,
+            note_id=note_id,
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_release_note(
+    context: ToolContext,
     note_id: Annotated[
-        int, "The integer ID of the note to be deleted from the release in Freshservice."
+        int, "The unique identifier for the release note to be deleted in Freshservice."
+    ],
+    release_id: Annotated[
+        int, "The unique integer ID of the release in Freshservice whose note is to be deleted."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-release-note'."]:
-    """Deletes a note from a specified release in Freshservice.
+    """Deletes a specific release note in Freshservice.
 
-    Use this tool to delete a note from a specific release in Freshservice by specifying the release and note IDs."""  # noqa: E501
+    Use this tool to delete a note associated with a release in Freshservice by specifying the release and note IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/notes/{note_id}".format(
@@ -3963,7 +11050,7 @@ async def delete_release_note_freshservice(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -3971,22 +11058,24 @@ async def delete_release_note_freshservice(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_release_tasks(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_release_tasks(
     context: ToolContext,
     release_id: Annotated[
-        int, "ID of the release for which tasks are to be retrieved in Freshservice."
+        int, "The unique ID of the release for which tasks are to be retrieved from Freshservice."
     ],
-    tasks_per_page: Annotated[
-        int | None, "Number of tasks to retrieve per page in a paginated list."
-    ] = 10,
-    page_number: Annotated[
-        int | None, "The page number to retrieve tasks from. Use for paginated results."
+    page_number_to_retrieve: Annotated[
+        int | None, "Specify the page number of tasks to retrieve for pagination."
     ] = 1,
+    tasks_per_page: Annotated[
+        int | None, "The number of tasks to retrieve per page in a paginated list."
+    ] = 10,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-release-tasks'."]:
-    """Retrieve tasks for a specified release in Freshservice.
+    """Retrieve all tasks for a specified release in Freshservice.
 
-    Use this tool to get a list of tasks associated with a particular release ID in Freshservice."""
+    This tool is used to obtain a list of tasks associated with a specific release ID from Freshservice. It is useful when you need detailed information about tasks related to a release."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks".format(
@@ -3994,9 +11083,9 @@ async def retrieve_release_tasks(
             release_id=release_id,
         ),
         method="GET",
-        params=remove_none_values({"per_page": tasks_per_page, "page": page_number}),
+        params=remove_none_values({"per_page": tasks_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4004,18 +11093,287 @@ async def retrieve_release_tasks(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def retrieve_release_task(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_release_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    release_id: Annotated[
+        int | None,
+        "ID of the release to add a new task. It specifies the release context for task creation.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-release-task'."]:
+    """Create a new task on a Freshservice release.
+
+    Use this tool to add a new task to a specific release in Freshservice, enabling detailed release management and tracking.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATERELEASETASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not release_id:
+        missing_params.append(("release_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATERELEASETASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATERELEASETASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATERELEASETASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_freshservice_release_task(
+    context: ToolContext,
+    release_identifier: Annotated[int, "The numeric ID of the release to retrieve the task from."],
+    task_id: Annotated[
+        int, "The unique integer ID of the task to retrieve within a release in Freshservice."
+    ],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release-task'."]:
+    """Retrieve a specific task for a release in Freshservice.
+
+    Call this tool to get information about a specific task within a release in Freshservice using the release and task IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
+    response = await make_request(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks/{task_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_identifier,
+            task_id=task_id,
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({}),
+        content=content,
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_release_task(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    release_id: Annotated[
+        int | None,
+        "The numeric ID of the release containing the task to update. This ID is mandatory to locate the specific release.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    task_id: Annotated[
+        int | None,
+        "The numeric ID of the task to be updated in the release.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-release-task'."]:
+    """Update a specific task within a release in Freshservice.
+
+    Use this tool to modify details of a specific task associated with an existing release in Freshservice. This is useful when changes are needed in task descriptions, assignments, dates, or statuses within a release.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATERELEASETASK"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not release_id:
+        missing_params.append(("release_id", "path"))
+    if not task_id:
+        missing_params.append(("task_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATERELEASETASK"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATERELEASETASK"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks/{task_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_id,
+            task_id=task_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATERELEASETASK"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def delete_release_task(
     context: ToolContext,
     release_id: Annotated[
-        int,
-        "The unique identifier for the release to retrieve a specific task from. This is an integer value.",  # noqa: E501
+        int, "The unique ID of the release from which the task should be deleted."
     ],
-    task_id: Annotated[int, "The unique ID of the task you want to retrieve within a release."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release-task'."]:
-    """Retrieve a specific task from a release in Freshservice.
+    task_id: Annotated[int, "The unique identifier for the task within a release to be deleted."],
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-release-task'."]:
+    """Delete a specific task from a release in Freshservice.
 
-    Use this tool to get information about a particular task within a release by specifying the release and task IDs."""  # noqa: E501
+    Use this tool to delete a task from a specific release in Freshservice by providing the release ID and task ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks/{task_id}".format(
@@ -4023,39 +11381,10 @@ async def retrieve_release_task(
             release_id=release_id,
             task_id=task_id,
         ),
-        method="GET",
-        params=remove_none_values({}),
-        headers=remove_none_values({}),
-        data=remove_none_values({}),
-    )
-    try:
-        return {"response_json": response.json()}
-    except Exception:
-        return {"response_text": response.text}
-
-
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def delete_release_task(
-    context: ToolContext,
-    release_id: Annotated[
-        int, "ID of the release from which the task will be deleted. This must be a valid integer."
-    ],
-    task_id_integer: Annotated[int, "The integer ID of the task to be deleted from the release."],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-release-task'."]:
-    """Delete a task from a specified release in Freshservice.
-
-    Use this tool to remove a specific task from a release in Freshservice when you have both the release and task IDs."""  # noqa: E501
-    response = await make_request(
-        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
-        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/tasks/{task_id}".format(
-            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
-            release_id=release_id,
-            task_id=task_id_integer,
-        ),
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4063,23 +11392,24 @@ async def delete_release_task(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def get_release_time_entries(
     context: ToolContext,
     release_id: Annotated[
-        int,
-        "The unique ID of the release for which time entries are to be retrieved in Freshservice.",
+        int, "The ID of the release for which time entries are to be retrieved from Freshservice."
     ],
     entries_per_page: Annotated[
-        int | None, "The number of time entries to retrieve per page in the paginated list."
+        int | None, "The number of time entries to retrieve per page in a paginated list."
     ] = 10,
     page_number_to_retrieve: Annotated[
-        int | None, "The page number to retrieve in the paginated list of time entries."
+        int | None, "Specify the page number of the time entries to retrieve for the given release."
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-release-time-entries'."]:
-    """Retrieve time entries for a specific release in Freshservice.
+    """Retrieve time entries for a specified release.
 
-    Use this tool to get detailed time entry information associated with a specific release ID from Freshservice. It should be called when you need to analyze or report on time logged for release activities."""  # noqa: E501
+    This tool retrieves the time entries associated with a given Release ID from Freshservice. It should be called when there's a need to review or analyze time tracking data for a specific release in Freshservice."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries".format(
@@ -4089,7 +11419,7 @@ async def get_release_time_entries(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number_to_retrieve}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4097,20 +11427,137 @@ async def get_release_time_entries(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def fetch_release_time_entry(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def add_release_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    release_id: Annotated[
+        int | None,
+        "The ID of the release for which a new time entry is to be created. This should be an integer value.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-release-time-entry'."]:
+    """Log a new time entry for a specific release in Freshservice.
+
+    This tool is used to create a new time entry on a release within the Freshservice platform. It should be called when there's a need to record the time spent on a release.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["ADDRELEASETIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not release_id:
+        missing_params.append(("release_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["ADDRELEASETIMEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["ADDRELEASETIMEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_id,
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["ADDRELEASETIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_release_time_entry(
     context: ToolContext,
     release_id: Annotated[
         int,
-        "The unique integer ID of the release for which you want to fetch the time entry details. This identifies the specific release in Freshservice.",  # noqa: E501
+        "The unique integer ID of the release for which you want to retrieve the time entry. Ensure it corresponds to an existing release in Freshservice.",  # noqa: E501
     ],
     time_entry_id: Annotated[
-        int, "The integer ID of the specific time entry you want to retrieve from a release."
+        int, "The unique ID of the time entry to be retrieved from a specific release."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-release-time-entry'."]:
-    """Retrieve details of a release time entry by ID.
+    """Retrieve a specific time entry from a release.
 
-    Use this tool to obtain information about a specific time entry associated with a release by providing the release and time entry IDs."""  # noqa: E501
+    Use this tool to obtain details about a specific time entry associated with a release in Freshservice, using the release and time entry IDs."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries/{time_entry_id}".format(
@@ -4121,7 +11568,7 @@ async def fetch_release_time_entry(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4129,19 +11576,144 @@ async def fetch_release_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_release_time_entry(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    release_id: Annotated[
+        int | None,
+        "ID of the release to be updated. Must be an integer.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    time_entry_id: Annotated[
+        int | None,
+        "ID of the time entry to be updated.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-release-time-entry'."]:
+    """Update a time entry on a release in Freshservice.
+
+    Use this tool to update an existing time entry associated with a specific release in Freshservice. It should be called when you need to modify details of a time entry for an already existing release.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATERELEASETIMEENTRY"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not release_id:
+        missing_params.append(("release_id", "path"))
+    if not time_entry_id:
+        missing_params.append(("time_entry_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATERELEASETIMEENTRY"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATERELEASETIMEENTRY"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries/{time_entry_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            release_id=release_id,
+            time_entry_id=time_entry_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATERELEASETIMEENTRY"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_release_time_entry(
     context: ToolContext,
     release_id: Annotated[
-        int, "The unique integer ID of the release from which to delete the time entry."
+        int,
+        "The unique identifier of the release from which the time entry will be deleted. This ID is required to specify the release in Freshservice.",  # noqa: E501
     ],
     time_entry_id: Annotated[
-        int, "ID of the time entry to be deleted from the release in Freshservice."
+        int, "The unique integer ID of the time entry to be deleted from a release in Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-release-time-entry'."]:
-    """Delete a time entry from a release in Freshservice.
+    """Delete a specific time entry from a release in Freshservice.
 
-    Use this tool to delete a specific time entry from a release in Freshservice by providing the release and time entry IDs. Typically called when you need to manage or cleanup time entries associated with release records."""  # noqa: E501
+    Use this tool to delete a specific time entry associated with a release in Freshservice by providing the release ID and time entry ID."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/releases/{release_id}/time_entries/{time_entry_id}".format(
@@ -4152,7 +11724,7 @@ async def delete_release_time_entry(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4160,20 +11732,23 @@ async def delete_release_time_entry(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def list_purchase_orders(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def get_purchase_orders(
     context: ToolContext,
     entries_per_page: Annotated[
-        int | None, "Specify the number of entries to retrieve per page."
+        int | None,
+        "Specify the number of entries to retrieve per page in a paginated list. This helps manage and control the pagination results.",  # noqa: E501
     ] = 10,
     page_number: Annotated[
         int | None,
-        "Specify the page number to retrieve from the list of purchase orders. Useful for navigating paginated results.",  # noqa: E501
+        "The specific page number to retrieve from the paginated list of purchase orders.",
     ] = 1,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'list-purchase-orders'."]:
-    """Retrieve a list of all Purchase Orders from Freshservice.
+    """Retrieve all purchase orders from Freshservice.
 
-    Use this tool to get a comprehensive list of all purchase orders stored in Freshservice. This can be useful for inventory management, procurement tracking, or financial analysis."""  # noqa: E501
+    Use this tool to get a comprehensive list of all purchase orders recorded in the Freshservice system. It's useful for tasks that require an overview of procurement activities."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders".format(
@@ -4182,7 +11757,7 @@ async def list_purchase_orders(
         method="GET",
         params=remove_none_values({"per_page": entries_per_page, "page": page_number}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4190,17 +11765,112 @@ async def list_purchase_orders(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
-async def get_purchase_order(
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def create_purchase_order(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'create-purchase-order-post'."]:
+    """Create a new Purchase Order in Freshservice.
+
+    This tool is used to create a new Purchase Order in Freshservice. It should be called when a new order needs to be generated and recorded within the Freshservice system.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["CREATEPURCHASEORDER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPURCHASEORDER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["CREATEPURCHASEORDER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN")
+        ),
+        method="POST",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["CREATEPURCHASEORDER"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def retrieve_purchase_order(
     context: ToolContext,
     purchase_order_id: Annotated[
         int,
-        "The unique identifier for the purchase order you wish to retrieve. This must be an integer.",  # noqa: E501
+        "The unique identifier of the purchase order to retrieve. This must be an integer value.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-purchase-order'."]:
-    """Retrieve details of an existing purchase order by ID.
+    """Retrieve an existing purchase order by ID.
 
-    Use this tool to fetch the details of a specific purchase order using its ID. This is useful when you need to view or verify purchase order information."""  # noqa: E501
+    Fetch the details of an existing purchase order using its unique identifier. This tool should be called when purchase order information is needed."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders/{purchase_order_id}".format(
@@ -4210,7 +11880,7 @@ async def get_purchase_order(
         method="GET",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}
@@ -4218,17 +11888,133 @@ async def get_purchase_order(
         return {"response_text": response.text}
 
 
-@tool(requires_secrets=["FRESHSERVICE_API_KEY", "FRESHSERVICE_SUBDOMAIN"])
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
+async def update_purchase_order(
+    context: ToolContext,
+    mode: Annotated[
+        ToolMode,
+        "Operation mode: 'get_request_schema' returns the OpenAPI spec "
+        "for the request body, 'execute' performs the actual operation",
+    ],
+    purchase_order_id: Annotated[
+        int | None,
+        "The ID of the purchase order to update. It identifies which purchase order will be modified.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+    ] = None,
+    request_body: Annotated[
+        str | None,
+        "Stringified JSON representing the request body. Required when "
+        "mode is 'execute', ignored when mode is 'get_request_schema'",
+    ] = None,
+) -> Annotated[dict[str, Any], "Response from the API endpoint 'update-purchase-order'."]:
+    """Update details of an existing purchase order.
+
+    This tool updates an existing purchase order with new information. Call this tool when you need to modify purchase order details in the Freshservice system.
+
+    Note: Understanding the request schema is necessary to properly create
+    the stringified JSON input object for execution.\n\nThis operation also requires path parameters.
+
+    Modes:
+    - GET_REQUEST_SCHEMA: Returns the schema. Only call if you don't
+      already have it. Do NOT call repeatedly if you already received
+      the schema.
+    - EXECUTE: Performs the operation with the provided request body
+      JSON.\n      Note: You must also provide the required path parameters when executing.
+
+    If you need the schema, call with mode='get_request_schema' ONCE, then execute.
+    """  # noqa: E501
+    if mode == ToolMode.GET_REQUEST_SCHEMA:
+        return {
+            "request_body_schema": REQUEST_BODY_SCHEMAS["UPDATEPURCHASEORDER"],
+            "instructions": (
+                "Use the request_body_schema to construct a valid JSON object. "
+                "Once you have populated the object following the schema "
+                "structure and requirements, call this tool again with "
+                "mode='execute' and the stringified JSON as the "
+                "request_body parameter along with the required path parameters. "
+                "Do NOT call the schema mode again - you already have "
+                "the schema now."
+            ),
+        }
+
+    # Mode is EXECUTE - validate parameters
+    # Validate required parameters
+    missing_params = []
+    if not purchase_order_id:
+        missing_params.append(("purchase_order_id", "path"))
+
+    if missing_params:
+        param_names = [p[0] for p in missing_params]
+        param_details = ", ".join([f"{p[0]} ({p[1]})" for p in missing_params])
+        raise RetryableToolError(
+            message=f"Missing required parameters: {param_names}",
+            developer_message=(f"Required parameters validation failed: {param_details}"),
+            additional_prompt_content=(
+                f"The following required parameters are missing: "
+                f"{param_details}. Please call this tool again with all "
+                "required parameters."
+            ),
+        )
+
+    # Validate request body is provided (not None or empty string)
+    # Note: Empty objects like {} are allowed - schema validation will check if valid
+    if request_body is None or request_body.strip() == "":
+        raise RetryableToolError(
+            message="Request body is required when mode is 'execute'",
+            developer_message="The request_body parameter was null or empty string",
+            additional_prompt_content=(
+                "The request body is required to perform this operation. "
+                "Use the schema below to construct a valid JSON object, "
+                "then call this tool again in execute mode with the "
+                "stringified JSON as the request_body parameter.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPURCHASEORDER"] + "\n```"
+            ),
+        )
+
+    # Parse JSON
+    try:
+        request_data = json.loads(request_body)
+    except json.JSONDecodeError as e:
+        raise RetryableToolError(
+            message=f"Invalid JSON in request body: {e!s}",
+            developer_message=f"JSON parsing failed: {e!s}",
+            additional_prompt_content=(
+                f"The request body contains invalid JSON. Error: {e!s}\n\n"
+                "Please provide a valid JSON string that matches the schema "
+                "below, then call this tool again in execute mode.\n\n"
+                "Schema:\n\n```\n" + REQUEST_BODY_SCHEMAS["UPDATEPURCHASEORDER"] + "\n```"
+            ),
+        ) from e
+
+    response = await make_request_with_schema_validation(
+        auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
+        url="https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders/{purchase_order_id}".format(
+            freshservice_subdomain=context.get_secret("FRESHSERVICE_SUBDOMAIN"),
+            purchase_order_id=purchase_order_id,
+        ),
+        method="PUT",
+        request_data=request_data,
+        schema=json.loads(REQUEST_BODY_SCHEMAS["UPDATEPURCHASEORDER"]),
+        params=remove_none_values({}),
+        headers=remove_none_values({"Content-Type": "application/json"}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
+
+
+@tool(requires_secrets=["FRESHSERVICE_SUBDOMAIN", "FRESHSERVICE_API_KEY"])
 async def delete_purchase_order(
     context: ToolContext,
     purchase_order_id: Annotated[
-        int,
-        "The unique ID of the purchase order to delete from Freshservice. This ID identifies the specific order to be removed.",  # noqa: E501
+        int, "The unique integer ID of the purchase order to delete from Freshservice."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-purchase-order'."]:
-    """Delete a specified purchase order in Freshservice.
+    """Delete a purchase order in Freshservice by ID.
 
-    Use this tool to delete a purchase order from Freshservice by providing the purchase order ID."""  # noqa: E501
+    Use this tool to delete a specific purchase order from Freshservice by providing its ID. This is useful when a purchase order needs to be permanently removed from the system."""  # noqa: E501
+    request_data = remove_none_values({})
+    content = json.dumps(request_data) if request_data else None
     response = await make_request(
         auth=(context.get_secret("FRESHSERVICE_API_KEY"), ""),
         url="https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders/{purchase_order_id}".format(
@@ -4238,7 +12024,7 @@ async def delete_purchase_order(
         method="DELETE",
         params=remove_none_values({}),
         headers=remove_none_values({}),
-        data=remove_none_values({}),
+        content=content,
     )
     try:
         return {"response_json": response.json()}

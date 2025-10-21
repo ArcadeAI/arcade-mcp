@@ -1,0 +1,148 @@
+{
+  "name": "MergeSecondaryRequesters",
+  "fully_qualified_name": "FreshserviceApi.MergeSecondaryRequesters@1.0.0",
+  "description": "Merge secondary requesters into a primary requester.\n\nUse this tool to combine one or more secondary requester profiles into a primary requester profile, consolidating their information into a single account.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "secondary_requester_ids",
+        "required": true,
+        "description": "List of IDs of secondary requesters to be merged into the primary requester.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary requester"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "secondary_requesters"
+      },
+      {
+        "name": "primary_requester_id",
+        "required": true,
+        "description": "The ID of the primary requester to merge other requesters into.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary requester"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "primary_requester_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'merge-requester'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/requesters/{primary_requester_id}/merge",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "secondary_requesters",
+        "tool_parameter_name": "secondary_requester_ids",
+        "description": "ID of the primary requester",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary requester"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "primary_requester_id",
+        "tool_parameter_name": "primary_requester_id",
+        "description": "ID of the primary requester",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the primary requester"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

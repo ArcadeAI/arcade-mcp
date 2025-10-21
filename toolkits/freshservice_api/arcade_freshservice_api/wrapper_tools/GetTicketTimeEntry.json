@@ -1,18 +1,18 @@
 {
   "name": "GetTicketTimeEntry",
-  "fully_qualified_name": "FreshserviceApi.GetTicketTimeEntry@0.1.0",
-  "description": "Retrieve a time entry for a specific ticket in Freshservice.\n\nUse this tool to access details of a time entry associated with a specific ticket request in Freshservice. It is useful for monitoring or auditing time spent on ticket resolutions.",
+  "fully_qualified_name": "FreshserviceApi.GetTicketTimeEntry@1.0.0",
+  "description": "Retrieve a specific time entry for a ticket in Freshservice.\n\nUse this tool to obtain information about a specific time entry associated with a ticket in Freshservice by providing the ticket and time entry IDs.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "ticket_request_id",
         "required": true,
-        "description": "The ID of the specific ticket request for which you want to retrieve the time entry. It must be an integer.",
+        "description": "The unique ID of the ticket request used to retrieve the time entry.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "time_entry_id",
         "required": true,
-        "description": "Provide the ID of the time entry to retrieve specific details from a ticket in Freshservice.",
+        "description": "The unique integer ID of the specific time entry to be retrieved.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,29 +59,22 @@
   },
   "requirements": {
     "authorization": null,
-    "secrets": [
-      {
-        "key": "FRESHSERVICE_API_KEY"
-      },
-      {
-        "key": "FRESHSERVICE_SUBDOMAIN"
-      }
-    ],
+    "secrets": null,
     "metadata": null
   },
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries/{time_entry_id}",
+    "url": "https://api.freshservice.com/api/v2/tickets/{ticket_id}/time_entries/{time_entry_id}",
     "http_method": "GET",
     "headers": {},
     "parameters": [
@@ -123,23 +116,9 @@
       }
     ],
     "documentation_urls": [],
-    "secrets": [
-      {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
-        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
-        "parameter_name": "freshservice_subdomain",
-        "accepted_as": "path",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      }
-    ]
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

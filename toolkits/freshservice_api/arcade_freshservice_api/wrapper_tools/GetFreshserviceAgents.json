@@ -1,18 +1,18 @@
 {
   "name": "GetFreshserviceAgents",
-  "fully_qualified_name": "FreshserviceApi.GetFreshserviceAgents@0.1.0",
-  "description": "Retrieve a list of all Agents in Freshservice.\n\nUse this tool to get a comprehensive list of all agents currently active in Freshservice, useful for administrative and reporting purposes.",
+  "fully_qualified_name": "FreshserviceApi.GetFreshserviceAgents@1.0.0",
+  "description": "Retrieve a list of all agents in Freshservice.\n\nUse this tool to get a comprehensive list of all agents currently registered in Freshservice.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "entries_per_page",
         "required": false,
-        "description": "The number of agent entries to retrieve in each page of a paginated list. Useful for controlling the size of paginated results.",
+        "description": "The number of entries to retrieve per page in a paginated list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "per_page"
       },
       {
-        "name": "page_number_to_retrieve",
+        "name": "page_number",
         "required": false,
-        "description": "The specific page number of the agent list to retrieve.",
+        "description": "The page number to retrieve in a paginated list of agents.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page"
       },
       {
-        "name": "requester_email",
+        "name": "agent_email_address",
         "required": false,
-        "description": "The email address of the requester for which the corresponding agent needs to be listed.",
+        "description": "The email address for which the corresponding requester needs to be listed. Useful for filtering agents by their email.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "email"
       },
       {
-        "name": "filter_by_mobile_phone_number",
+        "name": "mobile_phone_number_filter",
         "required": false,
-        "description": "Filter agents by a specific mobile phone number to list the corresponding requesters.",
+        "description": "Specify the mobile phone number to filter and list corresponding requesters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "filter_by_work_phone_number",
         "required": false,
-        "description": "Work phone number to filter the list of agents by their corresponding requesters.",
+        "description": "Filter agents based on their work phone number. Provide the exact work phone number to retrieve corresponding requesters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "work_phone_number"
       },
       {
-        "name": "agent_type",
+        "name": "agent_employment_type",
         "required": false,
-        "description": "Filter agents by employment type: 'fulltime' or 'occasional'.",
+        "description": "Specifies whether to list full-time or occasional agents. Accepts values: 'fulltime' or 'occasional'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "state"
       },
       {
-        "name": "agent_query_filter",
+        "name": "agent_filter_query",
         "required": false,
-        "description": "URL-encoded string for filtering agents. Supports parameters like first_name, last_name, job_title, email, etc.",
+        "description": "A URL-encoded query string to filter the list of agents. Supports fields like first_name, job_title, created_at, etc. Example: \"job_title:'HR Manager' AND created_at:>'2018-08-10'\".",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "query"
       },
       {
-        "name": "filter_active_users",
+        "name": "filter_active_accounts",
         "required": false,
-        "description": "Set to true to list active accounts, false to list deactivated ones, or omit to include both.",
+        "description": "Set to true to list only active accounts. Not setting this filter returns both active and deactivated accounts.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -151,10 +151,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -162,13 +162,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/agents",
@@ -195,7 +195,7 @@
       },
       {
         "name": "page",
-        "tool_parameter_name": "page_number_to_retrieve",
+        "tool_parameter_name": "page_number",
         "description": "The page number to retrieve.",
         "value_schema": {
           "val_type": "integer",
@@ -213,7 +213,7 @@
       },
       {
         "name": "email",
-        "tool_parameter_name": "requester_email",
+        "tool_parameter_name": "agent_email_address",
         "description": "The email address for which the corresponding requester needs to be listed.",
         "value_schema": {
           "val_type": "string",
@@ -231,7 +231,7 @@
       },
       {
         "name": "mobile_phone_number",
-        "tool_parameter_name": "filter_by_mobile_phone_number",
+        "tool_parameter_name": "mobile_phone_number_filter",
         "description": "The mobile phone number for which the corresponding requesters need to be listed.",
         "value_schema": {
           "val_type": "string",
@@ -267,7 +267,7 @@
       },
       {
         "name": "state",
-        "tool_parameter_name": "agent_type",
+        "tool_parameter_name": "agent_employment_type",
         "description": "Signifies whether the agents to be listed are full-time agents or occasional agents. Supports two possible values - fulltime, occasional.",
         "value_schema": {
           "val_type": "string",
@@ -285,7 +285,7 @@
       },
       {
         "name": "active",
-        "tool_parameter_name": "filter_active_users",
+        "tool_parameter_name": "filter_active_accounts",
         "description": "Signifies if the user accounts to be listed are active (true), or have been deactivated. Not applying this filter returns both active and deactivated accounts.",
         "value_schema": {
           "val_type": "boolean",
@@ -303,7 +303,7 @@
       },
       {
         "name": "query",
-        "tool_parameter_name": "agent_query_filter",
+        "tool_parameter_name": "agent_filter_query",
         "description": "The simple or compound query which needs to be applied as a filter to the list of agents. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>first_name, last_name, job_title, email, work_phone_number, mobile_phone_number, department_id, reporting_manager_id, time_zone, language, location_id, created_at, updated_at, (all custom fields).<br/>Sample Query: https://account.freshservice.com/api/v2/agents?query=\"job_titile:'HR Manager' AND created_at:>'2018-08-10'\"",
         "value_schema": {
           "val_type": "string",
@@ -323,21 +323,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

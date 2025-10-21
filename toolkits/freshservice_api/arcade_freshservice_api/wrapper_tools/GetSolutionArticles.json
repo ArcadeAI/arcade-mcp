@@ -1,18 +1,18 @@
 {
   "name": "GetSolutionArticles",
-  "fully_qualified_name": "FreshserviceApi.GetSolutionArticles@0.1.0",
-  "description": "Retrieve a list of Solution articles from Freshservice.\n\nUse this tool to get a comprehensive list of all Solution articles available in Freshservice.",
+  "fully_qualified_name": "FreshserviceApi.GetSolutionArticles@1.0.0",
+  "description": "Retrieve all Solution articles from Freshservice.\n\nThis tool is used to gather a complete list of Solution articles available in Freshservice. It should be called when you need to access or display the entire collection of articles.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "entries_per_page",
         "required": false,
-        "description": "Specify the number of solution articles to retrieve per page in the paginated results.",
+        "description": "The number of solution articles to retrieve per page for pagination.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "page_number",
         "required": false,
-        "description": "The page number of the solution articles to retrieve from Freshservice.",
+        "description": "The specific page number of the solution articles to retrieve.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "page"
       },
       {
-        "name": "folder_identifier",
+        "name": "folder_id",
         "required": false,
-        "description": "The numeric ID of the folder to list solution articles from.",
+        "description": "The ID of the folder whose solution articles need to be retrieved.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "folder_id"
       },
       {
-        "name": "solution_category_id",
+        "name": "category_identifier",
         "required": false,
-        "description": "Specify the ID of the category whose solution articles are to be retrieved.",
+        "description": "The unique identifier for the category whose solution articles need to be retrieved.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -91,10 +91,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/articles",
@@ -153,7 +153,7 @@
       },
       {
         "name": "folder_id",
-        "tool_parameter_name": "folder_identifier",
+        "tool_parameter_name": "folder_id",
         "description": "The ID of the folder whose solution articles have to be listed.",
         "value_schema": {
           "val_type": "integer",
@@ -171,7 +171,7 @@
       },
       {
         "name": "category_id",
-        "tool_parameter_name": "solution_category_id",
+        "tool_parameter_name": "category_identifier",
         "description": "The ID of the category whose solution articles have to be listed.",
         "value_schema": {
           "val_type": "integer",
@@ -191,21 +191,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

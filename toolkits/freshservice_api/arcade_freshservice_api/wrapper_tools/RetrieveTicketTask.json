@@ -1,18 +1,18 @@
 {
   "name": "RetrieveTicketTask",
-  "fully_qualified_name": "FreshserviceApi.RetrieveTicketTask@0.1.0",
-  "description": "Retrieve details of a task from a ticket in Freshservice.\n\nUse this tool to get specific information about a task associated with a ticket by providing the ticket and task IDs. It is useful for accessing task details in Freshservice.",
+  "fully_qualified_name": "FreshserviceApi.RetrieveTicketTask@1.0.0",
+  "description": "Retrieve a specific task from a ticket request.\n\nUse this tool to get information about a task associated with a specific ticket in Freshservice by providing the ticket and task IDs.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "ticket_request_id",
         "required": true,
-        "description": "The ID of the ticket request to retrieve the specific task from Freshservice.",
+        "description": "The unique integer ID of the ticket request in Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "ticket_id"
       },
       {
-        "name": "task_identifier",
+        "name": "task_id",
         "required": true,
-        "description": "The unique identifier for the task to be retrieved. Provide this to get task details from a ticket.",
+        "description": "The unique integer ID of the task to retrieve from the ticket request.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,10 +61,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/tasks/{task_id}",
@@ -105,7 +105,7 @@
       },
       {
         "name": "task_id",
-        "tool_parameter_name": "task_identifier",
+        "tool_parameter_name": "task_id",
         "description": "ID of the task",
         "value_schema": {
           "val_type": "integer",
@@ -125,21 +125,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

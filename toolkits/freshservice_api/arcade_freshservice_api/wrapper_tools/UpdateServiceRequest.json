@@ -1,0 +1,342 @@
+{
+  "name": "UpdateServiceRequest",
+  "fully_qualified_name": "FreshserviceApi.UpdateServiceRequest@1.0.0",
+  "description": "Update an existing service request in Freshservice.\n\nUse this tool to update details of an existing service request in Freshservice when changes are needed.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "service_request_id",
+        "required": true,
+        "description": "The unique integer ID of the service request that needs to be updated in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of Service Request to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "service_request_id"
+      },
+      {
+        "name": "service_request_details",
+        "required": true,
+        "description": "JSON object containing details of the service request to be updated, including fields such as requester email, subject, status, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "requester_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the email id of the requester"
+            },
+            "requested_for_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the email id of the user for whom this is requested."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the subject of the ticket"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the status of the ticket"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the priority of the ticket"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the description/body of the ticket"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the agent ID to whom the ticket is assigned"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the ticket is due to be resolved"
+            },
+            "group_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the group to which the ticket has been assigned. The default value is the ID of the group that is associated with the given email_config_id."
+            },
+            "source": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The channel through which the ticket was created. The default value is 2."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tags that have been associated with the ticket."
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields that are associated with a Freshservice entity"
+            }
+          },
+          "inner_properties": null,
+          "description": "Service request to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-service-request'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/service_requests/{service_request_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "service_request_id",
+        "tool_parameter_name": "service_request_id",
+        "description": "ID of Service Request to update",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of Service Request to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "service_request_details",
+        "description": "Service request to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "requester_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the email id of the requester"
+            },
+            "requested_for_email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the email id of the user for whom this is requested."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the subject of the ticket"
+            },
+            "status": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the status of the ticket"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the priority of the ticket"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the description/body of the ticket"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "the agent ID to whom the ticket is assigned"
+            },
+            "due_by": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp that denotes when the ticket is due to be resolved"
+            },
+            "group_id": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the group to which the ticket has been assigned. The default value is the ID of the group that is associated with the given email_config_id."
+            },
+            "source": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The channel through which the ticket was created. The default value is 2."
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Tags that have been associated with the ticket."
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Custom fields that are associated with a Freshservice entity"
+            }
+          },
+          "inner_properties": null,
+          "description": "Service request to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Service request to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"requester_email\": {\n            \"type\": \"string\",\n            \"description\": \"the email id of the requester\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"requested_for_email\": {\n            \"type\": \"string\",\n            \"description\": \"the email id of the user for whom this is requested.\",\n            \"example\": \"andrea@freshservice.com\"\n          },\n          \"subject\": {\n            \"type\": \"string\",\n            \"description\": \"the subject of the ticket\",\n            \"example\": \"Request for VPN access\"\n          },\n          \"status\": {\n            \"type\": \"integer\",\n            \"description\": \"the status of the ticket\",\n            \"format\": \"int32\",\n            \"example\": 2\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"description\": \"the priority of the ticket\",\n            \"format\": \"int32\",\n            \"example\": 2\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"the description/body of the ticket\",\n            \"example\": \"Request for VPN access\"\n          },\n          \"agent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"the agent ID to whom the ticket is assigned\",\n            \"format\": \"int32\",\n            \"example\": 19234923\n          },\n          \"due_by\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp that denotes when the ticket is due to be resolved\",\n            \"format\": \"date-time\"\n          },\n          \"group_id\": {\n            \"type\": \"number\",\n            \"description\": \"ID of the group to which the ticket has been assigned. The default value is the ID of the group that is associated with the given email_config_id.\",\n            \"format\": \"int32\",\n            \"example\": 12938743\n          },\n          \"source\": {\n            \"type\": \"number\",\n            \"description\": \"The channel through which the ticket was created. The default value is 2.\",\n            \"format\": \"int32\",\n            \"example\": 2.0\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"description\": \"Tags that have been associated with the ticket.\",\n            \"example\": [\n              \"VPN\",\n              \"Network\"\n            ],\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"description\": \"Custom fields that are associated with a Freshservice entity\",\n            \"example\": {\n              \"field1\": \"Value 1\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

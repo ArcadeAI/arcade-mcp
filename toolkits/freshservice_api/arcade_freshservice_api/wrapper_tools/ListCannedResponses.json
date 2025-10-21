@@ -1,18 +1,18 @@
 {
   "name": "ListCannedResponses",
-  "fully_qualified_name": "FreshserviceApi.ListCannedResponses@0.1.0",
-  "description": "Retrieve all canned responses from a specified folder.\n\nThis tool fetches all available canned responses within a specified canned response folder in Freshservice. It is useful for accessing pre-defined replies for ticket responses.",
+  "fully_qualified_name": "FreshserviceApi.ListCannedResponses@1.0.0",
+  "description": "Retrieve canned responses from a specified folder in Freshservice.\n\nCall this tool to obtain a list of all canned responses within a specified canned response folder in Freshservice. It's useful for accessing predefined replies saved in a particular folder.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "canned_response_folder_id",
         "required": true,
-        "description": "ID of the canned response folder to retrieve responses from.",
+        "description": "The ID of the canned response folder to retrieve responses from.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -46,10 +46,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/canned_response_folders/{canned_response_folder_id}/canned_responses",
@@ -92,21 +92,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

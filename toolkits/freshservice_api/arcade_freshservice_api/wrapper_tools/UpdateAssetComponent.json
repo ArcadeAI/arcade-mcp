@@ -1,18 +1,18 @@
 {
   "name": "UpdateAssetComponent",
-  "fully_qualified_name": "FreshserviceApi.UpdateAssetComponent@0.1.0",
-  "description": "Update a component in an asset.\n\nThis tool updates a specific component within an asset in Freshservice. Call this tool when you need to modify details of a component associated with an asset.",
+  "fully_qualified_name": "FreshserviceApi.UpdateAssetComponent@1.0.0",
+  "description": "Update a specific component within an asset.\n\nThis tool updates a specified component within an asset in Freshservice. Use it to modify details of an existing component in an asset by providing the asset's display ID and the component's ID.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "asset_display_id",
         "required": true,
-        "description": "The numeric identifier of the asset to be updated in Freshservice.",
+        "description": "The unique display ID of the asset where the component is being updated. This is required to identify the specific asset in Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "display_id"
       },
       {
-        "name": "component_identifier",
+        "name": "component_id",
         "required": true,
-        "description": "The unique identifier of the component to be updated, as an integer.",
+        "description": "The unique identifier for the component to update within the asset. This should be an integer representing the component's ID.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,10 +61,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/assets/{display_id}/components/{component_id}",
@@ -105,7 +105,7 @@
       },
       {
         "name": "component_id",
-        "tool_parameter_name": "component_identifier",
+        "tool_parameter_name": "component_id",
         "description": "",
         "value_schema": {
           "val_type": "integer",
@@ -125,21 +125,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

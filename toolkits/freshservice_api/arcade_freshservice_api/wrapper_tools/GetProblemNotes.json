@@ -1,18 +1,18 @@
 {
   "name": "GetProblemNotes",
-  "fully_qualified_name": "FreshserviceApi.GetProblemNotes@0.1.0",
-  "description": "Retrieve notes for a specific problem ID in Freshservice.\n\nThis tool retrieves the notes for a problem specified by its ID from Freshservice. It should be called when you need to access detailed notes or updates associated with a particular problem in the Freshservice system.",
+  "fully_qualified_name": "FreshserviceApi.GetProblemNotes@1.0.0",
+  "description": "Retrieve notes for a specific problem in Freshservice.\n\nUse this tool to get all notes associated with a specific problem ID from Freshservice. Useful for accessing additional information, updates, or discussions related to a particular problem.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "problem_id",
         "required": true,
-        "description": "The unique integer ID of the problem for which you want to retrieve notes from Freshservice.",
+        "description": "Specify the numerical ID of the problem to retrieve its notes from Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "notes_per_page",
         "required": false,
-        "description": "The number of notes to retrieve per page in the paginated results.",
+        "description": "Specify the number of notes to retrieve per page in a paginated list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "per_page"
       },
       {
-        "name": "page_number",
+        "name": "notes_page_number",
         "required": false,
-        "description": "The page number of the notes to retrieve for pagination purposes.",
+        "description": "The specific page number to retrieve notes from. Used for pagination purposes.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -76,10 +76,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/problems/{problem_id}/notes",
@@ -120,7 +120,7 @@
       },
       {
         "name": "page",
-        "tool_parameter_name": "page_number",
+        "tool_parameter_name": "notes_page_number",
         "description": "The page number to retrieve.",
         "value_schema": {
           "val_type": "integer",
@@ -158,21 +158,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }
