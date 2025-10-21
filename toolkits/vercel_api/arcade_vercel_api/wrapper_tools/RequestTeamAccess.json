@@ -124,13 +124,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -257,12 +256,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"joinedFrom\"\n        ],\n        \"properties\": {\n          \"joinedFrom\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"required\": [\n              \"origin\"\n            ],\n            \"properties\": {\n              \"origin\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"import\",\n                  \"teams\",\n                  \"github\",\n                  \"gitlab\",\n                  \"bitbucket\",\n                  \"feedback\",\n                  \"organization-teams\"\n                ],\n                \"description\": \"The origin of the request.\",\n                \"example\": \"github\"\n              },\n              \"commitId\": {\n                \"type\": \"string\",\n                \"description\": \"The commit sha if the origin is a git provider.\",\n                \"example\": \"f498d25d8bd654b578716203be73084b31130cd7\"\n              },\n              \"repoId\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the repository for the given Git provider.\",\n                \"example\": \"67753070\"\n              },\n              \"repoPath\": {\n                \"type\": \"string\",\n                \"description\": \"The path to the repository for the given Git provider.\",\n                \"example\": \"jane-doe/example\"\n              },\n              \"gitUserId\": {\n                \"description\": \"The ID of the Git account of the user who requests access.\",\n                \"example\": 103053343,\n                \"oneOf\": [\n                  {\n                    \"type\": \"string\"\n                  },\n                  {\n                    \"type\": \"number\"\n                  }\n                ]\n              },\n              \"gitUserLogin\": {\n                \"type\": \"string\",\n                \"description\": \"The login name for the Git account of the user who requests access.\",\n                \"example\": \"jane-doe\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

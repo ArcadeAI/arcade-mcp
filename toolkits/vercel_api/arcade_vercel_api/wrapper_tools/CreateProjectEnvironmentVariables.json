@@ -103,13 +103,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -224,12 +223,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"required\": [\n              \"key\",\n              \"value\",\n              \"type\"\n            ],\n            \"anyOf\": [\n              {\n                \"required\": [\n                  \"target\"\n                ]\n              },\n              {\n                \"required\": [\n                  \"customEnvironmentIds\"\n                ]\n              }\n            ],\n            \"properties\": {\n              \"key\": {\n                \"description\": \"The name of the environment variable\",\n                \"type\": \"string\",\n                \"example\": \"API_URL\"\n              },\n              \"value\": {\n                \"description\": \"The value of the environment variable\",\n                \"type\": \"string\",\n                \"example\": \"https://api.vercel.com\"\n              },\n              \"type\": {\n                \"description\": \"The type of environment variable\",\n                \"type\": \"string\",\n                \"enum\": [\n                  \"system\",\n                  \"secret\",\n                  \"encrypted\",\n                  \"plain\",\n                  \"sensitive\"\n                ],\n                \"example\": \"plain\"\n              },\n              \"target\": {\n                \"description\": \"The target environment of the environment variable\",\n                \"type\": \"array\",\n                \"items\": {\n                  \"enum\": [\n                    \"production\",\n                    \"preview\",\n                    \"development\"\n                  ]\n                },\n                \"example\": [\n                  \"preview\"\n                ]\n              },\n              \"gitBranch\": {\n                \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n                \"type\": \"string\",\n                \"maxLength\": 250,\n                \"example\": \"feature-1\",\n                \"nullable\": true\n              },\n              \"comment\": {\n                \"type\": \"string\",\n                \"description\": \"A comment to add context on what this environment variable is for\",\n                \"example\": \"database connection string for production\",\n                \"maxLength\": 500\n              },\n              \"customEnvironmentIds\": {\n                \"type\": \"array\",\n                \"description\": \"The custom environment IDs associated with the environment variable\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"example\": \"env_1234567890\"\n                }\n              }\n            }\n          },\n          {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"key\",\n                \"value\",\n                \"type\"\n              ],\n              \"anyOf\": [\n                {\n                  \"required\": [\n                    \"target\"\n                  ]\n                },\n                {\n                  \"required\": [\n                    \"customEnvironmentIds\"\n                  ]\n                }\n              ],\n              \"properties\": {\n                \"key\": {\n                  \"description\": \"The name of the environment variable\",\n                  \"type\": \"string\",\n                  \"example\": \"API_URL\"\n                },\n                \"value\": {\n                  \"description\": \"The value of the environment variable\",\n                  \"type\": \"string\",\n                  \"example\": \"https://api.vercel.com\"\n                },\n                \"type\": {\n                  \"description\": \"The type of environment variable\",\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"system\",\n                    \"secret\",\n                    \"encrypted\",\n                    \"plain\",\n                    \"sensitive\"\n                  ],\n                  \"example\": \"plain\"\n                },\n                \"target\": {\n                  \"description\": \"The target environment of the environment variable\",\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"enum\": [\n                      \"production\",\n                      \"preview\",\n                      \"development\"\n                    ]\n                  },\n                  \"example\": [\n                    \"preview\"\n                  ]\n                },\n                \"gitBranch\": {\n                  \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n                  \"type\": \"string\",\n                  \"maxLength\": 250,\n                  \"example\": \"feature-1\",\n                  \"nullable\": true\n                },\n                \"comment\": {\n                  \"type\": \"string\",\n                  \"description\": \"A comment to add context on what this environment variable is for\",\n                  \"example\": \"database connection string for production\",\n                  \"maxLength\": 500\n                },\n                \"customEnvironmentIds\": {\n                  \"type\": \"array\",\n                  \"description\": \"The custom environment IDs associated with the environment variable\",\n                  \"items\": {\n                    \"type\": \"string\",\n                    \"example\": \"env_1234567890\"\n                  }\n                }\n              }\n            }\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",

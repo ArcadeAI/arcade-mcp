@@ -163,13 +163,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -356,12 +355,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the check being created\",\n            \"maxLength\": 100,\n            \"example\": \"Performance Check\",\n            \"type\": \"string\"\n          },\n          \"path\": {\n            \"description\": \"Path of the page that is being checked\",\n            \"type\": \"string\",\n            \"maxLength\": 255,\n            \"example\": \"/\"\n          },\n          \"blocking\": {\n            \"description\": \"Whether the check should block a deployment from succeeding\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"detailsUrl\": {\n            \"description\": \"URL to display for further details\",\n            \"type\": \"string\",\n            \"example\": \"http://example.com\"\n          },\n          \"externalId\": {\n            \"description\": \"An identifier that can be used as an external reference\",\n            \"type\": \"string\",\n            \"example\": \"1234abc\"\n          },\n          \"rerequestable\": {\n            \"description\": \"Whether a user should be able to request for the check to be rerun if it fails\",\n            \"type\": \"boolean\",\n            \"example\": true\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"blocking\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",

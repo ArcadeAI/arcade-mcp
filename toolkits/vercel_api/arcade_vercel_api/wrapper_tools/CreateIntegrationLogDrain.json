@@ -138,13 +138,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -288,12 +287,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the log drain\",\n            \"example\": \"My first log drain\",\n            \"maxLength\": 100,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"type\": \"string\"\n          },\n          \"projectIds\": {\n            \"minItems\": 1,\n            \"maxItems\": 50,\n            \"type\": \"array\",\n            \"items\": {\n              \"pattern\": \"^[a-zA-z0-9_]+$\",\n              \"type\": \"string\"\n            }\n          },\n          \"secret\": {\n            \"description\": \"A secret to sign log drain notification headers so a consumer can verify their authenticity\",\n            \"example\": \"a1Xsfd325fXcs\",\n            \"maxLength\": 100,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"type\": \"string\"\n          },\n          \"deliveryFormat\": {\n            \"description\": \"The delivery log format\",\n            \"example\": \"json\",\n            \"enum\": [\n              \"json\",\n              \"ndjson\"\n            ]\n          },\n          \"url\": {\n            \"description\": \"The url where you will receive logs. The protocol must be `https://` or `http://` when type is `json` and `ndjson`.\",\n            \"example\": \"https://example.com/log-drain\",\n            \"format\": \"uri\",\n            \"pattern\": \"^https?://\",\n            \"type\": \"string\"\n          },\n          \"sources\": {\n            \"type\": \"array\",\n            \"uniqueItems\": true,\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"static\",\n                \"lambda\",\n                \"build\",\n                \"edge\",\n                \"external\",\n                \"firewall\"\n              ]\n            },\n            \"minItems\": 1\n          },\n          \"headers\": {\n            \"description\": \"Headers to be sent together with the request\",\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            }\n          },\n          \"environments\": {\n            \"type\": \"array\",\n            \"uniqueItems\": true,\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"preview\",\n                \"production\"\n              ]\n            },\n            \"minItems\": 1\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"url\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",

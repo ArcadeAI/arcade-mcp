@@ -82,13 +82,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -176,12 +175,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"method\": {\n            \"description\": \"The domain operation to perform. It can be either `add` or `move-in`.\",\n            \"type\": \"string\",\n            \"example\": \"add\"\n          }\n        },\n        \"oneOf\": [\n          {\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"add\",\n            \"required\": [\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"cdnEnabled\": {\n                \"description\": \"Whether the domain has the Vercel Edge Network enabled or not.\",\n                \"type\": \"boolean\",\n                \"example\": true\n              },\n              \"zone\": {\n                \"type\": \"boolean\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"add\"\n              }\n            }\n          },\n          {\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"move-in\",\n            \"required\": [\n              \"method\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"move-in\"\n              },\n              \"token\": {\n                \"description\": \"The move-in token from Move Requested email.\",\n                \"type\": \"string\",\n                \"example\": \"fdhfr820ad#@FAdlj$$\"\n              }\n            }\n          },\n          {\n            \"deprecated\": true,\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"description\": \"transfer-in\",\n            \"required\": [\n              \"method\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"name\": {\n                \"description\": \"The domain name you want to add.\",\n                \"type\": \"string\",\n                \"example\": \"example.com\"\n              },\n              \"method\": {\n                \"description\": \"The domain operation to perform.\",\n                \"type\": \"string\",\n                \"example\": \"transfer-in\"\n              },\n              \"authCode\": {\n                \"description\": \"The authorization code assigned to the domain.\",\n                \"type\": \"string\",\n                \"example\": \"fdhfr820ad#@FAdlj$$\"\n              },\n              \"expectedPrice\": {\n                \"description\": \"The price you expect to be charged for the required 1 year renewal.\",\n                \"type\": \"number\",\n                \"example\": 8\n              }\n            }\n          }\n        ]\n      }\n    }\n  }\n}",

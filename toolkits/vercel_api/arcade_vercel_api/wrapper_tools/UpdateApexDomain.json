@@ -88,13 +88,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -191,12 +190,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"oneOf\": [\n          {\n            \"type\": \"object\",\n            \"description\": \"update\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"op\": {\n                \"example\": \"update\",\n                \"type\": \"string\"\n              },\n              \"renew\": {\n                \"description\": \"This field is deprecated. Please use PATCH /v1/registrar/domains/{domainName}/auto-renew instead.\",\n                \"type\": \"boolean\",\n                \"deprecated\": true\n              },\n              \"customNameservers\": {\n                \"description\": \"This field is deprecated. Please use PATCH /v1/registrar/domains/{domainName}/nameservers instead.\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"maxItems\": 4,\n                \"minItems\": 0,\n                \"type\": \"array\",\n                \"uniqueItems\": true,\n                \"deprecated\": true\n              },\n              \"zone\": {\n                \"description\": \"Specifies whether this is a DNS zone that intends to use Vercel's nameservers.\",\n                \"type\": \"boolean\"\n              }\n            }\n          },\n          {\n            \"type\": \"object\",\n            \"description\": \"move-out\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"op\": {\n                \"example\": \"move-out\",\n                \"type\": \"string\"\n              },\n              \"destination\": {\n                \"description\": \"User or team to move domain to\",\n                \"type\": \"string\"\n              }\n            }\n          }\n        ]\n      }\n    }\n  },\n  \"required\": true\n}",

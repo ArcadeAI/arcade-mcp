@@ -290,13 +290,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -589,12 +588,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"externalId\": {\n            \"type\": \"string\"\n          },\n          \"invoiceDate\": {\n            \"description\": \"Invoice date. Must be within the period's start and end.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"memo\": {\n            \"type\": \"string\",\n            \"description\": \"Additional memo for the invoice.\"\n          },\n          \"period\": {\n            \"type\": \"object\",\n            \"description\": \"Subscription period for this billing cycle.\",\n            \"properties\": {\n              \"start\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              },\n              \"end\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              }\n            },\n            \"required\": [\n              \"start\",\n              \"end\"\n            ],\n            \"additionalProperties\": false\n          },\n          \"items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID.\"\n                },\n                \"billingPlanId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's billing plan ID.\"\n                },\n                \"start\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"end\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"details\": {\n                  \"type\": \"string\"\n                },\n                \"price\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                },\n                \"quantity\": {\n                  \"type\": \"number\"\n                },\n                \"units\": {\n                  \"type\": \"string\"\n                },\n                \"total\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                }\n              },\n              \"required\": [\n                \"billingPlanId\",\n                \"name\",\n                \"price\",\n                \"quantity\",\n                \"units\",\n                \"total\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"discounts\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID.\"\n                },\n                \"billingPlanId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's billing plan ID.\"\n                },\n                \"start\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"end\": {\n                  \"description\": \"Start and end are only needed if different from the period's start/end.\",\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"details\": {\n                  \"type\": \"string\"\n                },\n                \"amount\": {\n                  \"type\": \"string\",\n                  \"pattern\": \"^[0-9]+(\\\\\\\\.[0-9]+)?$\",\n                  \"description\": \"Currency amount as a decimal string.\"\n                }\n              },\n              \"required\": [\n                \"billingPlanId\",\n                \"name\",\n                \"amount\"\n              ],\n              \"additionalProperties\": false\n            }\n          },\n          \"test\": {\n            \"type\": \"object\",\n            \"description\": \"Test mode\",\n            \"properties\": {\n              \"validate\": {\n                \"type\": \"boolean\"\n              },\n              \"result\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"paid\",\n                  \"notpaid\"\n                ]\n              }\n            },\n            \"additionalProperties\": false\n          }\n        },\n        \"required\": [\n          \"invoiceDate\",\n          \"period\",\n          \"items\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",

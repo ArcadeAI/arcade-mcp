@@ -15,7 +15,6 @@ from typing import Annotated, Any
 import httpx
 import jsonschema
 from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import RetryableToolError
 
 from .request_body_schemas import REQUEST_BODY_SCHEMAS
@@ -176,7 +175,7 @@ def validate_json_against_schema(
         return False, f"Validation error: {e!s}"
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def read_access_group(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -202,8 +201,8 @@ async def read_access_group(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -214,7 +213,7 @@ async def read_access_group(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_access_group(
     context: ToolContext,
     mode: Annotated[
@@ -335,8 +334,8 @@ async def update_access_group(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -346,7 +345,7 @@ async def update_access_group(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_access_group(
     context: ToolContext,
     group_id_or_name: Annotated[str, "The ID or name of the access group to be deleted."],
@@ -369,8 +368,8 @@ async def delete_access_group(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -381,7 +380,7 @@ async def delete_access_group(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_access_group_members(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -422,8 +421,8 @@ async def list_access_group_members(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -434,7 +433,7 @@ async def list_access_group_members(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_access_groups(
     context: ToolContext,
     access_groups_limit: Annotated[
@@ -483,8 +482,8 @@ async def list_access_groups(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -495,7 +494,7 @@ async def list_access_groups(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_access_group(
     context: ToolContext,
     mode: Annotated[
@@ -593,8 +592,8 @@ async def create_access_group(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -604,7 +603,7 @@ async def create_access_group(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_access_group_projects(
     context: ToolContext,
     access_group_identifier: Annotated[
@@ -644,8 +643,8 @@ async def list_access_group_projects(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -656,7 +655,7 @@ async def list_access_group_projects(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_access_group_project(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -686,8 +685,8 @@ async def create_access_group_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -698,7 +697,7 @@ async def create_access_group_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_access_group_project(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -730,8 +729,8 @@ async def get_access_group_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -742,7 +741,7 @@ async def get_access_group_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_access_group_project(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -775,8 +774,8 @@ async def update_access_group_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -787,7 +786,7 @@ async def update_access_group_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_access_group_project(
     context: ToolContext,
     access_group_id_or_name: Annotated[
@@ -815,8 +814,8 @@ async def delete_access_group_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -827,7 +826,7 @@ async def delete_access_group_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def record_cache_events(
     context: ToolContext,
     mode: Annotated[
@@ -935,8 +934,8 @@ async def record_cache_events(
             "Content-Type": "application/json",
             "x-artifact-client-ci": ci_environment,
             "x-artifact-client-interactive": is_interactive_shell,
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -946,7 +945,7 @@ async def record_cache_events(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def check_remote_caching_status(
     context: ToolContext,
     team_identifier: Annotated[
@@ -967,8 +966,8 @@ async def check_remote_caching_status(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -979,7 +978,7 @@ async def check_remote_caching_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def download_cache_artifact(
     context: ToolContext,
     artifact_hash: Annotated[str, "The unique hash identifier for the cache artifact to download."],
@@ -1011,8 +1010,8 @@ async def download_cache_artifact(
             "Content-Type": "application/json",
             "x-artifact-client-ci": ci_environment,
             "x-artifact-client-interactive": interactive_shell_client,
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1023,7 +1022,7 @@ async def download_cache_artifact(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def query_artifacts_info(
     context: ToolContext,
     artifact_hashes: Annotated[list[str], "An array of artifact hashes to query information for."],
@@ -1045,8 +1044,8 @@ async def query_artifacts_info(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1057,7 +1056,7 @@ async def query_artifacts_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_new_deployment_check(
     context: ToolContext,
     block_deployment_on_failure: Annotated[
@@ -1110,8 +1109,8 @@ async def create_new_deployment_check(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1122,7 +1121,7 @@ async def create_new_deployment_check(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_deployment_checks(
     context: ToolContext,
     deployment_id: Annotated[str, "The ID of the deployment to retrieve checks for."],
@@ -1148,8 +1147,8 @@ async def list_deployment_checks(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1160,7 +1159,7 @@ async def list_deployment_checks(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_deployment_check_details(
     context: ToolContext,
     check_identifier: Annotated[str, "The unique identifier of the check to fetch details for."],
@@ -1188,8 +1187,8 @@ async def get_deployment_check_details(
         params=remove_none_values({"teamId": team_id, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1200,7 +1199,7 @@ async def get_deployment_check_details(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_existing_check(
     context: ToolContext,
     mode: Annotated[
@@ -1327,8 +1326,8 @@ async def update_existing_check(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -1338,7 +1337,7 @@ async def update_existing_check(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def rerequest_check(
     context: ToolContext,
     check_to_rerun_id: Annotated[
@@ -1378,8 +1377,8 @@ async def rerequest_check(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1390,7 +1389,7 @@ async def rerequest_check(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_project_data_cache(
     context: ToolContext,
     project_id: Annotated[
@@ -1422,8 +1421,8 @@ async def update_project_data_cache(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1434,7 +1433,7 @@ async def update_project_data_cache(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_deployment_logs(
     context: ToolContext,
     deployment_identifier_or_hostname: Annotated[
@@ -1505,8 +1504,8 @@ async def fetch_deployment_logs(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1517,7 +1516,7 @@ async def fetch_deployment_logs(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_integration_deployment(
     context: ToolContext,
     mode: Annotated[
@@ -1657,8 +1656,8 @@ async def update_integration_deployment(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -1668,7 +1667,7 @@ async def update_integration_deployment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_deployment_info(
     context: ToolContext,
     deployment_id_or_url: Annotated[
@@ -1699,8 +1698,8 @@ async def get_deployment_info(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1711,7 +1710,7 @@ async def get_deployment_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_vercel_deployment(
     context: ToolContext,
     mode: Annotated[
@@ -1824,8 +1823,8 @@ async def create_vercel_deployment(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -1835,7 +1834,7 @@ async def create_vercel_deployment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def cancel_deployment(
     context: ToolContext,
     deployment_id: Annotated[str, "The unique identifier of the deployment to cancel."],
@@ -1858,8 +1857,8 @@ async def cancel_deployment(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -1870,7 +1869,7 @@ async def cancel_deployment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def purchase_domain(
     context: ToolContext,
     mode: Annotated[
@@ -1964,8 +1963,8 @@ async def purchase_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -1975,7 +1974,7 @@ async def purchase_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_price(
     context: ToolContext,
     domain_name: Annotated[str, "The domain name to check the purchase price for."],
@@ -2007,8 +2006,8 @@ async def get_domain_price(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2019,7 +2018,7 @@ async def get_domain_price(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def check_domain_availability(
     context: ToolContext,
     domain_name: Annotated[str, "The domain name you want to check for purchase availability."],
@@ -2046,8 +2045,8 @@ async def check_domain_availability(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2058,7 +2057,7 @@ async def check_domain_availability(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_dns_records(
     context: ToolContext,
     domain_name: Annotated[
@@ -2098,8 +2097,8 @@ async def get_dns_records(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2110,7 +2109,7 @@ async def get_dns_records(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_dns_record(
     context: ToolContext,
     mode: Annotated[
@@ -2227,8 +2226,8 @@ async def create_dns_record(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -2238,7 +2237,7 @@ async def create_dns_record(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_dns_record(
     context: ToolContext,
     mode: Annotated[
@@ -2353,8 +2352,8 @@ async def update_dns_record(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -2364,7 +2363,7 @@ async def update_dns_record(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_dns_record(
     context: ToolContext,
     dns_record_id: Annotated[
@@ -2394,8 +2393,8 @@ async def remove_dns_record(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2406,7 +2405,7 @@ async def remove_dns_record(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_supported_tlds(
     context: ToolContext,
     team_id: Annotated[
@@ -2424,8 +2423,8 @@ async def get_supported_tlds(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2436,7 +2435,7 @@ async def get_supported_tlds(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_tld_price(
     context: ToolContext,
     top_level_domain: Annotated[
@@ -2462,8 +2461,8 @@ async def get_tld_price(
         params=remove_none_values({"years": registration_years, "teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2474,7 +2473,7 @@ async def get_tld_price(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def domain_availability_status(
     context: ToolContext,
     domain_name_to_check_availability: Annotated[
@@ -2499,8 +2498,8 @@ async def domain_availability_status(
         params=remove_none_values({"teamId": team_identifier}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2511,7 +2510,7 @@ async def domain_availability_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_domain_price(
     context: ToolContext,
     domain_name: Annotated[
@@ -2538,8 +2537,8 @@ async def fetch_domain_price(
         params=remove_none_values({"years": number_of_years, "teamId": team_identifier}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2550,7 +2549,7 @@ async def fetch_domain_price(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def check_domain_availability_bulk(
     context: ToolContext,
     domain_names: Annotated[
@@ -2572,8 +2571,8 @@ async def check_domain_availability_bulk(
         params=remove_none_values({"teamId": team_identifier}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2584,7 +2583,7 @@ async def check_domain_availability_bulk(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_auth_code(
     context: ToolContext,
     domain_name: Annotated[
@@ -2609,8 +2608,8 @@ async def get_domain_auth_code(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -2621,7 +2620,7 @@ async def get_domain_auth_code(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def purchase_domain_vercel(
     context: ToolContext,
     mode: Annotated[
@@ -2736,8 +2735,8 @@ async def purchase_domain_vercel(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -2747,7 +2746,7 @@ async def purchase_domain_vercel(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def purchase_multiple_domains(
     context: ToolContext,
     mode: Annotated[
@@ -2843,8 +2842,8 @@ async def purchase_multiple_domains(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -2854,7 +2853,7 @@ async def purchase_multiple_domains(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def transfer_domain_to_vercel(
     context: ToolContext,
     mode: Annotated[
@@ -2973,8 +2972,8 @@ async def transfer_domain_to_vercel(
         params=remove_none_values({"teamId": team_identifier}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -2984,7 +2983,7 @@ async def transfer_domain_to_vercel(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def check_domain_transfer_status(
     context: ToolContext,
     domain_name: Annotated[
@@ -3008,8 +3007,8 @@ async def check_domain_transfer_status(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3020,7 +3019,7 @@ async def check_domain_transfer_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def renew_domain(
     context: ToolContext,
     mode: Annotated[
@@ -3131,8 +3130,8 @@ async def renew_domain(
         params=remove_none_values({"teamId": team_identifier}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -3142,7 +3141,7 @@ async def renew_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_domain_auto_renew(
     context: ToolContext,
     domain_name: Annotated[
@@ -3169,8 +3168,8 @@ async def update_domain_auto_renew(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3181,7 +3180,7 @@ async def update_domain_auto_renew(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_domain_nameservers(
     context: ToolContext,
     domain_name: Annotated[
@@ -3210,8 +3209,8 @@ async def update_domain_nameservers(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3222,7 +3221,7 @@ async def update_domain_nameservers(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_contact_info_schema(
     context: ToolContext,
     domain_name: Annotated[
@@ -3246,8 +3245,8 @@ async def get_domain_contact_info_schema(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3258,7 +3257,7 @@ async def get_domain_contact_info_schema(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_order_info(
     context: ToolContext,
     order_id: Annotated[str, "The unique ID of the domain order to retrieve information about."],
@@ -3278,8 +3277,8 @@ async def get_domain_order_info(
         params=remove_none_values({"teamId": team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3290,7 +3289,7 @@ async def get_domain_order_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_domain_transfer_availability(
     context: ToolContext,
     domain_name: Annotated[str, "The domain name to check for transfer status or availability."],
@@ -3313,8 +3312,8 @@ async def fetch_domain_transfer_availability(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3325,7 +3324,7 @@ async def fetch_domain_transfer_availability(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_configuration(
     context: ToolContext,
     domain_name: Annotated[str, "The name of the domain to retrieve configuration details for."],
@@ -3361,8 +3360,8 @@ async def get_domain_configuration(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3373,7 +3372,7 @@ async def get_domain_configuration(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_domain_info(
     context: ToolContext,
     domain_name: Annotated[str, "The name of the domain to retrieve information for."],
@@ -3397,8 +3396,8 @@ async def get_domain_info(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3409,7 +3408,7 @@ async def get_domain_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_registered_domains(
     context: ToolContext,
     domains_created_since_timestamp: Annotated[
@@ -3447,8 +3446,8 @@ async def get_registered_domains(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3459,7 +3458,7 @@ async def get_registered_domains(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def add_new_domain_vercel(
     context: ToolContext,
     mode: Annotated[
@@ -3557,8 +3556,8 @@ async def add_new_domain_vercel(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -3568,7 +3567,7 @@ async def add_new_domain_vercel(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_apex_domain(
     context: ToolContext,
     mode: Annotated[
@@ -3683,8 +3682,8 @@ async def update_apex_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -3694,7 +3693,7 @@ async def update_apex_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_vercel_domain(
     context: ToolContext,
     domain_name: Annotated[
@@ -3720,8 +3719,8 @@ async def delete_vercel_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -3732,7 +3731,7 @@ async def delete_vercel_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def invalidate_cache_by_tags(
     context: ToolContext,
     mode: Annotated[
@@ -3857,8 +3856,8 @@ async def invalidate_cache_by_tags(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -3868,7 +3867,7 @@ async def invalidate_cache_by_tags(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_cache_by_tags(
     context: ToolContext,
     mode: Annotated[
@@ -3991,8 +3990,8 @@ async def delete_cache_by_tags(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -4002,7 +4001,7 @@ async def delete_cache_by_tags(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_configs(
     context: ToolContext,
     team_identifier: Annotated[
@@ -4021,8 +4020,8 @@ async def get_edge_configs(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4033,7 +4032,7 @@ async def get_edge_configs(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_edge_config(
     context: ToolContext,
     mode: Annotated[
@@ -4127,8 +4126,8 @@ async def create_edge_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -4138,7 +4137,7 @@ async def create_edge_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4166,8 +4165,8 @@ async def get_edge_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4178,7 +4177,7 @@ async def get_edge_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_edge_config(
     context: ToolContext,
     edge_config_identifier: Annotated[
@@ -4209,8 +4208,8 @@ async def update_edge_config(
         params=remove_none_values({"teamId": team_identifier, "slug": edge_config_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4221,7 +4220,7 @@ async def update_edge_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_edge_config(
     context: ToolContext,
     edge_config_id: Annotated[str, "The unique identifier of the Edge Config to be deleted."],
@@ -4245,8 +4244,8 @@ async def delete_edge_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4257,7 +4256,7 @@ async def delete_edge_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_items(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4285,8 +4284,8 @@ async def get_edge_config_items(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4297,7 +4296,7 @@ async def get_edge_config_items(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_edge_config_items(
     context: ToolContext,
     mode: Annotated[
@@ -4420,8 +4419,8 @@ async def update_edge_config_items(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -4431,7 +4430,7 @@ async def update_edge_config_items(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_schema(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4458,8 +4457,8 @@ async def get_edge_config_schema(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4470,7 +4469,7 @@ async def get_edge_config_schema(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_edge_config_schema(
     context: ToolContext,
     edge_config_identifier: Annotated[
@@ -4508,8 +4507,8 @@ async def update_edge_config_schema(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4520,7 +4519,7 @@ async def update_edge_config_schema(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_edge_config_schema(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4547,8 +4546,8 @@ async def delete_edge_config_schema(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4559,7 +4558,7 @@ async def delete_edge_config_schema(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_item(
     context: ToolContext,
     edge_config_id: Annotated[str, "The ID of the Edge Config to retrieve a specific item from."],
@@ -4584,8 +4583,8 @@ async def get_edge_config_item(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4596,7 +4595,7 @@ async def get_edge_config_item(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_tokens(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4624,8 +4623,8 @@ async def get_edge_config_tokens(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4636,7 +4635,7 @@ async def get_edge_config_tokens(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_edge_config_tokens(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4667,8 +4666,8 @@ async def delete_edge_config_tokens(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4679,7 +4678,7 @@ async def delete_edge_config_tokens(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_token_info(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4709,8 +4708,8 @@ async def get_edge_config_token_info(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4721,7 +4720,7 @@ async def get_edge_config_token_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def add_edge_config_token(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4751,8 +4750,8 @@ async def add_edge_config_token(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4763,7 +4762,7 @@ async def add_edge_config_token(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_edge_config_backup(
     context: ToolContext,
     edge_config_backup_version_id: Annotated[
@@ -4790,8 +4789,8 @@ async def retrieve_edge_config_backup(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4802,7 +4801,7 @@ async def retrieve_edge_config_backup(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_edge_config_backups(
     context: ToolContext,
     edge_config_id: Annotated[
@@ -4846,8 +4845,8 @@ async def get_edge_config_backups(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4858,7 +4857,7 @@ async def get_edge_config_backups(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_user_events(
     context: ToolContext,
     deprecated_user_id: Annotated[
@@ -4917,8 +4916,8 @@ async def list_user_events(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4929,7 +4928,7 @@ async def list_user_events(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_billing_plans(
     context: ToolContext,
     integration_identifier_or_slug: Annotated[
@@ -4967,8 +4966,8 @@ async def retrieve_billing_plans(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -4979,7 +4978,7 @@ async def retrieve_billing_plans(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def connect_integration_resource_to_project(
     context: ToolContext,
     mode: Annotated[
@@ -5112,8 +5111,8 @@ async def connect_integration_resource_to_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5123,7 +5122,7 @@ async def connect_integration_resource_to_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_integration_installation(
     context: ToolContext,
     mode: Annotated[
@@ -5240,8 +5239,8 @@ async def update_integration_installation(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5251,7 +5250,7 @@ async def update_integration_installation(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_account_info(
     context: ToolContext,
     integration_configuration_id: Annotated[
@@ -5272,8 +5271,8 @@ async def fetch_account_info(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -5284,7 +5283,7 @@ async def fetch_account_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_member_role_info(
     context: ToolContext,
     integration_configuration_id: Annotated[
@@ -5309,8 +5308,8 @@ async def get_member_role_info(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -5321,7 +5320,7 @@ async def get_member_role_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def notify_vercel_of_updates(
     context: ToolContext,
     mode: Annotated[
@@ -5436,8 +5435,8 @@ async def notify_vercel_of_updates(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5447,7 +5446,7 @@ async def notify_vercel_of_updates(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_integration_resources(
     context: ToolContext,
     installation_id: Annotated[
@@ -5467,8 +5466,8 @@ async def get_integration_resources(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -5479,7 +5478,7 @@ async def get_integration_resources(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_integration_resource(
     context: ToolContext,
     integration_configuration_id: Annotated[
@@ -5503,8 +5502,8 @@ async def fetch_integration_resource(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -5515,7 +5514,7 @@ async def fetch_integration_resource(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_integration_resource(
     context: ToolContext,
     integration_installation_id: Annotated[
@@ -5539,8 +5538,8 @@ async def delete_integration_resource(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -5551,7 +5550,7 @@ async def delete_integration_resource(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def import_resource_to_vercel(
     context: ToolContext,
     mode: Annotated[
@@ -5672,8 +5671,8 @@ async def import_resource_to_vercel(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5683,7 +5682,7 @@ async def import_resource_to_vercel(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_resource(
     context: ToolContext,
     mode: Annotated[
@@ -5798,8 +5797,8 @@ async def update_resource(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5809,7 +5808,7 @@ async def update_resource(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def submit_billing_data(
     context: ToolContext,
     mode: Annotated[
@@ -5922,8 +5921,8 @@ async def submit_billing_data(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -5933,7 +5932,7 @@ async def submit_billing_data(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def submit_invoice_to_vercel(
     context: ToolContext,
     mode: Annotated[
@@ -6048,8 +6047,8 @@ async def submit_invoice_to_vercel(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6059,7 +6058,7 @@ async def submit_invoice_to_vercel(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_invoice_details(
     context: ToolContext,
     integration_configuration_id: Annotated[
@@ -6083,8 +6082,8 @@ async def get_invoice_details(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6095,7 +6094,7 @@ async def get_invoice_details(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def request_vercel_invoice_refund(
     context: ToolContext,
     mode: Annotated[
@@ -6216,8 +6215,8 @@ async def request_vercel_invoice_refund(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6227,7 +6226,7 @@ async def request_vercel_invoice_refund(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def submit_prepayment_balances(
     context: ToolContext,
     mode: Annotated[
@@ -6342,8 +6341,8 @@ async def submit_prepayment_balances(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6353,7 +6352,7 @@ async def submit_prepayment_balances(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_resource_secrets(
     context: ToolContext,
     mode: Annotated[
@@ -6482,8 +6481,8 @@ async def update_resource_secrets(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6493,7 +6492,7 @@ async def update_resource_secrets(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_secrets_by_id(
     context: ToolContext,
     mode: Annotated[
@@ -6612,8 +6611,8 @@ async def update_secrets_by_id(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6623,7 +6622,7 @@ async def update_secrets_by_id(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_integration_configurations(
     context: ToolContext,
     configuration_view_type: Annotated[
@@ -6661,8 +6660,8 @@ async def retrieve_integration_configurations(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6673,7 +6672,7 @@ async def retrieve_integration_configurations(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_integration_configuration(
     context: ToolContext,
     configuration_id: Annotated[
@@ -6697,8 +6696,8 @@ async def get_integration_configuration(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6709,7 +6708,7 @@ async def get_integration_configuration(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_vercel_configuration(
     context: ToolContext,
     configuration_id: Annotated[
@@ -6733,8 +6732,8 @@ async def remove_vercel_configuration(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6745,7 +6744,7 @@ async def remove_vercel_configuration(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_integration_configuration_products(
     context: ToolContext,
     integration_configuration_id: Annotated[
@@ -6772,8 +6771,8 @@ async def list_integration_configuration_products(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6784,7 +6783,7 @@ async def list_integration_configuration_products(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def exchange_sso_token(
     context: ToolContext,
     authorization_code: Annotated[
@@ -6825,8 +6824,8 @@ async def exchange_sso_token(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6837,7 +6836,7 @@ async def exchange_sso_token(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_integration_log_drains(
     context: ToolContext,
     team_identifier: Annotated[
@@ -6859,8 +6858,8 @@ async def retrieve_integration_log_drains(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -6871,7 +6870,7 @@ async def retrieve_integration_log_drains(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_integration_log_drain(
     context: ToolContext,
     mode: Annotated[
@@ -6971,8 +6970,8 @@ async def create_integration_log_drain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -6982,7 +6981,7 @@ async def create_integration_log_drain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_integration_log_drain(
     context: ToolContext,
     log_drain_id: Annotated[
@@ -7007,8 +7006,8 @@ async def delete_integration_log_drain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7019,7 +7018,7 @@ async def delete_integration_log_drain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_deployment_runtime_logs(
     context: ToolContext,
     deployment_id: Annotated[
@@ -7049,8 +7048,8 @@ async def get_deployment_runtime_logs(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7061,7 +7060,7 @@ async def get_deployment_runtime_logs(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_experimentation_items(
     context: ToolContext,
     mode: Annotated[
@@ -7182,8 +7181,8 @@ async def create_experimentation_items(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -7193,7 +7192,7 @@ async def create_experimentation_items(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_experimentation_item(
     context: ToolContext,
     mode: Annotated[
@@ -7322,8 +7321,8 @@ async def update_experimentation_item(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -7333,7 +7332,7 @@ async def update_experimentation_item(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_experimentation_item(
     context: ToolContext,
     experiment_item_id: Annotated[
@@ -7362,8 +7361,8 @@ async def delete_experimentation_item(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7374,7 +7373,7 @@ async def delete_experimentation_item(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def push_edge_config(
     context: ToolContext,
     mode: Annotated[
@@ -7489,8 +7488,8 @@ async def push_edge_config(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -7500,7 +7499,7 @@ async def push_edge_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_project_members(
     context: ToolContext,
     project_id_or_name: Annotated[str, "The ID or name of the project to list members for."],
@@ -7547,8 +7546,8 @@ async def list_project_members(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7559,7 +7558,7 @@ async def list_project_members(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def add_project_member(
     context: ToolContext,
     mode: Annotated[
@@ -7676,8 +7675,8 @@ async def add_project_member(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -7687,7 +7686,7 @@ async def add_project_member(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_project_member(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -7715,8 +7714,8 @@ async def remove_project_member(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7727,7 +7726,7 @@ async def remove_project_member(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_projects_list(
     context: ToolContext,
     exclude_repositories: Annotated[
@@ -7810,8 +7809,8 @@ async def retrieve_projects_list(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7822,7 +7821,7 @@ async def retrieve_projects_list(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_new_project(
     context: ToolContext,
     mode: Annotated[
@@ -7916,8 +7915,8 @@ async def create_new_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -7927,7 +7926,7 @@ async def create_new_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_project_info(
     context: ToolContext,
     project_identifier_or_name: Annotated[
@@ -7954,8 +7953,8 @@ async def get_project_info(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -7966,7 +7965,7 @@ async def get_project_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_project_details(
     context: ToolContext,
     mode: Annotated[
@@ -8085,8 +8084,8 @@ async def update_project_details(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -8096,7 +8095,7 @@ async def update_project_details(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_project(
     context: ToolContext,
     project_identifier_or_name: Annotated[
@@ -8122,8 +8121,8 @@ async def delete_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8134,7 +8133,7 @@ async def delete_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_project_network_links(
     context: ToolContext,
     mode: Annotated[
@@ -8257,8 +8256,8 @@ async def update_project_network_links(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -8268,7 +8267,7 @@ async def update_project_network_links(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_custom_environment(
     context: ToolContext,
     project_unique_identifier_or_name: Annotated[
@@ -8317,8 +8316,8 @@ async def create_custom_environment(
         params=remove_none_values({"teamId": team_identifier, "slug": custom_environment_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8329,7 +8328,7 @@ async def create_custom_environment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_custom_project_environments(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -8365,8 +8364,8 @@ async def get_custom_project_environments(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8377,7 +8376,7 @@ async def get_custom_project_environments(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_custom_environment(
     context: ToolContext,
     custom_environment_identifier: Annotated[
@@ -8406,8 +8405,8 @@ async def retrieve_custom_environment(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8418,7 +8417,7 @@ async def retrieve_custom_environment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_custom_environment(
     context: ToolContext,
     custom_environment_id: Annotated[
@@ -8465,8 +8464,8 @@ async def update_custom_environment(
         params=remove_none_values({"teamId": team_identifier, "slug": custom_environment_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8477,7 +8476,7 @@ async def update_custom_environment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_custom_environment(
     context: ToolContext,
     custom_environment_identifier: Annotated[
@@ -8512,8 +8511,8 @@ async def remove_custom_environment(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8524,7 +8523,7 @@ async def remove_custom_environment(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_project_domains(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -8601,8 +8600,8 @@ async def retrieve_project_domains(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8613,7 +8612,7 @@ async def retrieve_project_domains(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def fetch_project_domain(
     context: ToolContext,
     project_domain_name: Annotated[str, "The name of the project's domain to fetch details for."],
@@ -8640,8 +8639,8 @@ async def fetch_project_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8652,7 +8651,7 @@ async def fetch_project_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_project_domain_config(
     context: ToolContext,
     project_domain_name: Annotated[
@@ -8696,8 +8695,8 @@ async def update_project_domain_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8708,7 +8707,7 @@ async def update_project_domain_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_project_domain(
     context: ToolContext,
     project_domain_name: Annotated[str, "The domain name of the project to be removed."],
@@ -8741,8 +8740,8 @@ async def remove_project_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8753,7 +8752,7 @@ async def remove_project_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def add_project_domain(
     context: ToolContext,
     project_domain_name: Annotated[
@@ -8804,8 +8803,8 @@ async def add_project_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8816,7 +8815,7 @@ async def add_project_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def move_project_domain(
     context: ToolContext,
     mode: Annotated[
@@ -8943,8 +8942,8 @@ async def move_project_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -8954,7 +8953,7 @@ async def move_project_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def verify_project_domain(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -8982,8 +8981,8 @@ async def verify_project_domain(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -8994,7 +8993,7 @@ async def verify_project_domain(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_project_environment_variables(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -9046,8 +9045,8 @@ async def get_project_environment_variables(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9058,7 +9057,7 @@ async def get_project_environment_variables(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_project_environment_variables(
     context: ToolContext,
     mode: Annotated[
@@ -9191,8 +9190,8 @@ async def create_project_environment_variables(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -9202,7 +9201,7 @@ async def create_project_environment_variables(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_project_environment_variable(
     context: ToolContext,
     environment_variable_id: Annotated[
@@ -9232,8 +9231,8 @@ async def retrieve_project_environment_variable(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9244,7 +9243,7 @@ async def retrieve_project_environment_variable(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_project_env_variable(
     context: ToolContext,
     environment_variable_identifier: Annotated[
@@ -9281,8 +9280,8 @@ async def delete_project_env_variable(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9293,7 +9292,7 @@ async def delete_project_env_variable(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def edit_project_environment_variable(
     context: ToolContext,
     mode: Annotated[
@@ -9424,8 +9423,8 @@ async def edit_project_environment_variable(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -9435,7 +9434,7 @@ async def edit_project_environment_variable(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_project_env_variables(
     context: ToolContext,
     mode: Annotated[
@@ -9556,8 +9555,8 @@ async def delete_project_env_variables(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -9567,7 +9566,7 @@ async def delete_project_env_variables(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def upload_client_cert_to_project(
     context: ToolContext,
     mode: Annotated[
@@ -9690,8 +9689,8 @@ async def upload_client_cert_to_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -9701,7 +9700,7 @@ async def upload_client_cert_to_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_rolling_release_billing_status(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -9729,8 +9728,8 @@ async def get_rolling_release_billing_status(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9741,7 +9740,7 @@ async def get_rolling_release_billing_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_rolling_release_config(
     context: ToolContext,
     project_identifier: Annotated[
@@ -9768,8 +9767,8 @@ async def get_rolling_release_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9780,7 +9779,7 @@ async def get_rolling_release_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def disable_rolling_releases(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -9807,8 +9806,8 @@ async def disable_rolling_releases(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9819,7 +9818,7 @@ async def disable_rolling_releases(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_rolling_release_config(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -9845,8 +9844,8 @@ async def update_rolling_release_config(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9857,7 +9856,7 @@ async def update_rolling_release_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_rolling_release(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -9891,8 +9890,8 @@ async def get_rolling_release(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -9903,7 +9902,7 @@ async def get_rolling_release(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def advance_rollout_stage(
     context: ToolContext,
     mode: Annotated[
@@ -10024,8 +10023,8 @@ async def advance_rollout_stage(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -10035,7 +10034,7 @@ async def advance_rollout_stage(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def force_complete_rolling_release(
     context: ToolContext,
     mode: Annotated[
@@ -10160,8 +10159,8 @@ async def force_complete_rolling_release(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -10171,7 +10170,7 @@ async def force_complete_rolling_release(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def initiate_project_transfer(
     context: ToolContext,
     project_id_or_name: Annotated[str, "The ID or name of the project to transfer between teams."],
@@ -10206,8 +10205,8 @@ async def initiate_project_transfer(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10218,7 +10217,7 @@ async def initiate_project_transfer(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def accept_project_transfer(
     context: ToolContext,
     mode: Annotated[
@@ -10341,8 +10340,8 @@ async def accept_project_transfer(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -10352,7 +10351,7 @@ async def accept_project_transfer(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_project_protection_bypass(
     context: ToolContext,
     project_id_or_name: Annotated[
@@ -10391,8 +10390,8 @@ async def update_project_protection_bypass(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10403,7 +10402,7 @@ async def update_project_protection_bypass(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def promote_deployment_to_production(
     context: ToolContext,
     deployment_identifier: Annotated[
@@ -10434,8 +10433,8 @@ async def promote_deployment_to_production(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10446,7 +10445,7 @@ async def promote_deployment_to_production(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_last_promote_aliases_status(
     context: ToolContext,
     project_id: Annotated[
@@ -10494,8 +10493,8 @@ async def get_last_promote_aliases_status(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10506,7 +10505,7 @@ async def get_last_promote_aliases_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def pause_project(
     context: ToolContext,
     project_id: Annotated[str, "The unique identifier for the Vercel project you wish to pause."],
@@ -10526,8 +10525,8 @@ async def pause_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10538,7 +10537,7 @@ async def pause_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def unpause_project(
     context: ToolContext,
     project_id: Annotated[str, "The unique identifier for the Vercel project to be unpaused."],
@@ -10562,8 +10561,8 @@ async def unpause_project(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10574,7 +10573,7 @@ async def unpause_project(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_attack_challenge_mode(
     context: ToolContext,
     enable_attack_challenge_mode: Annotated[
@@ -10609,8 +10608,8 @@ async def update_attack_challenge_mode(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10621,7 +10620,7 @@ async def update_attack_challenge_mode(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def set_firewall_configuration(
     context: ToolContext,
     mode: Annotated[
@@ -10746,8 +10745,8 @@ async def set_firewall_configuration(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -10757,7 +10756,7 @@ async def set_firewall_configuration(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_firewall_config(
     context: ToolContext,
     mode: Annotated[
@@ -10880,8 +10879,8 @@ async def update_firewall_config(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -10891,7 +10890,7 @@ async def update_firewall_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_firewall_config(
     context: ToolContext,
     firewall_configuration_version: Annotated[
@@ -10926,8 +10925,8 @@ async def get_firewall_config(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10938,7 +10937,7 @@ async def get_firewall_config(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_active_attack_status(
     context: ToolContext,
     project_id: Annotated[str, "The unique identifier of the project to retrieve attack data for."],
@@ -10970,8 +10969,8 @@ async def get_active_attack_status(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -10982,7 +10981,7 @@ async def get_active_attack_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_project_bypass_rules(
     context: ToolContext,
     project_id: Annotated[
@@ -11032,8 +11031,8 @@ async def retrieve_project_bypass_rules(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11044,7 +11043,7 @@ async def retrieve_project_bypass_rules(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_firewall_bypass_rule(
     context: ToolContext,
     mode: Annotated[
@@ -11169,8 +11168,8 @@ async def create_firewall_bypass_rule(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11180,7 +11179,7 @@ async def create_firewall_bypass_rule(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_bypass_rule(
     context: ToolContext,
     mode: Annotated[
@@ -11299,8 +11298,8 @@ async def remove_bypass_rule(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11310,7 +11309,7 @@ async def remove_bypass_rule(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_integration_store(
     context: ToolContext,
     mode: Annotated[
@@ -11410,8 +11409,8 @@ async def create_integration_store(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11421,7 +11420,7 @@ async def create_integration_store(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_team_members(
     context: ToolContext,
     added_since_timestamp: Annotated[
@@ -11467,8 +11466,8 @@ async def get_team_members(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11479,7 +11478,7 @@ async def get_team_members(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def invite_user_to_team(
     context: ToolContext,
     mode: Annotated[
@@ -11586,8 +11585,8 @@ async def invite_user_to_team(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11597,7 +11596,7 @@ async def invite_user_to_team(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def request_team_access(
     context: ToolContext,
     mode: Annotated[
@@ -11708,8 +11707,8 @@ async def request_team_access(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11719,7 +11718,7 @@ async def request_team_access(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def check_team_access_status(
     context: ToolContext,
     team_id: Annotated[
@@ -11743,8 +11742,8 @@ async def check_team_access_status(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11755,7 +11754,7 @@ async def check_team_access_status(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def join_vercel_team(
     context: ToolContext,
     team_id: Annotated[
@@ -11778,8 +11777,8 @@ async def join_vercel_team(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11790,7 +11789,7 @@ async def join_vercel_team(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_team_member(
     context: ToolContext,
     mode: Annotated[
@@ -11905,8 +11904,8 @@ async def update_team_member(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -11916,7 +11915,7 @@ async def update_team_member(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_team_member(
     context: ToolContext,
     team_id: Annotated[
@@ -11943,8 +11942,8 @@ async def remove_team_member(
         params=remove_none_values({"newDefaultTeamId": new_default_team_id}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11955,7 +11954,7 @@ async def remove_team_member(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_team_info(
     context: ToolContext,
     team_identifier: Annotated[
@@ -11977,8 +11976,8 @@ async def get_team_info(
         params=remove_none_values({"slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -11989,7 +11988,7 @@ async def get_team_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_team_info(
     context: ToolContext,
     mode: Annotated[
@@ -12100,8 +12099,8 @@ async def update_team_info(
         params=remove_none_values({"slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -12111,7 +12110,7 @@ async def update_team_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_user_teams(
     context: ToolContext,
     max_number_of_teams: Annotated[
@@ -12139,8 +12138,8 @@ async def get_user_teams(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12151,7 +12150,7 @@ async def get_user_teams(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_vercel_team(
     context: ToolContext,
     team_slug: Annotated[str, "The desired slug for the new team, used as a team identifier."],
@@ -12209,8 +12208,8 @@ async def create_vercel_team(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12221,7 +12220,7 @@ async def create_vercel_team(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_team(
     context: ToolContext,
     mode: Annotated[
@@ -12336,8 +12335,8 @@ async def delete_team(
         params=remove_none_values({"newDefaultTeamId": new_default_team_id, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -12347,7 +12346,7 @@ async def delete_team(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_team_invite_code(
     context: ToolContext,
     team_identifier: Annotated[
@@ -12368,8 +12367,8 @@ async def delete_team_invite_code(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12380,7 +12379,7 @@ async def delete_team_invite_code(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_auth_tokens(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'listAuthTokens'."]:
@@ -12395,8 +12394,8 @@ async def retrieve_auth_tokens(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12407,7 +12406,7 @@ async def retrieve_auth_tokens(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_auth_token(
     context: ToolContext,
     token_name: Annotated[
@@ -12437,8 +12436,8 @@ async def create_auth_token(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12449,7 +12448,7 @@ async def create_auth_token(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_auth_token_metadata(
     context: ToolContext,
     authentication_token_identifier: Annotated[
@@ -12470,8 +12469,8 @@ async def retrieve_auth_token_metadata(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12482,7 +12481,7 @@ async def retrieve_auth_token_metadata(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def invalidate_auth_token(
     context: ToolContext,
     token_id: Annotated[
@@ -12501,8 +12500,8 @@ async def invalidate_auth_token(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12513,7 +12512,7 @@ async def invalidate_auth_token(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_authenticated_user_info(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'getAuthUser'."]:
@@ -12528,8 +12527,8 @@ async def get_authenticated_user_info(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12540,7 +12539,7 @@ async def get_authenticated_user_info(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def initiate_user_deletion(
     context: ToolContext,
     mode: Annotated[
@@ -12630,8 +12629,8 @@ async def initiate_user_deletion(
         params=remove_none_values({}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -12641,7 +12640,7 @@ async def initiate_user_deletion(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def create_vercel_webhook(
     context: ToolContext,
     events_list: Annotated[
@@ -12679,8 +12678,8 @@ async def create_vercel_webhook(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12691,7 +12690,7 @@ async def create_vercel_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_vercel_webhooks(
     context: ToolContext,
     project_id: Annotated[
@@ -12720,8 +12719,8 @@ async def list_vercel_webhooks(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12732,7 +12731,7 @@ async def list_vercel_webhooks(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_webhook(
     context: ToolContext,
     webhook_id: Annotated[str, "The unique identifier of the webhook to retrieve details for."],
@@ -12755,8 +12754,8 @@ async def get_webhook(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12767,7 +12766,7 @@ async def get_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_vercel_webhook(
     context: ToolContext,
     webhook_id: Annotated[str, "The unique identifier of the webhook to be deleted."],
@@ -12790,8 +12789,8 @@ async def delete_vercel_webhook(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12802,7 +12801,7 @@ async def delete_vercel_webhook(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_deployment_aliases(
     context: ToolContext,
     deployment_id: Annotated[str, "The ID of the deployment for which to list the aliases."],
@@ -12825,8 +12824,8 @@ async def get_deployment_aliases(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12837,7 +12836,7 @@ async def get_deployment_aliases(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def set_deployment_alias(
     context: ToolContext,
     deployment_id: Annotated[
@@ -12871,8 +12870,8 @@ async def set_deployment_alias(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12883,7 +12882,7 @@ async def set_deployment_alias(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_aliases(
     context: ToolContext,
     aliases_created_after_timestamp: Annotated[
@@ -12938,8 +12937,8 @@ async def list_aliases(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -12950,7 +12949,7 @@ async def list_aliases(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_vercel_alias(
     context: ToolContext,
     alias_identifier: Annotated[str, "The alias or alias ID of the Vercel entity to retrieve."],
@@ -12994,8 +12993,8 @@ async def retrieve_vercel_alias(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13006,7 +13005,7 @@ async def retrieve_vercel_alias(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_alias_by_id(
     context: ToolContext,
     alias_id_to_remove: Annotated[
@@ -13030,8 +13029,8 @@ async def delete_alias_by_id(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13042,7 +13041,7 @@ async def delete_alias_by_id(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def update_url_protection_bypass(
     context: ToolContext,
     mode: Annotated[
@@ -13165,8 +13164,8 @@ async def update_url_protection_bypass(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -13176,7 +13175,7 @@ async def update_url_protection_bypass(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_certificate_by_id(
     context: ToolContext,
     certificate_id: Annotated[
@@ -13200,8 +13199,8 @@ async def retrieve_certificate_by_id(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13212,7 +13211,7 @@ async def retrieve_certificate_by_id(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def remove_certificate(
     context: ToolContext,
     certificate_id: Annotated[str, "The unique identifier of the certificate to remove."],
@@ -13234,8 +13233,8 @@ async def remove_certificate(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13246,7 +13245,7 @@ async def remove_certificate(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def issue_vercel_certificate(
     context: ToolContext,
     common_names_for_certificate: Annotated[
@@ -13272,8 +13271,8 @@ async def issue_vercel_certificate(
         params=remove_none_values({"teamId": team_id, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13284,7 +13283,7 @@ async def issue_vercel_certificate(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def upload_certificate(
     context: ToolContext,
     mode: Annotated[
@@ -13382,8 +13381,8 @@ async def upload_certificate(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
     )
@@ -13393,7 +13392,7 @@ async def upload_certificate(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def get_vercel_deployment_files(
     context: ToolContext,
     deployment_identifier: Annotated[
@@ -13418,8 +13417,8 @@ async def get_vercel_deployment_files(
         params=remove_none_values({"teamId": team_identifier, "slug": team_slug}),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13430,7 +13429,7 @@ async def get_vercel_deployment_files(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def retrieve_deployment_file_contents(
     context: ToolContext,
     deployment_unique_identifier: Annotated[
@@ -13467,8 +13466,8 @@ async def retrieve_deployment_file_contents(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13479,7 +13478,7 @@ async def retrieve_deployment_file_contents(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def list_vercel_deployments(
     context: ToolContext,
     branch_name_filter: Annotated[
@@ -13565,8 +13564,8 @@ async def list_vercel_deployments(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,
@@ -13577,7 +13576,7 @@ async def list_vercel_deployments(
         return {"response_text": response.text}
 
 
-@tool(requires_auth=OAuth2(id="arcade-vercel"))
+@tool(requires_secrets=["VERCEL_ACCESS_TOKEN"])
 async def delete_deployment(
     context: ToolContext,
     deployment_id: Annotated[
@@ -13610,8 +13609,8 @@ async def delete_deployment(
         }),
         headers=remove_none_values({
             "Content-Type": "application/json",
-            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                authorization=context.get_auth_token_or_empty()
+            "Authorization": "Bearer {authorization}".format(
+                authorization=context.get_secret("VERCEL_ACCESS_TOKEN")
             ),
         }),
         content=content,

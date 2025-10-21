@@ -166,13 +166,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -350,12 +349,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"key\": {\n            \"description\": \"The name of the environment variable\",\n            \"type\": \"string\",\n            \"example\": \"GITHUB_APP_ID\"\n          },\n          \"target\": {\n            \"description\": \"The target environment of the environment variable\",\n            \"type\": \"array\",\n            \"items\": {\n              \"enum\": [\n                \"production\",\n                \"preview\",\n                \"development\"\n              ]\n            },\n            \"example\": [\n              \"preview\"\n            ]\n          },\n          \"gitBranch\": {\n            \"description\": \"If defined, the git branch of the environment variable (must have target=preview)\",\n            \"type\": \"string\",\n            \"maxLength\": 250,\n            \"example\": \"feature-1\",\n            \"nullable\": true\n          },\n          \"type\": {\n            \"description\": \"The type of environment variable\",\n            \"type\": \"string\",\n            \"enum\": [\n              \"system\",\n              \"secret\",\n              \"encrypted\",\n              \"plain\",\n              \"sensitive\"\n            ],\n            \"example\": \"plain\"\n          },\n          \"value\": {\n            \"description\": \"The value of the environment variable\",\n            \"type\": \"string\",\n            \"example\": \"bkWIjbnxcvo78\"\n          },\n          \"customEnvironmentIds\": {\n            \"type\": \"array\",\n            \"description\": \"The custom environments that the environment variable should be synced to\",\n            \"items\": {\n              \"type\": \"string\",\n              \"example\": \"env_1234567890\"\n            }\n          },\n          \"comment\": {\n            \"type\": \"string\",\n            \"description\": \"A comment to add context on what this env var is for\",\n            \"example\": \"database connection string for production\",\n            \"maxLength\": 500\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

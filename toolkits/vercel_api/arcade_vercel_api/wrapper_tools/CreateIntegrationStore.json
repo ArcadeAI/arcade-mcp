@@ -154,13 +154,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -320,12 +319,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"name\",\n          \"integrationConfigurationId\",\n          \"integrationProductIdOrSlug\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 128,\n            \"description\": \"Human-readable name for the storage resource\",\n            \"example\": \"my-dev-database\"\n          },\n          \"integrationConfigurationId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of your integration configuration. Get this from GET /v1/integrations/configurations\",\n            \"example\": \"icfg_cuwj0AdCdH3BwWT4LPijCC7t\",\n            \"pattern\": \"^icfg_[a-zA-Z0-9]+$\"\n          },\n          \"integrationProductIdOrSlug\": {\n            \"type\": \"string\",\n            \"description\": \"ID or slug of the integration product. Get available products from GET /v1/integrations/configuration/{id}/products\",\n            \"example\": \"iap_postgres_db\",\n            \"oneOf\": [\n              {\n                \"pattern\": \"^iap_[a-zA-Z0-9_]+$\",\n                \"description\": \"Product ID format\"\n              },\n              {\n                \"pattern\": \"^[a-z0-9-]+$\",\n                \"description\": \"Product slug format\"\n              }\n            ]\n          },\n          \"metadata\": {\n            \"type\": \"object\",\n            \"description\": \"Optional key-value pairs for resource metadata\",\n            \"additionalProperties\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"number\"\n                },\n                {\n                  \"type\": \"boolean\"\n                },\n                {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"number\"\n                  }\n                }\n              ]\n            },\n            \"example\": {\n              \"environment\": \"development\",\n              \"project\": \"my-app\",\n              \"tags\": [\n                \"database\",\n                \"postgres\"\n              ]\n            }\n          },\n          \"externalId\": {\n            \"type\": \"string\",\n            \"description\": \"Optional external identifier for tracking purposes\",\n            \"example\": \"dev-db-001\"\n          },\n          \"protocolSettings\": {\n            \"type\": \"object\",\n            \"description\": \"Protocol-specific configuration settings\",\n            \"additionalProperties\": true,\n            \"example\": {\n              \"experimentation\": {\n                \"edgeConfigSyncingEnabled\": true\n              }\n            }\n          },\n          \"source\": {\n            \"type\": \"string\",\n            \"description\": \"Source of the store creation request\",\n            \"example\": \"api\",\n            \"default\": \"marketplace\"\n          },\n          \"billingPlanId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the billing plan for paid resources. Get available plans from GET /integrations/integration/{id}/products/{productId}/plans. If not provided, automatically discovers free billing plans.\",\n            \"example\": \"bp_abc123def456\"\n          },\n          \"paymentMethodId\": {\n            \"type\": \"string\",\n            \"description\": \"Payment method ID for paid resources. Optional - uses default payment method if not provided.\",\n            \"example\": \"pm_1AbcDefGhiJklMno\"\n          },\n          \"prepaymentAmountCents\": {\n            \"type\": \"number\",\n            \"minimum\": 50,\n            \"description\": \"Amount in cents for prepayment billing plans. Required only for prepayment plans with variable amounts.\",\n            \"example\": 5000\n          }\n        }\n      }\n    }\n  }\n}",

@@ -148,13 +148,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -323,12 +322,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"slug\": {\n            \"description\": \"The slug of the custom environment.\",\n            \"type\": \"string\",\n            \"maxLength\": 32\n          },\n          \"description\": {\n            \"description\": \"Description of the custom environment. This is optional.\",\n            \"type\": \"string\",\n            \"maxLength\": 256\n          },\n          \"branchMatcher\": {\n            \"required\": [\n              \"type\",\n              \"pattern\"\n            ],\n            \"description\": \"How we want to determine a matching branch. This is optional.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"type\": {\n                \"description\": \"Type of matcher. One of \\\\\\\"equals\\\\\\\", \\\\\\\"startsWith\\\\\\\", or \\\\\\\"endsWith\\\\\\\".\",\n                \"enum\": [\n                  \"equals\",\n                  \"startsWith\",\n                  \"endsWith\"\n                ]\n              },\n              \"pattern\": {\n                \"description\": \"Git branch name or portion thereof.\",\n                \"type\": \"string\",\n                \"maxLength\": 100\n              }\n            },\n            \"nullable\": true\n          }\n        }\n      }\n    }\n  }\n}",

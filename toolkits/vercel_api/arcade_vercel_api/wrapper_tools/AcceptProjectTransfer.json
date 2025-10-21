@@ -138,13 +138,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -291,12 +290,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"newProjectName\": {\n            \"description\": \"The desired name for the project\",\n            \"example\": \"a-project-name\",\n            \"type\": \"string\",\n            \"maxLength\": 100\n          },\n          \"paidFeatures\": {\n            \"type\": \"object\",\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"concurrentBuilds\": {\n                \"type\": \"integer\",\n                \"nullable\": true\n              },\n              \"passwordProtection\": {\n                \"type\": \"boolean\",\n                \"nullable\": true\n              },\n              \"previewDeploymentSuffix\": {\n                \"type\": \"boolean\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"acceptedPolicies\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"string\",\n                \"format\": \"date-time\"\n              },\n              \"required\": [\n                \"eula\",\n                \"privacy\"\n              ],\n              \"properties\": {\n                \"eula\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                },\n                \"privacy\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",

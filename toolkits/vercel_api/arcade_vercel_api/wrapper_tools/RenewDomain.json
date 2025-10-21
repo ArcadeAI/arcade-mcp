@@ -195,13 +195,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -402,12 +401,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"years\",\n          \"expectedPrice\"\n        ],\n        \"properties\": {\n          \"years\": {\n            \"type\": \"number\",\n            \"description\": \"The number of years to renew the domain for.\"\n          },\n          \"expectedPrice\": {\n            \"type\": \"number\",\n            \"description\": \"The expected price for the domain. Use the [Get price data for a domain](https://vercel.com/docs/rest-api/reference/endpoints/domains-registrar/get-price-data-for-a-domain) endpoint to retrieve the price data for a domain.\",\n            \"minimum\": 0.01\n          },\n          \"contactInformation\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"firstName\",\n              \"lastName\",\n              \"email\",\n              \"phone\",\n              \"address1\",\n              \"city\",\n              \"state\",\n              \"zip\",\n              \"country\"\n            ],\n            \"properties\": {\n              \"firstName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"lastName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"email\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1\n              },\n              \"phone\": {\n                \"type\": \"string\",\n                \"description\": \"A valid E.164 phone number\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^(?=(?:\\\\D*\\\\d){7,15}$)\\\\+[1-9]\\\\d{0,2}\\\\.?\\\\d+$\"\n              },\n              \"address1\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"address2\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"city\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"state\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"zip\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"country\": {\n                \"type\": \"string\",\n                \"description\": \"A valid ISO 3166-1 alpha-2 country code\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^[A-Z]{2}$\"\n              },\n              \"companyName\": {\n                \"type\": \"string\",\n                \"description\": \"a non empty string\",\n                \"title\": \"nonEmptyString\",\n                \"pattern\": \"^\\\\S[\\\\s\\\\S]*\\\\S$|^\\\\S$|^$\",\n                \"minLength\": 1\n              },\n              \"fax\": {\n                \"type\": \"string\",\n                \"description\": \"A valid E.164 phone number\",\n                \"title\": \"nonEmptyString\",\n                \"minLength\": 1,\n                \"pattern\": \"^(?=(?:\\\\D*\\\\d){7,15}$)\\\\+[1-9]\\\\d{0,2}\\\\.?\\\\d+$\"\n              }\n            },\n            \"additionalProperties\": false\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",

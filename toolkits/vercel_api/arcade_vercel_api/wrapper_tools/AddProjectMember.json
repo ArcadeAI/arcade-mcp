@@ -125,13 +125,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -265,12 +264,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"role\"\n        ],\n        \"oneOf\": [\n          {\n            \"required\": [\n              \"uid\"\n            ]\n          },\n          {\n            \"required\": [\n              \"username\"\n            ]\n          },\n          {\n            \"required\": [\n              \"email\"\n            ]\n          }\n        ],\n        \"properties\": {\n          \"uid\": {\n            \"type\": \"string\",\n            \"maxLength\": 256,\n            \"example\": \"ndlgr43fadlPyCtREAqxxdyFK\",\n            \"description\": \"The ID of the team member that should be added to this project.\"\n          },\n          \"username\": {\n            \"type\": \"string\",\n            \"maxLength\": 256,\n            \"example\": \"example\",\n            \"description\": \"The username of the team member that should be added to this project.\"\n          },\n          \"email\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"example\": \"entity@example.com\",\n            \"description\": \"The email of the team member that should be added to this project.\"\n          },\n          \"role\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"ADMIN\",\n              \"PROJECT_DEVELOPER\",\n              \"PROJECT_VIEWER\"\n            ],\n            \"example\": \"ADMIN\",\n            \"description\": \"The project role of the member that will be added.\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

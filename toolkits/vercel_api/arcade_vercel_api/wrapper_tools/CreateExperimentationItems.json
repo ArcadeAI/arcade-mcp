@@ -158,13 +158,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -328,12 +327,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"items\"\n        ],\n        \"properties\": {\n          \"items\": {\n            \"type\": \"array\",\n            \"maxItems\": 50,\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"required\": [\n                \"id\",\n                \"slug\",\n                \"origin\"\n              ],\n              \"properties\": {\n                \"id\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 1024\n                },\n                \"slug\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 1024\n                },\n                \"origin\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 2048\n                },\n                \"category\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"experiment\",\n                    \"flag\"\n                  ]\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 1024\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 1024\n                },\n                \"isArchived\": {\n                  \"type\": \"boolean\"\n                },\n                \"createdAt\": {\n                  \"type\": \"number\"\n                },\n                \"updatedAt\": {\n                  \"type\": \"number\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",

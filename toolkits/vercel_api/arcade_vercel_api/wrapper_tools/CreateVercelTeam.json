@@ -163,13 +163,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -356,12 +355,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"slug\"\n        ],\n        \"properties\": {\n          \"slug\": {\n            \"example\": \"a-random-team\",\n            \"description\": \"The desired slug for the Team\",\n            \"type\": \"string\",\n            \"maxLength\": 48\n          },\n          \"name\": {\n            \"example\": \"A Random Team\",\n            \"description\": \"The desired name for the Team. It will be generated from the provided slug if nothing is provided\",\n            \"type\": \"string\",\n            \"maxLength\": 256\n          },\n          \"attribution\": {\n            \"type\": \"object\",\n            \"description\": \"Attribution information for the session or current page\",\n            \"properties\": {\n              \"sessionReferrer\": {\n                \"type\": \"string\",\n                \"description\": \"Session referrer\"\n              },\n              \"landingPage\": {\n                \"type\": \"string\",\n                \"description\": \"Session landing page\"\n              },\n              \"pageBeforeConversionPage\": {\n                \"type\": \"string\",\n                \"description\": \"Referrer to the signup page\"\n              },\n              \"utm\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"utmSource\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM source\"\n                  },\n                  \"utmMedium\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM medium\"\n                  },\n                  \"utmCampaign\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM campaign\"\n                  },\n                  \"utmTerm\": {\n                    \"type\": \"string\",\n                    \"description\": \"UTM term\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

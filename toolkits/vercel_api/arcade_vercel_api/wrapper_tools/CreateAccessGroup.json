@@ -119,13 +119,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -250,12 +249,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"name\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the access group\",\n            \"maxLength\": 50,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"example\": \"My access group\"\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"required\": [\n                \"role\",\n                \"projectId\"\n              ],\n              \"properties\": {\n                \"projectId\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 256,\n                  \"example\": \"prj_ndlgr43fadlPyCtREAqxxdyFK\",\n                  \"description\": \"The ID of the project.\"\n                },\n                \"role\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"ADMIN\",\n                    \"PROJECT_VIEWER\",\n                    \"PROJECT_DEVELOPER\"\n                  ],\n                  \"example\": \"ADMIN\",\n                  \"description\": \"The project role that will be added to this Access Group. \\\\\\\"null\\\\\\\" will remove this project level role.\",\n                  \"nullable\": true\n                }\n              }\n            }\n          },\n          \"membersToAdd\": {\n            \"description\": \"List of members to add to the access group.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"usr_1a2b3c4d5e6f7g8h9i0j\",\n              \"usr_2b3c4d5e6f7g8h9i0j1k\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

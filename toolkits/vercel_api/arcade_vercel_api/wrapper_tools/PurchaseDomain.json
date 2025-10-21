@@ -178,13 +178,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -368,12 +367,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"type\": \"object\",\n        \"required\": [\n          \"name\",\n          \"country\",\n          \"firstName\",\n          \"lastName\",\n          \"address1\",\n          \"city\",\n          \"state\",\n          \"postalCode\",\n          \"phone\",\n          \"email\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The domain name to purchase.\",\n            \"type\": \"string\",\n            \"example\": \"example.com\"\n          },\n          \"expectedPrice\": {\n            \"description\": \"The price you expect to be charged for the purchase.\",\n            \"type\": \"number\",\n            \"example\": 10\n          },\n          \"renew\": {\n            \"description\": \"Indicates whether the domain should be automatically renewed.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"country\": {\n            \"description\": \"The country of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"US\"\n          },\n          \"orgName\": {\n            \"description\": \"The company name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Acme Inc.\"\n          },\n          \"firstName\": {\n            \"description\": \"The first name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Jane\"\n          },\n          \"lastName\": {\n            \"description\": \"The last name of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"Doe\"\n          },\n          \"address1\": {\n            \"description\": \"The street address of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"340 S Lemon Ave Suite 4133\"\n          },\n          \"city\": {\n            \"description\": \"The city of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"San Francisco\"\n          },\n          \"state\": {\n            \"description\": \"The state of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"CA\"\n          },\n          \"postalCode\": {\n            \"description\": \"The postal code of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"91789\"\n          },\n          \"phone\": {\n            \"description\": \"The phone number of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"+1.4158551452\"\n          },\n          \"email\": {\n            \"description\": \"The email of the domain registrant\",\n            \"type\": \"string\",\n            \"example\": \"jane.doe@someplace.com\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

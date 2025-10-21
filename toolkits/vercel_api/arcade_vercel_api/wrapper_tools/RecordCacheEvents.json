@@ -150,13 +150,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -318,12 +317,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"additionalProperties\": false,\n          \"required\": [\n            \"sessionId\",\n            \"source\",\n            \"hash\",\n            \"event\"\n          ],\n          \"properties\": {\n            \"sessionId\": {\n              \"type\": \"string\",\n              \"description\": \"A UUID (universally unique identifer) for the session that generated this event.\"\n            },\n            \"source\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"LOCAL\",\n                \"REMOTE\"\n              ],\n              \"description\": \"One of `LOCAL` or `REMOTE`. `LOCAL` specifies that the cache event was from the user's filesystem cache. `REMOTE` specifies that the cache event is from a remote cache.\"\n            },\n            \"event\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"HIT\",\n                \"MISS\"\n              ],\n              \"description\": \"One of `HIT` or `MISS`. `HIT` specifies that a cached artifact for `hash` was found in the cache. `MISS` specifies that a cached artifact with `hash` was not found.\"\n            },\n            \"hash\": {\n              \"type\": \"string\",\n              \"example\": \"12HKQaOmR5t5Uy6vdcQsNIiZgHGB\",\n              \"description\": \"The artifact hash\"\n            },\n            \"duration\": {\n              \"type\": \"number\",\n              \"description\": \"The time taken to generate the artifact. This should be sent as a body parameter on `HIT` events.\",\n              \"example\": 400\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

@@ -67,13 +67,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -143,12 +142,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"event\"\n        ],\n        \"properties\": {\n          \"event\": {\n            \"oneOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"installation.updated\"\n                    ]\n                  },\n                  \"billingPlanId\": {\n                    \"type\": \"string\",\n                    \"description\": \"The installation-level billing plan ID\"\n                  }\n                },\n                \"required\": [\n                  \"type\"\n                ],\n                \"additionalProperties\": false\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"resource.updated\"\n                    ]\n                  },\n                  \"productId\": {\n                    \"type\": \"string\",\n                    \"description\": \"Partner-provided product slug or id\"\n                  },\n                  \"resourceId\": {\n                    \"type\": \"string\",\n                    \"description\": \"Partner provided resource ID\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"productId\",\n                  \"resourceId\"\n                ],\n                \"additionalProperties\": false\n              }\n            ]\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",

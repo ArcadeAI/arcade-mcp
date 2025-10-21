@@ -120,13 +120,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -261,12 +260,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"code\",\n          \"client_id\",\n          \"client_secret\"\n        ],\n        \"properties\": {\n          \"code\": {\n            \"type\": \"string\",\n            \"description\": \"The sensitive code received from Vercel\"\n          },\n          \"state\": {\n            \"type\": \"string\",\n            \"description\": \"The state received from the initialization request\"\n          },\n          \"client_id\": {\n            \"type\": \"string\",\n            \"description\": \"The integration client id\"\n          },\n          \"client_secret\": {\n            \"type\": \"string\",\n            \"description\": \"The integration client secret\"\n          },\n          \"redirect_uri\": {\n            \"type\": \"string\",\n            \"description\": \"The integration redirect URI\"\n          },\n          \"grant_type\": {\n            \"type\": \"string\",\n            \"description\": \"The grant type, when using x-www-form-urlencoded content type\",\n            \"enum\": [\n              \"authorization_code\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

@@ -129,13 +129,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -273,12 +272,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"cert\",\n          \"key\"\n        ],\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"cert\": {\n            \"description\": \"The client certificate in PEM format\",\n            \"type\": \"string\",\n            \"example\": \"-----BEGIN CERTIFICATE-----\\\\\\\\n...\\\\\\\\n-----END CERTIFICATE-----\"\n          },\n          \"key\": {\n            \"description\": \"The private key in PEM format\",\n            \"type\": \"string\",\n            \"example\": \"-----BEGIN PRIVATE KEY-----\\\\\\\\n...\\\\\\\\n-----END PRIVATE KEY-----\"\n          },\n          \"ca\": {\n            \"description\": \"The certificate authority in PEM format\",\n            \"type\": \"string\",\n            \"example\": \"-----BEGIN CERTIFICATE-----\\\\\\\\n...\\\\\\\\n-----END CERTIFICATE-----\"\n          },\n          \"origin\": {\n            \"description\": \"The origin this certificate should be used for. If not specified, the certificate will be project-wide.\",\n            \"type\": \"string\",\n            \"example\": \"https://api.example.com\"\n          },\n          \"skipValidation\": {\n            \"type\": \"boolean\",\n            \"description\": \"Skip validation of the certificate\"\n          }\n        }\n      }\n    }\n  }\n}",

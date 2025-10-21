@@ -114,13 +114,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -243,12 +242,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"reasons\": {\n            \"type\": \"array\",\n            \"description\": \"Optional array of objects that describe the reason why the team is being deleted.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"An object describing the reason why the team is being deleted.\",\n              \"required\": [\n                \"slug\",\n                \"description\"\n              ],\n              \"additionalProperties\": false,\n              \"properties\": {\n                \"slug\": {\n                  \"type\": \"string\",\n                  \"description\": \"Idenitifier slug of the reason why the team is being deleted.\"\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description of the reason why the team is being deleted.\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",

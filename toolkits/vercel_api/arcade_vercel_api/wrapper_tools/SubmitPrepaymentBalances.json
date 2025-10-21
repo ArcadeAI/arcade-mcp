@@ -108,13 +108,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -225,12 +224,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"timestamp\": {\n            \"description\": \"Server time of your integration, used to determine the most recent data for race conditions & updates. Only the latest usage data for a given day, week, and month will be kept.\",\n            \"type\": \"string\",\n            \"format\": \"date-time\"\n          },\n          \"balances\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"A credit balance for a particular token type\",\n              \"properties\": {\n                \"resourceId\": {\n                  \"type\": \"string\",\n                  \"description\": \"Partner's resource ID, exclude if credits are tied to the installation and not an individual resource.\"\n                },\n                \"credit\": {\n                  \"type\": \"string\",\n                  \"description\": \"A human-readable description of the credits the user currently has, e.g. \\\\\\\"2,000 Tokens\\\\\\\"\"\n                },\n                \"nameLabel\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the credits, for display purposes, e.g. \\\\\\\"Tokens\\\\\\\"\"\n                },\n                \"currencyValueInCents\": {\n                  \"type\": \"number\",\n                  \"description\": \"The dollar value of the credit balance, in USD and provided in cents, which is used to trigger automatic purchase thresholds.\"\n                }\n              },\n              \"required\": [\n                \"currencyValueInCents\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        },\n        \"required\": [\n          \"timestamp\",\n          \"balances\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  }\n}",

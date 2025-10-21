@@ -222,13 +222,12 @@
     }
   },
   "requirements": {
-    "authorization": {
-      "provider_id": "arcade-vercel",
-      "provider_type": "oauth2",
-      "id": null,
-      "oauth2": null
-    },
-    "secrets": null,
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
     "metadata": null
   },
   "deprecation_message": null,
@@ -453,12 +452,12 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "auth_token",
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
         "parameter_name": "Authorization",
         "accepted_as": "header",
         "formatted_value": "Bearer {authorization}",
-        "description": "The OAuth token to use for authentication.",
-        "is_auth_token": true
+        "description": "",
+        "is_auth_token": false
       }
     ],
     "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"billingPlan\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"id\",\n              \"type\",\n              \"name\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"prepayment\",\n                  \"subscription\"\n                ]\n              },\n              \"name\": {\n                \"type\": \"string\"\n              },\n              \"description\": {\n                \"type\": \"string\"\n              },\n              \"paymentMethodRequired\": {\n                \"type\": \"boolean\"\n              },\n              \"cost\": {\n                \"type\": \"string\"\n              },\n              \"details\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"label\": {\n                      \"type\": \"string\"\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"label\"\n                  ],\n                  \"additionalProperties\": false\n                }\n              },\n              \"highlightedDetails\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"label\": {\n                      \"type\": \"string\"\n                    },\n                    \"value\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"label\"\n                  ],\n                  \"additionalProperties\": false\n                }\n              },\n              \"effectiveDate\": {\n                \"type\": \"string\"\n              }\n            },\n            \"additionalProperties\": true\n          },\n          \"notification\": {\n            \"type\": \"object\",\n            \"required\": [\n              \"level\",\n              \"title\"\n            ],\n            \"properties\": {\n              \"level\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"info\",\n                  \"warn\",\n                  \"error\"\n                ]\n              },\n              \"title\": {\n                \"type\": \"string\"\n              },\n              \"message\": {\n                \"type\": \"string\"\n              },\n              \"href\": {\n                \"type\": \"string\",\n                \"format\": \"uri\"\n              }\n            }\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  }\n}",
