@@ -1,0 +1,148 @@
+{
+  "name": "DeactivateDatabaseUser",
+  "fully_qualified_name": "WeaviateApi.DeactivateDatabaseUser@0.1.0",
+  "description": "Deactivate a database user account.\n\nUse this tool to deactivate a user with the type 'db' in the database. Provide the user ID to deactivate their account and prevent access to the database.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "database_user_id",
+        "required": true,
+        "description": "The unique identifier for the database user to be deactivated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "revoke_api_key",
+        "required": false,
+        "description": "Revoke the user's API key when deactivating. Set to true to enable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the API key should be revoked when deactivating the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "revoke_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deactivateUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/users/db/{user_id}/deactivate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "user_id",
+        "tool_parameter_name": "database_user_id",
+        "description": "The name of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "revoke_key",
+        "tool_parameter_name": "revoke_api_key",
+        "description": "Whether the API key should be revoked when deactivating the user.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the API key should be revoked when deactivating the user."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"revoke_key\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the API key should be revoked when deactivating the user.\",\n            \"default\": false\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"revoke_key\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether the API key should be revoked when deactivating the user.\",\n            \"default\": false\n          }\n        }\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

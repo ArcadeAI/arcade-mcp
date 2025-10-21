@@ -1,0 +1,214 @@
+{
+  "name": "CheckBackupStatus",
+  "fully_qualified_name": "WeaviateApi.CheckBackupStatus@0.1.0",
+  "description": "Get the current status of a backup creation process.\n\nUse this tool to manually check the status of a backup creation process by its ID on the specified backend. Ideal for when waiting for completion is disabled or not suitable.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "backup_backend_system",
+        "required": true,
+        "description": "Specifies the backend storage system where the backup resides, such as 'filesystem', 'gcs', 's3', or 'azure'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "backend"
+      },
+      {
+        "name": "backup_identifier",
+        "required": true,
+        "description": "The unique identifier of the backup. Use only lowercase, numbers, underscores, and minus characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the backup. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "bucket_name",
+        "required": false,
+        "description": "Specifies the bucket, container, or volume name if required by the backend.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: Specifies the bucket, container, or volume name if required by the backend."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bucket"
+      },
+      {
+        "name": "backup_storage_path",
+        "required": false,
+        "description": "Specifies the path within the bucket/container/volume if the backup is not at the root. Optional.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: Specifies the path within the bucket/container/volume if the backup is not at the root."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'backups.create.status'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/backups/{backend}/{id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "bucket",
+        "tool_parameter_name": "bucket_name",
+        "description": "Optional: Specifies the bucket, container, or volume name if required by the backend.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: Specifies the bucket, container, or volume name if required by the backend."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "backup_storage_path",
+        "description": "Optional: Specifies the path within the bucket/container/volume if the backup is not at the root.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: Specifies the path within the bucket/container/volume if the backup is not at the root."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "backend",
+        "tool_parameter_name": "backup_backend_system",
+        "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the backend storage system where the backup resides (e.g., `filesystem`, `gcs`, `s3`, `azure`)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "backup_identifier",
+        "description": "The unique identifier of the backup. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the backup. Must be URL-safe and compatible with filesystem paths (only lowercase, numbers, underscore, minus characters allowed)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

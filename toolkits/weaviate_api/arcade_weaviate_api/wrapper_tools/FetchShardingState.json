@@ -1,0 +1,148 @@
+{
+  "name": "FetchShardingState",
+  "fully_qualified_name": "WeaviateApi.FetchShardingState@0.1.0",
+  "description": "Fetch the current sharding state and replica details for collections.\n\nThis tool retrieves the current sharding state for all collections or a specified collection, including replica locations and statuses. If needed, it can also provide the state for a specific shard within a collection.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name",
+        "required": false,
+        "description": "The name of the collection to retrieve the sharding state for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The collection name to get the sharding state for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "collection"
+      },
+      {
+        "name": "target_shard",
+        "required": false,
+        "description": "Specify the shard name to retrieve its sharding state in a collection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The shard to get the sharding state for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shard"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getCollectionShardingState'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/replication/sharding-state",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "collection",
+        "tool_parameter_name": "collection_name",
+        "description": "The collection name to get the sharding state for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The collection name to get the sharding state for."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shard",
+        "tool_parameter_name": "target_shard",
+        "description": "The shard to get the sharding state for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The shard to get the sharding state for."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

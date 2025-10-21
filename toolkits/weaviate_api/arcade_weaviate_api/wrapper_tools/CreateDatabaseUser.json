@@ -1,0 +1,181 @@
+{
+  "name": "CreateDatabaseUser",
+  "fully_qualified_name": "WeaviateApi.CreateDatabaseUser@0.1.0",
+  "description": "Create a new database user and obtain an API key.\n\nThis tool is used to create a new database user by specifying a name. It returns an API key for the created user.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_name",
+        "required": true,
+        "description": "Specify the name for the new database user. It should be a string that identifies the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "set_creation_time_experimental",
+        "required": false,
+        "description": "EXPERIMENTAL: Set the given time as creation time. This will be removed in future versions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "createTime"
+      },
+      {
+        "name": "disable_import_experimental",
+        "required": false,
+        "description": "Set to true to prevent importing an API key from a static user. Experimental and will be removed.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "import"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/users/db/{user_id}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_name",
+        "description": "The name of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "import",
+        "tool_parameter_name": "disable_import_experimental",
+        "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "createTime",
+        "tool_parameter_name": "set_creation_time_experimental",
+        "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"import\": {\n            \"type\": \"boolean\",\n            \"description\": \"EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user\",\n            \"default\": false\n          },\n          \"createTime\": {\n            \"type\": \"string\",\n            \"description\": \"EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time\",\n            \"format\": \"date-time\"\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"import\": {\n            \"type\": \"boolean\",\n            \"description\": \"EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - import api key from static user\",\n            \"default\": false\n          },\n          \"createTime\": {\n            \"type\": \"string\",\n            \"description\": \"EXPERIMENTAL, DONT USE. THIS WILL BE REMOVED AGAIN. - set the given time as creation time\",\n            \"format\": \"date-time\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "name": "GetCollectionShardStatus",
+  "fully_qualified_name": "WeaviateApi.GetCollectionShardStatus@0.1.0",
+  "description": "Retrieves status of shards for a specified collection.\n\nUse this tool to get the status of all shards associated with a specific collection (`className`) in Weaviate. For multi-tenant collections, specify the `tenant` query parameter to retrieve shard status for a particular tenant.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name",
+        "required": true,
+        "description": "The name of the collection (class) whose shards to query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) whose shards to query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "tenant_name",
+        "required": false,
+        "description": "The name of the tenant for retrieving shard statuses, applicable only for multi-tenant collections.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the tenant for which to retrieve shard statuses (only applicable for multi-tenant collections)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tenant"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'schema.objects.shards.get'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/schema/{className}/shards",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "tenant",
+        "tool_parameter_name": "tenant_name",
+        "description": "The name of the tenant for which to retrieve shard statuses (only applicable for multi-tenant collections).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the tenant for which to retrieve shard statuses (only applicable for multi-tenant collections)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "className",
+        "tool_parameter_name": "collection_name",
+        "description": "The name of the collection (class) whose shards to query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) whose shards to query."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

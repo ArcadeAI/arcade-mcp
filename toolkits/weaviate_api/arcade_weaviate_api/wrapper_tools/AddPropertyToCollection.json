@@ -1,0 +1,480 @@
+{
+  "name": "AddPropertyToCollection",
+  "fully_qualified_name": "WeaviateApi.AddPropertyToCollection@0.1.0",
+  "description": "Add a new property to an existing collection schema.\n\nUse this tool to add a new property definition to a specified collection (className) within the schema. It is called when a new property needs to be incorporated into an existing data structure.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name",
+        "required": true,
+        "description": "The name of the collection (class) to which the property will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) to add the property to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "property_definition",
+        "required": true,
+        "description": "The JSON structure defining the new property to add, including data type, description, and configuration options.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dataType": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the property."
+            },
+            "moduleConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configuration specific to modules in a collection context."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`."
+            },
+            "indexInverted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)"
+            },
+            "indexFilterable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior."
+            },
+            "indexSearchable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules"
+            },
+            "indexRangeFilters": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date."
+            },
+            "tokenization": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "word",
+                "lowercase",
+                "whitespace",
+                "field",
+                "trigram",
+                "gse",
+                "kagome_kr",
+                "kagome_ja",
+                "gse_ch"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details."
+            },
+            "nestedProperties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "dataType": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexFilterable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexSearchable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexRangeFilters": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tokenization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "word",
+                    "lowercase",
+                    "whitespace",
+                    "field",
+                    "trigram",
+                    "gse",
+                    "kagome_kr",
+                    "kagome_ja",
+                    "gse_ch"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "nestedProperties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                }
+              },
+              "description": "The properties of the nested object(s). Applies to object and object[] data types."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the property to add."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'schema.objects.properties.add'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/schema/{className}/properties",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "className",
+        "tool_parameter_name": "collection_name",
+        "description": "The name of the collection (class) to add the property to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) to add the property to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "property_definition",
+        "description": "The definition of the property to add.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "dataType": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the property."
+            },
+            "moduleConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configuration specific to modules in a collection context."
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`."
+            },
+            "indexInverted": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)"
+            },
+            "indexFilterable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior."
+            },
+            "indexSearchable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules"
+            },
+            "indexRangeFilters": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date."
+            },
+            "tokenization": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "word",
+                "lowercase",
+                "whitespace",
+                "field",
+                "trigram",
+                "gse",
+                "kagome_kr",
+                "kagome_ja",
+                "gse_ch"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details."
+            },
+            "nestedProperties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "dataType": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexFilterable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexSearchable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "indexRangeFilters": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "tokenization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "word",
+                    "lowercase",
+                    "whitespace",
+                    "field",
+                    "trigram",
+                    "gse",
+                    "kagome_kr",
+                    "kagome_ja",
+                    "gse_ch"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "nestedProperties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {},
+                  "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                }
+              },
+              "description": "The properties of the nested object(s). Applies to object and object[] data types."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the property to add."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The definition of the property to add.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"dataType\": {\n            \"type\": \"array\",\n            \"description\": \"Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the property.\"\n          },\n          \"moduleConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Configuration specific to modules in a collection context.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`.\"\n          },\n          \"indexInverted\": {\n            \"type\": \"boolean\",\n            \"description\": \"(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)\",\n            \"nullable\": true\n          },\n          \"indexFilterable\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior.\",\n            \"nullable\": true\n          },\n          \"indexSearchable\": {\n            \"type\": \"boolean\",\n            \"description\": \"Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules\",\n            \"nullable\": true\n          },\n          \"indexRangeFilters\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date.\",\n            \"nullable\": true\n          },\n          \"tokenization\": {\n            \"type\": \"string\",\n            \"description\": \"Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details.\",\n            \"enum\": [\n              \"word\",\n              \"lowercase\",\n              \"whitespace\",\n              \"field\",\n              \"trigram\",\n              \"gse\",\n              \"kagome_kr\",\n              \"kagome_ja\",\n              \"gse_ch\"\n            ]\n          },\n          \"nestedProperties\": {\n            \"type\": \"array\",\n            \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"dataType\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"description\": {\n                  \"type\": \"string\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"indexFilterable\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"indexSearchable\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"indexRangeFilters\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"tokenization\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"word\",\n                    \"lowercase\",\n                    \"whitespace\",\n                    \"field\",\n                    \"trigram\",\n                    \"gse\",\n                    \"kagome_kr\",\n                    \"kagome_ja\",\n                    \"gse_ch\"\n                  ]\n                },\n                \"nestedProperties\": {\n                  \"type\": \"array\",\n                  \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                  \"items\": {\n                    \"$ref\": \"#/components/schemas/NestedProperty\",\n                    \"has_circular_reference\": true\n                  },\n                  \"x-omitempty\": true\n                }\n              }\n            },\n            \"x-omitempty\": true\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"dataType\": {\n            \"type\": \"array\",\n            \"description\": \"Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the property.\"\n          },\n          \"moduleConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Configuration specific to modules in a collection context.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`.\"\n          },\n          \"indexInverted\": {\n            \"type\": \"boolean\",\n            \"description\": \"(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)\",\n            \"nullable\": true\n          },\n          \"indexFilterable\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior.\",\n            \"nullable\": true\n          },\n          \"indexSearchable\": {\n            \"type\": \"boolean\",\n            \"description\": \"Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules\",\n            \"nullable\": true\n          },\n          \"indexRangeFilters\": {\n            \"type\": \"boolean\",\n            \"description\": \"Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date.\",\n            \"nullable\": true\n          },\n          \"tokenization\": {\n            \"type\": \"string\",\n            \"description\": \"Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details.\",\n            \"enum\": [\n              \"word\",\n              \"lowercase\",\n              \"whitespace\",\n              \"field\",\n              \"trigram\",\n              \"gse\",\n              \"kagome_kr\",\n              \"kagome_ja\",\n              \"gse_ch\"\n            ]\n          },\n          \"nestedProperties\": {\n            \"type\": \"array\",\n            \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"dataType\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"description\": {\n                  \"type\": \"string\"\n                },\n                \"name\": {\n                  \"type\": \"string\"\n                },\n                \"indexFilterable\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"indexSearchable\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"indexRangeFilters\": {\n                  \"type\": \"boolean\",\n                  \"nullable\": true\n                },\n                \"tokenization\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"word\",\n                    \"lowercase\",\n                    \"whitespace\",\n                    \"field\",\n                    \"trigram\",\n                    \"gse\",\n                    \"kagome_kr\",\n                    \"kagome_ja\",\n                    \"gse_ch\"\n                  ]\n                },\n                \"nestedProperties\": {\n                  \"type\": \"array\",\n                  \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                  \"items\": {\n                    \"$ref\": \"#/components/schemas/NestedProperty\",\n                    \"has_circular_reference\": true\n                  },\n                  \"x-omitempty\": true\n                }\n              }\n            },\n            \"x-omitempty\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

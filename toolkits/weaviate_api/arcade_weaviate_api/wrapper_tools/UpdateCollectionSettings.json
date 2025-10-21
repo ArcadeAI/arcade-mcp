@@ -1,0 +1,980 @@
+{
+  "name": "UpdateCollectionSettings",
+  "fully_qualified_name": "WeaviateApi.UpdateCollectionSettings@0.1.0",
+  "description": "Update settings of an existing collection.\n\nUse this tool to update the configuration settings of an existing collection by specifying the className and the new settings. This tool is useful when you need to change mutable settings of a collection but not its name or properties.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name_to_update",
+        "required": true,
+        "description": "The name of the collection to be updated. Specify the collection's class name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "updated_collection_definition",
+        "required": true,
+        "description": "The JSON definition of the updated collection settings, including properties like vectorConfig, shardingConfig, and moduleConfig to modify mutable settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the collection (formerly 'class') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`."
+            },
+            "vectorConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configure named vectors. Either use this field or `vectorizer`, `vectorIndexType`, and `vectorIndexConfig` fields. Available from `v1.24.0`."
+            },
+            "vectorIndexType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the vector index type to use for the collection (e.g. `hnsw` or `flat`)."
+            },
+            "vectorIndexConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Vector-index config, that is specific to the type of index selected in vectorIndexType"
+            },
+            "shardingConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Manage how the index should be sharded and distributed in the cluster"
+            },
+            "replicationConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "factor": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of times a collection (class) is replicated (default: 1)."
+                },
+                "asyncEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enable asynchronous replication (default: `false`)."
+                },
+                "deletionStrategy": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "NoAutomatedResolution",
+                    "DeleteOnConflict",
+                    "TimeBasedResolution"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Conflict resolution strategy for deleted objects."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configure how replication is executed in a cluster"
+            },
+            "invertedIndexConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cleanupIntervalSeconds": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asynchronous index clean up happens every n seconds (default: 60)."
+                },
+                "bm25": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "k1": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Calibrates term-weight scaling based on the term frequency within a document (default: 1.2)."
+                    },
+                    "b": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Calibrates term-weight scaling based on the document length (default: 0.75)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Tuning parameters for the BM25 algorithm."
+                },
+                "stopwords": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "preset": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Pre-existing list of common words by language (default: `en`). Options: [`en`, `none`]."
+                    },
+                    "additions": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Stopwords to be considered additionally (default: []). Can be any array of custom strings."
+                    },
+                    "removals": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Stopwords to be removed from consideration (default: []). Can be any array of custom strings."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Fine-grained control over stopword list usage."
+                },
+                "indexTimestamps": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index each object by its internal timestamps (default: `false`)."
+                },
+                "indexNullState": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index each object with the null state (default: `false`)."
+                },
+                "indexPropertyLength": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index length of properties (default: `false`)."
+                },
+                "usingBlockMaxWAND": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Using BlockMax WAND for query execution (default: `false`, will be `true` for new collections created after 1.30)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configure the inverted index built into Weaviate. See [Reference: Inverted index](https://docs.weaviate.io/weaviate/config-refs/indexing/inverted-index#inverted-index-parameters) for details."
+            },
+            "multiTenancyConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not multi-tenancy is enabled for this collection (class) (default: `false`)."
+                },
+                "autoTenantCreation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Nonexistent tenants should (not) be created implicitly (default: `false`)."
+                },
+                "autoTenantActivation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: `false`)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configuration related to multi-tenancy within a collection (class)"
+            },
+            "vectorizer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module."
+            },
+            "moduleConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configuration specific to modules in a collection context."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the collection for metadata purposes."
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "dataType": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the property."
+                },
+                "moduleConfig": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Configuration specific to modules in a collection context."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`."
+                },
+                "indexInverted": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)"
+                },
+                "indexFilterable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior."
+                },
+                "indexSearchable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules"
+                },
+                "indexRangeFilters": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date."
+                },
+                "tokenization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "word",
+                    "lowercase",
+                    "whitespace",
+                    "field",
+                    "trigram",
+                    "gse",
+                    "kagome_kr",
+                    "kagome_ja",
+                    "gse_ch"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details."
+                },
+                "nestedProperties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "dataType": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexFilterable": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexSearchable": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexRangeFilters": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "tokenization": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "word",
+                        "lowercase",
+                        "whitespace",
+                        "field",
+                        "trigram",
+                        "gse",
+                        "kagome_kr",
+                        "kagome_ja",
+                        "gse_ch"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "nestedProperties": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                    }
+                  },
+                  "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                }
+              },
+              "description": "Define properties of the collection."
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated collection definition containing the settings to modify."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'schema.objects.update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/schema/{className}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "className",
+        "tool_parameter_name": "collection_name_to_update",
+        "description": "The name of the collection (class) to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "updated_collection_definition",
+        "description": "The updated collection definition containing the settings to modify.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the collection (formerly 'class') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`."
+            },
+            "vectorConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configure named vectors. Either use this field or `vectorizer`, `vectorIndexType`, and `vectorIndexConfig` fields. Available from `v1.24.0`."
+            },
+            "vectorIndexType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the vector index type to use for the collection (e.g. `hnsw` or `flat`)."
+            },
+            "vectorIndexConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Vector-index config, that is specific to the type of index selected in vectorIndexType"
+            },
+            "shardingConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Manage how the index should be sharded and distributed in the cluster"
+            },
+            "replicationConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "factor": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of times a collection (class) is replicated (default: 1)."
+                },
+                "asyncEnabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Enable asynchronous replication (default: `false`)."
+                },
+                "deletionStrategy": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "NoAutomatedResolution",
+                    "DeleteOnConflict",
+                    "TimeBasedResolution"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Conflict resolution strategy for deleted objects."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configure how replication is executed in a cluster"
+            },
+            "invertedIndexConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "cleanupIntervalSeconds": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Asynchronous index clean up happens every n seconds (default: 60)."
+                },
+                "bm25": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "k1": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Calibrates term-weight scaling based on the term frequency within a document (default: 1.2)."
+                    },
+                    "b": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Calibrates term-weight scaling based on the document length (default: 0.75)."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Tuning parameters for the BM25 algorithm."
+                },
+                "stopwords": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "preset": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Pre-existing list of common words by language (default: `en`). Options: [`en`, `none`]."
+                    },
+                    "additions": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Stopwords to be considered additionally (default: []). Can be any array of custom strings."
+                    },
+                    "removals": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Stopwords to be removed from consideration (default: []). Can be any array of custom strings."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Fine-grained control over stopword list usage."
+                },
+                "indexTimestamps": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index each object by its internal timestamps (default: `false`)."
+                },
+                "indexNullState": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index each object with the null state (default: `false`)."
+                },
+                "indexPropertyLength": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index length of properties (default: `false`)."
+                },
+                "usingBlockMaxWAND": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Using BlockMax WAND for query execution (default: `false`, will be `true` for new collections created after 1.30)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configure the inverted index built into Weaviate. See [Reference: Inverted index](https://docs.weaviate.io/weaviate/config-refs/indexing/inverted-index#inverted-index-parameters) for details."
+            },
+            "multiTenancyConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "enabled": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not multi-tenancy is enabled for this collection (class) (default: `false`)."
+                },
+                "autoTenantCreation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Nonexistent tenants should (not) be created implicitly (default: `false`)."
+                },
+                "autoTenantActivation": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: `false`)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Configuration related to multi-tenancy within a collection (class)"
+            },
+            "vectorizer": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module."
+            },
+            "moduleConfig": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Configuration specific to modules in a collection context."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the collection for metadata purposes."
+            },
+            "properties": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "dataType": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type."
+                },
+                "description": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Description of the property."
+                },
+                "moduleConfig": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Configuration specific to modules in a collection context."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`."
+                },
+                "indexInverted": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)"
+                },
+                "indexFilterable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior."
+                },
+                "indexSearchable": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules"
+                },
+                "indexRangeFilters": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date."
+                },
+                "tokenization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "word",
+                    "lowercase",
+                    "whitespace",
+                    "field",
+                    "trigram",
+                    "gse",
+                    "kagome_kr",
+                    "kagome_ja",
+                    "gse_ch"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details."
+                },
+                "nestedProperties": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "dataType": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexFilterable": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexSearchable": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "indexRangeFilters": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "tokenization": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "word",
+                        "lowercase",
+                        "whitespace",
+                        "field",
+                        "trigram",
+                        "gse",
+                        "kagome_kr",
+                        "kagome_ja",
+                        "gse_ch"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "nestedProperties": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                    }
+                  },
+                  "description": "The properties of the nested object(s). Applies to object and object[] data types."
+                }
+              },
+              "description": "Define properties of the collection."
+            }
+          },
+          "inner_properties": null,
+          "description": "The updated collection definition containing the settings to modify."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The updated collection definition containing the settings to modify.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the collection (formerly 'class') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`.\"\n          },\n          \"vectorConfig\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"vectorizer\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Configuration of a specific vectorizer used by this vector\"\n                },\n                \"vectorIndexType\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the vector index to use, eg. (HNSW)\"\n                },\n                \"vectorIndexConfig\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Vector-index config, that is specific to the type of index selected in vectorIndexType\"\n                }\n              }\n            },\n            \"description\": \"Configure named vectors. Either use this field or `vectorizer`, `vectorIndexType`, and `vectorIndexConfig` fields. Available from `v1.24.0`.\"\n          },\n          \"vectorIndexType\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the vector index type to use for the collection (e.g. `hnsw` or `flat`).\"\n          },\n          \"vectorIndexConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Vector-index config, that is specific to the type of index selected in vectorIndexType\"\n          },\n          \"shardingConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Manage how the index should be sharded and distributed in the cluster\"\n          },\n          \"replicationConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"factor\": {\n                \"type\": \"integer\",\n                \"description\": \"Number of times a collection (class) is replicated (default: 1).\"\n              },\n              \"asyncEnabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Enable asynchronous replication (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"deletionStrategy\": {\n                \"type\": \"string\",\n                \"description\": \"Conflict resolution strategy for deleted objects.\",\n                \"enum\": [\n                  \"NoAutomatedResolution\",\n                  \"DeleteOnConflict\",\n                  \"TimeBasedResolution\"\n                ],\n                \"x-omitempty\": true\n              }\n            },\n            \"description\": \"Configure how replication is executed in a cluster\"\n          },\n          \"invertedIndexConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"cleanupIntervalSeconds\": {\n                \"type\": \"number\",\n                \"description\": \"Asynchronous index clean up happens every n seconds (default: 60).\",\n                \"format\": \"int\"\n              },\n              \"bm25\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"k1\": {\n                    \"type\": \"number\",\n                    \"description\": \"Calibrates term-weight scaling based on the term frequency within a document (default: 1.2).\",\n                    \"format\": \"float\"\n                  },\n                  \"b\": {\n                    \"type\": \"number\",\n                    \"description\": \"Calibrates term-weight scaling based on the document length (default: 0.75).\",\n                    \"format\": \"float\"\n                  }\n                },\n                \"description\": \"Tuning parameters for the BM25 algorithm.\"\n              },\n              \"stopwords\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"preset\": {\n                    \"type\": \"string\",\n                    \"description\": \"Pre-existing list of common words by language (default: `en`). Options: [`en`, `none`].\"\n                  },\n                  \"additions\": {\n                    \"type\": \"array\",\n                    \"description\": \"Stopwords to be considered additionally (default: []). Can be any array of custom strings.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"removals\": {\n                    \"type\": \"array\",\n                    \"description\": \"Stopwords to be removed from consideration (default: []). Can be any array of custom strings.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                },\n                \"description\": \"Fine-grained control over stopword list usage.\"\n              },\n              \"indexTimestamps\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index each object by its internal timestamps (default: `false`).\"\n              },\n              \"indexNullState\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index each object with the null state (default: `false`).\"\n              },\n              \"indexPropertyLength\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index length of properties (default: `false`).\"\n              },\n              \"usingBlockMaxWAND\": {\n                \"type\": \"boolean\",\n                \"description\": \"Using BlockMax WAND for query execution (default: `false`, will be `true` for new collections created after 1.30).\"\n              }\n            },\n            \"description\": \"Configure the inverted index built into Weaviate. See [Reference: Inverted index](https://docs.weaviate.io/weaviate/config-refs/indexing/inverted-index#inverted-index-parameters) for details.\"\n          },\n          \"multiTenancyConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether or not multi-tenancy is enabled for this collection (class) (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"autoTenantCreation\": {\n                \"type\": \"boolean\",\n                \"description\": \"Nonexistent tenants should (not) be created implicitly (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"autoTenantActivation\": {\n                \"type\": \"boolean\",\n                \"description\": \"Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: `false`).\",\n                \"x-omitempty\": false\n              }\n            },\n            \"description\": \"Configuration related to multi-tenancy within a collection (class)\"\n          },\n          \"vectorizer\": {\n            \"type\": \"string\",\n            \"description\": \"Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module.\"\n          },\n          \"moduleConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Configuration specific to modules in a collection context.\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the collection for metadata purposes.\"\n          },\n          \"properties\": {\n            \"type\": \"array\",\n            \"description\": \"Define properties of the collection.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"dataType\": {\n                  \"type\": \"array\",\n                  \"description\": \"Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description of the property.\"\n                },\n                \"moduleConfig\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Configuration specific to modules in a collection context.\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`.\"\n                },\n                \"indexInverted\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)\",\n                  \"nullable\": true\n                },\n                \"indexFilterable\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior.\",\n                  \"nullable\": true\n                },\n                \"indexSearchable\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules\",\n                  \"nullable\": true\n                },\n                \"indexRangeFilters\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date.\",\n                  \"nullable\": true\n                },\n                \"tokenization\": {\n                  \"type\": \"string\",\n                  \"description\": \"Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details.\",\n                  \"enum\": [\n                    \"word\",\n                    \"lowercase\",\n                    \"whitespace\",\n                    \"field\",\n                    \"trigram\",\n                    \"gse\",\n                    \"kagome_kr\",\n                    \"kagome_ja\",\n                    \"gse_ch\"\n                  ]\n                },\n                \"nestedProperties\": {\n                  \"type\": \"array\",\n                  \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"dataType\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"description\": {\n                        \"type\": \"string\"\n                      },\n                      \"name\": {\n                        \"type\": \"string\"\n                      },\n                      \"indexFilterable\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"indexSearchable\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"indexRangeFilters\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"tokenization\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"word\",\n                          \"lowercase\",\n                          \"whitespace\",\n                          \"field\",\n                          \"trigram\",\n                          \"gse\",\n                          \"kagome_kr\",\n                          \"kagome_ja\",\n                          \"gse_ch\"\n                        ]\n                      },\n                      \"nestedProperties\": {\n                        \"type\": \"array\",\n                        \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                        \"items\": {\n                          \"$ref\": \"#/components/schemas/NestedProperty\",\n                          \"has_circular_reference\": true\n                        },\n                        \"x-omitempty\": true\n                      }\n                    }\n                  },\n                  \"x-omitempty\": true\n                }\n              }\n            }\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the collection (formerly 'class') (required). Multiple words should be concatenated in CamelCase, e.g. `ArticleAuthor`.\"\n          },\n          \"vectorConfig\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"vectorizer\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Configuration of a specific vectorizer used by this vector\"\n                },\n                \"vectorIndexType\": {\n                  \"type\": \"string\",\n                  \"description\": \"Name of the vector index to use, eg. (HNSW)\"\n                },\n                \"vectorIndexConfig\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Vector-index config, that is specific to the type of index selected in vectorIndexType\"\n                }\n              }\n            },\n            \"description\": \"Configure named vectors. Either use this field or `vectorizer`, `vectorIndexType`, and `vectorIndexConfig` fields. Available from `v1.24.0`.\"\n          },\n          \"vectorIndexType\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the vector index type to use for the collection (e.g. `hnsw` or `flat`).\"\n          },\n          \"vectorIndexConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Vector-index config, that is specific to the type of index selected in vectorIndexType\"\n          },\n          \"shardingConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Manage how the index should be sharded and distributed in the cluster\"\n          },\n          \"replicationConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"factor\": {\n                \"type\": \"integer\",\n                \"description\": \"Number of times a collection (class) is replicated (default: 1).\"\n              },\n              \"asyncEnabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Enable asynchronous replication (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"deletionStrategy\": {\n                \"type\": \"string\",\n                \"description\": \"Conflict resolution strategy for deleted objects.\",\n                \"enum\": [\n                  \"NoAutomatedResolution\",\n                  \"DeleteOnConflict\",\n                  \"TimeBasedResolution\"\n                ],\n                \"x-omitempty\": true\n              }\n            },\n            \"description\": \"Configure how replication is executed in a cluster\"\n          },\n          \"invertedIndexConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"cleanupIntervalSeconds\": {\n                \"type\": \"number\",\n                \"description\": \"Asynchronous index clean up happens every n seconds (default: 60).\",\n                \"format\": \"int\"\n              },\n              \"bm25\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"k1\": {\n                    \"type\": \"number\",\n                    \"description\": \"Calibrates term-weight scaling based on the term frequency within a document (default: 1.2).\",\n                    \"format\": \"float\"\n                  },\n                  \"b\": {\n                    \"type\": \"number\",\n                    \"description\": \"Calibrates term-weight scaling based on the document length (default: 0.75).\",\n                    \"format\": \"float\"\n                  }\n                },\n                \"description\": \"Tuning parameters for the BM25 algorithm.\"\n              },\n              \"stopwords\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"preset\": {\n                    \"type\": \"string\",\n                    \"description\": \"Pre-existing list of common words by language (default: `en`). Options: [`en`, `none`].\"\n                  },\n                  \"additions\": {\n                    \"type\": \"array\",\n                    \"description\": \"Stopwords to be considered additionally (default: []). Can be any array of custom strings.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"removals\": {\n                    \"type\": \"array\",\n                    \"description\": \"Stopwords to be removed from consideration (default: []). Can be any array of custom strings.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                },\n                \"description\": \"Fine-grained control over stopword list usage.\"\n              },\n              \"indexTimestamps\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index each object by its internal timestamps (default: `false`).\"\n              },\n              \"indexNullState\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index each object with the null state (default: `false`).\"\n              },\n              \"indexPropertyLength\": {\n                \"type\": \"boolean\",\n                \"description\": \"Index length of properties (default: `false`).\"\n              },\n              \"usingBlockMaxWAND\": {\n                \"type\": \"boolean\",\n                \"description\": \"Using BlockMax WAND for query execution (default: `false`, will be `true` for new collections created after 1.30).\"\n              }\n            },\n            \"description\": \"Configure the inverted index built into Weaviate. See [Reference: Inverted index](https://docs.weaviate.io/weaviate/config-refs/indexing/inverted-index#inverted-index-parameters) for details.\"\n          },\n          \"multiTenancyConfig\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether or not multi-tenancy is enabled for this collection (class) (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"autoTenantCreation\": {\n                \"type\": \"boolean\",\n                \"description\": \"Nonexistent tenants should (not) be created implicitly (default: `false`).\",\n                \"x-omitempty\": false\n              },\n              \"autoTenantActivation\": {\n                \"type\": \"boolean\",\n                \"description\": \"Existing tenants should (not) be turned HOT implicitly when they are accessed and in another activity status (default: `false`).\",\n                \"x-omitempty\": false\n              }\n            },\n            \"description\": \"Configuration related to multi-tenancy within a collection (class)\"\n          },\n          \"vectorizer\": {\n            \"type\": \"string\",\n            \"description\": \"Specify how the vectors for this collection should be determined. The options are either `none` - this means you have to import a vector with each object yourself - or the name of a module that provides vectorization capabilities, such as `text2vec-weaviate`. If left empty, it will use the globally configured default ([`DEFAULT_VECTORIZER_MODULE`](https://docs.weaviate.io/deploy/configuration/env-vars)) which can itself either be `none` or a specific module.\"\n          },\n          \"moduleConfig\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Configuration specific to modules in a collection context.\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the collection for metadata purposes.\"\n          },\n          \"properties\": {\n            \"type\": \"array\",\n            \"description\": \"Define properties of the collection.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"dataType\": {\n                  \"type\": \"array\",\n                  \"description\": \"Data type of the property (required). If it starts with a capital (for example Person), may be a reference to another type.\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                \"description\": {\n                  \"type\": \"string\",\n                  \"description\": \"Description of the property.\"\n                },\n                \"moduleConfig\": {\n                  \"type\": \"object\",\n                  \"properties\": {},\n                  \"description\": \"Configuration specific to modules in a collection context.\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"The name of the property (required). Multiple words should be concatenated in camelCase, e.g. `nameOfAuthor`.\"\n                },\n                \"indexInverted\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"(Deprecated). Whether to include this property in the inverted index. If `false`, this property cannot be used in `where` filters, `bm25` or `hybrid` search. <br/><br/>Unrelated to vectorization behavior (deprecated as of v1.19; use indexFilterable or/and indexSearchable instead)\",\n                  \"nullable\": true\n                },\n                \"indexFilterable\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether to include this property in the filterable, Roaring Bitmap index. If `false`, this property cannot be used in `where` filters. <br/><br/>Note: Unrelated to vectorization behavior.\",\n                  \"nullable\": true\n                },\n                \"indexSearchable\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Optional. Should this property be indexed in the inverted index. Defaults to true. Applicable only to properties of data type text and text[]. If you choose false, you will not be able to use this property in bm25 or hybrid search. This property has no affect on vectorization decisions done by modules\",\n                  \"nullable\": true\n                },\n                \"indexRangeFilters\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"Whether to include this property in the filterable, range-based Roaring Bitmap index. Provides better performance for range queries compared to filterable index in large datasets. Applicable only to properties of data type int, number, date.\",\n                  \"nullable\": true\n                },\n                \"tokenization\": {\n                  \"type\": \"string\",\n                  \"description\": \"Determines how a property is indexed. This setting applies to `text` and `text[]` data types. The following tokenization methods are available:<br/><br/>- `word` (default): Splits the text on any non-alphanumeric characters and lowercases the tokens.<br/>- `lowercase`: Splits the text on whitespace and lowercases the tokens.<br/>- `whitespace`: Splits the text on whitespace. This tokenization is case-sensitive.<br/>- `field`: Indexes the entire property value as a single token after trimming whitespace.<br/>- `trigram`: Splits the property into rolling trigrams (three-character sequences).<br/>- `gse`: Uses the `gse` tokenizer, suitable for Chinese language text. [See `gse` docs](https://pkg.go.dev/github.com/go-ego/gse#section-readme).<br/>- `kagome_ja`: Uses the `Kagome` tokenizer with a Japanese (IPA) dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/>- `kagome_kr`: Uses the `Kagome` tokenizer with a Korean dictionary. [See `kagome` docs](https://github.com/ikawaha/kagome).<br/><br/>See [Reference: Tokenization](https://docs.weaviate.io/weaviate/config-refs/collections#tokenization) for details.\",\n                  \"enum\": [\n                    \"word\",\n                    \"lowercase\",\n                    \"whitespace\",\n                    \"field\",\n                    \"trigram\",\n                    \"gse\",\n                    \"kagome_kr\",\n                    \"kagome_ja\",\n                    \"gse_ch\"\n                  ]\n                },\n                \"nestedProperties\": {\n                  \"type\": \"array\",\n                  \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"dataType\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"description\": {\n                        \"type\": \"string\"\n                      },\n                      \"name\": {\n                        \"type\": \"string\"\n                      },\n                      \"indexFilterable\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"indexSearchable\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"indexRangeFilters\": {\n                        \"type\": \"boolean\",\n                        \"nullable\": true\n                      },\n                      \"tokenization\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"word\",\n                          \"lowercase\",\n                          \"whitespace\",\n                          \"field\",\n                          \"trigram\",\n                          \"gse\",\n                          \"kagome_kr\",\n                          \"kagome_ja\",\n                          \"gse_ch\"\n                        ]\n                      },\n                      \"nestedProperties\": {\n                        \"type\": \"array\",\n                        \"description\": \"The properties of the nested object(s). Applies to object and object[] data types.\",\n                        \"items\": {\n                          \"$ref\": \"#/components/schemas/NestedProperty\",\n                          \"has_circular_reference\": true\n                        },\n                        \"x-omitempty\": true\n                      }\n                    }\n                  },\n                  \"x-omitempty\": true\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}

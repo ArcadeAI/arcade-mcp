@@ -1,0 +1,738 @@
+{
+  "name": "AddPermissionsToRole",
+  "fully_qualified_name": "WeaviateApi.AddPermissionsToRole@0.1.0",
+  "description": "Add new permissions to a role without affecting existing ones.\n\nUse this tool to assign additional permissions to a specified role within a system, ensuring that current permissions remain unchanged.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "role_id",
+        "required": true,
+        "description": "The ID of the role to which new permissions will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name (ID) of the role being modified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "permissions_to_add",
+        "required": true,
+        "description": "The permissions to be added to the specified role, structured as JSON. Includes details like applicable collections, users, actions, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "backups": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for backup actions."
+                },
+                "data": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "tenant": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants."
+                    },
+                    "object": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which objects this permission applies to. Can be an exact object ID or a regex pattern. The default value `*` applies the permission to all objects."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for data actions."
+                },
+                "nodes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "verbosity": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "verbose",
+                        "minimal"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether to allow (verbose) returning shards and stats data in the response."
+                    },
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for cluster actions."
+                },
+                "users": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "users": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for user actions."
+                },
+                "groups": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "group": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups."
+                    },
+                    "groupType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "oidc"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If the group contains OIDC or database users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for group actions."
+                },
+                "tenants": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "tenant": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for tenant actions."
+                },
+                "roles": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "role": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "match"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Set the scope for the manage role permission."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for role actions."
+                },
+                "collections": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for collection and/or tenant actions."
+                },
+                "replicate": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "string or regex. if a specific collection name, if left empty it will be ALL or *"
+                    },
+                    "shard": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "string or regex. if a specific shard name, if left empty it will be ALL or *"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "resources applicable for replicate actions"
+                },
+                "aliases": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "alias": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resource definition for alias-related actions and permissions. Used to specify which aliases and collections can be accessed or modified."
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manage_backups",
+                    "read_cluster",
+                    "create_data",
+                    "read_data",
+                    "update_data",
+                    "delete_data",
+                    "read_nodes",
+                    "create_roles",
+                    "read_roles",
+                    "update_roles",
+                    "delete_roles",
+                    "create_collections",
+                    "read_collections",
+                    "update_collections",
+                    "delete_collections",
+                    "assign_and_revoke_users",
+                    "create_users",
+                    "read_users",
+                    "update_users",
+                    "delete_users",
+                    "create_tenants",
+                    "read_tenants",
+                    "update_tenants",
+                    "delete_tenants",
+                    "create_replicate",
+                    "read_replicate",
+                    "update_replicate",
+                    "delete_replicate",
+                    "create_aliases",
+                    "read_aliases",
+                    "update_aliases",
+                    "delete_aliases",
+                    "assign_and_revoke_groups",
+                    "read_groups"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Allowed actions in weaviate."
+                }
+              },
+              "description": "Permissions to be added to the role."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'addPermissions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/authz/roles/{id}/add-permissions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "role_id",
+        "description": "The name (ID) of the role being modified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name (ID) of the role being modified."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "permissions_to_add",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "permissions": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "backups": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for backup actions."
+                },
+                "data": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "tenant": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants."
+                    },
+                    "object": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which objects this permission applies to. Can be an exact object ID or a regex pattern. The default value `*` applies the permission to all objects."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for data actions."
+                },
+                "nodes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "verbosity": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "verbose",
+                        "minimal"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether to allow (verbose) returning shards and stats data in the response."
+                    },
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for cluster actions."
+                },
+                "users": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "users": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for user actions."
+                },
+                "groups": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "group": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups."
+                    },
+                    "groupType": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "oidc"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If the group contains OIDC or database users."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for group actions."
+                },
+                "tenants": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "tenant": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for tenant actions."
+                },
+                "roles": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "role": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "all",
+                        "match"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Set the scope for the manage role permission."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for role actions."
+                },
+                "collections": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resources applicable for collection and/or tenant actions."
+                },
+                "replicate": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "string or regex. if a specific collection name, if left empty it will be ALL or *"
+                    },
+                    "shard": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "string or regex. if a specific shard name, if left empty it will be ALL or *"
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "resources applicable for replicate actions"
+                },
+                "aliases": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "collection": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections."
+                    },
+                    "alias": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Resource definition for alias-related actions and permissions. Used to specify which aliases and collections can be accessed or modified."
+                },
+                "action": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "manage_backups",
+                    "read_cluster",
+                    "create_data",
+                    "read_data",
+                    "update_data",
+                    "delete_data",
+                    "read_nodes",
+                    "create_roles",
+                    "read_roles",
+                    "update_roles",
+                    "delete_roles",
+                    "create_collections",
+                    "read_collections",
+                    "update_collections",
+                    "delete_collections",
+                    "assign_and_revoke_users",
+                    "create_users",
+                    "read_users",
+                    "update_users",
+                    "delete_users",
+                    "create_tenants",
+                    "read_tenants",
+                    "update_tenants",
+                    "delete_tenants",
+                    "create_replicate",
+                    "read_replicate",
+                    "update_replicate",
+                    "delete_replicate",
+                    "create_aliases",
+                    "read_aliases",
+                    "update_aliases",
+                    "delete_aliases",
+                    "assign_and_revoke_groups",
+                    "read_groups"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Allowed actions in weaviate."
+                }
+              },
+              "description": "Permissions to be added to the role."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"required\": [\n          \"permissions\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"permissions\": {\n            \"type\": \"array\",\n            \"description\": \"Permissions to be added to the role.\",\n            \"items\": {\n              \"required\": [\n                \"action\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"backups\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for backup actions.\"\n                },\n                \"data\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"tenant\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants.\",\n                      \"default\": \"*\"\n                    },\n                    \"object\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which objects this permission applies to. Can be an exact object ID or a regex pattern. The default value `*` applies the permission to all objects.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for data actions.\"\n                },\n                \"nodes\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"verbosity\": {\n                      \"type\": \"string\",\n                      \"description\": \"Whether to allow (verbose) returning shards and stats data in the response.\",\n                      \"default\": \"minimal\",\n                      \"enum\": [\n                        \"verbose\",\n                        \"minimal\"\n                      ]\n                    },\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for cluster actions.\"\n                },\n                \"users\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"users\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for user actions.\"\n                },\n                \"groups\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"group\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups.\",\n                      \"default\": \"*\"\n                    },\n                    \"groupType\": {\n                      \"type\": \"string\",\n                      \"description\": \"If the group contains OIDC or database users.\",\n                      \"enum\": [\n                        \"oidc\"\n                      ]\n                    }\n                  },\n                  \"description\": \"Resources applicable for group actions.\"\n                },\n                \"tenants\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"tenant\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for tenant actions.\"\n                },\n                \"roles\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"role\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles.\",\n                      \"default\": \"*\"\n                    },\n                    \"scope\": {\n                      \"type\": \"string\",\n                      \"description\": \"Set the scope for the manage role permission.\",\n                      \"default\": \"match\",\n                      \"enum\": [\n                        \"all\",\n                        \"match\"\n                      ]\n                    }\n                  },\n                  \"description\": \"Resources applicable for role actions.\"\n                },\n                \"collections\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for collection and/or tenant actions.\"\n                },\n                \"replicate\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"string or regex. if a specific collection name, if left empty it will be ALL or *\",\n                      \"default\": \"*\"\n                    },\n                    \"shard\": {\n                      \"type\": \"string\",\n                      \"description\": \"string or regex. if a specific shard name, if left empty it will be ALL or *\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"resources applicable for replicate actions\"\n                },\n                \"aliases\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"alias\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resource definition for alias-related actions and permissions. Used to specify which aliases and collections can be accessed or modified.\"\n                },\n                \"action\": {\n                  \"type\": \"string\",\n                  \"description\": \"Allowed actions in weaviate.\",\n                  \"enum\": [\n                    \"manage_backups\",\n                    \"read_cluster\",\n                    \"create_data\",\n                    \"read_data\",\n                    \"update_data\",\n                    \"delete_data\",\n                    \"read_nodes\",\n                    \"create_roles\",\n                    \"read_roles\",\n                    \"update_roles\",\n                    \"delete_roles\",\n                    \"create_collections\",\n                    \"read_collections\",\n                    \"update_collections\",\n                    \"delete_collections\",\n                    \"assign_and_revoke_users\",\n                    \"create_users\",\n                    \"read_users\",\n                    \"update_users\",\n                    \"delete_users\",\n                    \"create_tenants\",\n                    \"read_tenants\",\n                    \"update_tenants\",\n                    \"delete_tenants\",\n                    \"create_replicate\",\n                    \"read_replicate\",\n                    \"update_replicate\",\n                    \"delete_replicate\",\n                    \"create_aliases\",\n                    \"read_aliases\",\n                    \"update_aliases\",\n                    \"delete_aliases\",\n                    \"assign_and_revoke_groups\",\n                    \"read_groups\"\n                  ]\n                }\n              },\n              \"description\": \"Permissions attached to a role.\"\n            }\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"permissions\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"permissions\": {\n            \"type\": \"array\",\n            \"description\": \"Permissions to be added to the role.\",\n            \"items\": {\n              \"required\": [\n                \"action\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"backups\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for backup actions.\"\n                },\n                \"data\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"tenant\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants.\",\n                      \"default\": \"*\"\n                    },\n                    \"object\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which objects this permission applies to. Can be an exact object ID or a regex pattern. The default value `*` applies the permission to all objects.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for data actions.\"\n                },\n                \"nodes\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"verbosity\": {\n                      \"type\": \"string\",\n                      \"description\": \"Whether to allow (verbose) returning shards and stats data in the response.\",\n                      \"default\": \"minimal\",\n                      \"enum\": [\n                        \"verbose\",\n                        \"minimal\"\n                      ]\n                    },\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for cluster actions.\"\n                },\n                \"users\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"users\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which users this permission applies to. Can be an exact user name or a regex pattern. The default value `*` applies the permission to all users.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for user actions.\"\n                },\n                \"groups\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"group\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which groups this permission applies to. Can be an exact group name or a regex pattern. The default value `*` applies the permission to all groups.\",\n                      \"default\": \"*\"\n                    },\n                    \"groupType\": {\n                      \"type\": \"string\",\n                      \"description\": \"If the group contains OIDC or database users.\",\n                      \"enum\": [\n                        \"oidc\"\n                      ]\n                    }\n                  },\n                  \"description\": \"Resources applicable for group actions.\"\n                },\n                \"tenants\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"tenant\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which tenants this permission applies to. Can be an exact tenant name or a regex pattern. The default value `*` applies the permission to all tenants.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for tenant actions.\"\n                },\n                \"roles\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"role\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which roles this permission applies to. Can be an exact role name or a regex pattern. The default value `*` applies the permission to all roles.\",\n                      \"default\": \"*\"\n                    },\n                    \"scope\": {\n                      \"type\": \"string\",\n                      \"description\": \"Set the scope for the manage role permission.\",\n                      \"default\": \"match\",\n                      \"enum\": [\n                        \"all\",\n                        \"match\"\n                      ]\n                    }\n                  },\n                  \"description\": \"Resources applicable for role actions.\"\n                },\n                \"collections\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resources applicable for collection and/or tenant actions.\"\n                },\n                \"replicate\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"string or regex. if a specific collection name, if left empty it will be ALL or *\",\n                      \"default\": \"*\"\n                    },\n                    \"shard\": {\n                      \"type\": \"string\",\n                      \"description\": \"string or regex. if a specific shard name, if left empty it will be ALL or *\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"resources applicable for replicate actions\"\n                },\n                \"aliases\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"collection\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which collections this permission applies to. Can be an exact collection name or a regex pattern. The default value `*` applies the permission to all collections.\",\n                      \"default\": \"*\"\n                    },\n                    \"alias\": {\n                      \"type\": \"string\",\n                      \"description\": \"A string that specifies which aliases this permission applies to. Can be an exact alias name or a regex pattern. The default value `*` applies the permission to all aliases.\",\n                      \"default\": \"*\"\n                    }\n                  },\n                  \"description\": \"Resource definition for alias-related actions and permissions. Used to specify which aliases and collections can be accessed or modified.\"\n                },\n                \"action\": {\n                  \"type\": \"string\",\n                  \"description\": \"Allowed actions in weaviate.\",\n                  \"enum\": [\n                    \"manage_backups\",\n                    \"read_cluster\",\n                    \"create_data\",\n                    \"read_data\",\n                    \"update_data\",\n                    \"delete_data\",\n                    \"read_nodes\",\n                    \"create_roles\",\n                    \"read_roles\",\n                    \"update_roles\",\n                    \"delete_roles\",\n                    \"create_collections\",\n                    \"read_collections\",\n                    \"update_collections\",\n                    \"delete_collections\",\n                    \"assign_and_revoke_users\",\n                    \"create_users\",\n                    \"read_users\",\n                    \"update_users\",\n                    \"delete_users\",\n                    \"create_tenants\",\n                    \"read_tenants\",\n                    \"update_tenants\",\n                    \"delete_tenants\",\n                    \"create_replicate\",\n                    \"read_replicate\",\n                    \"update_replicate\",\n                    \"delete_replicate\",\n                    \"create_aliases\",\n                    \"read_aliases\",\n                    \"update_aliases\",\n                    \"delete_aliases\",\n                    \"assign_and_revoke_groups\",\n                    \"read_groups\"\n                  ]\n                }\n              },\n              \"description\": \"Permissions attached to a role.\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

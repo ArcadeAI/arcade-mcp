@@ -1,0 +1,204 @@
+{
+  "name": "UpdateTenantStatus",
+  "fully_qualified_name": "WeaviateApi.UpdateTenantStatus@0.1.0",
+  "description": "Update the activity status of specified tenants.\n\nThis tool updates the activity status, such as `ACTIVE` or `INACTIVE`, of one or more specified tenants within a collection (specified by `className`). Use this tool to manage tenant statuses efficiently within your system.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "collection_name",
+        "required": true,
+        "description": "The name of the collection (class) containing the tenants whose status is to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) containing the tenants."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "tenant_status_updates",
+        "required": true,
+        "description": "An array of tenant objects specifying the tenants to update and their desired new status. Each tenant object should contain a 'name' and 'activityStatus' indicating the tenant's name and desired activity status (e.g., 'ACTIVE', 'INACTIVE', 'OFFLOADED').",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the tenant (required)."
+            },
+            "activityStatus": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ACTIVE",
+                "INACTIVE",
+                "OFFLOADED",
+                "OFFLOADING",
+                "ONLOADING",
+                "HOT",
+                "COLD",
+                "FROZEN",
+                "FREEZING",
+                "UNFREEZING"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The activity status of the tenant, which determines if it is queryable and where its data is stored.<br/><br/><b>Available Statuses:</b><br/>- `ACTIVE`: The tenant is fully operational and ready for queries. Data is stored on local, hot storage.<br/>- `INACTIVE`: The tenant is not queryable. Data is stored locally.<br/>- `OFFLOADED`: The tenant is inactive and its data is stored in a remote cloud backend.<br/><br/><b>Usage Rules:</b><br/>- <b>On Create:</b> This field is optional and defaults to `ACTIVE`. Allowed values are `ACTIVE` and `INACTIVE`.<br/>- <b>On Update:</b> This field is required. Allowed values are `ACTIVE`, `INACTIVE`, and `OFFLOADED`.<br/><br/><b>Read-Only Statuses:</b><br/>The following statuses are set by the server and indicate a tenant is transitioning between states:<br/>- `OFFLOADING`<br/>- `ONLOADING`<br/><br/><b>Note on Deprecated Names:</b><br/>For backward compatibility, deprecated names are still accepted and are mapped to their modern equivalents: `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`)."
+            }
+          },
+          "description": "An array of tenant objects specifying the tenants to update and their desired new status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tenants.update'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/schema/{className}/tenants",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "className",
+        "tool_parameter_name": "collection_name",
+        "description": "The name of the collection (class) containing the tenants.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection (class) containing the tenants."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tenant_status_updates",
+        "description": "An array of tenant objects specifying the tenants to update and their desired new status.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the tenant (required)."
+            },
+            "activityStatus": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "ACTIVE",
+                "INACTIVE",
+                "OFFLOADED",
+                "OFFLOADING",
+                "ONLOADING",
+                "HOT",
+                "COLD",
+                "FROZEN",
+                "FREEZING",
+                "UNFREEZING"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "The activity status of the tenant, which determines if it is queryable and where its data is stored.<br/><br/><b>Available Statuses:</b><br/>- `ACTIVE`: The tenant is fully operational and ready for queries. Data is stored on local, hot storage.<br/>- `INACTIVE`: The tenant is not queryable. Data is stored locally.<br/>- `OFFLOADED`: The tenant is inactive and its data is stored in a remote cloud backend.<br/><br/><b>Usage Rules:</b><br/>- <b>On Create:</b> This field is optional and defaults to `ACTIVE`. Allowed values are `ACTIVE` and `INACTIVE`.<br/>- <b>On Update:</b> This field is required. Allowed values are `ACTIVE`, `INACTIVE`, and `OFFLOADED`.<br/><br/><b>Read-Only Statuses:</b><br/>The following statuses are set by the server and indicate a tenant is transitioning between states:<br/>- `OFFLOADING`<br/>- `ONLOADING`<br/><br/><b>Note on Deprecated Names:</b><br/>For backward compatibility, deprecated names are still accepted and are mapped to their modern equivalents: `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`)."
+            }
+          },
+          "description": "An array of tenant objects specifying the tenants to update and their desired new status."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"An array of tenant objects specifying the tenants to update and their desired new status.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"name\": {\n              \"type\": \"string\",\n              \"description\": \"The name of the tenant (required).\"\n            },\n            \"activityStatus\": {\n              \"type\": \"string\",\n              \"description\": \"The activity status of the tenant, which determines if it is queryable and where its data is stored.<br/><br/><b>Available Statuses:</b><br/>- `ACTIVE`: The tenant is fully operational and ready for queries. Data is stored on local, hot storage.<br/>- `INACTIVE`: The tenant is not queryable. Data is stored locally.<br/>- `OFFLOADED`: The tenant is inactive and its data is stored in a remote cloud backend.<br/><br/><b>Usage Rules:</b><br/>- <b>On Create:</b> This field is optional and defaults to `ACTIVE`. Allowed values are `ACTIVE` and `INACTIVE`.<br/>- <b>On Update:</b> This field is required. Allowed values are `ACTIVE`, `INACTIVE`, and `OFFLOADED`.<br/><br/><b>Read-Only Statuses:</b><br/>The following statuses are set by the server and indicate a tenant is transitioning between states:<br/>- `OFFLOADING`<br/>- `ONLOADING`<br/><br/><b>Note on Deprecated Names:</b><br/>For backward compatibility, deprecated names are still accepted and are mapped to their modern equivalents: `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`).\",\n              \"enum\": [\n                \"ACTIVE\",\n                \"INACTIVE\",\n                \"OFFLOADED\",\n                \"OFFLOADING\",\n                \"ONLOADING\",\n                \"HOT\",\n                \"COLD\",\n                \"FROZEN\",\n                \"FREEZING\",\n                \"UNFREEZING\"\n              ]\n            }\n          },\n          \"description\": \"Attributes representing a single tenant within Weaviate.\"\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"name\": {\n              \"type\": \"string\",\n              \"description\": \"The name of the tenant (required).\"\n            },\n            \"activityStatus\": {\n              \"type\": \"string\",\n              \"description\": \"The activity status of the tenant, which determines if it is queryable and where its data is stored.<br/><br/><b>Available Statuses:</b><br/>- `ACTIVE`: The tenant is fully operational and ready for queries. Data is stored on local, hot storage.<br/>- `INACTIVE`: The tenant is not queryable. Data is stored locally.<br/>- `OFFLOADED`: The tenant is inactive and its data is stored in a remote cloud backend.<br/><br/><b>Usage Rules:</b><br/>- <b>On Create:</b> This field is optional and defaults to `ACTIVE`. Allowed values are `ACTIVE` and `INACTIVE`.<br/>- <b>On Update:</b> This field is required. Allowed values are `ACTIVE`, `INACTIVE`, and `OFFLOADED`.<br/><br/><b>Read-Only Statuses:</b><br/>The following statuses are set by the server and indicate a tenant is transitioning between states:<br/>- `OFFLOADING`<br/>- `ONLOADING`<br/><br/><b>Note on Deprecated Names:</b><br/>For backward compatibility, deprecated names are still accepted and are mapped to their modern equivalents: `HOT` (now `ACTIVE`), `COLD` (now `INACTIVE`), `FROZEN` (now `OFFLOADED`), `FREEZING` (now `OFFLOADING`), `UNFREEZING` (now `ONLOADING`).\",\n              \"enum\": [\n                \"ACTIVE\",\n                \"INACTIVE\",\n                \"OFFLOADED\",\n                \"OFFLOADING\",\n                \"ONLOADING\",\n                \"HOT\",\n                \"COLD\",\n                \"FROZEN\",\n                \"FREEZING\",\n                \"UNFREEZING\"\n              ]\n            }\n          },\n          \"description\": \"Attributes representing a single tenant within Weaviate.\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

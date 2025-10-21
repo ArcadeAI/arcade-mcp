@@ -1,0 +1,657 @@
+{
+  "name": "DeleteMultipleObjects",
+  "fully_qualified_name": "WeaviateApi.DeleteMultipleObjects@0.1.0",
+  "description": "Deletes multiple data objects using specified filter criteria.\n\nThis tool removes data objects based on a filter. Use it when you need to delete multiple objects that match specific criteria within the limit. The deletion is performed in the order objects match the filter. If you need to delete beyond the limit, repeat the process until finished.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_and_output_configuration",
+        "required": true,
+        "description": "The JSON body with match filter and output settings for deletion. It specifies which objects to delete and the verbosity of the output.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "match": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "class": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the collection (class) from which to delete objects."
+                },
+                "where": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "operands": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Combine multiple where filters, requires 'And' or 'Or' operator."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "And",
+                        "Or",
+                        "Equal",
+                        "Like",
+                        "NotEqual",
+                        "GreaterThan",
+                        "GreaterThanEqual",
+                        "LessThan",
+                        "LessThanEqual",
+                        "WithinGeoRange",
+                        "IsNull",
+                        "ContainsAny",
+                        "ContainsAll",
+                        "ContainsNone",
+                        "Not"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Operator to use."
+                    },
+                    "path": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Path to the property currently being filtered."
+                    },
+                    "valueInt": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as integer"
+                    },
+                    "valueNumber": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as number/float"
+                    },
+                    "valueBoolean": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as boolean"
+                    },
+                    "valueString": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text (deprecated as of v1.19; alias for valueText)"
+                    },
+                    "valueText": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text"
+                    },
+                    "valueDate": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as date (as string)"
+                    },
+                    "valueIntArray": {
+                      "val_type": "array",
+                      "inner_val_type": "integer",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as integer"
+                    },
+                    "valueNumberArray": {
+                      "val_type": "array",
+                      "inner_val_type": "number",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as number/float"
+                    },
+                    "valueBooleanArray": {
+                      "val_type": "array",
+                      "inner_val_type": "boolean",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as boolean"
+                    },
+                    "valueStringArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text (deprecated as of v1.19; alias for valueText)"
+                    },
+                    "valueTextArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text"
+                    },
+                    "valueDateArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as date (as string)"
+                    },
+                    "valueGeoRange": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "geoCoordinates": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "latitude": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The latitude of the point on earth in decimal form."
+                            },
+                            "longitude": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The longitude of the point on earth in decimal form."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "distance": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "max": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": null
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter within a distance of a georange."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Filter search results using a where filter."
+                }
+              },
+              "inner_properties": null,
+              "description": "Outlines how to find the objects to be deleted."
+            },
+            "output": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls the verbosity of the output, possible values are: `minimal`, `verbose`. Defaults to `minimal`."
+            },
+            "deletionTimeUnixMilli": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of deletion in milliseconds since epoch UTC."
+            },
+            "dryRun": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs."
+            }
+          },
+          "inner_properties": null,
+          "description": "The request body containing the match filter and output configuration."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "replica_acknowledgement_level",
+        "required": false,
+        "description": "Specifies the number of replicas that must confirm the request for it to be deemed successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "consistency_level"
+      },
+      {
+        "name": "target_tenant",
+        "required": false,
+        "description": "Specifies the tenant when targeting a multi-tenant collection. Use the tenant's unique identifier.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant in a request targeting a multi-tenant collection (class)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tenant"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'batch.objects.delete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/batch/objects",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "consistency_level",
+        "tool_parameter_name": "replica_acknowledgement_level",
+        "description": "Determines how many replicas must acknowledge a request before it is considered successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tenant",
+        "tool_parameter_name": "target_tenant",
+        "description": "Specifies the tenant in a request targeting a multi-tenant collection (class).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant in a request targeting a multi-tenant collection (class)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "filter_and_output_configuration",
+        "description": "The request body containing the match filter and output configuration.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "match": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "class": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the collection (class) from which to delete objects."
+                },
+                "where": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "operands": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Combine multiple where filters, requires 'And' or 'Or' operator."
+                    },
+                    "operator": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "And",
+                        "Or",
+                        "Equal",
+                        "Like",
+                        "NotEqual",
+                        "GreaterThan",
+                        "GreaterThanEqual",
+                        "LessThan",
+                        "LessThanEqual",
+                        "WithinGeoRange",
+                        "IsNull",
+                        "ContainsAny",
+                        "ContainsAll",
+                        "ContainsNone",
+                        "Not"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Operator to use."
+                    },
+                    "path": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Path to the property currently being filtered."
+                    },
+                    "valueInt": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as integer"
+                    },
+                    "valueNumber": {
+                      "val_type": "number",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as number/float"
+                    },
+                    "valueBoolean": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as boolean"
+                    },
+                    "valueString": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text (deprecated as of v1.19; alias for valueText)"
+                    },
+                    "valueText": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text"
+                    },
+                    "valueDate": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as date (as string)"
+                    },
+                    "valueIntArray": {
+                      "val_type": "array",
+                      "inner_val_type": "integer",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as integer"
+                    },
+                    "valueNumberArray": {
+                      "val_type": "array",
+                      "inner_val_type": "number",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as number/float"
+                    },
+                    "valueBooleanArray": {
+                      "val_type": "array",
+                      "inner_val_type": "boolean",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as boolean"
+                    },
+                    "valueStringArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text (deprecated as of v1.19; alias for valueText)"
+                    },
+                    "valueTextArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as text"
+                    },
+                    "valueDateArray": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "value as date (as string)"
+                    },
+                    "valueGeoRange": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "geoCoordinates": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "latitude": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The latitude of the point on earth in decimal form."
+                            },
+                            "longitude": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The longitude of the point on earth in decimal form."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "distance": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "max": {
+                              "val_type": "number",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": null
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter within a distance of a georange."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Filter search results using a where filter."
+                }
+              },
+              "inner_properties": null,
+              "description": "Outlines how to find the objects to be deleted."
+            },
+            "output": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Controls the verbosity of the output, possible values are: `minimal`, `verbose`. Defaults to `minimal`."
+            },
+            "deletionTimeUnixMilli": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp of deletion in milliseconds since epoch UTC."
+            },
+            "dryRun": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs."
+            }
+          },
+          "inner_properties": null,
+          "description": "The request body containing the match filter and output configuration."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The request body containing the match filter and output configuration.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"match\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"class\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the collection (class) from which to delete objects.\",\n                \"example\": \"City\"\n              },\n              \"where\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"operands\": {\n                    \"type\": \"array\",\n                    \"description\": \"Combine multiple where filters, requires 'And' or 'Or' operator.\",\n                    \"items\": {\n                      \"$ref\": \"#/components/schemas/WhereFilter\",\n                      \"has_circular_reference\": true\n                    }\n                  },\n                  \"operator\": {\n                    \"type\": \"string\",\n                    \"description\": \"Operator to use.\",\n                    \"example\": \"GreaterThanEqual\",\n                    \"enum\": [\n                      \"And\",\n                      \"Or\",\n                      \"Equal\",\n                      \"Like\",\n                      \"NotEqual\",\n                      \"GreaterThan\",\n                      \"GreaterThanEqual\",\n                      \"LessThan\",\n                      \"LessThanEqual\",\n                      \"WithinGeoRange\",\n                      \"IsNull\",\n                      \"ContainsAny\",\n                      \"ContainsAll\",\n                      \"ContainsNone\",\n                      \"Not\"\n                    ]\n                  },\n                  \"path\": {\n                    \"type\": \"array\",\n                    \"description\": \"Path to the property currently being filtered.\",\n                    \"example\": [\n                      \"inCity\",\n                      \"city\",\n                      \"name\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"valueInt\": {\n                    \"type\": \"integer\",\n                    \"description\": \"value as integer\",\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"example\": 2000\n                  },\n                  \"valueNumber\": {\n                    \"type\": \"number\",\n                    \"description\": \"value as number/float\",\n                    \"format\": \"float64\",\n                    \"nullable\": true,\n                    \"example\": 3.14\n                  },\n                  \"valueBoolean\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"value as boolean\",\n                    \"nullable\": true,\n                    \"example\": false\n                  },\n                  \"valueString\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as text (deprecated as of v1.19; alias for valueText)\",\n                    \"nullable\": true,\n                    \"example\": \"my search term\"\n                  },\n                  \"valueText\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as text\",\n                    \"nullable\": true,\n                    \"example\": \"my search term\"\n                  },\n                  \"valueDate\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as date (as string)\",\n                    \"nullable\": true,\n                    \"example\": \"TODO\"\n                  },\n                  \"valueIntArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as integer\",\n                    \"nullable\": true,\n                    \"example\": \"[100, 200]\",\n                    \"items\": {\n                      \"type\": \"integer\",\n                      \"format\": \"int64\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueNumberArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as number/float\",\n                    \"nullable\": true,\n                    \"example\": [\n                      3.14\n                    ],\n                    \"items\": {\n                      \"type\": \"number\",\n                      \"format\": \"float64\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueBooleanArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as boolean\",\n                    \"nullable\": true,\n                    \"example\": [\n                      true,\n                      false\n                    ],\n                    \"items\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueStringArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as text (deprecated as of v1.19; alias for valueText)\",\n                    \"nullable\": true,\n                    \"example\": [\n                      \"my search term\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueTextArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as text\",\n                    \"nullable\": true,\n                    \"example\": [\n                      \"my search term\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueDateArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as date (as string)\",\n                    \"nullable\": true,\n                    \"example\": \"TODO\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueGeoRange\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"geoCoordinates\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"latitude\": {\n                            \"type\": \"number\",\n                            \"description\": \"The latitude of the point on earth in decimal form.\",\n                            \"format\": \"float\",\n                            \"nullable\": true\n                          },\n                          \"longitude\": {\n                            \"type\": \"number\",\n                            \"description\": \"The longitude of the point on earth in decimal form.\",\n                            \"format\": \"float\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"distance\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"max\": {\n                            \"type\": \"number\",\n                            \"format\": \"float64\"\n                          }\n                        }\n                      }\n                    },\n                    \"description\": \"Filter within a distance of a georange.\"\n                  }\n                },\n                \"description\": \"Filter search results using a where filter.\"\n              }\n            },\n            \"description\": \"Outlines how to find the objects to be deleted.\"\n          },\n          \"output\": {\n            \"type\": \"string\",\n            \"description\": \"Controls the verbosity of the output, possible values are: `minimal`, `verbose`. Defaults to `minimal`.\",\n            \"default\": \"minimal\"\n          },\n          \"deletionTimeUnixMilli\": {\n            \"type\": \"integer\",\n            \"description\": \"Timestamp of deletion in milliseconds since epoch UTC.\",\n            \"format\": \"int64\",\n            \"nullable\": true\n          },\n          \"dryRun\": {\n            \"type\": \"boolean\",\n            \"description\": \"If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs.\",\n            \"default\": false\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"match\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"class\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the collection (class) from which to delete objects.\",\n                \"example\": \"City\"\n              },\n              \"where\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"operands\": {\n                    \"type\": \"array\",\n                    \"description\": \"Combine multiple where filters, requires 'And' or 'Or' operator.\",\n                    \"items\": {\n                      \"$ref\": \"#/components/schemas/WhereFilter\",\n                      \"has_circular_reference\": true\n                    }\n                  },\n                  \"operator\": {\n                    \"type\": \"string\",\n                    \"description\": \"Operator to use.\",\n                    \"example\": \"GreaterThanEqual\",\n                    \"enum\": [\n                      \"And\",\n                      \"Or\",\n                      \"Equal\",\n                      \"Like\",\n                      \"NotEqual\",\n                      \"GreaterThan\",\n                      \"GreaterThanEqual\",\n                      \"LessThan\",\n                      \"LessThanEqual\",\n                      \"WithinGeoRange\",\n                      \"IsNull\",\n                      \"ContainsAny\",\n                      \"ContainsAll\",\n                      \"ContainsNone\",\n                      \"Not\"\n                    ]\n                  },\n                  \"path\": {\n                    \"type\": \"array\",\n                    \"description\": \"Path to the property currently being filtered.\",\n                    \"example\": [\n                      \"inCity\",\n                      \"city\",\n                      \"name\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"valueInt\": {\n                    \"type\": \"integer\",\n                    \"description\": \"value as integer\",\n                    \"format\": \"int64\",\n                    \"nullable\": true,\n                    \"example\": 2000\n                  },\n                  \"valueNumber\": {\n                    \"type\": \"number\",\n                    \"description\": \"value as number/float\",\n                    \"format\": \"float64\",\n                    \"nullable\": true,\n                    \"example\": 3.14\n                  },\n                  \"valueBoolean\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"value as boolean\",\n                    \"nullable\": true,\n                    \"example\": false\n                  },\n                  \"valueString\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as text (deprecated as of v1.19; alias for valueText)\",\n                    \"nullable\": true,\n                    \"example\": \"my search term\"\n                  },\n                  \"valueText\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as text\",\n                    \"nullable\": true,\n                    \"example\": \"my search term\"\n                  },\n                  \"valueDate\": {\n                    \"type\": \"string\",\n                    \"description\": \"value as date (as string)\",\n                    \"nullable\": true,\n                    \"example\": \"TODO\"\n                  },\n                  \"valueIntArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as integer\",\n                    \"nullable\": true,\n                    \"example\": \"[100, 200]\",\n                    \"items\": {\n                      \"type\": \"integer\",\n                      \"format\": \"int64\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueNumberArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as number/float\",\n                    \"nullable\": true,\n                    \"example\": [\n                      3.14\n                    ],\n                    \"items\": {\n                      \"type\": \"number\",\n                      \"format\": \"float64\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueBooleanArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as boolean\",\n                    \"nullable\": true,\n                    \"example\": [\n                      true,\n                      false\n                    ],\n                    \"items\": {\n                      \"type\": \"boolean\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueStringArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as text (deprecated as of v1.19; alias for valueText)\",\n                    \"nullable\": true,\n                    \"example\": [\n                      \"my search term\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueTextArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as text\",\n                    \"nullable\": true,\n                    \"example\": [\n                      \"my search term\"\n                    ],\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueDateArray\": {\n                    \"type\": \"array\",\n                    \"description\": \"value as date (as string)\",\n                    \"nullable\": true,\n                    \"example\": \"TODO\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"x-omitempty\": true\n                  },\n                  \"valueGeoRange\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"geoCoordinates\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"latitude\": {\n                            \"type\": \"number\",\n                            \"description\": \"The latitude of the point on earth in decimal form.\",\n                            \"format\": \"float\",\n                            \"nullable\": true\n                          },\n                          \"longitude\": {\n                            \"type\": \"number\",\n                            \"description\": \"The longitude of the point on earth in decimal form.\",\n                            \"format\": \"float\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"distance\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"max\": {\n                            \"type\": \"number\",\n                            \"format\": \"float64\"\n                          }\n                        }\n                      }\n                    },\n                    \"description\": \"Filter within a distance of a georange.\"\n                  }\n                },\n                \"description\": \"Filter search results using a where filter.\"\n              }\n            },\n            \"description\": \"Outlines how to find the objects to be deleted.\"\n          },\n          \"output\": {\n            \"type\": \"string\",\n            \"description\": \"Controls the verbosity of the output, possible values are: `minimal`, `verbose`. Defaults to `minimal`.\",\n            \"default\": \"minimal\"\n          },\n          \"deletionTimeUnixMilli\": {\n            \"type\": \"integer\",\n            \"description\": \"Timestamp of deletion in milliseconds since epoch UTC.\",\n            \"format\": \"int64\",\n            \"nullable\": true\n          },\n          \"dryRun\": {\n            \"type\": \"boolean\",\n            \"description\": \"If true, the call will show which objects would be matched using the specified filter without deleting any objects. <br/><br/>Depending on the configured verbosity, you will either receive a count of affected objects, or a list of IDs.\",\n            \"default\": false\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": false
+  }
+}
