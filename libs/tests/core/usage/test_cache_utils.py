@@ -1,5 +1,5 @@
 import pytest
-from arcade_cli.usage.utils import is_tracking_enabled
+from arcade_core.usage import is_tracking_enabled
 
 
 @pytest.mark.parametrize(

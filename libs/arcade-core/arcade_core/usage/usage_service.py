@@ -3,17 +3,17 @@ import os
 import subprocess
 import sys
 
-from arcade_cli.usage.constants import (
+from arcade_core.usage.constants import (
     ARCADE_USAGE_EVENT_DATA,
     MAX_RETRIES_POSTHOG,
     TIMEOUT_POSTHOG_ALIAS,
 )
-from arcade_cli.usage.utils import is_tracking_enabled
+from arcade_core.usage.utils import is_tracking_enabled
 
 
 class UsageService:
     def __init__(self) -> None:
-        self.api_key = "phc_hIqUQyJpf2TP4COePO5jEpkGeUXipa7KqTEyDeRsTmB"
+        self.api_key = "phc_g7OuFqZEAVwIgRdtnZkjvBpy9weQ1f9VJW6YP1SzQRF"
         self.host = "https://us.i.posthog.com"
 
     def alias(self, previous_id: str, distinct_id: str) -> None:
@@ -71,7 +71,7 @@ class UsageService:
             "is_anon": is_anon,
         })
 
-        cmd = [sys.executable, "-m", "arcade_cli.usage"]
+        cmd = [sys.executable, "-m", "arcade_core.usage"]
 
         # Pass data via environment variable (works on all platforms)
         env = os.environ.copy()

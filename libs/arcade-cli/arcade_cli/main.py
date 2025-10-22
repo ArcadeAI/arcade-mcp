@@ -10,6 +10,7 @@ from typing import Optional
 
 import click
 import typer
+from arcade_core.constants import CREDENTIALS_FILE_PATH
 from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
@@ -19,7 +20,6 @@ import arcade_cli.secret as secret
 import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
-    CREDENTIALS_FILE_PATH,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
