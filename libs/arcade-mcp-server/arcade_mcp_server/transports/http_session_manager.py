@@ -151,6 +151,7 @@ class HTTPSessionManager:
                         server=self.server,
                         read_stream=read_stream,
                         write_stream=write_stream,
+                        init_options={"transport_type": "http"},
                     )
 
                     # Set the session on the transport
@@ -220,6 +221,7 @@ class HTTPSessionManager:
                                 server=self.server,
                                 read_stream=read_stream,
                                 write_stream=write_stream,
+                                init_options={"transport_type": "http"},
                             )
 
                             # Set the session on the transport

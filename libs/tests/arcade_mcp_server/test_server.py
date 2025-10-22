@@ -3,15 +3,24 @@
 import asyncio
 import contextlib
 from unittest.mock import AsyncMock, Mock
-
+from typing import Annotated
 import pytest
+from arcade_core.catalog import MaterializedTool, ToolMeta, create_func_models
 from arcade_core.errors import ToolRuntimeError
 from arcade_core.schema import (
+    InputParameter,
+    OAuth2Requirement,
     ToolAuthRequirement,
     ToolContext,
+    ToolDefinition,
+    ToolInput,
+    ToolkitDefinition,
+    ToolOutput,
     ToolRequirements,
     ToolSecretRequirement,
+    ValueSchema,
 )
+from arcade_core.auth import OAuth2
 from arcade_mcp_server.middleware import Middleware
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import InitializationState
@@ -26,6 +35,7 @@ from arcade_mcp_server.types import (
     ListToolsResult,
     PingRequest,
 )
+from arcade_mcp_server import tool
 
 
 class TestMCPServer:
@@ -928,3 +938,264 @@ class TestMCPServer:
         assert isinstance(result.result, CallToolResult)
         assert result.result.isError is True
         assert "authorization_url" in result.result.structuredContent
+
+    @pytest.mark.asyncio
+    async def test_http_transport_blocks_tool_with_auth(
+        self, mcp_server, materialized_tool_with_auth
+    ):
+        """Test that HTTP transport blocks tools requiring oauth."""
+        # Create a mock session with HTTP transport
+        session = Mock()
+        session.init_options = {"transport_type": "http"}
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={
+                "name": "TestToolkit.sample_tool_with_auth",
+                "arguments": {"text": "test"},
+            },
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.isError is True
+        assert "HTTP transport" in response.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_http_transport_blocks_tool_with_secrets(self, mcp_server):
+        """Test that HTTP transport blocks tools requiring secrets."""
+        from arcade_core.schema import ToolSecretRequirement
+
+        tool_def = ToolDefinition(
+            name="secret_tool",
+            fully_qualified_name="TestToolkit.secret_tool",
+            description="A tool requiring secrets",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="text",
+                        required=True,
+                        description="Input text",
+                        value_schema=ValueSchema(val_type="string"),
+                    )
+                ]
+            ),
+            output=ToolOutput(
+                description="Tool output", value_schema=ValueSchema(val_type="string")
+            ),
+            requirements=ToolRequirements(
+                secrets=[ToolSecretRequirement(key="API_KEY", description="API Key")]
+            ),
+        )
+
+        @tool(requires_secrets=["SECRET_KEY"])
+        def secret_tool_func(text: Annotated[str, "Input text"]) -> Annotated[str, "Secret text"]:
+            """Secret tool function"""
+            return f"Secret"
+
+        input_model, output_model = create_func_models(secret_tool_func)
+        meta = ToolMeta(module=secret_tool_func.__module__, toolkit="TestToolkit")
+        materialized_tool = MaterializedTool(
+            tool=secret_tool_func,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        await mcp_server._tool_manager.add_tool(materialized_tool)
+
+        # Create a mock session with HTTP transport
+        session = Mock()
+        session.init_options = {"transport_type": "http"}
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.secret_tool", "arguments": {"text": "test"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.isError is True
+        assert "HTTP transport" in response.result.structuredContent["message"]
+        assert "secrets" in response.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_http_transport_blocks_tool_with_both_auth_and_secrets(self, mcp_server):
+        """Test that HTTP transport blocks tools requiring both auth and secrets."""
+        from arcade_core.schema import ToolSecretRequirement
+
+        # Create a tool with both auth and secret requirements
+        tool_def = ToolDefinition(
+            name="combined_tool",
+            fully_qualified_name="TestToolkit.combined_tool",
+            description="A tool requiring both auth and secrets",
+            toolkit=ToolkitDefinition(
+                name="TestToolkit", description="Test toolkit", version="1.0.0"
+            ),
+            input=ToolInput(
+                parameters=[
+                    InputParameter(
+                        name="text",
+                        required=True,
+                        description="Input text",
+                        value_schema=ValueSchema(val_type="string"),
+                    )
+                ]
+            ),
+            output=ToolOutput(
+                description="Tool output", value_schema=ValueSchema(val_type="string")
+            ),
+            requirements=ToolRequirements(
+                authorization=ToolAuthRequirement(
+                    provider_type="oauth2",
+                    provider_id="test-provider",
+                    id="test-provider",
+                    oauth2=OAuth2Requirement(scopes=["test.scope"]),
+                ),
+                secrets=[ToolSecretRequirement(key="API_KEY", description="API Key")],
+            ),
+        )
+
+        @tool(requires_auth=OAuth2(id="test-provider", scopes=["test.scope"]), requires_secrets=["API_KEY"])
+        def combined_tool_func(text: Annotated[str, "Input text"]) -> Annotated[str, "Combined text"]:
+            """Combined tool function"""
+            return f"Combined: {text}"
+
+        input_model, output_model = create_func_models(combined_tool_func)
+        meta = ToolMeta(module=combined_tool_func.__module__, toolkit="TestToolkit")
+        materialized_tool = MaterializedTool(
+            tool=combined_tool_func,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        await mcp_server._tool_manager.add_tool(materialized_tool)
+
+        # Create a mock session with HTTP transport
+        session = Mock()
+        session.init_options = {"transport_type": "http"}
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.combined_tool", "arguments": {"text": "test"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.isError is True
+        assert "HTTP transport" in response.result.structuredContent["message"]
+        assert (
+            "authorization or access to sensitive secrets" in response.result.structuredContent["message"]
+        )
+
+    @pytest.mark.asyncio
+    async def test_stdio_transport_allows_tool_with_auth(
+        self, mcp_server, materialized_tool_with_auth
+    ):
+        """Test that stdio transport allows tools requiring authentication."""
+        # Mock Arcade client
+        mcp_server.arcade = Mock()
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.user_info = {}
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        # Create a mock session with stdio transport
+        session = Mock()
+        session.init_options = {"transport_type": "stdio"}
+        session.session_id = "test-session"
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={
+                "name": "TestToolkit.sample_tool_with_auth",
+                "arguments": {"text": "test"},
+            },
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        # Should succeed (isn't blocked by transport check)
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+
+        assert response.result.isError is False
+
+    @pytest.mark.asyncio
+    async def test_no_transport_type_allows_tool_with_auth(
+        self, mcp_server, materialized_tool_with_auth
+    ):
+        """Test backwards compatibility: no transport_type specified allows tools."""
+        # Mock Arcade client
+        mcp_server.arcade = Mock()
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.user_info = {}
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        # Create a mock session without transport_type
+        session = Mock()
+        session.init_options = {}  # No transport_type
+        session.session_id = "test-session"
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={
+                "name": "TestToolkit.sample_tool_with_auth",
+                "arguments": {"text": "test"},
+            },
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        # Should succeed (no transport restriction applies)
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.isError is False
+
+    @pytest.mark.asyncio
+    async def test_http_transport_allows_tool_without_requirements(self, mcp_server):
+        """Test that HTTP transport allows tools without auth/secret requirements."""
+        # Create a mock session with HTTP transport
+        session = Mock()
+        session.init_options = {"transport_type": "http"}
+        session.session_id = "test-session"
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "test"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message, session=session)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.isError is False

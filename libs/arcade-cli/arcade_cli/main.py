@@ -471,59 +471,80 @@ def configure(
     client: str = typer.Argument(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
+        click_type=click.Choice(["claude", "cursor", "vscode"], case_sensitive=False),
+        show_choices=True,
+    ),
+    entrypoint_file: str = typer.Option(
+        "server.py",
+        "--entrypoint",
+        "-e",
+        help="The name of the Python file in the current directory that runs the server. This file must run the server when invoked directly. Only used for stdio servers.",
+        rich_help_panel="Stdio Options",
+    ),
+    transport: str = typer.Option(
+        "stdio",
+        "--transport",
+        "-t",
+        help="The transport to use for the MCP server configuration",
+        click_type=click.Choice(["stdio", "http"], case_sensitive=False),
+        show_choices=True,
     ),
     server_name: Optional[str] = typer.Option(
         None,
-        "--server",
-        "-s",
-        help="Name of the server to connect to (defaults to current directory name)",
+        "--name",
+        "-n",
+        help="Optional name of the server to set in the configuration file (defaults to the name of the current directory)",
+        rich_help_panel="Configuration File Options",
     ),
-    from_local: bool = typer.Option(
-        False,
-        "--from-local",
-        help="Connect to a local MCP server",
-        is_flag=True,
-    ),
-    from_arcade: bool = typer.Option(
-        False,
-        "--from-arcade",
-        help="Connect to an Arcade Cloud MCP server",
-        is_flag=True,
+    host: str = typer.Option(
+        "local",
+        "--host",
+        "-h",
+        help="The host of the HTTP server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        click_type=click.Choice(["local", "arcade"], case_sensitive=False),
+        show_choices=True,
+        rich_help_panel="HTTP Options",
     ),
     port: int = typer.Option(
         8000,
         "--port",
         "-p",
-        help="Port for local servers",
+        help="Port for local HTTP servers",
+        rich_help_panel="HTTP Options",
     ),
-    path: Optional[Path] = typer.Option(
+    config_path: Optional[Path] = typer.Option(
         None,
-        "--path",
-        "-f",
+        "--config",
+        "-c",
         exists=False,
         help="Optional path to a specific MCP client config file (overrides default path)",
+        rich_help_panel="Configuration File Options",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Configure MCP clients to connect to your server.
 
+    The default behavior is to configure the specified client for a local stdio server that
+    runs when the server.py file in the current directory is invoked directly.
+
     Examples:
-        arcade configure claude --from-local
-        arcade configure cursor --from-local --port 8080
-        arcade configure vscode --from-local --path .vscode/mcp.json
-        arcade configure claude --from-arcade --server my_server_name
+        arcade configure claude
+        arcade configure cursor --transport http --port 8080
+        arcade configure vscode --host arcade --entrypoint ../../../mcp/server.py --config .vscode/mcp.json
+        arcade configure claude --host local --name my_server_name
     """
     from arcade_cli.configure import configure_client
 
     try:
         configure_client(
             client=client,
+            entrypoint_file=entrypoint_file,
             server_name=server_name,
-            from_local=from_local,
-            from_arcade=from_arcade,
+            transport=transport,
+            host=host,
             port=port,
-            path=path,
+            config_path=config_path,
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)

@@ -661,7 +661,7 @@ class MCPServer:
 
             # Handle authorization and secrets requirements if required
             if missing_requirements_response := await self._check_tool_requirements(
-                tool, tool_context, message, tool_name
+                tool, tool_context, message, tool_name, session
             ):
                 return missing_requirements_response
 
@@ -754,8 +754,30 @@ class MCPServer:
         tool_context: ToolContext,
         message: CallToolRequest,
         tool_name: str,
+        session: ServerSession | None = None,
     ) -> JSONRPCResponse[CallToolResult] | None:
         """Check tool requirements before executing the tool"""
+        # Check transport restrictions for tools requiring auth or secrets
+        if session and session.init_options:
+            transport_type = session.init_options.get("transport_type")
+            if transport_type != "stdio":
+                requirements = tool.definition.requirements
+                if requirements and (requirements.authorization or requirements.secrets):
+                    documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
+                    tool_response = {
+                        "message": (
+                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
+                            "This tool requires end-user authorization or access to sensitive secrets.\n"
+                            "For more information about server capabilities and transport options, see: "
+                            f"{documentation_url}"
+                        ),
+                        "llm_instructions": (
+                            f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
+                            "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
+                        ),
+                    }
+                    return self._create_error_response(message, tool_response)
+
         # Check authorization
         if tool.definition.requirements and tool.definition.requirements.authorization:
             # First check if Arcade API key is configured
@@ -765,8 +787,8 @@ class MCPServer:
                     "llm_instructions": (
                         f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
                         "but the Arcade API key is not configured. The developer needs to: "
-                        "1) Set the ARCADE_API_KEY environment variable with a valid API key, or "
-                        "2) Run 'arcade login' to authenticate. "
+                        "1) Run 'arcade login' to authenticate, or "
+                        "2) Set the ARCADE_API_KEY environment variable with a valid API key, or "
                         "Once the API key is configured, restart the MCP server for the changes to take effect."
                     ),
                 }
