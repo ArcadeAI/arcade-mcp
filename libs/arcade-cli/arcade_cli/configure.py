@@ -245,7 +245,7 @@ def configure_vscode_local(
 ) -> None:
     """Configure VS Code to add a local MCP server to the configuration."""
 
-    def http_config(server_name: str, port: int = 8000) -> dict:
+    def http_config(port: int = 8000) -> dict:
         return {
             "type": "http",
             "url": f"http://localhost:{port}/mcp",
@@ -278,7 +278,7 @@ def configure_vscode_local(
     config["servers"][server_name] = (
         get_stdio_config(entrypoint_file, server_name)
         if transport == "stdio"
-        else http_config(server_name, port)
+        else http_config(port)
     )
 
     # Write updated config
