@@ -771,7 +771,7 @@ class MCPServer:
                             "To use this tool, the server developer must either:\n"
                             "1) Use the stdio transport (recommended for local development and desktop clients),\n"
                             "2) Deploy the server using 'arcade deploy', or\n"
-                            "3) Register the server in the Arcade Developer Dashboard with type 'Arcade'."
+                            "3) Register the server in the Arcade Developer Dashboard with type 'Arcade' (rather than MCP), which also supports per-user OAuth."
                         ),
                     }
                     return self._create_error_response(message, tool_response)
