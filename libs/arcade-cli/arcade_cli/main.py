@@ -27,7 +27,6 @@ from arcade_cli.display import (
     display_eval_results,
 )
 from arcade_cli.show import show_logic
-from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
@@ -705,115 +704,6 @@ def dashboard(
             )
     except Exception as e:
         handle_cli_error("Failed to open dashboard", e, debug)
-
-
-@cli.command(
-    help=(
-        "Generate documentation for a server. "
-        "Note: make sure to have the server installed in your current Python environment "
-        "before running this command."
-    ),
-    rich_help_panel="Document",
-    hidden=True,
-)
-def docs(
-    server_name: str = typer.Option(
-        ...,
-        "--server-name",
-        "-n",
-        help="The name of the server to generate documentation for.",
-    ),
-    server_dir: str = typer.Option(
-        ...,
-        "--server-dir",
-        "-t",
-        help=(
-            "The path to the server root directory (where the server code is implemented). "
-            "Works with relative and absolute paths."
-        ),
-    ),
-    docs_dir: str = typer.Option(
-        ...,
-        "--docs-dir",
-        "-r",
-        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
-    ),
-    docs_section: str = typer.Option(
-        "",
-        "--docs-section",
-        "-s",
-        help=(
-            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
-            "This should be the name of the folder in /pages/tools. "
-            "Defaults to an empty string (generate the docs in the root of /pages/tools)"
-        ),
-    ),
-    openai_model: str = typer.Option(
-        "gpt-5-mini",
-        "--openai-model",
-        "-m",
-        help=(
-            "A few parts of the documentation are generated using OpenAI API. "
-            "Choose one of the 'gpt-4o' and 'gpt-5' series models."
-        ),
-        show_default=True,
-    ),
-    openai_api_key: str = typer.Option(
-        None,
-        "--openai-api-key",
-        "-o",
-        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
-    ),
-    skip_tool_call_examples: bool = typer.Option(
-        False,
-        "--skip-tool-call-examples",
-        "-se",
-        help="Whether to skip generating tool call examples in Python and Javascript.",
-        show_default=True,
-    ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-) -> None:
-    if not openai_model.startswith("gpt-4o") and not openai_model.startswith("gpt-5"):
-        console.print(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models.",
-            style="bold red",
-        )
-        handle_cli_error(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models."
-        )
-
-    try:
-        success = generate_toolkit_docs(
-            console=console,
-            toolkit_name=server_name,
-            toolkit_dir=server_dir,
-            docs_dir=docs_dir,
-            docs_section=docs_section,
-            openai_model=openai_model,
-            openai_api_key=openai_api_key,
-            tool_call_examples=not skip_tool_call_examples,
-            debug=debug,
-        )
-    except Exception as error:
-        handle_cli_error(
-            message=f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            error=error,
-            debug=debug,
-        )
-        success = False
-
-    if success:
-        console.print(
-            f"Generated documentation for '{server_name}' in '{docs_dir}'",
-            style="bold green",
-        )
-    else:
-        console.print(
-            f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            style="bold red",
-        )
 
 
 @cli.callback()
