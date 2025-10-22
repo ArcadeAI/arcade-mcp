@@ -763,15 +763,17 @@ class MCPServer:
             if transport_type != "stdio":
                 requirements = tool.definition.requirements
                 if requirements and (requirements.authorization or requirements.secrets):
+                    documentation_url = "https://docs.arcade.dev/en/home/compare-server-types"
                     tool_response = {
                         "message": (
-                            f"Tool '{tool_name}' cannot be executed over HTTP transport for security reasons. "
-                            "This tool requires end-user authorization or access to sensitive secrets, and therefore "
-                            "must not run over unauthenticated HTTP. This restriction is permanent - retrying the call will not resolve the issue.\n\n"
-                            "To use this tool, the server developer must either:\n"
-                            "1) Use the stdio transport (recommended for local development and desktop clients),\n"
-                            "2) Deploy the server using 'arcade deploy', or\n"
-                            "3) Register the server in the Arcade Developer Dashboard with type 'Arcade' (rather than MCP), which also supports per-user OAuth."
+                            f"Tool '{tool_name}' cannot be executed over unauthenticated HTTP transport for security reasons. "
+                            "This tool requires end-user authorization or access to sensitive secrets.\n"
+                            "For more information about server capabilities and transport options, see: "
+                            f"{documentation_url}"
+                        ),
+                        "llm_instructions": (
+                            f"Please show the following link to the end user formatted as markdown: [Compare Server Types]({documentation_url})\n"
+                            "Inform the end user that the provided link contains documentation on how to configure the server to use the correct transport."
                         ),
                     }
                     return self._create_error_response(message, tool_response)
