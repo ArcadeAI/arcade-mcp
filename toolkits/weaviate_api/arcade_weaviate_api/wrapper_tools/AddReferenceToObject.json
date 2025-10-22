@@ -1,0 +1,524 @@
+{
+  "name": "AddReferenceToObject",
+  "fully_qualified_name": "WeaviateApi.AddReferenceToObject@0.1.0",
+  "description": "Add a reference to an object's property.\n\nThis tool adds a new reference to a specified property of a data object. The object is identified by its class and UUID. Use this to link related objects within a dataset.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "source_class_name",
+        "required": true,
+        "description": "Name of the collection (class) the source object belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the collection (class) the source object belongs to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "className"
+      },
+      {
+        "name": "source_object_uuid",
+        "required": true,
+        "description": "Unique UUID identifying the source object to which the reference will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique UUID of the source object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "reference_property_name",
+        "required": true,
+        "description": "Unique name of the reference property of the source object to which the reference will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique name of the reference property of the source object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "propertyName"
+      },
+      {
+        "name": "reference_to_add",
+        "required": true,
+        "description": "JSON object detailing the reference to add, specifying properties such as class, schema, beacon URI, and optional classification metadata.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a concept reference (rather than a direct reference), specify the desired collection (class) name here."
+            },
+            "schema": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection."
+            },
+            "beacon": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a direct reference, specify the URI to point to the cross-reference here. Should be in the form of weaviate://localhost/<uuid> for the example of a local cross-reference to an object"
+            },
+            "href": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a direct reference, this read-only fields provides a link to the referenced resource. If 'origin' is globally configured, an absolute URI is shown - a relative URI otherwise."
+            },
+            "classification": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "overallCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "overall neighbors checked as part of the classification. In most cases this will equal k, but could be lower than k - for example if not enough data was present"
+                },
+                "winningCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "size of the winning group, a number between 1..k"
+                },
+                "losingCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "size of the losing group, can be 0 if the winning group size equals k"
+                },
+                "closestOverallDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The lowest distance of any neighbor, regardless of whether they were in the winning or losing group"
+                },
+                "winningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "deprecated - do not use, to be removed in 0.23.0"
+                },
+                "meanWinningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mean distance of all neighbors from the winning group"
+                },
+                "closestWinningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Closest distance of a neighbor from the winning group"
+                },
+                "closestLosingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The lowest distance of a neighbor in the losing group. Optional. If k equals the size of the winning group, there is no losing group"
+                },
+                "losingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "deprecated - do not use, to be removed in 0.23.0"
+                },
+                "meanLosingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mean distance of all neighbors from the losing group. Optional. If k equals the size of the winning group, there is no losing group."
+                }
+              },
+              "inner_properties": null,
+              "description": "This meta field contains additional info about the classified reference property"
+            }
+          },
+          "inner_properties": null,
+          "description": "The reference to add."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "required_consistency_level",
+        "required": false,
+        "description": "Specifies the number of replicas that must acknowledge a request for it to be successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "consistency_level"
+      },
+      {
+        "name": "tenant_identifier",
+        "required": false,
+        "description": "Specifies the tenant for multi-tenant collection requests in a Weaviate class.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant in a request targeting a multi-tenant collection (class)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tenant"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'objects.class.references.create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/objects/{className}/{id}/references/{propertyName}",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "consistency_level",
+        "tool_parameter_name": "required_consistency_level",
+        "description": "Determines how many replicas must acknowledge a request before it is considered successful.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines how many replicas must acknowledge a request before it is considered successful."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tenant",
+        "tool_parameter_name": "tenant_identifier",
+        "description": "Specifies the tenant in a request targeting a multi-tenant collection (class).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the tenant in a request targeting a multi-tenant collection (class)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "className",
+        "tool_parameter_name": "source_class_name",
+        "description": "Name of the collection (class) the source object belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the collection (class) the source object belongs to."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "source_object_uuid",
+        "description": "Unique UUID of the source object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique UUID of the source object."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "propertyName",
+        "tool_parameter_name": "reference_property_name",
+        "description": "Unique name of the reference property of the source object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique name of the reference property of the source object."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "reference_to_add",
+        "description": "The reference to add.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "class": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a concept reference (rather than a direct reference), specify the desired collection (class) name here."
+            },
+            "schema": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection."
+            },
+            "beacon": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a direct reference, specify the URI to point to the cross-reference here. Should be in the form of weaviate://localhost/<uuid> for the example of a local cross-reference to an object"
+            },
+            "href": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If using a direct reference, this read-only fields provides a link to the referenced resource. If 'origin' is globally configured, an absolute URI is shown - a relative URI otherwise."
+            },
+            "classification": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "overallCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "overall neighbors checked as part of the classification. In most cases this will equal k, but could be lower than k - for example if not enough data was present"
+                },
+                "winningCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "size of the winning group, a number between 1..k"
+                },
+                "losingCount": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "size of the losing group, can be 0 if the winning group size equals k"
+                },
+                "closestOverallDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The lowest distance of any neighbor, regardless of whether they were in the winning or losing group"
+                },
+                "winningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "deprecated - do not use, to be removed in 0.23.0"
+                },
+                "meanWinningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mean distance of all neighbors from the winning group"
+                },
+                "closestWinningDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Closest distance of a neighbor from the winning group"
+                },
+                "closestLosingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The lowest distance of a neighbor in the losing group. Optional. If k equals the size of the winning group, there is no losing group"
+                },
+                "losingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "deprecated - do not use, to be removed in 0.23.0"
+                },
+                "meanLosingDistance": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Mean distance of all neighbors from the losing group. Optional. If k equals the size of the winning group, there is no losing group."
+                }
+              },
+              "inner_properties": null,
+              "description": "This meta field contains additional info about the classified reference property"
+            }
+          },
+          "inner_properties": null,
+          "description": "The reference to add."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The reference to add.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"If using a concept reference (rather than a direct reference), specify the desired collection (class) name here.\",\n            \"format\": \"uri\"\n          },\n          \"schema\": {\n            \"type\": \"object\",\n            \"description\": \"Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection.\"\n          },\n          \"beacon\": {\n            \"type\": \"string\",\n            \"description\": \"If using a direct reference, specify the URI to point to the cross-reference here. Should be in the form of weaviate://localhost/<uuid> for the example of a local cross-reference to an object\",\n            \"format\": \"uri\"\n          },\n          \"href\": {\n            \"type\": \"string\",\n            \"description\": \"If using a direct reference, this read-only fields provides a link to the referenced resource. If 'origin' is globally configured, an absolute URI is shown - a relative URI otherwise.\",\n            \"format\": \"uri\"\n          },\n          \"classification\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"overallCount\": {\n                \"type\": \"number\",\n                \"description\": \"overall neighbors checked as part of the classification. In most cases this will equal k, but could be lower than k - for example if not enough data was present\",\n                \"format\": \"int64\"\n              },\n              \"winningCount\": {\n                \"type\": \"number\",\n                \"description\": \"size of the winning group, a number between 1..k\",\n                \"format\": \"int64\"\n              },\n              \"losingCount\": {\n                \"type\": \"number\",\n                \"description\": \"size of the losing group, can be 0 if the winning group size equals k\",\n                \"format\": \"int64\"\n              },\n              \"closestOverallDistance\": {\n                \"type\": \"number\",\n                \"description\": \"The lowest distance of any neighbor, regardless of whether they were in the winning or losing group\",\n                \"format\": \"float32\"\n              },\n              \"winningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"deprecated - do not use, to be removed in 0.23.0\",\n                \"format\": \"float32\"\n              },\n              \"meanWinningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Mean distance of all neighbors from the winning group\",\n                \"format\": \"float32\"\n              },\n              \"closestWinningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Closest distance of a neighbor from the winning group\",\n                \"format\": \"float32\"\n              },\n              \"closestLosingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"The lowest distance of a neighbor in the losing group. Optional. If k equals the size of the winning group, there is no losing group\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              },\n              \"losingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"deprecated - do not use, to be removed in 0.23.0\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              },\n              \"meanLosingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Mean distance of all neighbors from the losing group. Optional. If k equals the size of the winning group, there is no losing group.\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              }\n            },\n            \"description\": \"This meta field contains additional info about the classified reference property\"\n          }\n        },\n        \"description\": \"Either set beacon (direct reference) or set collection (class) and schema (concept reference)\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"class\": {\n            \"type\": \"string\",\n            \"description\": \"If using a concept reference (rather than a direct reference), specify the desired collection (class) name here.\",\n            \"format\": \"uri\"\n          },\n          \"schema\": {\n            \"type\": \"object\",\n            \"description\": \"Names and values of an individual property. A returned response may also contain additional metadata, such as from classification or feature projection.\"\n          },\n          \"beacon\": {\n            \"type\": \"string\",\n            \"description\": \"If using a direct reference, specify the URI to point to the cross-reference here. Should be in the form of weaviate://localhost/<uuid> for the example of a local cross-reference to an object\",\n            \"format\": \"uri\"\n          },\n          \"href\": {\n            \"type\": \"string\",\n            \"description\": \"If using a direct reference, this read-only fields provides a link to the referenced resource. If 'origin' is globally configured, an absolute URI is shown - a relative URI otherwise.\",\n            \"format\": \"uri\"\n          },\n          \"classification\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"overallCount\": {\n                \"type\": \"number\",\n                \"description\": \"overall neighbors checked as part of the classification. In most cases this will equal k, but could be lower than k - for example if not enough data was present\",\n                \"format\": \"int64\"\n              },\n              \"winningCount\": {\n                \"type\": \"number\",\n                \"description\": \"size of the winning group, a number between 1..k\",\n                \"format\": \"int64\"\n              },\n              \"losingCount\": {\n                \"type\": \"number\",\n                \"description\": \"size of the losing group, can be 0 if the winning group size equals k\",\n                \"format\": \"int64\"\n              },\n              \"closestOverallDistance\": {\n                \"type\": \"number\",\n                \"description\": \"The lowest distance of any neighbor, regardless of whether they were in the winning or losing group\",\n                \"format\": \"float32\"\n              },\n              \"winningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"deprecated - do not use, to be removed in 0.23.0\",\n                \"format\": \"float32\"\n              },\n              \"meanWinningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Mean distance of all neighbors from the winning group\",\n                \"format\": \"float32\"\n              },\n              \"closestWinningDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Closest distance of a neighbor from the winning group\",\n                \"format\": \"float32\"\n              },\n              \"closestLosingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"The lowest distance of a neighbor in the losing group. Optional. If k equals the size of the winning group, there is no losing group\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              },\n              \"losingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"deprecated - do not use, to be removed in 0.23.0\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              },\n              \"meanLosingDistance\": {\n                \"type\": \"number\",\n                \"description\": \"Mean distance of all neighbors from the losing group. Optional. If k equals the size of the winning group, there is no losing group.\",\n                \"format\": \"float32\",\n                \"nullable\": true\n              }\n            },\n            \"description\": \"This meta field contains additional info about the classified reference property\"\n          }\n        },\n        \"description\": \"Either set beacon (direct reference) or set collection (class) and schema (concept reference)\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

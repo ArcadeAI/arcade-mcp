@@ -1,0 +1,332 @@
+{
+  "name": "RecordCacheEvents",
+  "fully_qualified_name": "VercelApi.RecordCacheEvents@0.1.0",
+  "description": "Record artifacts cache usage events for Vercel.\n\nUse this tool to log cache usage events, including types 'HIT' or 'MISS', and sources 'LOCAL' or 'REMOTE'. Useful for tracking cache performance and usage.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cache_usage_events",
+        "required": true,
+        "description": "An array of cache usage events, each with `sessionId`, `source`, `event`, `hash`, and optionally `duration` for `HIT` events. Use to log `HIT` or `MISS` events with `LOCAL` or `REMOTE` sources.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "sessionId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A UUID (universally unique identifer) for the session that generated this event."
+            },
+            "source": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "LOCAL",
+                "REMOTE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "One of `LOCAL` or `REMOTE`. `LOCAL` specifies that the cache event was from the user's filesystem cache. `REMOTE` specifies that the cache event is from a remote cache."
+            },
+            "event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "HIT",
+                "MISS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "One of `HIT` or `MISS`. `HIT` specifies that a cached artifact for `hash` was found in the cache. `MISS` specifies that a cached artifact with `hash` was not found."
+            },
+            "hash": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The artifact hash"
+            },
+            "duration": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time taken to generate the artifact. This should be sent as a body parameter on `HIT` events."
+            }
+          },
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The Team identifier to perform the request on behalf of. Used to specify which team's cache usage events are being recorded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The Team slug to perform the request on behalf of. It identifies the specific team within Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "ci_environment",
+        "required": false,
+        "description": "The continuous integration or delivery environment where this artifact is downloaded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The continuous integration or delivery environment where this artifact is downloaded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "x-artifact-client-ci"
+      },
+      {
+        "name": "is_interactive_shell",
+        "required": false,
+        "description": "Set to 1 if the client is an interactive shell, otherwise set to 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "1 if the client is an interactive shell. Otherwise 0"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "x-artifact-client-interactive"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'recordEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v8/artifacts/events",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "x-artifact-client-ci",
+        "tool_parameter_name": "ci_environment",
+        "description": "The continuous integration or delivery environment where this artifact is downloaded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The continuous integration or delivery environment where this artifact is downloaded."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "x-artifact-client-interactive",
+        "tool_parameter_name": "is_interactive_shell",
+        "description": "1 if the client is an interactive shell. Otherwise 0",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "1 if the client is an interactive shell. Otherwise 0"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "cache_usage_events",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "sessionId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A UUID (universally unique identifer) for the session that generated this event."
+            },
+            "source": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "LOCAL",
+                "REMOTE"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "One of `LOCAL` or `REMOTE`. `LOCAL` specifies that the cache event was from the user's filesystem cache. `REMOTE` specifies that the cache event is from a remote cache."
+            },
+            "event": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": [
+                "HIT",
+                "MISS"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "One of `HIT` or `MISS`. `HIT` specifies that a cached artifact for `hash` was found in the cache. `MISS` specifies that a cached artifact with `hash` was not found."
+            },
+            "hash": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The artifact hash"
+            },
+            "duration": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time taken to generate the artifact. This should be sent as a body parameter on `HIT` events."
+            }
+          },
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"additionalProperties\": false,\n          \"required\": [\n            \"sessionId\",\n            \"source\",\n            \"hash\",\n            \"event\"\n          ],\n          \"properties\": {\n            \"sessionId\": {\n              \"type\": \"string\",\n              \"description\": \"A UUID (universally unique identifer) for the session that generated this event.\"\n            },\n            \"source\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"LOCAL\",\n                \"REMOTE\"\n              ],\n              \"description\": \"One of `LOCAL` or `REMOTE`. `LOCAL` specifies that the cache event was from the user's filesystem cache. `REMOTE` specifies that the cache event is from a remote cache.\"\n            },\n            \"event\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"HIT\",\n                \"MISS\"\n              ],\n              \"description\": \"One of `HIT` or `MISS`. `HIT` specifies that a cached artifact for `hash` was found in the cache. `MISS` specifies that a cached artifact with `hash` was not found.\"\n            },\n            \"hash\": {\n              \"type\": \"string\",\n              \"example\": \"12HKQaOmR5t5Uy6vdcQsNIiZgHGB\",\n              \"description\": \"The artifact hash\"\n            },\n            \"duration\": {\n              \"type\": \"number\",\n              \"description\": \"The time taken to generate the artifact. This should be sent as a body parameter on `HIT` events.\",\n              \"example\": 400\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,517 @@
+{
+  "name": "GetBankTransactions",
+  "fully_qualified_name": "ZohoBooksApi.GetBankTransactions@0.1.0",
+  "description": "Retrieve all transaction details for a bank account.\n\nUse this tool to obtain detailed information about all transactions involved in a specific bank account. It is helpful for financial analysis and record-keeping.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "A unique ID representing the organization for which transactions are being queried. This is required to specify the context of the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "bank_account_id",
+        "required": false,
+        "description": "Unique identifier for the bank account to retrieve transactions for.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "transaction_type_filter",
+        "required": false,
+        "description": "Specify the type of transactions to retrieve. Expected as a string, e.g., 'expense', 'income'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_type"
+      },
+      {
+        "name": "transaction_date_range",
+        "required": false,
+        "description": "Specify the start and end date for the transaction date range. Use 'date_start' for the start and 'date_end' for the end date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start and end date, to provide a range within which the transaction date exist. Variants: <code>date_start</code> and <code>date_end</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "transaction_amount_range",
+        "required": false,
+        "description": "Set a range of transaction amounts to filter transactions. Use two numbers: start amount, end amount.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start and end amount, to provide a range within which the transaction amount exist. Variants: <code>amount_start</code> and <code>amount_end</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount"
+      },
+      {
+        "name": "transaction_status_list_view",
+        "required": false,
+        "description": "Filter transactions by status: all, uncategorized, manually_added, matched, excluded, categorized.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "transaction_reference_number",
+        "required": false,
+        "description": "Search for a transaction using its reference number for more precise results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search using Reference Number of the transaction"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "transaction_filter_type",
+        "required": false,
+        "description": "Filter transactions by type: Status.All, Status.Uncategorized, Status.Categorized, Status.ManuallyAdded, Status.Excluded, Status.Matched.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the transactions based on the allowed types. Allowed Values: <code>Status.All</code>, <code>Status.Uncategorized</code>, <code>Status.Categorized</code>, <code>Status.ManuallyAdded</code>, <code>Status.Excluded</code> and <code>Status.Matched</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "sort_transactions_by",
+        "required": false,
+        "description": "Specify how to sort transactions. Allowed value: 'date'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sorts the transactions based on the allowed sort types. Allowed Values: <code>date</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "transaction_status_filter",
+        "required": false,
+        "description": "Filter transactions by status: All, uncategorized, manually_added, matched, excluded, categorized.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_status"
+      },
+      {
+        "name": "search_transactions_by_text",
+        "required": false,
+        "description": "Search transactions using contact name or transaction description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search Transactions by contact name or description"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "transaction_page_number",
+        "required": false,
+        "description": "Page number of transactions to fetch, with a default value of 1. Used for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of transaction records to fetch per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_bank_transactions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "bank_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_type",
+        "tool_parameter_name": "transaction_type_filter",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "transaction_date_range",
+        "description": "Start and end date, to provide a range within which the transaction date exist. Variants: <code>date_start</code> and <code>date_end</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start and end date, to provide a range within which the transaction date exist. Variants: <code>date_start</code> and <code>date_end</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount",
+        "tool_parameter_name": "transaction_amount_range",
+        "description": "Start and end amount, to provide a range within which the transaction amount exist. Variants: <code>amount_start</code> and <code>amount_end</code>",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start and end amount, to provide a range within which the transaction amount exist. Variants: <code>amount_start</code> and <code>amount_end</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "transaction_status_list_view",
+        "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "transaction_reference_number",
+        "description": "Search using Reference Number of the transaction",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search using Reference Number of the transaction"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "transaction_filter_type",
+        "description": "Filters the transactions based on the allowed types. Allowed Values: <code>Status.All</code>, <code>Status.Uncategorized</code>, <code>Status.Categorized</code>, <code>Status.ManuallyAdded</code>, <code>Status.Excluded</code> and <code>Status.Matched</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters the transactions based on the allowed types. Allowed Values: <code>Status.All</code>, <code>Status.Uncategorized</code>, <code>Status.Categorized</code>, <code>Status.ManuallyAdded</code>, <code>Status.Excluded</code> and <code>Status.Matched</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_transactions_by",
+        "description": "Sorts the transactions based on the allowed sort types. Allowed Values: <code>date</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sorts the transactions based on the allowed sort types. Allowed Values: <code>date</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_status",
+        "tool_parameter_name": "transaction_status_filter",
+        "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Transaction status wise list view - All, uncategorized, manually_added, matched, excluded, categorized"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "search_transactions_by_text",
+        "description": "Search Transactions by contact name or description",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search Transactions by contact name or description"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "transaction_page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,450 @@
+{
+  "name": "SendPurchaseOrderEmail",
+  "fully_qualified_name": "ZohoBooksApi.SendPurchaseOrderEmail@0.1.0",
+  "description": "Send a purchase order email to the vendor.\n\nUse this tool to email a purchase order to the vendor. If no custom content is provided, the email will be sent with default content.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique identifier for the organization. Required to specify which organization the purchase order belongs to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "purchase_order_id",
+        "required": true,
+        "description": "Unique identifier of the purchase order to be emailed to the vendor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the purchase order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "purchaseorder_id"
+      },
+      {
+        "name": "email_attachments",
+        "required": false,
+        "description": "A comma-separated list of file paths or URLs to attach to the email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The files to be attached with the email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachments"
+      },
+      {
+        "name": "attachment_file_name",
+        "required": false,
+        "description": "The name of the file to attach to the email for the purchase order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the file"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_name"
+      },
+      {
+        "name": "email_custom_content",
+        "required": false,
+        "description": "Custom email details like subject, body, and recipient lists in a JSON format. This includes 'send_from_org_email_id', 'from_address_id', 'to_mail_ids', 'cc_mail_ids', 'bcc_mail_ids', 'subject', 'body', and 'mail_documents'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "send_from_org_email_id": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to trigger the email from the organization's email address."
+            },
+            "from_address_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of From Address of the Email Address"
+            },
+            "to_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients."
+            },
+            "cc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be cced."
+            },
+            "bcc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be BCC ed."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the mail."
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the mail"
+            },
+            "mail_documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "send_purchase_order_attachment",
+        "required": false,
+        "description": "Set to true to include the purchase order as an attachment with the email.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the purchase order attachment a with the email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "send_attachment"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'email_purchase_order'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.purchaseorders.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/purchaseorders/{purchaseorder_id}/email",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachments",
+        "tool_parameter_name": "email_attachments",
+        "description": "The files to be attached with the email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The files to be attached with the email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "send_attachment",
+        "tool_parameter_name": "send_purchase_order_attachment",
+        "description": "Send the purchase order attachment a with the email.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Send the purchase order attachment a with the email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_name",
+        "tool_parameter_name": "attachment_file_name",
+        "description": "Name of the file",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the file"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "purchaseorder_id",
+        "tool_parameter_name": "purchase_order_id",
+        "description": "Unique identifier of the purchase order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the purchase order."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "email_custom_content",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "send_from_org_email_id": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to trigger the email from the organization's email address."
+            },
+            "from_address_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of From Address of the Email Address"
+            },
+            "to_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients."
+            },
+            "cc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be cced."
+            },
+            "bcc_mail_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Array of email address of the recipients to be BCC ed."
+            },
+            "subject": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Subject of the mail."
+            },
+            "body": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Body of the mail"
+            },
+            "mail_documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "document_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Document"
+                },
+                "file_name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system."
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"to_mail_ids\",\n          \"body\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"send_from_org_email_id\": {\n            \"description\": \"Boolean to trigger the email from the organization's email address.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"from_address_id\": {\n            \"description\": \"ID of From Address of the Email Address\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"example\": \"460000008392548\"\n          },\n          \"to_mail_ids\": {\n            \"description\": \"Array of email address of the recipients.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"willsmith@bowmanfurniture.com\"\n            ]\n          },\n          \"cc_mail_ids\": {\n            \"description\": \"Array of email address of the recipients to be cced.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"peterparker@bowmanfurniture.com\"\n            ]\n          },\n          \"bcc_mail_ids\": {\n            \"description\": \"Array of email address of the recipients to be BCC ed.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"mark@safInstruments.com\"\n            ]\n          },\n          \"subject\": {\n            \"description\": \"Subject of the mail.\",\n            \"type\": \"string\",\n            \"example\": \"Purchase Order from Zillium Inc (PO #: PO-00001)\"\n          },\n          \"body\": {\n            \"description\": \"Body of the mail\",\n            \"type\": \"string\",\n            \"example\": \"Dear Bowman and Co, <br><br>The purchase order (PO-00001) is attached with this email. <br><br>An overview of the purchase order is available below: <br>Purchase Order # : PO-00001 <br>Date : 10 Feb 2014 <br>Amount : $112.00(in USD) <br><br>Please go through it and confirm the order. We look forward to working with you again<br><br><br><br>Regards<br><br>Zillium Inc<br><br>\"\n          },\n          \"mail_documents\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"document_id\": {\n                  \"description\": \"ID of the Document\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"file_name\": {\n                  \"description\": \"Name of the attached document file. Includes file extension and represents the original filename as uploaded. Used for display purposes and file identification in the system.\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

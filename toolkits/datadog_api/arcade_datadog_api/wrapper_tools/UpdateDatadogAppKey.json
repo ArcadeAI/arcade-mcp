@@ -1,0 +1,262 @@
+{
+  "name": "UpdateDatadogAppKey",
+  "fully_qualified_name": "DatadogApi.UpdateDatadogAppKey@0.1.0",
+  "description": "Edit a Datadog application key by ID.\n\nUse this tool to update details of a specific Datadog application key by providing its ID. Useful for modifying configurations or permissions of the application key.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "application_key_id",
+        "required": true,
+        "description": "The unique identifier for the Datadog application key that needs to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the application key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app_key_id"
+      },
+      {
+        "name": "app_key_id",
+        "required": true,
+        "description": "The unique ID of the Datadog application key to be edited.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the application key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "application_keys_resource_type",
+        "required": true,
+        "description": "Fixed value for the resource type, which should always be 'application_keys'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application_keys"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application Keys resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "application_key_name",
+        "required": false,
+        "description": "Name of the application key to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the application key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "application_key_scopes",
+        "required": false,
+        "description": "Array of scopes to grant the application key. Each scope is a string specifying a permission level.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of scopes to grant the application key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.scopes"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateApplicationKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/application_keys/{app_key_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "app_key_id",
+        "tool_parameter_name": "application_key_id",
+        "description": "The ID of the application key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the application key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "application_key_name",
+        "description": "Name of the application key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the application key."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.scopes",
+        "tool_parameter_name": "application_key_scopes",
+        "description": "Array of scopes to grant the application key.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of scopes to grant the application key."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "app_key_id",
+        "description": "ID of the application key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the application key."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "application_keys_resource_type",
+        "description": "Application Keys resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application_keys"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Application Keys resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "application_keys",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request used to update an application key.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object used to update an application key.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes used to update an application Key.\",\n                \"properties\": {\n                  \"name\": {\n                    \"description\": \"Name of the application key.\",\n                    \"example\": \"Application Key for managing dashboards\",\n                    \"type\": \"string\"\n                  },\n                  \"scopes\": {\n                    \"description\": \"Array of scopes to grant the application key.\",\n                    \"example\": [\n                      \"dashboards_read\",\n                      \"dashboards_write\",\n                      \"dashboards_public_share\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Name of scope.\",\n                      \"type\": \"string\"\n                    },\n                    \"nullable\": true,\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the application key.\",\n                \"example\": \"00112233-4455-6677-8899-aabbccddeeff\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"application_keys\",\n                \"description\": \"Application Keys resource type.\",\n                \"enum\": [\n                  \"application_keys\"\n                ],\n                \"example\": \"application_keys\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"APPLICATION_KEYS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

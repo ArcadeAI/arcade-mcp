@@ -1,0 +1,423 @@
+{
+  "name": "FetchScorecardRules",
+  "fully_qualified_name": "DatadogApi.FetchScorecardRules@0.1.0",
+  "description": "Fetch all scorecard rules from Datadog.\n\nUse this tool to retrieve a list of all scorecard rules from Datadog's API. This is useful for managing and reviewing rules related to scorecards.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "Number of rules to return per page. Maximum value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "page_offset",
+        "required": false,
+        "description": "Specific offset to use as the beginning of the returned page for fetching scorecard rules.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[offset]"
+      },
+      {
+        "name": "include_scorecard_details",
+        "required": false,
+        "description": "Specify related scorecard details to include in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include related scorecard details in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "filter_rule_by_id",
+        "required": false,
+        "description": "Filter the rules based on a specific rule ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the rules on a rule ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule][id]"
+      },
+      {
+        "name": "filter_rules_by_name",
+        "required": false,
+        "description": "Specify a rule name to filter the scorecard rules.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter rules on the rule name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule][name]"
+      },
+      {
+        "name": "filter_rule_description",
+        "required": false,
+        "description": "Filter rules based on their description. Provide a string to match against the rule descriptions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter rules on the rule description."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule][description]"
+      },
+      {
+        "name": "specific_rule_fields",
+        "required": false,
+        "description": "Specify which rule fields to include in the response. Provide a comma-separated list of field names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only specific fields in the response for rule attributes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields[rule]"
+      },
+      {
+        "name": "specific_scorecard_fields",
+        "required": false,
+        "description": "Specify which fields to include in the response for scorecard attributes. Use comma-separated values.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only specific fields in the included response for scorecard attributes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields[scorecard]"
+      },
+      {
+        "name": "filter_for_enabled_rules",
+        "required": false,
+        "description": "Set to true to filter for enabled rules only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for enabled rules only."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule][enabled]"
+      },
+      {
+        "name": "filter_custom_rules_only",
+        "required": false,
+        "description": "Set to true to include only custom rules in the results.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for custom rules only."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[rule][custom]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListScorecardRules'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/scorecard/rules",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "page_size",
+        "description": "Size for a given page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[offset]",
+        "tool_parameter_name": "page_offset",
+        "description": "Specific offset to use as the beginning of the returned page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific offset to use as the beginning of the returned page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "include_scorecard_details",
+        "description": "Include related scorecard details in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include related scorecard details in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule][id]",
+        "tool_parameter_name": "filter_rule_by_id",
+        "description": "Filter the rules on a rule ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter the rules on a rule ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule][enabled]",
+        "tool_parameter_name": "filter_for_enabled_rules",
+        "description": "Filter for enabled rules only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for enabled rules only."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule][custom]",
+        "tool_parameter_name": "filter_custom_rules_only",
+        "description": "Filter for custom rules only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter for custom rules only."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule][name]",
+        "tool_parameter_name": "filter_rules_by_name",
+        "description": "Filter rules on the rule name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter rules on the rule name."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[rule][description]",
+        "tool_parameter_name": "filter_rule_description",
+        "description": "Filter rules on the rule description.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter rules on the rule description."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields[rule]",
+        "tool_parameter_name": "specific_rule_fields",
+        "description": "Return only specific fields in the response for rule attributes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only specific fields in the response for rule attributes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields[scorecard]",
+        "tool_parameter_name": "specific_scorecard_fields",
+        "description": "Return only specific fields in the included response for scorecard attributes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Return only specific fields in the included response for scorecard attributes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

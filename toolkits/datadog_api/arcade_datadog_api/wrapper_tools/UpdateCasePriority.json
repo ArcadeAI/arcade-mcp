@@ -1,0 +1,210 @@
+{
+  "name": "UpdateCasePriority",
+  "fully_qualified_name": "DatadogApi.UpdateCasePriority@0.1.0",
+  "description": "Update the priority of a specific case.\n\nThis tool updates the priority level of a given case in the system. It should be called when a change in priority is required for case management.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_identifier",
+        "required": true,
+        "description": "The unique identifier for the case, either UUID or key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "case_id"
+      },
+      {
+        "name": "case_priority",
+        "required": true,
+        "description": "Specify the priority level of the case. Valid options are: 'NOT_DEFINED', 'P1', 'P2', 'P3', 'P4', 'P5'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "NOT_DEFINED",
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case priority"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.priority"
+      },
+      {
+        "name": "case_resource_type",
+        "required": true,
+        "description": "Specifies the type of resource, should be set to 'case'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdatePriority'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/{case_id}/priority",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "case_id",
+        "tool_parameter_name": "case_identifier",
+        "description": "Case's UUID or key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.priority",
+        "tool_parameter_name": "case_priority",
+        "description": "Case priority",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "NOT_DEFINED",
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case priority"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "NOT_DEFINED",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "case_resource_type",
+        "description": "Case resource type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "case"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case resource type"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "case",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case update priority request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case priority status\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Case update priority attributes\",\n                \"properties\": {\n                  \"priority\": {\n                    \"default\": \"NOT_DEFINED\",\n                    \"description\": \"Case priority\",\n                    \"enum\": [\n                      \"NOT_DEFINED\",\n                      \"P1\",\n                      \"P2\",\n                      \"P3\",\n                      \"P4\",\n                      \"P5\"\n                    ],\n                    \"example\": \"NOT_DEFINED\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"NOT_DEFINED\",\n                      \"P1\",\n                      \"P2\",\n                      \"P3\",\n                      \"P4\",\n                      \"P5\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"priority\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case\",\n                \"description\": \"Case resource type\",\n                \"enum\": [\n                  \"case\"\n                ],\n                \"example\": \"case\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Case priority update payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

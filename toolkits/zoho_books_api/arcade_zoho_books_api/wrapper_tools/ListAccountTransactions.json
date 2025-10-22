@@ -1,0 +1,385 @@
+{
+  "name": "ListAccountTransactions",
+  "fully_qualified_name": "ZohoBooksApi.ListAccountTransactions@0.1.0",
+  "description": "Retrieve transactions for a specified account.\n\nUse this tool to list all transactions associated with a given account. Ideal for tracking financial activities related to specific accounts.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Unique identifier for the organization whose account transactions are being queried.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "account_id",
+        "required": true,
+        "description": "The unique ID of the account to retrieve transactions for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Account"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "transaction_date_range",
+        "required": false,
+        "description": "Specify a date range for searching transactions. Use 'yyyy-mm-dd' format. Supports 'date.start', 'date.end', 'date.before', and 'date.after'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search account transactions with the given date range. Default date format is yyyy-mm-dd. Variants: <code>date.start</code>, <code>date.end</code>, <code>date.before</code> and <code>date.after</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "amount_range",
+        "required": false,
+        "description": "Specify the amount range to filter account transactions. Use fields like less_than, less_equals, greater_than, and greater_equals to define the criteria.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search account transactions with given amount range. Variants: <code>amount.less_than</code>, <code>amount.less_equals</code>, <code>amount.greater_than</code> and <code>amount.greater_equals</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "amount"
+      },
+      {
+        "name": "filter_by_account_type",
+        "required": false,
+        "description": "Filter accounts based on account type and status. Options: AccountType.All, AccountType.Active, AccountType.Inactive, AccountType.Asset, AccountType.Liability, AccountType.Equity, AccountType.Income, AccountType.Expense.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter accounts based on its account type and status. Allowed Values: <code>AccountType.All</code>, <code>AccountType.Active</code>, <code>AccountType.Inactive</code>, <code>AccountType.Asset</code>, <code>AccountType.Liability</code>, <code>AccountType.Equity</code>, <code>AccountType.Income</code> and <code>AccountType.Expense</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "transaction_type",
+        "required": false,
+        "description": "Filter transactions by type, such as 'invoice', 'expense', or 'refund'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search transactions based on the given transaction type. Allowed Values: <code>invoice</code>, <code>customer_payment</code>, <code>bills</code>, <code>vendor_payment</code>, <code>credit_notes</code>, <code>creditnote_refund</code>, <code>expense</code>, <code>card_payment</code>, <code>purchase_or_charges</code>, <code>journal</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>base_currency_adjustment</code>, <code>opening_balance</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>tax_refund</code>, <code>receipt_from_initial_debtors</code>, <code>owner_contribution</code>, <code>interest_income</code>, <code>other_income</code>, <code>owner_drawings</code> and <code>payment_to_initial_creditors</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_type"
+      },
+      {
+        "name": "sort_by",
+        "required": false,
+        "description": "Specify the column to sort transactions. Possible values: 'account_name', 'account_type'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort accounts. Allowed Values: <code>account_name</code> and <code>account_type</code>."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Page number to be fetched for the transaction list. Defaults to 1 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of records to be fetched per page. Default is 200. Specify a custom integer to override.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_chart_of_account_transactions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.accountants.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/chartofaccounts/transactions",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "account_id",
+        "tool_parameter_name": "account_id",
+        "description": "ID of the Account",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Account"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "transaction_date_range",
+        "description": "Search account transactions with the given date range. Default date format is yyyy-mm-dd. Variants: <code>date.start</code>, <code>date.end</code>, <code>date.before</code> and <code>date.after</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search account transactions with the given date range. Default date format is yyyy-mm-dd. Variants: <code>date.start</code>, <code>date.end</code>, <code>date.before</code> and <code>date.after</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "amount",
+        "tool_parameter_name": "amount_range",
+        "description": "Search account transactions with given amount range. Variants: <code>amount.less_than</code>, <code>amount.less_equals</code>, <code>amount.greater_than</code> and <code>amount.greater_equals</code>.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search account transactions with given amount range. Variants: <code>amount.less_than</code>, <code>amount.less_equals</code>, <code>amount.greater_than</code> and <code>amount.greater_equals</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_by_account_type",
+        "description": "Filter accounts based on its account type and status. Allowed Values: <code>AccountType.All</code>, <code>AccountType.Active</code>, <code>AccountType.Inactive</code>, <code>AccountType.Asset</code>, <code>AccountType.Liability</code>, <code>AccountType.Equity</code>, <code>AccountType.Income</code> and <code>AccountType.Expense</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter accounts based on its account type and status. Allowed Values: <code>AccountType.All</code>, <code>AccountType.Active</code>, <code>AccountType.Inactive</code>, <code>AccountType.Asset</code>, <code>AccountType.Liability</code>, <code>AccountType.Equity</code>, <code>AccountType.Income</code> and <code>AccountType.Expense</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_type",
+        "tool_parameter_name": "transaction_type",
+        "description": "Search transactions based on the given transaction type. Allowed Values: <code>invoice</code>, <code>customer_payment</code>, <code>bills</code>, <code>vendor_payment</code>, <code>credit_notes</code>, <code>creditnote_refund</code>, <code>expense</code>, <code>card_payment</code>, <code>purchase_or_charges</code>, <code>journal</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>base_currency_adjustment</code>, <code>opening_balance</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>tax_refund</code>, <code>receipt_from_initial_debtors</code>, <code>owner_contribution</code>, <code>interest_income</code>, <code>other_income</code>, <code>owner_drawings</code> and <code>payment_to_initial_creditors</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search transactions based on the given transaction type. Allowed Values: <code>invoice</code>, <code>customer_payment</code>, <code>bills</code>, <code>vendor_payment</code>, <code>credit_notes</code>, <code>creditnote_refund</code>, <code>expense</code>, <code>card_payment</code>, <code>purchase_or_charges</code>, <code>journal</code>, <code>deposit</code>, <code>refund</code>, <code>transfer_fund</code>, <code>base_currency_adjustment</code>, <code>opening_balance</code>, <code>sales_without_invoices</code>, <code>expense_refund</code>, <code>tax_refund</code>, <code>receipt_from_initial_debtors</code>, <code>owner_contribution</code>, <code>interest_income</code>, <code>other_income</code>, <code>owner_drawings</code> and <code>payment_to_initial_creditors</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_by",
+        "description": "Sort accounts. Allowed Values: <code>account_name</code> and <code>account_type</code>.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort accounts. Allowed Values: <code>account_name</code> and <code>account_type</code>."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

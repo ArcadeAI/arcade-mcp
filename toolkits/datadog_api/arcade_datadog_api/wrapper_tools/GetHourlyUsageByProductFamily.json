@@ -1,0 +1,390 @@
+{
+  "name": "GetHourlyUsageByProductFamily",
+  "fully_qualified_name": "DatadogApi.GetHourlyUsageByProductFamily@0.1.0",
+  "description": "Fetch hourly usage data by product family from Datadog.\n\nUse this tool to retrieve detailed hourly usage metrics categorized by product family from Datadog. Ideal for monitoring and analysis applications that require precise usage insights.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_timestamp",
+        "required": true,
+        "description": "Datetime in ISO-8601 format, UTC, precise to hour. Specify the start of usage collection, e.g., '2023-10-05T14'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage beginning at this hour."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[timestamp][start]"
+      },
+      {
+        "name": "product_families_to_retrieve",
+        "required": true,
+        "description": "Comma-separated list of product families to retrieve usage data for. Available options include all, analyzed_logs, application_security, etc. Note: audit_logs is deprecated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of product families to retrieve. Available families are `all`, `analyzed_logs`,\n`application_security`, `audit_trail`, `serverless`, `ci_app`, `cloud_cost_management`, `cloud_siem`,\n`csm_container_enterprise`, `csm_host_enterprise`, `cspm`, `custom_events`, `cws`, `dbm`, `error_tracking`,\n`fargate`, `infra_hosts`, `incident_management`, `indexed_logs`, `indexed_spans`, `ingested_spans`, `iot`,\n`lambda_traced_invocations`, `llm_observability`, `logs`, `network_flows`, `network_hosts`, `network_monitoring`,\n`observability_pipelines`, `online_archive`, `profiling`, `product_analytics`, `rum`, `rum_browser_sessions`,\n`rum_mobile_sessions`, `sds`, `snmp`, `software_delivery`, `synthetics_api`, `synthetics_browser`,\n`synthetics_mobile`, `synthetics_parallel_testing`, `timeseries`, `vuln_management` and `workflow_executions`.\nThe following product family has been **deprecated**: `audit_logs`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[product_families]"
+      },
+      {
+        "name": "end_timestamp",
+        "required": false,
+        "description": "Datetime in ISO-8601 format (UTC) for usage ending before this hour. Format: [YYYY-MM-DDThh].",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage ending **before** this hour."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[timestamp][end]"
+      },
+      {
+        "name": "product_family_versions",
+        "required": false,
+        "description": "Comma-separated list of product family versions in the format `product_family:version`. Defaults to latest if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of product family versions to use in the format `product_family:version`. For example,\n`infra_hosts:1.0.0`. If this parameter is not used, the API will use the latest version of each requested\nproduct family. Currently all families have one version `1.0.0`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[versions]"
+      },
+      {
+        "name": "maximum_results_limit",
+        "required": false,
+        "description": "Set the maximum number of results to return per page, between 1 and 500. Defaults to 500.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results to return (between 1 and 500) - defaults to 500 if limit not specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[limit]"
+      },
+      {
+        "name": "next_record_id",
+        "required": false,
+        "description": "ID to continue listing results from the last query. Use the ID from previous queries to paginate through results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a next_record_id provided in the previous query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[next_record_id]"
+      },
+      {
+        "name": "include_descendants_usage",
+        "required": false,
+        "description": "Include child organization usage in the response. Set to true to include, false to exclude.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include child org usage in the response. Defaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[include_descendants]"
+      },
+      {
+        "name": "include_connected_accounts",
+        "required": false,
+        "description": "Include accounts connected as partner customers in the response. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to specify whether to include accounts connected to the current account as partner customers in the Datadog partner network program. Defaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[include_connected_accounts]"
+      },
+      {
+        "name": "include_usage_breakdown",
+        "required": false,
+        "description": "Boolean to include breakdown of usage by subcategories for product family logs. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include breakdown of usage by subcategories where applicable (for product family logs only). Defaults to false."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[include_breakdown]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetHourlyUsage'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/usage/hourly_usage",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[timestamp][start]",
+        "tool_parameter_name": "start_timestamp",
+        "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage beginning at this hour.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage beginning at this hour."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[timestamp][end]",
+        "tool_parameter_name": "end_timestamp",
+        "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage ending **before** this hour.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Datetime in ISO-8601 format, UTC, precise to hour: [YYYY-MM-DDThh] for usage ending **before** this hour."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[product_families]",
+        "tool_parameter_name": "product_families_to_retrieve",
+        "description": "Comma separated list of product families to retrieve. Available families are `all`, `analyzed_logs`,\n`application_security`, `audit_trail`, `serverless`, `ci_app`, `cloud_cost_management`, `cloud_siem`,\n`csm_container_enterprise`, `csm_host_enterprise`, `cspm`, `custom_events`, `cws`, `dbm`, `error_tracking`,\n`fargate`, `infra_hosts`, `incident_management`, `indexed_logs`, `indexed_spans`, `ingested_spans`, `iot`,\n`lambda_traced_invocations`, `llm_observability`, `logs`, `network_flows`, `network_hosts`, `network_monitoring`,\n`observability_pipelines`, `online_archive`, `profiling`, `product_analytics`, `rum`, `rum_browser_sessions`,\n`rum_mobile_sessions`, `sds`, `snmp`, `software_delivery`, `synthetics_api`, `synthetics_browser`,\n`synthetics_mobile`, `synthetics_parallel_testing`, `timeseries`, `vuln_management` and `workflow_executions`.\nThe following product family has been **deprecated**: `audit_logs`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of product families to retrieve. Available families are `all`, `analyzed_logs`,\n`application_security`, `audit_trail`, `serverless`, `ci_app`, `cloud_cost_management`, `cloud_siem`,\n`csm_container_enterprise`, `csm_host_enterprise`, `cspm`, `custom_events`, `cws`, `dbm`, `error_tracking`,\n`fargate`, `infra_hosts`, `incident_management`, `indexed_logs`, `indexed_spans`, `ingested_spans`, `iot`,\n`lambda_traced_invocations`, `llm_observability`, `logs`, `network_flows`, `network_hosts`, `network_monitoring`,\n`observability_pipelines`, `online_archive`, `profiling`, `product_analytics`, `rum`, `rum_browser_sessions`,\n`rum_mobile_sessions`, `sds`, `snmp`, `software_delivery`, `synthetics_api`, `synthetics_browser`,\n`synthetics_mobile`, `synthetics_parallel_testing`, `timeseries`, `vuln_management` and `workflow_executions`.\nThe following product family has been **deprecated**: `audit_logs`."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[include_descendants]",
+        "tool_parameter_name": "include_descendants_usage",
+        "description": "Include child org usage in the response. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include child org usage in the response. Defaults to false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[include_connected_accounts]",
+        "tool_parameter_name": "include_connected_accounts",
+        "description": "Boolean to specify whether to include accounts connected to the current account as partner customers in the Datadog partner network program. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Boolean to specify whether to include accounts connected to the current account as partner customers in the Datadog partner network program. Defaults to false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[include_breakdown]",
+        "tool_parameter_name": "include_usage_breakdown",
+        "description": "Include breakdown of usage by subcategories where applicable (for product family logs only). Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Include breakdown of usage by subcategories where applicable (for product family logs only). Defaults to false."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[versions]",
+        "tool_parameter_name": "product_family_versions",
+        "description": "Comma separated list of product family versions to use in the format `product_family:version`. For example,\n`infra_hosts:1.0.0`. If this parameter is not used, the API will use the latest version of each requested\nproduct family. Currently all families have one version `1.0.0`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma separated list of product family versions to use in the format `product_family:version`. For example,\n`infra_hosts:1.0.0`. If this parameter is not used, the API will use the latest version of each requested\nproduct family. Currently all families have one version `1.0.0`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[limit]",
+        "tool_parameter_name": "maximum_results_limit",
+        "description": "Maximum number of results to return (between 1 and 500) - defaults to 500 if limit not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of results to return (between 1 and 500) - defaults to 500 if limit not specified."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 500,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[next_record_id]",
+        "tool_parameter_name": "next_record_id",
+        "description": "List following results with a next_record_id provided in the previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List following results with a next_record_id provided in the previous query."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,291 @@
+{
+  "name": "EstimateMetricsOutput",
+  "fully_qualified_name": "DatadogApi.EstimateMetricsOutput@0.1.0",
+  "description": "Estimate cardinality of a metric with specific settings.\n\nUse this tool to get the estimated cardinality for a metric based on a specific tag, percentile, and number of aggregations configuration. This is useful for analyzing metric data within Datadog using Metrics without Limits\u2122.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metric_name",
+        "required": true,
+        "description": "Specifies the name of the metric for which to estimate cardinality.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metric_name"
+      },
+      {
+        "name": "filtered_tag_keys",
+        "required": false,
+        "description": "Filtered tag keys that the metric is configured to query with, specified as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filtered tag keys that the metric is configured to query with."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[groups]"
+      },
+      {
+        "name": "lookback_hours",
+        "required": false,
+        "description": "Specify the number of hours to look back from the current time to estimate cardinality. Defaults to 0 if not provided.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of hours of look back (from now) to estimate cardinality with. If unspecified, it defaults to 0 hours."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[hours_ago]"
+      },
+      {
+        "name": "ignore_num_aggregations",
+        "required": false,
+        "description": "This argument is deprecated and has no impact on volume estimation. It is ignored in the current tool implementation.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated. Number of aggregations has no impact on volume."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[num_aggregations]"
+      },
+      {
+        "name": "lookback_timespan_hours",
+        "required": false,
+        "description": "A window, in hours, from the lookback to estimate cardinality. Minimum is 1 hour.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[timespan_h]"
+      },
+      {
+        "name": "include_percentile_aggregators",
+        "required": false,
+        "description": "Boolean to estimate cardinality if distribution metrics have additional percentile aggregators.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A boolean, for distribution metrics only, to estimate cardinality if the metric includes additional percentile aggregators."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[pct]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EstimateMetricsOutputSeries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/metrics/{metric_name}/estimate",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter[groups]",
+        "tool_parameter_name": "filtered_tag_keys",
+        "description": "Filtered tag keys that the metric is configured to query with.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filtered tag keys that the metric is configured to query with."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[hours_ago]",
+        "tool_parameter_name": "lookback_hours",
+        "description": "The number of hours of look back (from now) to estimate cardinality with. If unspecified, it defaults to 0 hours.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of hours of look back (from now) to estimate cardinality with. If unspecified, it defaults to 0 hours."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[num_aggregations]",
+        "tool_parameter_name": "ignore_num_aggregations",
+        "description": "Deprecated. Number of aggregations has no impact on volume.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deprecated. Number of aggregations has no impact on volume."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[pct]",
+        "tool_parameter_name": "include_percentile_aggregators",
+        "description": "A boolean, for distribution metrics only, to estimate cardinality if the metric includes additional percentile aggregators.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A boolean, for distribution metrics only, to estimate cardinality if the metric includes additional percentile aggregators."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[timespan_h]",
+        "tool_parameter_name": "lookback_timespan_hours",
+        "description": "A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A window, in hours, from the look back to estimate cardinality with. The minimum and default is 1 hour."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "metric_name",
+        "tool_parameter_name": "metric_name",
+        "description": "The name of the metric.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metric."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

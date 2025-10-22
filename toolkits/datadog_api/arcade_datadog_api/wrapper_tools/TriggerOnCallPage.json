@@ -1,0 +1,342 @@
+{
+  "name": "TriggerOnCallPage",
+  "fully_qualified_name": "DatadogApi.TriggerOnCallPage@0.1.0",
+  "description": "Triggers a new On-Call Page in Datadog.\n\nUse this tool to trigger a new On-Call Page in Datadog whenever immediate attention is required. Ideal for alerting on-call team members.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "issue_summary",
+        "required": false,
+        "description": "A short summary of the issue or context for the On-Call Page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short summary of the issue or context."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.description"
+      },
+      {
+        "name": "tags_for_categorization",
+        "required": false,
+        "description": "An array of tags for categorizing or filtering the On-Call page.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tags to help categorize or filter the page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.tags"
+      },
+      {
+        "name": "target_identifier",
+        "required": false,
+        "description": "Identifier for the target, such as a team handle or user ID, used to specify the intended recipient of the On-Call Page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier for the target (for example, team handle or user ID)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.target.identifier"
+      },
+      {
+        "name": "target_type",
+        "required": false,
+        "description": "Specify the kind of target: 'team_id', 'team_handle', or 'user_id'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_id",
+            "team_handle",
+            "user_id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The kind of target, `team_id` | `team_handle` | `user_id`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.target.type"
+      },
+      {
+        "name": "page_title",
+        "required": false,
+        "description": "The title of the On-Call Page. Provide a concise and clear title to identify the issue or alert.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.title"
+      },
+      {
+        "name": "on_call_page_urgency_level",
+        "required": false,
+        "description": "Specifies the urgency level of the On-Call Page. Accepts 'low' or 'high'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "low",
+            "high"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "On-Call Page urgency level."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.urgency"
+      },
+      {
+        "name": "resource_type_for_on_call",
+        "required": false,
+        "description": "Specify the type of resource for creating an On-Call Page. Use `pages`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pages"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of resource used when creating an On-Call Page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateOnCallPage'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/on-call/pages",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.description",
+        "tool_parameter_name": "issue_summary",
+        "description": "A short summary of the issue or context.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A short summary of the issue or context."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.tags",
+        "tool_parameter_name": "tags_for_categorization",
+        "description": "Tags to help categorize or filter the page.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Tags to help categorize or filter the page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.target.identifier",
+        "tool_parameter_name": "target_identifier",
+        "description": "Identifier for the target (for example, team handle or user ID).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Identifier for the target (for example, team handle or user ID)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.target.type",
+        "tool_parameter_name": "target_type",
+        "description": "The kind of target, `team_id` | `team_handle` | `user_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "team_id",
+            "team_handle",
+            "user_id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The kind of target, `team_id` | `team_handle` | `user_id`."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.title",
+        "tool_parameter_name": "page_title",
+        "description": "The title of the page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The title of the page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.urgency",
+        "tool_parameter_name": "on_call_page_urgency_level",
+        "description": "On-Call Page urgency level.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "low",
+            "high"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "On-Call Page urgency level."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "high",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "resource_type_for_on_call",
+        "description": "The type of resource used when creating an On-Call Page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pages"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of resource used when creating an On-Call Page."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "pages",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Full request to trigger an On-Call Page.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"description\": \"Page details.\",\n              \"tags\": [\n                \"service:test\"\n              ],\n              \"target\": {\n                \"identifier\": \"my-team\",\n                \"type\": \"team_handle\"\n              },\n              \"title\": \"Page title\",\n              \"urgency\": \"low\"\n            },\n            \"type\": \"pages\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The main request body, including attributes and resource type.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Details about the On-Call Page you want to create.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"A short summary of the issue or context.\",\n                    \"type\": \"string\"\n                  },\n                  \"tags\": {\n                    \"description\": \"Tags to help categorize or filter the page.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"target\": {\n                    \"description\": \"Information about the target to notify (such as a team or user).\",\n                    \"properties\": {\n                      \"identifier\": {\n                        \"description\": \"Identifier for the target (for example, team handle or user ID).\",\n                        \"type\": \"string\"\n                      },\n                      \"type\": {\n                        \"description\": \"The kind of target, `team_id` | `team_handle` | `user_id`.\",\n                        \"enum\": [\n                          \"team_id\",\n                          \"team_handle\",\n                          \"user_id\"\n                        ],\n                        \"example\": \"team_id\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"TEAM_ID\",\n                          \"TEAM_HANDLE\",\n                          \"USER_ID\"\n                        ]\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"title\": {\n                    \"description\": \"The title of the page.\",\n                    \"example\": \"Service: Test is down\",\n                    \"type\": \"string\"\n                  },\n                  \"urgency\": {\n                    \"default\": \"high\",\n                    \"description\": \"On-Call Page urgency level.\",\n                    \"enum\": [\n                      \"low\",\n                      \"high\"\n                    ],\n                    \"example\": \"high\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"LOW\",\n                      \"HIGH\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"target\",\n                  \"title\",\n                  \"urgency\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"pages\",\n                \"description\": \"The type of resource used when creating an On-Call Page.\",\n                \"enum\": [\n                  \"pages\"\n                ],\n                \"example\": \"pages\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"PAGES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

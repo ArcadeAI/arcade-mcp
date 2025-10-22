@@ -1,0 +1,1724 @@
+{
+  "name": "CreateDatadogWorkflow",
+  "fully_qualified_name": "DatadogApi.CreateDatadogWorkflow@0.1.0",
+  "description": "Creates a new workflow in Datadog and returns its ID.\n\nThis tool is used to create a new workflow in Datadog, returning the workflow ID. It requires having a registered application key or configured permissions in the UI. This can be useful for automating processes and managing workflows effectively within the Datadog platform.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workflow_data",
+        "required": true,
+        "description": "JSON object containing detailed attributes for the Datadog workflow, including name, description, steps, connections, and other configuration aspects.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When the workflow was created."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the workflow."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the workflow."
+                    },
+                    "published": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Set the workflow to published or unpublished. Workflows in an unpublished state will only be executable via manual runs. Automatic triggers such as Schedule will not execute the workflow until it is published."
+                    },
+                    "spec": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "annotations": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "display": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "bounds": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "height": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `height`."
+                                    },
+                                    "width": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `width`."
+                                    },
+                                    "x": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `x`."
+                                    },
+                                    "y": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `y`."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `AnnotationDisplayBounds` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `AnnotationDisplay` object."
+                            },
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `Annotation` `id`."
+                            },
+                            "markdownTextAnnotation": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "text": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `markdownTextAnnotation` `text`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `AnnotationMarkdownTextAnnotation` object."
+                            }
+                          },
+                          "description": "A list of annotations used in the workflow. These are like sticky notes for your workflow!"
+                        },
+                        "connectionEnvs": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "connectionGroups": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "connectionGroupId": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `connectionGroupId`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `label`."
+                                },
+                                "tags": {
+                                  "val_type": "array",
+                                  "inner_val_type": "string",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `tags`."
+                                }
+                              },
+                              "description": "The `ConnectionEnv` `connectionGroups`."
+                            },
+                            "connections": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "connectionId": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Connection` `connectionId`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Connection` `label`."
+                                }
+                              },
+                              "description": "The `ConnectionEnv` `connections`."
+                            },
+                            "env": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "default"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `ConnectionEnvEnv` object."
+                            }
+                          },
+                          "description": "A list of connections or connection groups used in the workflow."
+                        },
+                        "handle": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Unique identifier used to trigger workflows automatically in Datadog."
+                        },
+                        "inputSchema": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "defaultValue": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `defaultValue`."
+                                },
+                                "description": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `description`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `label`."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `name`."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "STRING",
+                                    "NUMBER",
+                                    "BOOLEAN",
+                                    "OBJECT",
+                                    "ARRAY_STRING",
+                                    "ARRAY_NUMBER",
+                                    "ARRAY_BOOLEAN",
+                                    "ARRAY_OBJECT"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `InputSchemaParametersType` object."
+                                }
+                              },
+                              "description": "The `InputSchema` `parameters`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A list of input parameters for the workflow. These can be used as dynamic runtime values in your workflow."
+                        },
+                        "outputSchema": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "defaultValue": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `defaultValue`."
+                                },
+                                "description": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `description`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `label`."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `name`."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "STRING",
+                                    "NUMBER",
+                                    "BOOLEAN",
+                                    "OBJECT",
+                                    "ARRAY_STRING",
+                                    "ARRAY_NUMBER",
+                                    "ARRAY_BOOLEAN",
+                                    "ARRAY_OBJECT"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `OutputSchemaParametersType` object."
+                                },
+                                "value": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `value`."
+                                }
+                              },
+                              "description": "The `OutputSchema` `parameters`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A list of output parameters for the workflow."
+                        },
+                        "steps": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "actionId": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of an action."
+                            },
+                            "completionGate": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "completionCondition": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "operand1": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `CompletionCondition` `operand1`."
+                                    },
+                                    "operand2": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `CompletionCondition` `operand2`."
+                                    },
+                                    "operator": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "OPERATOR_EQUAL",
+                                        "OPERATOR_NOT_EQUAL",
+                                        "OPERATOR_GREATER_THAN",
+                                        "OPERATOR_LESS_THAN",
+                                        "OPERATOR_GREATER_THAN_OR_EQUAL_TO",
+                                        "OPERATOR_LESS_THAN_OR_EQUAL_TO",
+                                        "OPERATOR_CONTAINS",
+                                        "OPERATOR_DOES_NOT_CONTAIN",
+                                        "OPERATOR_IS_NULL",
+                                        "OPERATOR_IS_NOT_NULL",
+                                        "OPERATOR_IS_EMPTY",
+                                        "OPERATOR_IS_NOT_EMPTY"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `CompletionConditionOperator` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `CompletionCondition` object."
+                                },
+                                "retryStrategy": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "kind": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "RETRY_STRATEGY_LINEAR"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyKind` object."
+                                    },
+                                    "linear": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": {
+                                        "interval": {
+                                          "val_type": "string",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s"
+                                        },
+                                        "maxRetries": {
+                                          "val_type": "number",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `maxRetries`."
+                                        }
+                                      },
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyLinear` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `RetryStrategy` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Used to create conditions before running subsequent actions."
+                            },
+                            "connectionLabel": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of a connection defined in the spec."
+                            },
+                            "display": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "bounds": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "x": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `x`."
+                                    },
+                                    "y": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `y`."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `StepDisplayBounds` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `StepDisplay` object."
+                            },
+                            "errorHandlers": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "fallbackStepName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ErrorHandler` `fallbackStepName`."
+                                },
+                                "retryStrategy": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "kind": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "RETRY_STRATEGY_LINEAR"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyKind` object."
+                                    },
+                                    "linear": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": {
+                                        "interval": {
+                                          "val_type": "string",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s"
+                                        },
+                                        "maxRetries": {
+                                          "val_type": "number",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `maxRetries`."
+                                        }
+                                      },
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyLinear` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `RetryStrategy` object."
+                                }
+                              },
+                              "description": "The `Step` `errorHandlers`."
+                            },
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Name of the step."
+                            },
+                            "outboundEdges": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "branchName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutboundEdge` `branchName`."
+                                },
+                                "nextStepName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutboundEdge` `nextStepName`."
+                                }
+                              },
+                              "description": "A list of subsequent actions to run."
+                            },
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Parameter` `name`."
+                                },
+                                "value": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Parameter` `value`."
+                                }
+                              },
+                              "description": "A list of inputs for an action."
+                            },
+                            "readinessGate": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "thresholdType": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "ANY",
+                                    "ALL"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `ReadinessGateThresholdType` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Used to merge multiple branches into a single branch."
+                            }
+                          },
+                          "description": "A `Step` is a sub-component of a workflow. Each `Step` performs an action."
+                        },
+                        "triggers": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {},
+                          "description": "The list of triggers that activate this workflow. At least one trigger is required, and each trigger type may appear at most once."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The spec defines what the workflow does."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags of the workflow."
+                    },
+                    "updatedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When the workflow was last updated."
+                    },
+                    "webhookSecret": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If a Webhook trigger is defined on this workflow, a webhookSecret is required and should be provided here."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The workflow identifier"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "creator": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The user identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `WorkflowUserRelationshipType` object."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `WorkflowUserRelationshipData` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `WorkflowUserRelationship` object."
+                    },
+                    "owner": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The user identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `WorkflowUserRelationshipType` object."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `WorkflowUserRelationshipData` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `WorkflowUserRelationship` object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataRelationships` object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "workflows"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataType` object."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the workflow."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateWorkflow'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/workflows",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "workflow_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "createdAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When the workflow was created."
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the workflow."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the workflow."
+                    },
+                    "published": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Set the workflow to published or unpublished. Workflows in an unpublished state will only be executable via manual runs. Automatic triggers such as Schedule will not execute the workflow until it is published."
+                    },
+                    "spec": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "annotations": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "display": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "bounds": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "height": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `height`."
+                                    },
+                                    "width": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `width`."
+                                    },
+                                    "x": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `x`."
+                                    },
+                                    "y": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `y`."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `AnnotationDisplayBounds` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `AnnotationDisplay` object."
+                            },
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The `Annotation` `id`."
+                            },
+                            "markdownTextAnnotation": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "text": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `markdownTextAnnotation` `text`."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `AnnotationMarkdownTextAnnotation` object."
+                            }
+                          },
+                          "description": "A list of annotations used in the workflow. These are like sticky notes for your workflow!"
+                        },
+                        "connectionEnvs": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "connectionGroups": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "connectionGroupId": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `connectionGroupId`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `label`."
+                                },
+                                "tags": {
+                                  "val_type": "array",
+                                  "inner_val_type": "string",
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ConnectionGroup` `tags`."
+                                }
+                              },
+                              "description": "The `ConnectionEnv` `connectionGroups`."
+                            },
+                            "connections": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "connectionId": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Connection` `connectionId`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Connection` `label`."
+                                }
+                              },
+                              "description": "The `ConnectionEnv` `connections`."
+                            },
+                            "env": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "default"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `ConnectionEnvEnv` object."
+                            }
+                          },
+                          "description": "A list of connections or connection groups used in the workflow."
+                        },
+                        "handle": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Unique identifier used to trigger workflows automatically in Datadog."
+                        },
+                        "inputSchema": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "defaultValue": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `defaultValue`."
+                                },
+                                "description": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `description`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `label`."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `InputSchemaParameters` `name`."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "STRING",
+                                    "NUMBER",
+                                    "BOOLEAN",
+                                    "OBJECT",
+                                    "ARRAY_STRING",
+                                    "ARRAY_NUMBER",
+                                    "ARRAY_BOOLEAN",
+                                    "ARRAY_OBJECT"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `InputSchemaParametersType` object."
+                                }
+                              },
+                              "description": "The `InputSchema` `parameters`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A list of input parameters for the workflow. These can be used as dynamic runtime values in your workflow."
+                        },
+                        "outputSchema": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "defaultValue": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `defaultValue`."
+                                },
+                                "description": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `description`."
+                                },
+                                "label": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `label`."
+                                },
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `name`."
+                                },
+                                "type": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "STRING",
+                                    "NUMBER",
+                                    "BOOLEAN",
+                                    "OBJECT",
+                                    "ARRAY_STRING",
+                                    "ARRAY_NUMBER",
+                                    "ARRAY_BOOLEAN",
+                                    "ARRAY_OBJECT"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `OutputSchemaParametersType` object."
+                                },
+                                "value": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutputSchemaParameters` `value`."
+                                }
+                              },
+                              "description": "The `OutputSchema` `parameters`."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A list of output parameters for the workflow."
+                        },
+                        "steps": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "actionId": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of an action."
+                            },
+                            "completionGate": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "completionCondition": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "operand1": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `CompletionCondition` `operand1`."
+                                    },
+                                    "operand2": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `CompletionCondition` `operand2`."
+                                    },
+                                    "operator": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "OPERATOR_EQUAL",
+                                        "OPERATOR_NOT_EQUAL",
+                                        "OPERATOR_GREATER_THAN",
+                                        "OPERATOR_LESS_THAN",
+                                        "OPERATOR_GREATER_THAN_OR_EQUAL_TO",
+                                        "OPERATOR_LESS_THAN_OR_EQUAL_TO",
+                                        "OPERATOR_CONTAINS",
+                                        "OPERATOR_DOES_NOT_CONTAIN",
+                                        "OPERATOR_IS_NULL",
+                                        "OPERATOR_IS_NOT_NULL",
+                                        "OPERATOR_IS_EMPTY",
+                                        "OPERATOR_IS_NOT_EMPTY"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `CompletionConditionOperator` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `CompletionCondition` object."
+                                },
+                                "retryStrategy": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "kind": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "RETRY_STRATEGY_LINEAR"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyKind` object."
+                                    },
+                                    "linear": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": {
+                                        "interval": {
+                                          "val_type": "string",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s"
+                                        },
+                                        "maxRetries": {
+                                          "val_type": "number",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `maxRetries`."
+                                        }
+                                      },
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyLinear` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `RetryStrategy` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Used to create conditions before running subsequent actions."
+                            },
+                            "connectionLabel": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The unique identifier of a connection defined in the spec."
+                            },
+                            "display": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "bounds": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "x": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `x`."
+                                    },
+                                    "y": {
+                                      "val_type": "number",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The `bounds` `y`."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `StepDisplayBounds` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "The definition of `StepDisplay` object."
+                            },
+                            "errorHandlers": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "fallbackStepName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `ErrorHandler` `fallbackStepName`."
+                                },
+                                "retryStrategy": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "kind": {
+                                      "val_type": "string",
+                                      "inner_val_type": null,
+                                      "enum": [
+                                        "RETRY_STRATEGY_LINEAR"
+                                      ],
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyKind` object."
+                                    },
+                                    "linear": {
+                                      "val_type": "json",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": {
+                                        "interval": {
+                                          "val_type": "string",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s"
+                                        },
+                                        "maxRetries": {
+                                          "val_type": "number",
+                                          "inner_val_type": null,
+                                          "enum": null,
+                                          "properties": null,
+                                          "inner_properties": null,
+                                          "description": "The `RetryStrategyLinear` `maxRetries`."
+                                        }
+                                      },
+                                      "inner_properties": null,
+                                      "description": "The definition of `RetryStrategyLinear` object."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "The definition of `RetryStrategy` object."
+                                }
+                              },
+                              "description": "The `Step` `errorHandlers`."
+                            },
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Name of the step."
+                            },
+                            "outboundEdges": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "branchName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutboundEdge` `branchName`."
+                                },
+                                "nextStepName": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `OutboundEdge` `nextStepName`."
+                                }
+                              },
+                              "description": "A list of subsequent actions to run."
+                            },
+                            "parameters": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "name": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Parameter` `name`."
+                                },
+                                "value": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The `Parameter` `value`."
+                                }
+                              },
+                              "description": "A list of inputs for an action."
+                            },
+                            "readinessGate": {
+                              "val_type": "json",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": {
+                                "thresholdType": {
+                                  "val_type": "string",
+                                  "inner_val_type": null,
+                                  "enum": [
+                                    "ANY",
+                                    "ALL"
+                                  ],
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "The definition of `ReadinessGateThresholdType` object."
+                                }
+                              },
+                              "inner_properties": null,
+                              "description": "Used to merge multiple branches into a single branch."
+                            }
+                          },
+                          "description": "A `Step` is a sub-component of a workflow. Each `Step` performs an action."
+                        },
+                        "triggers": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {},
+                          "description": "The list of triggers that activate this workflow. At least one trigger is required, and each trigger type may appear at most once."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The spec defines what the workflow does."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags of the workflow."
+                    },
+                    "updatedAt": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When the workflow was last updated."
+                    },
+                    "webhookSecret": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "If a Webhook trigger is defined on this workflow, a webhookSecret is required and should be provided here."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The workflow identifier"
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "creator": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The user identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `WorkflowUserRelationshipType` object."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `WorkflowUserRelationshipData` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `WorkflowUserRelationship` object."
+                    },
+                    "owner": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The user identifier"
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The definition of `WorkflowUserRelationshipType` object."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The definition of `WorkflowUserRelationshipData` object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `WorkflowUserRelationship` object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataRelationships` object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "workflows"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The definition of `WorkflowDataType` object."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the workflow."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"A request object for creating a new workflow.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"description\": \"A sample workflow.\",\n              \"name\": \"Example Workflow\",\n              \"published\": true,\n              \"spec\": {\n                \"annotations\": [\n                  {\n                    \"display\": {\n                      \"bounds\": {\n                        \"height\": 150,\n                        \"width\": 300,\n                        \"x\": -375,\n                        \"y\": -0.5\n                      }\n                    },\n                    \"id\": \"99999999-9999-9999-9999-999999999999\",\n                    \"markdownTextAnnotation\": {\n                      \"text\": \"Example annotation.\"\n                    }\n                  }\n                ],\n                \"connectionEnvs\": [\n                  {\n                    \"connections\": [\n                      {\n                        \"connectionId\": \"11111111-1111-1111-1111-111111111111\",\n                        \"label\": \"INTEGRATION_DATADOG\"\n                      }\n                    ],\n                    \"env\": \"default\"\n                  }\n                ],\n                \"handle\": \"my-handle\",\n                \"inputSchema\": {\n                  \"parameters\": [\n                    {\n                      \"defaultValue\": \"default\",\n                      \"name\": \"input\",\n                      \"type\": \"STRING\"\n                    }\n                  ]\n                },\n                \"outputSchema\": {\n                  \"parameters\": [\n                    {\n                      \"name\": \"output\",\n                      \"type\": \"ARRAY_OBJECT\",\n                      \"value\": \"{{ Steps.Step1 }}\"\n                    }\n                  ]\n                },\n                \"steps\": [\n                  {\n                    \"actionId\": \"com.datadoghq.dd.monitor.listMonitors\",\n                    \"connectionLabel\": \"INTEGRATION_DATADOG\",\n                    \"name\": \"Step1\",\n                    \"outboundEdges\": [\n                      {\n                        \"branchName\": \"main\",\n                        \"nextStepName\": \"Step2\"\n                      }\n                    ],\n                    \"parameters\": [\n                      {\n                        \"name\": \"tags\",\n                        \"value\": \"service:monitoring\"\n                      }\n                    ]\n                  },\n                  {\n                    \"actionId\": \"com.datadoghq.core.noop\",\n                    \"name\": \"Step2\"\n                  }\n                ],\n                \"triggers\": [\n                  {\n                    \"monitorTrigger\": {\n                      \"rateLimit\": {\n                        \"count\": 1,\n                        \"interval\": \"3600s\"\n                      }\n                    },\n                    \"startStepNames\": [\n                      \"Step1\"\n                    ]\n                  },\n                  {\n                    \"githubWebhookTrigger\": {},\n                    \"startStepNames\": [\n                      \"Step1\"\n                    ]\n                  }\n                ]\n              },\n              \"tags\": [\n                \"team:infra\",\n                \"service:monitoring\",\n                \"foo:bar\"\n              ]\n            },\n            \"type\": \"workflows\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data related to the workflow.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `WorkflowDataAttributes` object.\",\n                \"properties\": {\n                  \"createdAt\": {\n                    \"description\": \"When the workflow was created.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"description\": {\n                    \"description\": \"Description of the workflow.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the workflow.\",\n                    \"example\": \"\",\n                    \"type\": \"string\"\n                  },\n                  \"published\": {\n                    \"description\": \"Set the workflow to published or unpublished. Workflows in an unpublished state will only be executable via manual runs. Automatic triggers such as Schedule will not execute the workflow until it is published.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"spec\": {\n                    \"description\": \"The spec defines what the workflow does.\",\n                    \"properties\": {\n                      \"annotations\": {\n                        \"description\": \"A list of annotations used in the workflow. These are like sticky notes for your workflow!\",\n                        \"items\": {\n                          \"description\": \"A list of annotations used in the workflow. These are like sticky notes for your workflow!\",\n                          \"properties\": {\n                            \"display\": {\n                              \"description\": \"The definition of `AnnotationDisplay` object.\",\n                              \"properties\": {\n                                \"bounds\": {\n                                  \"description\": \"The definition of `AnnotationDisplayBounds` object.\",\n                                  \"properties\": {\n                                    \"height\": {\n                                      \"description\": \"The `bounds` `height`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    },\n                                    \"width\": {\n                                      \"description\": \"The `bounds` `width`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    },\n                                    \"x\": {\n                                      \"description\": \"The `bounds` `x`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    },\n                                    \"y\": {\n                                      \"description\": \"The `bounds` `y`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"id\": {\n                              \"description\": \"The `Annotation` `id`.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"markdownTextAnnotation\": {\n                              \"description\": \"The definition of `AnnotationMarkdownTextAnnotation` object.\",\n                              \"properties\": {\n                                \"text\": {\n                                  \"description\": \"The `markdownTextAnnotation` `text`.\",\n                                  \"type\": \"string\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"display\",\n                            \"markdownTextAnnotation\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"connectionEnvs\": {\n                        \"description\": \"A list of connections or connection groups used in the workflow.\",\n                        \"items\": {\n                          \"description\": \"A list of connections or connection groups used in the workflow.\",\n                          \"properties\": {\n                            \"connectionGroups\": {\n                              \"description\": \"The `ConnectionEnv` `connectionGroups`.\",\n                              \"items\": {\n                                \"description\": \"The definition of `ConnectionGroup` object.\",\n                                \"properties\": {\n                                  \"connectionGroupId\": {\n                                    \"description\": \"The `ConnectionGroup` `connectionGroupId`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"label\": {\n                                    \"description\": \"The `ConnectionGroup` `label`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"tags\": {\n                                    \"description\": \"The `ConnectionGroup` `tags`.\",\n                                    \"example\": [\n                                      \"\"\n                                    ],\n                                    \"items\": {\n                                      \"type\": \"string\"\n                                    },\n                                    \"type\": \"array\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"connectionGroupId\",\n                                  \"label\",\n                                  \"tags\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"connections\": {\n                              \"description\": \"The `ConnectionEnv` `connections`.\",\n                              \"items\": {\n                                \"description\": \"The definition of `Connection` object.\",\n                                \"properties\": {\n                                  \"connectionId\": {\n                                    \"description\": \"The `Connection` `connectionId`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"label\": {\n                                    \"description\": \"The `Connection` `label`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"connectionId\",\n                                  \"label\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"env\": {\n                              \"description\": \"The definition of `ConnectionEnvEnv` object.\",\n                              \"enum\": [\n                                \"default\"\n                              ],\n                              \"example\": \"default\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"DEFAULT\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"env\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"handle\": {\n                        \"description\": \"Unique identifier used to trigger workflows automatically in Datadog.\",\n                        \"type\": \"string\"\n                      },\n                      \"inputSchema\": {\n                        \"description\": \"A list of input parameters for the workflow. These can be used as dynamic runtime values in your workflow.\",\n                        \"properties\": {\n                          \"parameters\": {\n                            \"description\": \"The `InputSchema` `parameters`.\",\n                            \"items\": {\n                              \"description\": \"The definition of `InputSchemaParameters` object.\",\n                              \"properties\": {\n                                \"defaultValue\": {\n                                  \"description\": \"The `InputSchemaParameters` `defaultValue`.\"\n                                },\n                                \"description\": {\n                                  \"description\": \"The `InputSchemaParameters` `description`.\",\n                                  \"type\": \"string\"\n                                },\n                                \"label\": {\n                                  \"description\": \"The `InputSchemaParameters` `label`.\",\n                                  \"type\": \"string\"\n                                },\n                                \"name\": {\n                                  \"description\": \"The `InputSchemaParameters` `name`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                },\n                                \"type\": {\n                                  \"description\": \"The definition of `InputSchemaParametersType` object.\",\n                                  \"enum\": [\n                                    \"STRING\",\n                                    \"NUMBER\",\n                                    \"BOOLEAN\",\n                                    \"OBJECT\",\n                                    \"ARRAY_STRING\",\n                                    \"ARRAY_NUMBER\",\n                                    \"ARRAY_BOOLEAN\",\n                                    \"ARRAY_OBJECT\"\n                                  ],\n                                  \"example\": \"STRING\",\n                                  \"type\": \"string\",\n                                  \"x-enum-varnames\": [\n                                    \"STRING\",\n                                    \"NUMBER\",\n                                    \"BOOLEAN\",\n                                    \"OBJECT\",\n                                    \"ARRAY_STRING\",\n                                    \"ARRAY_NUMBER\",\n                                    \"ARRAY_BOOLEAN\",\n                                    \"ARRAY_OBJECT\"\n                                  ]\n                                }\n                              },\n                              \"required\": [\n                                \"name\",\n                                \"type\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      },\n                      \"outputSchema\": {\n                        \"description\": \"A list of output parameters for the workflow.\",\n                        \"properties\": {\n                          \"parameters\": {\n                            \"description\": \"The `OutputSchema` `parameters`.\",\n                            \"items\": {\n                              \"description\": \"The definition of `OutputSchemaParameters` object.\",\n                              \"properties\": {\n                                \"defaultValue\": {\n                                  \"description\": \"The `OutputSchemaParameters` `defaultValue`.\"\n                                },\n                                \"description\": {\n                                  \"description\": \"The `OutputSchemaParameters` `description`.\",\n                                  \"type\": \"string\"\n                                },\n                                \"label\": {\n                                  \"description\": \"The `OutputSchemaParameters` `label`.\",\n                                  \"type\": \"string\"\n                                },\n                                \"name\": {\n                                  \"description\": \"The `OutputSchemaParameters` `name`.\",\n                                  \"example\": \"\",\n                                  \"type\": \"string\"\n                                },\n                                \"type\": {\n                                  \"description\": \"The definition of `OutputSchemaParametersType` object.\",\n                                  \"enum\": [\n                                    \"STRING\",\n                                    \"NUMBER\",\n                                    \"BOOLEAN\",\n                                    \"OBJECT\",\n                                    \"ARRAY_STRING\",\n                                    \"ARRAY_NUMBER\",\n                                    \"ARRAY_BOOLEAN\",\n                                    \"ARRAY_OBJECT\"\n                                  ],\n                                  \"example\": \"STRING\",\n                                  \"type\": \"string\",\n                                  \"x-enum-varnames\": [\n                                    \"STRING\",\n                                    \"NUMBER\",\n                                    \"BOOLEAN\",\n                                    \"OBJECT\",\n                                    \"ARRAY_STRING\",\n                                    \"ARRAY_NUMBER\",\n                                    \"ARRAY_BOOLEAN\",\n                                    \"ARRAY_OBJECT\"\n                                  ]\n                                },\n                                \"value\": {\n                                  \"description\": \"The `OutputSchemaParameters` `value`.\"\n                                }\n                              },\n                              \"required\": [\n                                \"name\",\n                                \"type\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      },\n                      \"steps\": {\n                        \"description\": \"A `Step` is a sub-component of a workflow. Each `Step` performs an action.\",\n                        \"items\": {\n                          \"description\": \"A Step is a sub-component of a workflow. Each Step performs an action.\",\n                          \"properties\": {\n                            \"actionId\": {\n                              \"description\": \"The unique identifier of an action.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"completionGate\": {\n                              \"description\": \"Used to create conditions before running subsequent actions.\",\n                              \"properties\": {\n                                \"completionCondition\": {\n                                  \"description\": \"The definition of `CompletionCondition` object.\",\n                                  \"properties\": {\n                                    \"operand1\": {\n                                      \"description\": \"The `CompletionCondition` `operand1`.\"\n                                    },\n                                    \"operand2\": {\n                                      \"description\": \"The `CompletionCondition` `operand2`.\"\n                                    },\n                                    \"operator\": {\n                                      \"description\": \"The definition of `CompletionConditionOperator` object.\",\n                                      \"enum\": [\n                                        \"OPERATOR_EQUAL\",\n                                        \"OPERATOR_NOT_EQUAL\",\n                                        \"OPERATOR_GREATER_THAN\",\n                                        \"OPERATOR_LESS_THAN\",\n                                        \"OPERATOR_GREATER_THAN_OR_EQUAL_TO\",\n                                        \"OPERATOR_LESS_THAN_OR_EQUAL_TO\",\n                                        \"OPERATOR_CONTAINS\",\n                                        \"OPERATOR_DOES_NOT_CONTAIN\",\n                                        \"OPERATOR_IS_NULL\",\n                                        \"OPERATOR_IS_NOT_NULL\",\n                                        \"OPERATOR_IS_EMPTY\",\n                                        \"OPERATOR_IS_NOT_EMPTY\"\n                                      ],\n                                      \"example\": \"OPERATOR_EQUAL\",\n                                      \"type\": \"string\",\n                                      \"x-enum-varnames\": [\n                                        \"OPERATOR_EQUAL\",\n                                        \"OPERATOR_NOT_EQUAL\",\n                                        \"OPERATOR_GREATER_THAN\",\n                                        \"OPERATOR_LESS_THAN\",\n                                        \"OPERATOR_GREATER_THAN_OR_EQUAL_TO\",\n                                        \"OPERATOR_LESS_THAN_OR_EQUAL_TO\",\n                                        \"OPERATOR_CONTAINS\",\n                                        \"OPERATOR_DOES_NOT_CONTAIN\",\n                                        \"OPERATOR_IS_NULL\",\n                                        \"OPERATOR_IS_NOT_NULL\",\n                                        \"OPERATOR_IS_EMPTY\",\n                                        \"OPERATOR_IS_NOT_EMPTY\"\n                                      ]\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"operand1\",\n                                    \"operator\"\n                                  ],\n                                  \"type\": \"object\"\n                                },\n                                \"retryStrategy\": {\n                                  \"description\": \"The definition of `RetryStrategy` object.\",\n                                  \"properties\": {\n                                    \"kind\": {\n                                      \"description\": \"The definition of `RetryStrategyKind` object.\",\n                                      \"enum\": [\n                                        \"RETRY_STRATEGY_LINEAR\"\n                                      ],\n                                      \"example\": \"RETRY_STRATEGY_LINEAR\",\n                                      \"type\": \"string\",\n                                      \"x-enum-varnames\": [\n                                        \"RETRY_STRATEGY_LINEAR\"\n                                      ]\n                                    },\n                                    \"linear\": {\n                                      \"description\": \"The definition of `RetryStrategyLinear` object.\",\n                                      \"properties\": {\n                                        \"interval\": {\n                                          \"description\": \"The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"example\": \"\",\n                                          \"type\": \"string\"\n                                        },\n                                        \"maxRetries\": {\n                                          \"description\": \"The `RetryStrategyLinear` `maxRetries`.\",\n                                          \"example\": 0.0,\n                                          \"format\": \"double\",\n                                          \"type\": \"number\"\n                                        }\n                                      },\n                                      \"required\": [\n                                        \"interval\",\n                                        \"maxRetries\"\n                                      ],\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"kind\"\n                                  ],\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"required\": [\n                                \"completionCondition\",\n                                \"retryStrategy\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"connectionLabel\": {\n                              \"description\": \"The unique identifier of a connection defined in the spec.\",\n                              \"type\": \"string\"\n                            },\n                            \"display\": {\n                              \"description\": \"The definition of `StepDisplay` object.\",\n                              \"properties\": {\n                                \"bounds\": {\n                                  \"description\": \"The definition of `StepDisplayBounds` object.\",\n                                  \"properties\": {\n                                    \"x\": {\n                                      \"description\": \"The `bounds` `x`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    },\n                                    \"y\": {\n                                      \"description\": \"The `bounds` `y`.\",\n                                      \"format\": \"double\",\n                                      \"type\": \"number\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"type\": \"object\"\n                            },\n                            \"errorHandlers\": {\n                              \"description\": \"The `Step` `errorHandlers`.\",\n                              \"items\": {\n                                \"description\": \"Used to handle errors in an action.\",\n                                \"properties\": {\n                                  \"fallbackStepName\": {\n                                    \"description\": \"The `ErrorHandler` `fallbackStepName`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"retryStrategy\": {\n                                    \"description\": \"The definition of `RetryStrategy` object.\",\n                                    \"properties\": {\n                                      \"kind\": {\n                                        \"description\": \"The definition of `RetryStrategyKind` object.\",\n                                        \"enum\": [\n                                          \"RETRY_STRATEGY_LINEAR\"\n                                        ],\n                                        \"example\": \"RETRY_STRATEGY_LINEAR\",\n                                        \"type\": \"string\",\n                                        \"x-enum-varnames\": [\n                                          \"RETRY_STRATEGY_LINEAR\"\n                                        ]\n                                      },\n                                      \"linear\": {\n                                        \"description\": \"The definition of `RetryStrategyLinear` object.\",\n                                        \"properties\": {\n                                          \"interval\": {\n                                            \"description\": \"The `RetryStrategyLinear` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                            \"example\": \"\",\n                                            \"type\": \"string\"\n                                          },\n                                          \"maxRetries\": {\n                                            \"description\": \"The `RetryStrategyLinear` `maxRetries`.\",\n                                            \"example\": 0.0,\n                                            \"format\": \"double\",\n                                            \"type\": \"number\"\n                                          }\n                                        },\n                                        \"required\": [\n                                          \"interval\",\n                                          \"maxRetries\"\n                                        ],\n                                        \"type\": \"object\"\n                                      }\n                                    },\n                                    \"required\": [\n                                      \"kind\"\n                                    ],\n                                    \"type\": \"object\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"retryStrategy\",\n                                  \"fallbackStepName\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"name\": {\n                              \"description\": \"Name of the step.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"outboundEdges\": {\n                              \"description\": \"A list of subsequent actions to run.\",\n                              \"items\": {\n                                \"description\": \"The definition of `OutboundEdge` object.\",\n                                \"properties\": {\n                                  \"branchName\": {\n                                    \"description\": \"The `OutboundEdge` `branchName`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"nextStepName\": {\n                                    \"description\": \"The `OutboundEdge` `nextStepName`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"nextStepName\",\n                                  \"branchName\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"parameters\": {\n                              \"description\": \"A list of inputs for an action.\",\n                              \"items\": {\n                                \"description\": \"The definition of `Parameter` object.\",\n                                \"properties\": {\n                                  \"name\": {\n                                    \"description\": \"The `Parameter` `name`.\",\n                                    \"example\": \"\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"value\": {\n                                    \"description\": \"The `Parameter` `value`.\"\n                                  }\n                                },\n                                \"required\": [\n                                  \"name\",\n                                  \"value\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              \"type\": \"array\"\n                            },\n                            \"readinessGate\": {\n                              \"description\": \"Used to merge multiple branches into a single branch.\",\n                              \"properties\": {\n                                \"thresholdType\": {\n                                  \"description\": \"The definition of `ReadinessGateThresholdType` object.\",\n                                  \"enum\": [\n                                    \"ANY\",\n                                    \"ALL\"\n                                  ],\n                                  \"example\": \"ANY\",\n                                  \"type\": \"string\",\n                                  \"x-enum-varnames\": [\n                                    \"ANY\",\n                                    \"ALL\"\n                                  ]\n                                }\n                              },\n                              \"required\": [\n                                \"thresholdType\"\n                              ],\n                              \"type\": \"object\"\n                            }\n                          },\n                          \"required\": [\n                            \"name\",\n                            \"actionId\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"triggers\": {\n                        \"description\": \"The list of triggers that activate this workflow. At least one trigger is required, and each trigger type may appear at most once.\",\n                        \"items\": {\n                          \"description\": \"One of the triggers that can start the execution of a workflow.\",\n                          \"oneOf\": [\n                            {\n                              \"description\": \"Schema for an API-based trigger.\",\n                              \"properties\": {\n                                \"apiTrigger\": {\n                                  \"description\": \"Trigger a workflow from an API request. The workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"apiTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for an App-based trigger.\",\n                              \"properties\": {\n                                \"appTrigger\": {\n                                  \"description\": \"Trigger a workflow from an App.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"appTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Case-based trigger.\",\n                              \"properties\": {\n                                \"caseTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Case. For automatic triggering a handle must be configured and the workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"caseTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Change Event-based trigger.\",\n                              \"properties\": {\n                                \"changeEventTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Change Event.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"changeEventTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Database Monitoring-based trigger.\",\n                              \"properties\": {\n                                \"databaseMonitoringTrigger\": {\n                                  \"description\": \"Trigger a workflow from Database Monitoring.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"databaseMonitoringTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Datastore-based trigger.\",\n                              \"properties\": {\n                                \"datastoreTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Datastore. For automatic triggering a handle must be configured and the workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"datastoreTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Dashboard-based trigger.\",\n                              \"properties\": {\n                                \"dashboardTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Dashboard.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"dashboardTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a GitHub webhook-based trigger.\",\n                              \"properties\": {\n                                \"githubWebhookTrigger\": {\n                                  \"description\": \"Trigger a workflow from a GitHub webhook. To trigger a workflow from GitHub, you must set a `webhookSecret`. In your GitHub Webhook Settings, set the Payload URL to \\\"base_url\\\"/api/v2/workflows/\\\"workflow_id\\\"/webhook?orgId=\\\"org_id\\\", select application/json for the content type, and be highly recommend enabling SSL verification for security. The workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"githubWebhookTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for an Incident-based trigger.\",\n                              \"properties\": {\n                                \"incidentTrigger\": {\n                                  \"description\": \"Trigger a workflow from an Incident. For automatic triggering a handle must be configured and the workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"incidentTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Monitor-based trigger.\",\n                              \"properties\": {\n                                \"monitorTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Monitor. For automatic triggering a handle must be configured and the workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"monitorTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Notebook-based trigger.\",\n                              \"properties\": {\n                                \"notebookTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Notebook.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"notebookTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Schedule-based trigger.\",\n                              \"properties\": {\n                                \"scheduleTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Schedule. The workflow must be published.\",\n                                  \"properties\": {\n                                    \"rruleExpression\": {\n                                      \"description\": \"Recurrence rule expression for scheduling.\",\n                                      \"example\": \"\",\n                                      \"type\": \"string\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"rruleExpression\"\n                                  ],\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"scheduleTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Security-based trigger.\",\n                              \"properties\": {\n                                \"securityTrigger\": {\n                                  \"description\": \"Trigger a workflow from a Security Signal or Finding. For automatic triggering a handle must be configured and the workflow must be published.\",\n                                  \"properties\": {\n                                    \"rateLimit\": {\n                                      \"description\": \"Defines a rate limit for a trigger.\",\n                                      \"properties\": {\n                                        \"count\": {\n                                          \"description\": \"The `TriggerRateLimit` `count`.\",\n                                          \"format\": \"int64\",\n                                          \"type\": \"integer\"\n                                        },\n                                        \"interval\": {\n                                          \"description\": \"The `TriggerRateLimit` `interval`. The expected format is the number of seconds ending with an s. For example, 1 day is 86400s\",\n                                          \"type\": \"string\"\n                                        }\n                                      },\n                                      \"type\": \"object\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"securityTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Self Service-based trigger.\",\n                              \"properties\": {\n                                \"selfServiceTrigger\": {\n                                  \"description\": \"Trigger a workflow from Self Service.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"selfServiceTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Slack-based trigger.\",\n                              \"properties\": {\n                                \"slackTrigger\": {\n                                  \"description\": \"Trigger a workflow from Slack. The workflow must be published.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"slackTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Software Catalog-based trigger.\",\n                              \"properties\": {\n                                \"softwareCatalogTrigger\": {\n                                  \"description\": \"Trigger a workflow from Software Catalog.\",\n                                  \"type\": \"object\"\n                                },\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                }\n                              },\n                              \"required\": [\n                                \"softwareCatalogTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            {\n                              \"description\": \"Schema for a Workflow-based trigger.\",\n                              \"properties\": {\n                                \"startStepNames\": {\n                                  \"description\": \"A list of steps that run first after a trigger fires.\",\n                                  \"example\": [\n                                    \"\"\n                                  ],\n                                  \"items\": {\n                                    \"description\": \"The `StartStepNames` `items`.\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"type\": \"array\"\n                                },\n                                \"workflowTrigger\": {\n                                  \"description\": \"Trigger a workflow from the Datadog UI. Only required if no other trigger exists.\",\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"required\": [\n                                \"workflowTrigger\"\n                              ],\n                              \"type\": \"object\"\n                            }\n                          ]\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"tags\": {\n                    \"description\": \"Tags of the workflow.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"updatedAt\": {\n                    \"description\": \"When the workflow was last updated.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"webhookSecret\": {\n                    \"description\": \"If a Webhook trigger is defined on this workflow, a webhookSecret is required and should be provided here.\",\n                    \"type\": \"string\",\n                    \"writeOnly\": true\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"spec\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The workflow identifier\",\n                \"readOnly\": true,\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"The definition of `WorkflowDataRelationships` object.\",\n                \"properties\": {\n                  \"creator\": {\n                    \"description\": \"The definition of `WorkflowUserRelationship` object.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The definition of `WorkflowUserRelationshipData` object.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The user identifier\",\n                            \"example\": \"\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"The definition of `WorkflowUserRelationshipType` object.\",\n                            \"enum\": [\n                              \"users\"\n                            ],\n                            \"example\": \"users\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USERS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"owner\": {\n                    \"description\": \"The definition of `WorkflowUserRelationship` object.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The definition of `WorkflowUserRelationshipData` object.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"The user identifier\",\n                            \"example\": \"\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"The definition of `WorkflowUserRelationshipType` object.\",\n                            \"enum\": [\n                              \"users\"\n                            ],\n                            \"example\": \"users\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USERS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"id\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"readOnly\": true,\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"The definition of `WorkflowDataType` object.\",\n                \"enum\": [\n                  \"workflows\"\n                ],\n                \"example\": \"workflows\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"WORKFLOWS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

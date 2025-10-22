@@ -1,0 +1,196 @@
+{
+  "name": "RemoveRoleFromArchive",
+  "fully_qualified_name": "DatadogApi.RemoveRoleFromArchive@0.1.0",
+  "description": "Removes a role from a specified archive in Datadog.\n\nThis tool should be called to remove a user role from a specific archive in Datadog. It helps revoke access permissions associated with that role for the archive.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "archive_id",
+        "required": true,
+        "description": "The ID of the archive from which the role will be removed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the archive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archive_id"
+      },
+      {
+        "name": "role_unique_identifier",
+        "required": false,
+        "description": "The unique identifier of the role to be removed from the archive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the role."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "role_type",
+        "required": false,
+        "description": "The type of role to be removed, typically set to 'roles'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "roles"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Roles type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'RemoveRoleFromArchive'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/config/archives/{archive_id}/readers",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "archive_id",
+        "tool_parameter_name": "archive_id",
+        "description": "The ID of the archive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the archive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "role_unique_identifier",
+        "description": "The unique identifier of the role.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the role."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "role_type",
+        "description": "Roles type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "roles"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Roles type."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "roles",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Relationship to role.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Relationship to role object.\",\n            \"properties\": {\n              \"id\": {\n                \"description\": \"The unique identifier of the role.\",\n                \"example\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"roles\",\n                \"description\": \"Roles type.\",\n                \"enum\": [\n                  \"roles\"\n                ],\n                \"example\": \"roles\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ROLES\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

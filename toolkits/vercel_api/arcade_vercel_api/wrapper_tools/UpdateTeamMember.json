@@ -1,0 +1,304 @@
+{
+  "name": "UpdateTeamMember",
+  "fully_qualified_name": "VercelApi.UpdateTeamMember@0.1.0",
+  "description": "Update a team member's role or confirm membership.\n\nThis tool updates a team member's details within a specified team, such as modifying their role or confirming an unconfirmed member's request to join. It requires the authenticated user to have 'OWNER' privileges in the team.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_id",
+        "required": true,
+        "description": "The unique identifier for the team member to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the member."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uid"
+      },
+      {
+        "name": "team_id",
+        "required": true,
+        "description": "The unique ID of the team where the member's role or membership status will be updated. It is required to identify the specific team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "membership_update_details",
+        "required": true,
+        "description": "JSON object including confirmation status, role changes, and project role updates for a team member.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "confirmed": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": [
+                "True"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Accept a user who requested access to the team."
+            },
+            "role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The role in the team of the member."
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The project role of the member that will be added. \\\"null\\\" will remove this project level role."
+                }
+              },
+              "description": null
+            },
+            "joinedFrom": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ssoUserId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateTeamMember'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/teams/{teamId}/members/{uid}",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "uid",
+        "tool_parameter_name": "member_id",
+        "description": "The ID of the member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the member."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "membership_update_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "confirmed": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": [
+                "True"
+              ],
+              "properties": null,
+              "inner_properties": null,
+              "description": "Accept a user who requested access to the team."
+            },
+            "role": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The role in the team of the member."
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The project role of the member that will be added. \\\"null\\\" will remove this project level role."
+                }
+              },
+              "description": null
+            },
+            "joinedFrom": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "ssoUserId": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"confirmed\": {\n            \"type\": \"boolean\",\n            \"enum\": [\n              true\n            ],\n            \"description\": \"Accept a user who requested access to the team.\",\n            \"example\": true\n          },\n          \"role\": {\n            \"type\": \"string\",\n            \"description\": \"The role in the team of the member.\",\n            \"example\": [\n              \"MEMBER\",\n              \"VIEWER\"\n            ],\n            \"default\": \"MEMBER\"\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"required\": [\n                \"role\",\n                \"projectId\"\n              ],\n              \"properties\": {\n                \"projectId\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 256,\n                  \"example\": \"prj_ndlgr43fadlPyCtREAqxxdyFK\",\n                  \"description\": \"The ID of the project.\"\n                },\n                \"role\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"ADMIN\",\n                    \"PROJECT_VIEWER\",\n                    \"PROJECT_DEVELOPER\",\n                    null\n                  ],\n                  \"example\": \"ADMIN\",\n                  \"description\": \"The project role of the member that will be added. \\\\\\\"null\\\\\\\" will remove this project level role.\",\n                  \"nullable\": true\n                }\n              }\n            }\n          },\n          \"joinedFrom\": {\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"properties\": {\n              \"ssoUserId\": {\n                \"nullable\": true\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

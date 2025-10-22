@@ -1,0 +1,402 @@
+{
+  "name": "UpdateApmRetentionFilter",
+  "fully_qualified_name": "DatadogApi.UpdateApmRetentionFilter@0.1.0",
+  "description": "Update an APM retention filter in your organization.\n\nUse this tool to update a retention filter for APM in your Datadog organization. Default filters cannot be renamed or removed.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "retention_filter_id",
+        "required": true,
+        "description": "The unique ID of the retention filter to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_id"
+      },
+      {
+        "name": "filter_query",
+        "required": true,
+        "description": "The search query for the retention filter, following the span search syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.filter.query"
+      },
+      {
+        "name": "retention_filter_type",
+        "required": true,
+        "description": "Specify the type of retention filter. Valid options are: 'spans-sampling-processor', 'spans-errors-sampling-processor', 'spans-appsec-sampling-processor'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "spans-sampling-processor",
+            "spans-errors-sampling-processor",
+            "spans-appsec-sampling-processor"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.filter_type"
+      },
+      {
+        "name": "retention_filter_name",
+        "required": true,
+        "description": "Specify the name of the retention filter to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "span_sample_rate",
+        "required": true,
+        "description": "Sample rate to apply to spans going through this retention filter. A value of 1.0 keeps all spans matching the query. Expected to be a number between 0 and 1.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sample rate to apply to spans going through this retention filter.\nA value of 1.0 keeps all spans matching the query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.rate"
+      },
+      {
+        "name": "filter_id",
+        "required": true,
+        "description": "The unique identifier for the retention filter that you want to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "resource_type",
+        "required": true,
+        "description": "Specifies the type of the APM retention filter resource, should be 'apm_retention_filter'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "apm_retention_filter"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "enable_retention_filter",
+        "required": true,
+        "description": "Set to true to enable or false to disable the retention filter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enable/Disable the retention filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.enabled"
+      },
+      {
+        "name": "trace_sample_rate",
+        "required": false,
+        "description": "Sample rate for traces containing spans that pass through the retention filter. A value of 1.0 keeps all matching traces.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sample rate to apply to traces containing spans going through this retention filter.\nA value of 1.0 keeps all traces with spans matching the query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.trace_rate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateApmRetentionFilter'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/apm/config/retention-filters/{filter_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter_id",
+        "tool_parameter_name": "retention_filter_id",
+        "description": "The ID of the retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the retention filter."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.enabled",
+        "tool_parameter_name": "enable_retention_filter",
+        "description": "Enable/Disable the retention filter.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Enable/Disable the retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.filter.query",
+        "tool_parameter_name": "filter_query",
+        "description": "The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/)."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.filter_type",
+        "tool_parameter_name": "retention_filter_type",
+        "description": "The type of retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "spans-sampling-processor",
+            "spans-errors-sampling-processor",
+            "spans-appsec-sampling-processor"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "spans-sampling-processor",
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "retention_filter_name",
+        "description": "The name of the retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.rate",
+        "tool_parameter_name": "span_sample_rate",
+        "description": "Sample rate to apply to spans going through this retention filter.\nA value of 1.0 keeps all spans matching the query.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sample rate to apply to spans going through this retention filter.\nA value of 1.0 keeps all spans matching the query."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.trace_rate",
+        "tool_parameter_name": "trace_sample_rate",
+        "description": "Sample rate to apply to traces containing spans going through this retention filter.\nA value of 1.0 keeps all traces with spans matching the query.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sample rate to apply to traces containing spans going through this retention filter.\nA value of 1.0 keeps all traces with spans matching the query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "filter_id",
+        "description": "The ID of the retention filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the retention filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "resource_type",
+        "description": "The type of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "apm_retention_filter"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of the resource."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "apm_retention_filter",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The body of the retention filter to be updated.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The body of the retention filter to be updated.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The object describing the configuration of the retention filter to create/update.\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"description\": \"Enable/Disable the retention filter.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"filter\": {\n                    \"description\": \"The spans filter. Spans matching this filter will be indexed and stored.\",\n                    \"properties\": {\n                      \"query\": {\n                        \"description\": \"The search query - following the [span search syntax](https://docs.datadoghq.com/tracing/trace_explorer/query_syntax/).\",\n                        \"example\": \"@http.status_code:200 service:my-service\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"query\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"filter_type\": {\n                    \"default\": \"spans-sampling-processor\",\n                    \"description\": \"The type of retention filter.\",\n                    \"enum\": [\n                      \"spans-sampling-processor\",\n                      \"spans-errors-sampling-processor\",\n                      \"spans-appsec-sampling-processor\"\n                    ],\n                    \"example\": \"spans-sampling-processor\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"SPANS_SAMPLING_PROCESSOR\",\n                      \"SPANS_ERRORS_SAMPLING_PROCESSOR\",\n                      \"SPANS_APPSEC_SAMPLING_PROCESSOR\"\n                    ]\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the retention filter.\",\n                    \"example\": \"my retention filter\",\n                    \"type\": \"string\"\n                  },\n                  \"rate\": {\n                    \"description\": \"Sample rate to apply to spans going through this retention filter.\\nA value of 1.0 keeps all spans matching the query.\",\n                    \"example\": 1.0,\n                    \"format\": \"double\",\n                    \"type\": \"number\"\n                  },\n                  \"trace_rate\": {\n                    \"description\": \"Sample rate to apply to traces containing spans going through this retention filter.\\nA value of 1.0 keeps all traces with spans matching the query.\",\n                    \"example\": 1.0,\n                    \"format\": \"double\",\n                    \"type\": \"number\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"filter\",\n                  \"enabled\",\n                  \"filter_type\",\n                  \"rate\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the retention filter.\",\n                \"example\": \"retention-filter-id\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"apm_retention_filter\",\n                \"description\": \"The type of the resource.\",\n                \"enum\": [\n                  \"apm_retention_filter\"\n                ],\n                \"example\": \"apm_retention_filter\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"apm_retention_filter\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The updated definition of the retention filter.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

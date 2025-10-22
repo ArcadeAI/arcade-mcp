@@ -1,0 +1,754 @@
+{
+  "name": "UpdateWorkloadProtectionAgentRule",
+  "fully_qualified_name": "DatadogApi.UpdateWorkloadProtectionAgentRule@0.1.0",
+  "description": "Update a specific Workload Protection Agent rule.\n\nUse this tool to update a specific Workload Protection Agent rule. This is helpful when you need to modify existing rules for workload protection. Please note that this endpoint is not available for the Government (US1-FED) site.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "agent_rule_id",
+        "required": true,
+        "description": "The unique identifier of the specific Agent rule to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Agent rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "agent_rule_id"
+      },
+      {
+        "name": "new_agent_rule_definition",
+        "required": true,
+        "description": "JSON object defining the new configuration for the agent rule, including actions, metadata, agent version, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "actions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filter": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "SECL expression used to target the container to apply the action on"
+                        },
+                        "hash": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An empty object indicating the hash action"
+                        },
+                        "kill": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "signal": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Supported signals for the kill system call"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Kill system call applied on the container matching the rule"
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "image_tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The image tag of the metadata action"
+                            },
+                            "service": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The service of the metadata action"
+                            },
+                            "short_image": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The short image of the metadata action"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The metadata action applied on the scope matching the rule"
+                        },
+                        "set": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "append": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the value should be appended to the field."
+                            },
+                            "default_value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The default value of the set action"
+                            },
+                            "expression": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The expression of the set action."
+                            },
+                            "field": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field of the set action"
+                            },
+                            "inherited": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the value should be inherited."
+                            },
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The name of the set action"
+                            },
+                            "scope": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The scope of the set action."
+                            },
+                            "size": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The size of the set action."
+                            },
+                            "ttl": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The time to live of the set action."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The value of the set action"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The set action applied on the scope matching the rule"
+                        }
+                      },
+                      "description": "The array of actions the rule can perform if triggered"
+                    },
+                    "agent_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Constrain the rule to specific versions of the Datadog Agent"
+                    },
+                    "blocking": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The blocking policies that the rule belongs to"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of the Agent rule"
+                    },
+                    "disabled": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The disabled policies that the rule belongs to"
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the Agent rule is enabled"
+                    },
+                    "expression": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The SECL expression of the Agent rule"
+                    },
+                    "monitoring": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The monitoring policies that the rule belongs to"
+                    },
+                    "policy_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the policy where the Agent rule is saved"
+                    },
+                    "product_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of product tags associated with the rule"
+                    },
+                    "silent": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the rule is silent."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Update an existing Cloud Workload Security Agent rule"
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Agent rule"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "agent_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource, must always be `agent_rule`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single Agent rule"
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the agent rule"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "agent_policy_id",
+        "required": false,
+        "description": "The ID of the Agent policy to be updated in the Workload Protection Agent rule.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Agent policy"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "policy_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCSMThreatsAgentRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/remote_config/products/cws/agent_rules/{agent_rule_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "policy_id",
+        "tool_parameter_name": "agent_policy_id",
+        "description": "The ID of the Agent policy",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Agent policy"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "agent_rule_id",
+        "tool_parameter_name": "agent_rule_id",
+        "description": "The ID of the Agent rule",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Agent rule"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_agent_rule_definition",
+        "description": "New definition of the agent rule",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "actions": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filter": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "SECL expression used to target the container to apply the action on"
+                        },
+                        "hash": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "An empty object indicating the hash action"
+                        },
+                        "kill": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "signal": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Supported signals for the kill system call"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Kill system call applied on the container matching the rule"
+                        },
+                        "metadata": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "image_tag": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The image tag of the metadata action"
+                            },
+                            "service": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The service of the metadata action"
+                            },
+                            "short_image": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The short image of the metadata action"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The metadata action applied on the scope matching the rule"
+                        },
+                        "set": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "append": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the value should be appended to the field."
+                            },
+                            "default_value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The default value of the set action"
+                            },
+                            "expression": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The expression of the set action."
+                            },
+                            "field": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field of the set action"
+                            },
+                            "inherited": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Whether the value should be inherited."
+                            },
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The name of the set action"
+                            },
+                            "scope": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The scope of the set action."
+                            },
+                            "size": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The size of the set action."
+                            },
+                            "ttl": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The time to live of the set action."
+                            },
+                            "value": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The value of the set action"
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The set action applied on the scope matching the rule"
+                        }
+                      },
+                      "description": "The array of actions the rule can perform if triggered"
+                    },
+                    "agent_version": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Constrain the rule to specific versions of the Datadog Agent"
+                    },
+                    "blocking": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The blocking policies that the rule belongs to"
+                    },
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of the Agent rule"
+                    },
+                    "disabled": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The disabled policies that the rule belongs to"
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the Agent rule is enabled"
+                    },
+                    "expression": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The SECL expression of the Agent rule"
+                    },
+                    "monitoring": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The monitoring policies that the rule belongs to"
+                    },
+                    "policy_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The ID of the policy where the Agent rule is saved"
+                    },
+                    "product_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The list of product tags associated with the rule"
+                    },
+                    "silent": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the rule is silent."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Update an existing Cloud Workload Security Agent rule"
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the Agent rule"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "agent_rule"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource, must always be `agent_rule`"
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single Agent rule"
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the agent rule"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object that includes the Agent rule with the attributes to update\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for a single Agent rule\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Update an existing Cloud Workload Security Agent rule\",\n                \"properties\": {\n                  \"actions\": {\n                    \"description\": \"The array of actions the rule can perform if triggered\",\n                    \"items\": {\n                      \"description\": \"The action the rule can perform if triggered\",\n                      \"properties\": {\n                        \"filter\": {\n                          \"description\": \"SECL expression used to target the container to apply the action on\",\n                          \"type\": \"string\"\n                        },\n                        \"hash\": {\n                          \"additionalProperties\": {},\n                          \"description\": \"An empty object indicating the hash action\",\n                          \"type\": \"object\"\n                        },\n                        \"kill\": {\n                          \"description\": \"Kill system call applied on the container matching the rule\",\n                          \"properties\": {\n                            \"signal\": {\n                              \"description\": \"Supported signals for the kill system call\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"metadata\": {\n                          \"description\": \"The metadata action applied on the scope matching the rule\",\n                          \"properties\": {\n                            \"image_tag\": {\n                              \"description\": \"The image tag of the metadata action\",\n                              \"type\": \"string\"\n                            },\n                            \"service\": {\n                              \"description\": \"The service of the metadata action\",\n                              \"type\": \"string\"\n                            },\n                            \"short_image\": {\n                              \"description\": \"The short image of the metadata action\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"set\": {\n                          \"description\": \"The set action applied on the scope matching the rule\",\n                          \"properties\": {\n                            \"append\": {\n                              \"description\": \"Whether the value should be appended to the field.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"default_value\": {\n                              \"description\": \"The default value of the set action\",\n                              \"type\": \"string\"\n                            },\n                            \"expression\": {\n                              \"description\": \"The expression of the set action.\",\n                              \"type\": \"string\"\n                            },\n                            \"field\": {\n                              \"description\": \"The field of the set action\",\n                              \"type\": \"string\"\n                            },\n                            \"inherited\": {\n                              \"description\": \"Whether the value should be inherited.\",\n                              \"type\": \"boolean\"\n                            },\n                            \"name\": {\n                              \"description\": \"The name of the set action\",\n                              \"type\": \"string\"\n                            },\n                            \"scope\": {\n                              \"description\": \"The scope of the set action.\",\n                              \"type\": \"string\"\n                            },\n                            \"size\": {\n                              \"description\": \"The size of the set action.\",\n                              \"format\": \"int64\",\n                              \"type\": \"integer\"\n                            },\n                            \"ttl\": {\n                              \"description\": \"The time to live of the set action.\",\n                              \"format\": \"int64\",\n                              \"type\": \"integer\"\n                            },\n                            \"value\": {\n                              \"description\": \"The value of the set action\",\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"nullable\": true,\n                    \"type\": \"array\"\n                  },\n                  \"agent_version\": {\n                    \"description\": \"Constrain the rule to specific versions of the Datadog Agent\",\n                    \"type\": \"string\"\n                  },\n                  \"blocking\": {\n                    \"description\": \"The blocking policies that the rule belongs to\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"description\": {\n                    \"description\": \"The description of the Agent rule\",\n                    \"example\": \"My Agent rule\",\n                    \"type\": \"string\"\n                  },\n                  \"disabled\": {\n                    \"description\": \"The disabled policies that the rule belongs to\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"enabled\": {\n                    \"description\": \"Whether the Agent rule is enabled\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"expression\": {\n                    \"description\": \"The SECL expression of the Agent rule\",\n                    \"example\": \"exec.file.name == \\\"sh\\\"\",\n                    \"type\": \"string\"\n                  },\n                  \"monitoring\": {\n                    \"description\": \"The monitoring policies that the rule belongs to\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"policy_id\": {\n                    \"description\": \"The ID of the policy where the Agent rule is saved\",\n                    \"example\": \"a8c8e364-6556-434d-b798-a4c23de29c0b\",\n                    \"type\": \"string\"\n                  },\n                  \"product_tags\": {\n                    \"description\": \"The list of product tags associated with the rule\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"silent\": {\n                    \"description\": \"Whether the rule is silent.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the Agent rule\",\n                \"example\": \"3dd-0uc-h1s\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"agent_rule\",\n                \"description\": \"The type of the resource, must always be `agent_rule`\",\n                \"enum\": [\n                  \"agent_rule\"\n                ],\n                \"example\": \"agent_rule\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AGENT_RULE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the agent rule\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

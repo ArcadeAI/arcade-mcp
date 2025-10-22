@@ -1,0 +1,185 @@
+{
+  "name": "RevokeRoleFromGroup",
+  "fully_qualified_name": "WeaviateApi.RevokeRoleFromGroup@0.1.0",
+  "description": "Revoke roles from a specified group to manage permissions.\n\nThis tool allows the revocation of roles from a specified group, which is useful for managing and updating group permissions within a system using Weaviate.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_name",
+        "required": true,
+        "description": "The name of the group from which roles will be revoked.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "roles_to_revoke",
+        "required": false,
+        "description": "An array of role names to revoke from the specified group.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The roles to revoke from the specified group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "roles"
+      },
+      {
+        "name": "group_type",
+        "required": false,
+        "description": "Specifies whether the group contains OIDC or database users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If the group contains OIDC or database users."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "groupType"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'revokeRoleFromGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/authz/groups/{id}/revoke",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "group_name",
+        "description": "The name of the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "roles",
+        "tool_parameter_name": "roles_to_revoke",
+        "description": "The roles to revoke from the specified group.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The roles to revoke from the specified group."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "groupType",
+        "tool_parameter_name": "group_type",
+        "description": "If the group contains OIDC or database users.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "oidc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "If the group contains OIDC or database users."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"roles\": {\n            \"type\": \"array\",\n            \"description\": \"The roles to revoke from the specified group.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"groupType\": {\n            \"type\": \"string\",\n            \"description\": \"If the group contains OIDC or database users.\",\n            \"enum\": [\n              \"oidc\"\n            ]\n          }\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"roles\": {\n            \"type\": \"array\",\n            \"description\": \"The roles to revoke from the specified group.\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"groupType\": {\n            \"type\": \"string\",\n            \"description\": \"If the group contains OIDC or database users.\",\n            \"enum\": [\n              \"oidc\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

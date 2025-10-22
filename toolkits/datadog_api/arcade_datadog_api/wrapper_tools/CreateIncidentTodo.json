@@ -1,0 +1,329 @@
+{
+  "name": "CreateIncidentTodo",
+  "fully_qualified_name": "DatadogApi.CreateIncidentTodo@0.1.0",
+  "description": "Create a task within an incident in Datadog.\n\nThis tool is used to add a to-do item to an incident in Datadog, helping manage and track tasks related to incident resolution.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_uuid",
+        "required": true,
+        "description": "The UUID of the incident for which the to-do is being created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "incident_todo_payload",
+        "required": true,
+        "description": "Incident todo payload containing attributes like assignees, timestamps, content, and incident ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "assignees": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Array of todo assignees."
+                    },
+                    "completed": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the todo was completed."
+                    },
+                    "content": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The follow-up task's content."
+                    },
+                    "created": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was created."
+                    },
+                    "due_date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the todo should be completed by."
+                    },
+                    "incident_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "UUID of the incident this todo is connected to."
+                    },
+                    "modified": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was last modified."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident todo's attributes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_todos"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Todo resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident todo data for a create request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident todo payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateIncidentTodo'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/{incident_id}/relationships/todos",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_uuid",
+        "description": "The UUID of the incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_todo_payload",
+        "description": "Incident todo payload.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "assignees": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {},
+                      "description": "Array of todo assignees."
+                    },
+                    "completed": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the todo was completed."
+                    },
+                    "content": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The follow-up task's content."
+                    },
+                    "created": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was created."
+                    },
+                    "due_date": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the todo should be completed by."
+                    },
+                    "incident_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "UUID of the incident this todo is connected to."
+                    },
+                    "modified": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident todo was last modified."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Incident todo's attributes."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident_todos"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Todo resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident todo data for a create request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident todo payload."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Create request for an incident todo.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Incident todo data for a create request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Incident todo's attributes.\",\n                \"properties\": {\n                  \"assignees\": {\n                    \"description\": \"Array of todo assignees.\",\n                    \"example\": [\n                      \"@test.user@test.com\"\n                    ],\n                    \"items\": {\n                      \"description\": \"A todo assignee.\",\n                      \"example\": \"@test.user@test.com\",\n                      \"oneOf\": [\n                        {\n                          \"description\": \"Assignee's @-handle.\",\n                          \"example\": \"@test.user@test.com\",\n                          \"type\": \"string\"\n                        },\n                        {\n                          \"description\": \"Anonymous assignee entity.\",\n                          \"properties\": {\n                            \"icon\": {\n                              \"description\": \"URL for assignee's icon.\",\n                              \"example\": \"https://a.slack-edge.com/80588/img/slackbot_48.png\",\n                              \"type\": \"string\"\n                            },\n                            \"id\": {\n                              \"description\": \"Anonymous assignee's ID.\",\n                              \"example\": \"USLACKBOT\",\n                              \"type\": \"string\"\n                            },\n                            \"name\": {\n                              \"description\": \"Assignee's name.\",\n                              \"example\": \"Slackbot\",\n                              \"type\": \"string\"\n                            },\n                            \"source\": {\n                              \"default\": \"slack\",\n                              \"description\": \"The source of the anonymous assignee.\",\n                              \"enum\": [\n                                \"slack\",\n                                \"microsoft_teams\"\n                              ],\n                              \"example\": \"slack\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"SLACK\",\n                                \"MICROSOFT_TEAMS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"icon\",\n                            \"name\",\n                            \"source\"\n                          ],\n                          \"type\": \"object\"\n                        }\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"completed\": {\n                    \"description\": \"Timestamp when the todo was completed.\",\n                    \"example\": \"2023-03-06T22:00:00.000000+00:00\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"content\": {\n                    \"description\": \"The follow-up task's content.\",\n                    \"example\": \"Restore lost data.\",\n                    \"type\": \"string\"\n                  },\n                  \"created\": {\n                    \"description\": \"Timestamp when the incident todo was created.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"due_date\": {\n                    \"description\": \"Timestamp when the todo should be completed by.\",\n                    \"example\": \"2023-07-10T05:00:00.000000+00:00\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"incident_id\": {\n                    \"description\": \"UUID of the incident this todo is connected to.\",\n                    \"example\": \"00000000-aaaa-0000-0000-000000000000\",\n                    \"type\": \"string\"\n                  },\n                  \"modified\": {\n                    \"description\": \"Timestamp when the incident todo was last modified.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"content\",\n                  \"assignees\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"incident_todos\",\n                \"description\": \"Todo resource type.\",\n                \"enum\": [\n                  \"incident_todos\"\n                ],\n                \"example\": \"incident_todos\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENT_TODOS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident todo payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

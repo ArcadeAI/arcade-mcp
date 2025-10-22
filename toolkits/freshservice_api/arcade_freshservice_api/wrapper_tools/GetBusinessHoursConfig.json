@@ -1,18 +1,18 @@
 {
   "name": "GetBusinessHoursConfig",
-  "fully_qualified_name": "FreshserviceApi.GetBusinessHoursConfig@0.1.0",
-  "description": "Retrieve Freshservice Business Hours configuration by ID.\n\nUse this tool to get the Business Hours configuration from Freshservice using the specified ID. It helps in accessing detailed information about business operating hours as configured in the Freshservice system.",
+  "fully_qualified_name": "FreshserviceApi.GetBusinessHoursConfig@1.0.0",
+  "description": "Retrieve the Business Hours configuration from Freshservice.\n\nThis tool retrieves the Business Hours configuration using the provided ID from Freshservice. It should be called when detailed information about specific business hours settings is required.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "business_hours_configuration_id",
         "required": true,
-        "description": "The ID of the Business Hours configuration to retrieve from Freshservice.",
+        "description": "The unique ID of the Business Hours configuration to retrieve from Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -46,10 +46,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/business_hours/{business_hours_id}",
@@ -92,21 +92,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

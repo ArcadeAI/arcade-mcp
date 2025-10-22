@@ -1,0 +1,586 @@
+{
+  "name": "RetrieveProjectsList",
+  "fully_qualified_name": "VercelApi.RetrieveProjectsList@0.1.0",
+  "description": "Retrieve the list of user's or team's projects.\n\nThis tool fetches the list of projects associated with the authenticated user or team. It supports pagination and allows filtering through query parameters.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "updated_after",
+        "required": false,
+        "description": "Filter projects updated after the specified timestamp or using a continuation token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query only projects updated after the given timestamp or continuation token."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "require_git_fork_authorization",
+        "required": false,
+        "description": "Set to '1' to require authorization for Git fork PRs before deployment, or '0' to disable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "0"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "gitForkProtection"
+      },
+      {
+        "name": "max_projects_returned",
+        "required": false,
+        "description": "Specifies the maximum number of projects to return in the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of projects returned"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "search_by_project_name",
+        "required": false,
+        "description": "Search for projects using a keyword or term in the name field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search projects by the name field"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "filter_by_repo",
+        "required": false,
+        "description": "Filter the project results by the specified repository name, also used for project count.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by repo. Also used for project count"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repo"
+      },
+      {
+        "name": "filter_by_repository_id",
+        "required": false,
+        "description": "Filter the project results by specifying the Repository ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by Repository ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repoId"
+      },
+      {
+        "name": "repository_url_filter",
+        "required": false,
+        "description": "URL to filter projects associated with a specific repository.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by Repository URL."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "repoUrl"
+      },
+      {
+        "name": "exclude_repositories",
+        "required": false,
+        "description": "Comma-separated list of repository names to exclude from the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by excluding those projects that belong to a repo"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "excludeRepos"
+      },
+      {
+        "name": "filter_by_edge_config_id",
+        "required": false,
+        "description": "Filter results by connected Edge Config ID. Provide the ID as a string to retrieve projects linked to this specific config.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by connected Edge Config ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "edgeConfigId"
+      },
+      {
+        "name": "filter_by_edge_config_token_id",
+        "required": false,
+        "description": "Filter results by the connected Edge Config Token ID. Provide the specific token ID to refine project search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by connected Edge Config Token ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "edgeConfigTokenId"
+      },
+      {
+        "name": "filter_by_elastic_concurrency",
+        "required": false,
+        "description": "Filter projects by elastic concurrency status. Use '1' for enabled or '0' for disabled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "0"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by projects with elastic concurrency enabled"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "elasticConcurrencyEnabled"
+      },
+      {
+        "name": "filter_by_static_ips_enabled",
+        "required": false,
+        "description": "Set to '1' to filter projects with Static IPs enabled, '0' otherwise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by projects with Static IPs enabled"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "staticIpsEnabled"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The ID of the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The team slug to perform the request on behalf of, representing a specific team within Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "include_deprecated_projects",
+        "required": false,
+        "description": "Include deprecated projects in the results when set to True.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deprecated"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getProjects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v10/projects",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "from",
+        "tool_parameter_name": "updated_after",
+        "description": "Query only projects updated after the given timestamp or continuation token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query only projects updated after the given timestamp or continuation token."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "gitForkProtection",
+        "tool_parameter_name": "require_git_fork_authorization",
+        "description": "Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "0"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies whether PRs from Git forks should require a team member's authorization before it can be deployed"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_projects_returned",
+        "description": "Limit the number of projects returned",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limit the number of projects returned"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "search_by_project_name",
+        "description": "Search projects by the name field",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search projects by the name field"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repo",
+        "tool_parameter_name": "filter_by_repo",
+        "description": "Filter results by repo. Also used for project count",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by repo. Also used for project count"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repoId",
+        "tool_parameter_name": "filter_by_repository_id",
+        "description": "Filter results by Repository ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by Repository ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "repoUrl",
+        "tool_parameter_name": "repository_url_filter",
+        "description": "Filter results by Repository URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by Repository URL."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "excludeRepos",
+        "tool_parameter_name": "exclude_repositories",
+        "description": "Filter results by excluding those projects that belong to a repo",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by excluding those projects that belong to a repo"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "edgeConfigId",
+        "tool_parameter_name": "filter_by_edge_config_id",
+        "description": "Filter results by connected Edge Config ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by connected Edge Config ID"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "edgeConfigTokenId",
+        "tool_parameter_name": "filter_by_edge_config_token_id",
+        "description": "Filter results by connected Edge Config Token ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by connected Edge Config Token ID"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deprecated",
+        "tool_parameter_name": "include_deprecated_projects",
+        "description": "",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "elasticConcurrencyEnabled",
+        "tool_parameter_name": "filter_by_elastic_concurrency",
+        "description": "Filter results by projects with elastic concurrency enabled",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "1",
+            "0"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by projects with elastic concurrency enabled"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "staticIpsEnabled",
+        "tool_parameter_name": "filter_by_static_ips_enabled",
+        "description": "Filter results by projects with Static IPs enabled",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter results by projects with Static IPs enabled"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

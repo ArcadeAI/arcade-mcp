@@ -1,0 +1,673 @@
+{
+  "name": "UpdateOrganizationDetails",
+  "fully_qualified_name": "ZohoBooksApi.UpdateOrganizationDetails@0.1.0",
+  "description": "Update an organization's details in Zoho Books.\n\nThis tool updates the details of an organization in Zoho Books. It should be called when you need to modify existing information about a specific organization.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Unique identifier of the organization to update in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique string identifier for the organization to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "organization_details",
+        "required": false,
+        "description": "JSON object containing updated information for an organization, such as name, fiscal year start month, timezone, language, addresses, contact info, currency, company ID, tax ID, and any custom fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project."
+            },
+            "fiscal_year_start_month": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>"
+            },
+            "is_logo_uploaded": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To determine whether logo is uploaded."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone in with the organization is located geographically."
+            },
+            "date_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for representing the date."
+            },
+            "field_separator": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field separator for components in date."
+            },
+            "language_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "language code for organization.For instance <code>en</code> represents english."
+            },
+            "org_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "remit_to_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipping address of the organisation"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street name of the Billing address of the Organisation"
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Continyed billing address of the organisation"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City of the organisation"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State where the organisation is located"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country of the Organisation"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ZIP/Postal code of the organisation's location"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "contact_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the contact person of the organisation"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact number of the organisation"
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "FAX number of the organisation"
+            },
+            "website": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Organisation's website"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "email ID of the contact person of the organisation"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the organisation curreency"
+            },
+            "companyid_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label \" Company ID \""
+            },
+            "companyid_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "value in field \"company ID\""
+            },
+            "taxid_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label \"tax ID\""
+            },
+            "taxid_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Value in \"tax ID\""
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index used to list"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the list"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of each column"
+                }
+              },
+              "description": "Additional fields to describe an organisation"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_organization'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/organizations/{organization_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "Unique identifier of the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "organization_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the project."
+            },
+            "fiscal_year_start_month": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>"
+            },
+            "is_logo_uploaded": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "To determine whether logo is uploaded."
+            },
+            "time_zone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time zone in with the organization is located geographically."
+            },
+            "date_format": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Format for representing the date."
+            },
+            "field_separator": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Field separator for components in date."
+            },
+            "language_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "language code for organization.For instance <code>en</code> represents english."
+            },
+            "org_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "remit_to_address": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Shipping address of the organisation"
+            },
+            "address": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "street_address1": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Street name of the Billing address of the Organisation"
+                },
+                "street_address2": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Continyed billing address of the organisation"
+                },
+                "city": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "City of the organisation"
+                },
+                "state": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "State where the organisation is located"
+                },
+                "country": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Country of the Organisation"
+                },
+                "zip": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ZIP/Postal code of the organisation's location"
+                }
+              },
+              "inner_properties": null,
+              "description": "Billing address of the organisation"
+            },
+            "contact_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the contact person of the organisation"
+            },
+            "phone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Contact number of the organisation"
+            },
+            "fax": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "FAX number of the organisation"
+            },
+            "website": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Organisation's website"
+            },
+            "email": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "email ID of the contact person of the organisation"
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the organisation curreency"
+            },
+            "companyid_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label \" Company ID \""
+            },
+            "companyid_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "value in field \"company ID\""
+            },
+            "taxid_label": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Label \"tax ID\""
+            },
+            "taxid_value": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Value in \"tax ID\""
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index used to list"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the list"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of each column"
+                }
+              },
+              "description": "Additional fields to describe an organisation"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"description\": \"Name of the project.\",\n            \"type\": \"string\",\n            \"example\": \"Zillium Inc\"\n          },\n          \"fiscal_year_start_month\": {\n            \"description\": \"Fiscal or financial starting year of your business. Allowed Values: <code>january</code>, <code>february</code>, <code>march</code>, <code>april</code>,<code> may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code> and <code>december</code>\",\n            \"type\": \"string\",\n            \"example\": \"january\"\n          },\n          \"is_logo_uploaded\": {\n            \"description\": \"To determine whether logo is uploaded.\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"time_zone\": {\n            \"description\": \"Time zone in with the organization is located geographically.\",\n            \"type\": \"string\",\n            \"example\": \"PST\"\n          },\n          \"date_format\": {\n            \"description\": \"Format for representing the date.\",\n            \"type\": \"string\",\n            \"example\": \"dd MMM yyyy\"\n          },\n          \"field_separator\": {\n            \"description\": \"Field separator for components in date.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"language_code\": {\n            \"description\": \"language code for organization.For instance <code>en</code> represents english.\",\n            \"type\": \"string\",\n            \"example\": \"en\"\n          },\n          \"org_address\": {\n            \"description\": \"Billing address of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"remit_to_address\": {\n            \"description\": \"Shipping address of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"address\": {\n            \"description\": \"Billing address of the organisation\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"street_address1\": {\n                \"description\": \"Street name of the Billing address of the Organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"street_address2\": {\n                \"description\": \"Continyed billing address of the organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"city\": {\n                \"description\": \"City of the organisation\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"state\": {\n                \"description\": \"State where the organisation is located\",\n                \"type\": \"string\",\n                \"example\": \" \"\n              },\n              \"country\": {\n                \"description\": \"Country of the Organisation\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              },\n              \"zip\": {\n                \"description\": \"ZIP/Postal code of the organisation's location\",\n                \"type\": \"string\",\n                \"example\": \"U.S.A\"\n              }\n            }\n          },\n          \"contact_name\": {\n            \"description\": \"Name of the contact person of the organisation\",\n            \"type\": \"string\",\n            \"example\": \"John Smith\"\n          },\n          \"phone\": {\n            \"description\": \"Contact number of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"fax\": {\n            \"description\": \"FAX number of the organisation\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"website\": {\n            \"description\": \"Organisation's website\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"email\": {\n            \"description\": \"email ID of the contact person of the organisation\",\n            \"type\": \"string\",\n            \"example\": \"johndavid@zilliuminc.com\"\n          },\n          \"currency_id\": {\n            \"description\": \"ID of the organisation curreency\",\n            \"type\": \"string\",\n            \"example\": \"982000000000190\"\n          },\n          \"companyid_label\": {\n            \"description\": \"Label \\\" Company ID \\\"\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"companyid_value\": {\n            \"description\": \"value in field \\\"company ID\\\"\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"taxid_label\": {\n            \"description\": \"Label \\\"tax ID\\\"\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"taxid_value\": {\n            \"description\": \"Value in \\\"tax ID\\\"\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"custom_fields\": {\n            \"description\": \"Additional fields to describe an organisation\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"Index used to list\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 1\n                },\n                \"value\": {\n                  \"description\": \"Value of the list\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"label\": {\n                  \"description\": \"Label of each column\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

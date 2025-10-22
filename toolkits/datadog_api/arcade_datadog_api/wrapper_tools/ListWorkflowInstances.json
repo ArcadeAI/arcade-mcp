@@ -1,0 +1,192 @@
+{
+  "name": "ListWorkflowInstances",
+  "fully_qualified_name": "DatadogApi.ListWorkflowInstances@0.1.0",
+  "description": "Retrieve all instances of a specific workflow from Datadog.\n\nUse this tool to get a list of all instances for a specified workflow within Datadog. Ensure you have a registered application key or the necessary permissions configured in the UI.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workflow_id",
+        "required": true,
+        "description": "The ID of the workflow to retrieve instances for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the workflow."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workflow_id"
+      },
+      {
+        "name": "page_size",
+        "required": false,
+        "description": "Size for a given page. Must be an integer with a maximum value of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[size]"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The specific page number to return when listing workflow instances.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[number]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListWorkflowInstances'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/workflows/{workflow_id}/instances",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page[size]",
+        "tool_parameter_name": "page_size",
+        "description": "Size for a given page. The maximum allowed value is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Size for a given page. The maximum allowed value is 100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 10,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[number]",
+        "tool_parameter_name": "page_number",
+        "description": "Specific page number to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specific page number to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "workflow_id",
+        "tool_parameter_name": "workflow_id",
+        "description": "The ID of the workflow.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the workflow."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

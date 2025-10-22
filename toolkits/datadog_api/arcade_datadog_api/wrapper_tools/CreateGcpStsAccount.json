@@ -1,0 +1,452 @@
+{
+  "name": "CreateGcpStsAccount",
+  "fully_qualified_name": "DatadogApi.CreateGcpStsAccount@0.1.0",
+  "description": "Create a new GCP STS account entry in Datadog.\n\nUse this tool to create a new entry within Datadog for your STS-enabled Google Cloud Platform service account.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "gcp_sts_account_details",
+        "required": true,
+        "description": "JSON object detailing GCP STS account attributes like account tags, client email, and configurations for security and monitoring.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags to be associated with GCP metrics and service checks from your account."
+                    },
+                    "automute": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Silence monitors for expected GCE instance shutdowns."
+                    },
+                    "client_email": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Your service account email address."
+                    },
+                    "cloud_run_revision_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of filters to limit the Cloud Run revisions that are pulled into Datadog by using tags.\nOnly Cloud Run revision resources that apply to specified filters are imported into Datadog.\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=cloud_run_revision`"
+                    },
+                    "host_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of filters to limit the VM instances that are pulled into Datadog by using tags.\nOnly VM instance resources that apply to specified filters are imported into Datadog.\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=gce_instance`"
+                    },
+                    "is_cspm_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled to be set to true."
+                    },
+                    "is_per_project_quota_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog applies the `X-Goog-User-Project` header, attributing Google Cloud billing and quota usage to the project being monitored rather than the default service account project."
+                    },
+                    "is_resource_change_collection_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog scans for all resource change data in your Google Cloud environment."
+                    },
+                    "is_security_command_center_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog will attempt to collect Security Command Center Findings. Note: This requires additional permissions on the service account."
+                    },
+                    "metric_namespace_configs": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "disabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When disabled, Datadog does not collect metrics that are related to this GCP metric namespace."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The id of the GCP metric namespace."
+                        }
+                      },
+                      "description": "Configurations for GCP metric namespaces."
+                    },
+                    "monitored_resource_configs": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filters": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "List of filters to limit the monitored resources that are pulled into Datadog by using tags.\nOnly monitored resources that apply to specified filters are imported into Datadog."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "cloud_function",
+                            "cloud_run_revision",
+                            "gce_instance"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The GCP monitored resource type. Only a subset of resource types are supported."
+                        }
+                      },
+                      "description": "Configurations for GCP monitored resources."
+                    },
+                    "resource_collection_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog scans for all resources in your GCP environment."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes associated with your service account."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "gcp_service_account"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of account."
+                }
+              },
+              "inner_properties": null,
+              "description": "Additional metadata on your generated service account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateGCPSTSAccount'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/integration/gcp/accounts",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "gcp_sts_account_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Tags to be associated with GCP metrics and service checks from your account."
+                    },
+                    "automute": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Silence monitors for expected GCE instance shutdowns."
+                    },
+                    "client_email": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Your service account email address."
+                    },
+                    "cloud_run_revision_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of filters to limit the Cloud Run revisions that are pulled into Datadog by using tags.\nOnly Cloud Run revision resources that apply to specified filters are imported into Datadog.\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=cloud_run_revision`"
+                    },
+                    "host_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of filters to limit the VM instances that are pulled into Datadog by using tags.\nOnly VM instance resources that apply to specified filters are imported into Datadog.\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=gce_instance`"
+                    },
+                    "is_cspm_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled to be set to true."
+                    },
+                    "is_per_project_quota_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog applies the `X-Goog-User-Project` header, attributing Google Cloud billing and quota usage to the project being monitored rather than the default service account project."
+                    },
+                    "is_resource_change_collection_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog scans for all resource change data in your Google Cloud environment."
+                    },
+                    "is_security_command_center_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog will attempt to collect Security Command Center Findings. Note: This requires additional permissions on the service account."
+                    },
+                    "metric_namespace_configs": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "disabled": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "When disabled, Datadog does not collect metrics that are related to this GCP metric namespace."
+                        },
+                        "id": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The id of the GCP metric namespace."
+                        }
+                      },
+                      "description": "Configurations for GCP metric namespaces."
+                    },
+                    "monitored_resource_configs": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "filters": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "List of filters to limit the monitored resources that are pulled into Datadog by using tags.\nOnly monitored resources that apply to specified filters are imported into Datadog."
+                        },
+                        "type": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "cloud_function",
+                            "cloud_run_revision",
+                            "gce_instance"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The GCP monitored resource type. Only a subset of resource types are supported."
+                        }
+                      },
+                      "description": "Configurations for GCP monitored resources."
+                    },
+                    "resource_collection_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "When enabled, Datadog scans for all resources in your GCP environment."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes associated with your service account."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "gcp_service_account"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of account."
+                }
+              },
+              "inner_properties": null,
+              "description": "Additional metadata on your generated service account."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Data on your newly generated service account.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Additional metadata on your generated service account.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes associated with your service account.\",\n                \"properties\": {\n                  \"account_tags\": {\n                    \"description\": \"Tags to be associated with GCP metrics and service checks from your account.\",\n                    \"items\": {\n                      \"description\": \"Account Level Tag\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"automute\": {\n                    \"description\": \"Silence monitors for expected GCE instance shutdowns.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"client_email\": {\n                    \"description\": \"Your service account email address.\",\n                    \"example\": \"datadog-service-account@test-project.iam.gserviceaccount.com\",\n                    \"type\": \"string\"\n                  },\n                  \"cloud_run_revision_filters\": {\n                    \"deprecated\": true,\n                    \"description\": \"List of filters to limit the Cloud Run revisions that are pulled into Datadog by using tags.\\nOnly Cloud Run revision resources that apply to specified filters are imported into Datadog.\\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=cloud_run_revision`\",\n                    \"example\": [\n                      \"$KEY:$VALUE\"\n                    ],\n                    \"items\": {\n                      \"description\": \"Cloud Run revision filters\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"host_filters\": {\n                    \"deprecated\": true,\n                    \"description\": \"List of filters to limit the VM instances that are pulled into Datadog by using tags.\\nOnly VM instance resources that apply to specified filters are imported into Datadog.\\n**Note:** This field is deprecated. Instead, use `monitored_resource_configs` with `type=gce_instance`\",\n                    \"example\": [\n                      \"$KEY:$VALUE\"\n                    ],\n                    \"items\": {\n                      \"description\": \"VM instance filters\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"is_cspm_enabled\": {\n                    \"description\": \"When enabled, Datadog will activate the Cloud Security Monitoring product for this service account. Note: This requires resource_collection_enabled to be set to true.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"is_per_project_quota_enabled\": {\n                    \"default\": false,\n                    \"description\": \"When enabled, Datadog applies the `X-Goog-User-Project` header, attributing Google Cloud billing and quota usage to the project being monitored rather than the default service account project.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"is_resource_change_collection_enabled\": {\n                    \"default\": false,\n                    \"description\": \"When enabled, Datadog scans for all resource change data in your Google Cloud environment.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"is_security_command_center_enabled\": {\n                    \"default\": false,\n                    \"description\": \"When enabled, Datadog will attempt to collect Security Command Center Findings. Note: This requires additional permissions on the service account.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"metric_namespace_configs\": {\n                    \"description\": \"Configurations for GCP metric namespaces.\",\n                    \"example\": [\n                      {\n                        \"disabled\": true,\n                        \"id\": \"aiplatform\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"Configuration for a GCP metric namespace.\",\n                      \"properties\": {\n                        \"disabled\": {\n                          \"default\": false,\n                          \"description\": \"When disabled, Datadog does not collect metrics that are related to this GCP metric namespace.\",\n                          \"example\": true,\n                          \"type\": \"boolean\"\n                        },\n                        \"id\": {\n                          \"description\": \"The id of the GCP metric namespace.\",\n                          \"example\": \"aiplatform\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"monitored_resource_configs\": {\n                    \"description\": \"Configurations for GCP monitored resources.\",\n                    \"example\": [\n                      {\n                        \"filters\": [\n                          \"$KEY:$VALUE\"\n                        ],\n                        \"type\": \"gce_instance\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"Configuration for a GCP monitored resource.\",\n                      \"properties\": {\n                        \"filters\": {\n                          \"description\": \"List of filters to limit the monitored resources that are pulled into Datadog by using tags.\\nOnly monitored resources that apply to specified filters are imported into Datadog.\",\n                          \"example\": [\n                            \"$KEY:$VALUE\"\n                          ],\n                          \"items\": {\n                            \"description\": \"A monitored resource filter\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"type\": {\n                          \"description\": \"The GCP monitored resource type. Only a subset of resource types are supported.\",\n                          \"enum\": [\n                            \"cloud_function\",\n                            \"cloud_run_revision\",\n                            \"gce_instance\"\n                          ],\n                          \"example\": \"gce_instance\",\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"CLOUD_FUNCTION\",\n                            \"CLOUD_RUN_REVISION\",\n                            \"GCE_INSTANCE\"\n                          ]\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"resource_collection_enabled\": {\n                    \"description\": \"When enabled, Datadog scans for all resources in your GCP environment.\",\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"gcp_service_account\",\n                \"description\": \"The type of account.\",\n                \"enum\": [\n                  \"gcp_service_account\"\n                ],\n                \"example\": \"gcp_service_account\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"GCP_SERVICE_ACCOUNT\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

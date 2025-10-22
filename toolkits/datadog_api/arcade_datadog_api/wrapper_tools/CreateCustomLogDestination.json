@@ -1,0 +1,302 @@
+{
+  "name": "CreateCustomLogDestination",
+  "fully_qualified_name": "DatadogApi.CreateCustomLogDestination@0.1.0",
+  "description": "Create a custom log destination in Datadog.\n\nThis tool creates a custom destination for logs in your Datadog organization. Use it to configure where your logs should be sent.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "custom_destination_definition",
+        "required": true,
+        "description": "A JSON object defining the custom log destination attributes, including name, type, and forwarding settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether logs matching this custom destination should be forwarded or not."
+                    },
+                    "forward_tags": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether tags from the forwarded logs should be forwarded or not."
+                    },
+                    "forward_tags_restriction_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.\n\nAn empty list represents no restriction is in place and either all or no tags will be\nforwarded depending on `forward_tags_restriction_list_type` parameter."
+                    },
+                    "forward_tags_restriction_list_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "ALLOW_LIST",
+                        "BLOCK_LIST"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "How `forward_tags_restriction_list` parameter should be interpreted.\nIf `ALLOW_LIST`, then only tags whose keys on the forwarded logs match the ones on the restriction list\nare forwarded.\n\n`BLOCK_LIST` works the opposite way. It does not forward the tags matching the ones on the list."
+                    },
+                    "forwarder_destination": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A custom destination's location to forward logs."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The custom destination name."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The custom destination query and filter. Logs matching this query are forwarded to the destination."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes associated with the custom destination."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_destination"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `custom_destination`."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of a custom destination."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new custom destination."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateLogsCustomDestination'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/config/custom-destinations",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "custom_destination_definition",
+        "description": "The definition of the new custom destination.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether logs matching this custom destination should be forwarded or not."
+                    },
+                    "forward_tags": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether tags from the forwarded logs should be forwarded or not."
+                    },
+                    "forward_tags_restriction_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.\n\nAn empty list represents no restriction is in place and either all or no tags will be\nforwarded depending on `forward_tags_restriction_list_type` parameter."
+                    },
+                    "forward_tags_restriction_list_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "ALLOW_LIST",
+                        "BLOCK_LIST"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "How `forward_tags_restriction_list` parameter should be interpreted.\nIf `ALLOW_LIST`, then only tags whose keys on the forwarded logs match the ones on the restriction list\nare forwarded.\n\n`BLOCK_LIST` works the opposite way. It does not forward the tags matching the ones on the list."
+                    },
+                    "forwarder_destination": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A custom destination's location to forward logs."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The custom destination name."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The custom destination query and filter. Logs matching this query are forwarded to the destination."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The attributes associated with the custom destination."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "custom_destination"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `custom_destination`."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of a custom destination."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new custom destination."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The custom destination.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of a custom destination.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes associated with the custom destination.\",\n                \"properties\": {\n                  \"enabled\": {\n                    \"default\": true,\n                    \"description\": \"Whether logs matching this custom destination should be forwarded or not.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"forward_tags\": {\n                    \"default\": true,\n                    \"description\": \"Whether tags from the forwarded logs should be forwarded or not.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"forward_tags_restriction_list\": {\n                    \"default\": [],\n                    \"description\": \"List of [keys of tags](https://docs.datadoghq.com/getting_started/tagging/#define-tags) to be filtered.\\n\\nAn empty list represents no restriction is in place and either all or no tags will be\\nforwarded depending on `forward_tags_restriction_list_type` parameter.\",\n                    \"example\": [\n                      \"datacenter\",\n                      \"host\"\n                    ],\n                    \"items\": {\n                      \"description\": \"The [key part of a tag](https://docs.datadoghq.com/getting_started/tagging/#define-tags).\",\n                      \"type\": \"string\"\n                    },\n                    \"maxItems\": 10,\n                    \"minItems\": 0,\n                    \"type\": \"array\"\n                  },\n                  \"forward_tags_restriction_list_type\": {\n                    \"default\": \"ALLOW_LIST\",\n                    \"description\": \"How `forward_tags_restriction_list` parameter should be interpreted.\\nIf `ALLOW_LIST`, then only tags whose keys on the forwarded logs match the ones on the restriction list\\nare forwarded.\\n\\n`BLOCK_LIST` works the opposite way. It does not forward the tags matching the ones on the list.\",\n                    \"enum\": [\n                      \"ALLOW_LIST\",\n                      \"BLOCK_LIST\"\n                    ],\n                    \"example\": \"ALLOW_LIST\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"ALLOW_LIST\",\n                      \"BLOCK_LIST\"\n                    ]\n                  },\n                  \"forwarder_destination\": {\n                    \"description\": \"A custom destination's location to forward logs.\",\n                    \"oneOf\": [\n                      {\n                        \"description\": \"The HTTP destination.\",\n                        \"properties\": {\n                          \"auth\": {\n                            \"description\": \"Authentication method of the HTTP requests.\",\n                            \"oneOf\": [\n                              {\n                                \"description\": \"Basic access authentication.\",\n                                \"properties\": {\n                                  \"password\": {\n                                    \"description\": \"The password of the authentication. This field is not returned by the API.\",\n                                    \"example\": \"datadog-custom-destination-password\",\n                                    \"type\": \"string\",\n                                    \"writeOnly\": true\n                                  },\n                                  \"type\": {\n                                    \"default\": \"basic\",\n                                    \"description\": \"Type of the basic access authentication.\",\n                                    \"enum\": [\n                                      \"basic\"\n                                    ],\n                                    \"example\": \"basic\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"BASIC\"\n                                    ]\n                                  },\n                                  \"username\": {\n                                    \"description\": \"The username of the authentication. This field is not returned by the API.\",\n                                    \"example\": \"datadog-custom-destination-username\",\n                                    \"type\": \"string\",\n                                    \"writeOnly\": true\n                                  }\n                                },\n                                \"required\": [\n                                  \"type\",\n                                  \"username\",\n                                  \"password\"\n                                ],\n                                \"type\": \"object\"\n                              },\n                              {\n                                \"description\": \"Custom header access authentication.\",\n                                \"properties\": {\n                                  \"header_name\": {\n                                    \"description\": \"The header name of the authentication.\",\n                                    \"example\": \"CUSTOM-HEADER-NAME\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"header_value\": {\n                                    \"description\": \"The header value of the authentication. This field is not returned by the API.\",\n                                    \"example\": \"CUSTOM-HEADER-AUTHENTICATION-VALUE\",\n                                    \"type\": \"string\",\n                                    \"writeOnly\": true\n                                  },\n                                  \"type\": {\n                                    \"default\": \"custom_header\",\n                                    \"description\": \"Type of the custom header access authentication.\",\n                                    \"enum\": [\n                                      \"custom_header\"\n                                    ],\n                                    \"example\": \"custom_header\",\n                                    \"type\": \"string\",\n                                    \"x-enum-varnames\": [\n                                      \"CUSTOM_HEADER\"\n                                    ]\n                                  }\n                                },\n                                \"required\": [\n                                  \"type\",\n                                  \"header_name\",\n                                  \"header_value\"\n                                ],\n                                \"type\": \"object\"\n                              }\n                            ]\n                          },\n                          \"endpoint\": {\n                            \"description\": \"The destination for which logs will be forwarded to.\\nMust have HTTPS scheme and forwarding back to Datadog is not allowed.\",\n                            \"example\": \"https://example.com\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"http\",\n                            \"description\": \"Type of the HTTP destination.\",\n                            \"enum\": [\n                              \"http\"\n                            ],\n                            \"example\": \"http\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"HTTP\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"endpoint\",\n                          \"auth\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The Splunk HTTP Event Collector (HEC) destination.\",\n                        \"properties\": {\n                          \"access_token\": {\n                            \"description\": \"Access token of the Splunk HTTP Event Collector. This field is not returned by the API.\",\n                            \"example\": \"splunk_access_token\",\n                            \"type\": \"string\",\n                            \"writeOnly\": true\n                          },\n                          \"endpoint\": {\n                            \"description\": \"The destination for which logs will be forwarded to.\\nMust have HTTPS scheme and forwarding back to Datadog is not allowed.\",\n                            \"example\": \"https://example.com\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"splunk_hec\",\n                            \"description\": \"Type of the Splunk HTTP Event Collector (HEC) destination.\",\n                            \"enum\": [\n                              \"splunk_hec\"\n                            ],\n                            \"example\": \"splunk_hec\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"SPLUNK_HEC\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"endpoint\",\n                          \"access_token\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The Elasticsearch destination.\",\n                        \"properties\": {\n                          \"auth\": {\n                            \"description\": \"Basic access authentication.\",\n                            \"properties\": {\n                              \"password\": {\n                                \"description\": \"The password of the authentication. This field is not returned by the API.\",\n                                \"example\": \"datadog-custom-destination-password\",\n                                \"type\": \"string\",\n                                \"writeOnly\": true\n                              },\n                              \"username\": {\n                                \"description\": \"The username of the authentication. This field is not returned by the API.\",\n                                \"example\": \"datadog-custom-destination-username\",\n                                \"type\": \"string\",\n                                \"writeOnly\": true\n                              }\n                            },\n                            \"required\": [\n                              \"username\",\n                              \"password\"\n                            ],\n                            \"type\": \"object\"\n                          },\n                          \"endpoint\": {\n                            \"description\": \"The destination for which logs will be forwarded to.\\nMust have HTTPS scheme and forwarding back to Datadog is not allowed.\",\n                            \"example\": \"https://example.com\",\n                            \"type\": \"string\"\n                          },\n                          \"index_name\": {\n                            \"description\": \"Name of the Elasticsearch index (must follow [Elasticsearch's criteria](https://www.elastic.co/guide/en/elasticsearch/reference/8.11/indices-create-index.html#indices-create-api-path-params)).\",\n                            \"example\": \"nginx-logs\",\n                            \"type\": \"string\"\n                          },\n                          \"index_rotation\": {\n                            \"description\": \"Date pattern with US locale and UTC timezone to be appended to the index name after adding `-`\\n(that is, `${index_name}-${indexPattern}`).\\nYou can customize the index rotation naming pattern by choosing one of these options:\\n- Hourly: `yyyy-MM-dd-HH` (as an example, it would render: `2022-10-19-09`)\\n- Daily: `yyyy-MM-dd` (as an example, it would render: `2022-10-19`)\\n- Weekly: `yyyy-'W'ww` (as an example, it would render: `2022-W42`)\\n- Monthly: `yyyy-MM` (as an example, it would render: `2022-10`)\\n\\nIf this field is missing or is blank, it means that the index name will always be the same\\n(that is, no rotation).\",\n                            \"example\": \"yyyy-MM-dd\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"elasticsearch\",\n                            \"description\": \"Type of the Elasticsearch destination.\",\n                            \"enum\": [\n                              \"elasticsearch\"\n                            ],\n                            \"example\": \"elasticsearch\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"ELASTICSEARCH\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"endpoint\",\n                          \"auth\",\n                          \"index_name\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"description\": \"The Microsoft Sentinel destination.\",\n                        \"properties\": {\n                          \"client_id\": {\n                            \"description\": \"Client ID from the Datadog Azure integration.\",\n                            \"example\": \"9a2f4d83-2b5e-429e-a35a-2b3c4182db71\",\n                            \"type\": \"string\"\n                          },\n                          \"data_collection_endpoint\": {\n                            \"description\": \"Azure data collection endpoint.\",\n                            \"example\": \"https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com\",\n                            \"type\": \"string\"\n                          },\n                          \"data_collection_rule_id\": {\n                            \"description\": \"Azure data collection rule ID.\",\n                            \"example\": \"dcr-000a00a000a00000a000000aa000a0aa\",\n                            \"type\": \"string\"\n                          },\n                          \"stream_name\": {\n                            \"description\": \"Azure stream name.\",\n                            \"example\": \"Custom-MyTable\",\n                            \"type\": \"string\",\n                            \"writeOnly\": true\n                          },\n                          \"tenant_id\": {\n                            \"description\": \"Tenant ID from the Datadog Azure integration.\",\n                            \"example\": \"f3c9a8a1-4c2e-4d2e-b911-9f3c28c3c8b2\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"microsoft_sentinel\",\n                            \"description\": \"Type of the Microsoft Sentinel destination.\",\n                            \"enum\": [\n                              \"microsoft_sentinel\"\n                            ],\n                            \"example\": \"microsoft_sentinel\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"MICROSOFT_SENTINEL\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"type\",\n                          \"tenant_id\",\n                          \"client_id\",\n                          \"data_collection_endpoint\",\n                          \"data_collection_rule_id\",\n                          \"stream_name\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"name\": {\n                    \"description\": \"The custom destination name.\",\n                    \"example\": \"Nginx logs\",\n                    \"type\": \"string\"\n                  },\n                  \"query\": {\n                    \"default\": \"\",\n                    \"description\": \"The custom destination query and filter. Logs matching this query are forwarded to the destination.\",\n                    \"example\": \"source:nginx\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"forwarder_destination\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"custom_destination\",\n                \"description\": \"The type of the resource. The value should always be `custom_destination`.\",\n                \"enum\": [\n                  \"custom_destination\"\n                ],\n                \"example\": \"custom_destination\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CUSTOM_DESTINATION\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The definition of the new custom destination.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

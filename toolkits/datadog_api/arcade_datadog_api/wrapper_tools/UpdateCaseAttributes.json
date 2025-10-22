@@ -1,0 +1,233 @@
+{
+  "name": "UpdateCaseAttributes",
+  "fully_qualified_name": "DatadogApi.UpdateCaseAttributes@0.1.0",
+  "description": "Update attributes of a specific case.\n\nUse this tool to update the attributes of a specific case in Datadog by providing the case ID and new attribute values.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "case_identifier",
+        "required": true,
+        "description": "The unique identifier or key for the case to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "case_id"
+      },
+      {
+        "name": "case_update_payload",
+        "required": true,
+        "description": "JSON payload containing the case attributes to update. Include 'attributes' with its properties and type as 'case'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attributes": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `CaseObjectAttributes` object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Case update attributes attributes"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "case"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Case resource type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Case update attributes"
+            }
+          },
+          "inner_properties": null,
+          "description": "Case attributes update payload"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAttributes'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cases/{case_id}/attributes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "case_id",
+        "tool_parameter_name": "case_identifier",
+        "description": "Case's UUID or key",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Case's UUID or key"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "case_update_payload",
+        "description": "Case attributes update payload",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attributes": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `CaseObjectAttributes` object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Case update attributes attributes"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "case"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Case resource type"
+                }
+              },
+              "inner_properties": null,
+              "description": "Case update attributes"
+            }
+          },
+          "inner_properties": null,
+          "description": "Case attributes update payload"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Case update attributes request\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Case update attributes\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Case update attributes attributes\",\n                \"properties\": {\n                  \"attributes\": {\n                    \"additionalProperties\": {\n                      \"items\": {\n                        \"type\": \"string\"\n                      },\n                      \"type\": \"array\"\n                    },\n                    \"description\": \"The definition of `CaseObjectAttributes` object.\",\n                    \"type\": \"object\"\n                  }\n                },\n                \"required\": [\n                  \"attributes\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"case\",\n                \"description\": \"Case resource type\",\n                \"enum\": [\n                  \"case\"\n                ],\n                \"example\": \"case\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"CASE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Case attributes update payload\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "name": "GetCreditNoteDetails",
+  "fully_qualified_name": "ZohoBooksApi.GetCreditNoteDetails@0.1.0",
+  "description": "Retrieve details of a specific credit note using its ID.\n\nCall this tool to obtain detailed information about an existing credit note by providing its unique identifier. Useful for tracking, reviewing, or managing credit notes within Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The unique ID of the organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "credit_note_id",
+        "required": true,
+        "description": "The unique identifier of the credit note to retrieve details for. This ID is essential for accessing the specific credit note information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the credit note."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "creditnote_id"
+      },
+      {
+        "name": "response_format",
+        "required": false,
+        "description": "Specify the format of the credit note details: json, pdf, or html. Default is html.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "You can get credit note details as json/pdf/html. Default format is html. Allowed Values: <code>json</code>, <code>pdf</code> and <code>html</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accept"
+      },
+      {
+        "name": "export_with_default_print_option",
+        "required": false,
+        "description": "Specify whether to export the credit note PDF with the default print option. Use 'true' or 'false'.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Export credit note pdf with default print option. Allowed Values: <code>true</code>, <code>false</code>, <code>on</code> and <code>off</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "print"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_credit_note'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.creditnotes.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/creditnotes/{creditnote_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "print",
+        "tool_parameter_name": "export_with_default_print_option",
+        "description": "Export credit note pdf with default print option. Allowed Values: <code>true</code>, <code>false</code>, <code>on</code> and <code>off</code>",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Export credit note pdf with default print option. Allowed Values: <code>true</code>, <code>false</code>, <code>on</code> and <code>off</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accept",
+        "tool_parameter_name": "response_format",
+        "description": "You can get credit note details as json/pdf/html. Default format is html. Allowed Values: <code>json</code>, <code>pdf</code> and <code>html</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "You can get credit note details as json/pdf/html. Default format is html. Allowed Values: <code>json</code>, <code>pdf</code> and <code>html</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "creditnote_id",
+        "tool_parameter_name": "credit_note_id",
+        "description": "Unique identifier of the credit note.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the credit note."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

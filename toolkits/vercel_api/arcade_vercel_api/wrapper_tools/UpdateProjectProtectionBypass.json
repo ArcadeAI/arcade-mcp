@@ -1,0 +1,271 @@
+{
+  "name": "UpdateProjectProtectionBypass",
+  "fully_qualified_name": "VercelApi.UpdateProjectProtectionBypass@0.1.0",
+  "description": "Update the deployment protection bypass for a Vercel project.\n\nUse this tool to modify the deployment protection automation bypass settings for a specific Vercel project.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_id_or_name",
+        "required": true,
+        "description": "The unique Vercel project identifier or project name to update the protection bypass for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier for the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug of the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "revoke_automation_bypass",
+        "required": false,
+        "description": "Secret value of the automation bypass to be revoked for a Vercel project.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Automation bypass to revoked"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "revoke.secret"
+      },
+      {
+        "name": "optional_secret_value",
+        "required": false,
+        "description": "Optional value of the secret to generate; omit for OAuth2 tokens.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional value of the secret to generate, don't send it for oauth2 tokens"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "generate.secret"
+      },
+      {
+        "name": "create_new_automation_bypass",
+        "required": false,
+        "description": "Create a new automation bypass after revoking the current secret.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not a new automation bypass should be created after the provided secret is revoked"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "revoke.regenerate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateProjectProtectionBypass'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/projects/{idOrName}/protection-bypass",
+    "http_method": "PATCH",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "project_id_or_name",
+        "description": "The unique project identifier or the project name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique project identifier or the project name"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "revoke.secret",
+        "tool_parameter_name": "revoke_automation_bypass",
+        "description": "Automation bypass to revoked",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Automation bypass to revoked"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "revoke.regenerate",
+        "tool_parameter_name": "create_new_automation_bypass",
+        "description": "Whether or not a new automation bypass should be created after the provided secret is revoked",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not a new automation bypass should be created after the provided secret is revoked"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "generate.secret",
+        "tool_parameter_name": "optional_secret_value",
+        "description": "Optional value of the secret to generate, don't send it for oauth2 tokens",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional value of the secret to generate, don't send it for oauth2 tokens"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"revoke\": {\n            \"description\": \"Optional instructions for revoking and regenerating a automation bypass\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"secret\": {\n                \"description\": \"Automation bypass to revoked\",\n                \"type\": \"string\"\n              },\n              \"regenerate\": {\n                \"description\": \"Whether or not a new automation bypass should be created after the provided secret is revoked\",\n                \"type\": \"boolean\"\n              }\n            },\n            \"required\": [\n              \"secret\",\n              \"regenerate\"\n            ]\n          },\n          \"generate\": {\n            \"description\": \"Generate a new secret. If neither generate or revoke are provided, a new random secret will be generated.\",\n            \"type\": \"object\",\n            \"properties\": {\n              \"secret\": {\n                \"description\": \"Optional value of the secret to generate, don't send it for oauth2 tokens\",\n                \"type\": \"string\",\n                \"pattern\": \"^[a-zA-Z0-9]{32}$\"\n              }\n            }\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

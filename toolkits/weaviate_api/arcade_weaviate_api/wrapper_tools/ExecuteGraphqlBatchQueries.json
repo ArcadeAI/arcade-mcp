@@ -1,0 +1,165 @@
+{
+  "name": "ExecuteGraphqlBatchQueries",
+  "fully_qualified_name": "WeaviateApi.ExecuteGraphqlBatchQueries@0.1.0",
+  "description": "Execute multiple GraphQL queries in a single request.\n\nExecutes multiple GraphQL queries sent in a single network request for efficiency. Ideal for performing batch queries in Weaviate.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "graphql_queries_batch",
+        "required": true,
+        "description": "An array of GraphQL query objects to execute in batch. Each object should include 'operationName', 'query', and optional 'variables'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "operationName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the operation if multiple exist in the query."
+            },
+            "query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Query based on GraphQL syntax."
+            },
+            "variables": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional variables for the query."
+            }
+          },
+          "description": "An array containing multiple GraphQL query objects to execute in batch."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'graphql.batch'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/graphql/batch",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "graphql_queries_batch",
+        "description": "An array containing multiple GraphQL query objects to execute in batch.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {
+            "operationName": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the operation if multiple exist in the query."
+            },
+            "query": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Query based on GraphQL syntax."
+            },
+            "variables": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Additional variables for the query."
+            }
+          },
+          "description": "An array containing multiple GraphQL query objects to execute in batch."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"An array containing multiple GraphQL query objects to execute in batch.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"description\": \"A list of GraphQL queries.\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"operationName\": {\n              \"type\": \"string\",\n              \"description\": \"The name of the operation if multiple exist in the query.\"\n            },\n            \"query\": {\n              \"type\": \"string\",\n              \"description\": \"Query based on GraphQL syntax.\"\n            },\n            \"variables\": {\n              \"type\": \"object\",\n              \"properties\": {},\n              \"description\": \"Additional variables for the query.\"\n            }\n          },\n          \"description\": \"GraphQL query based on: http://facebook.github.io/graphql/.\"\n        }\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"array\",\n        \"description\": \"A list of GraphQL queries.\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"operationName\": {\n              \"type\": \"string\",\n              \"description\": \"The name of the operation if multiple exist in the query.\"\n            },\n            \"query\": {\n              \"type\": \"string\",\n              \"description\": \"Query based on GraphQL syntax.\"\n            },\n            \"variables\": {\n              \"type\": \"object\",\n              \"properties\": {},\n              \"description\": \"Additional variables for the query.\"\n            }\n          },\n          \"description\": \"GraphQL query based on: http://facebook.github.io/graphql/.\"\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

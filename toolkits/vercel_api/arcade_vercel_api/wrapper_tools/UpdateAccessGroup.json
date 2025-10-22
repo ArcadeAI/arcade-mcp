@@ -1,0 +1,315 @@
+{
+  "name": "UpdateAccessGroup",
+  "fully_qualified_name": "VercelApi.UpdateAccessGroup@0.1.0",
+  "description": "Update metadata for an access group.\n\nUse this tool to update the metadata of a specified access group by its ID or name. This is helpful when you need to modify access controls or group settings.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "access_group_id_or_name",
+        "required": true,
+        "description": "The ID or name of the access group to update. Use either the unique identifier or the group's name to specify which access group you want to modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrName"
+      },
+      {
+        "name": "access_group_update_data",
+        "required": true,
+        "description": "JSON object with details about the access group update, including the group name, projects with roles, members to add, and members to remove.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the access group"
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The project role that will be added to this Access Group. \\\"null\\\" will remove this project level role."
+                }
+              },
+              "description": null
+            },
+            "membersToAdd": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of members to add to the access group."
+            },
+            "membersToRemove": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of members to remove from the access group."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier for the team on whose behalf the request is performed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The identifier for the team, used to perform the request on its behalf.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateAccessGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/access-groups/{idOrName}",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrName",
+        "tool_parameter_name": "access_group_id_or_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "access_group_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the access group"
+            },
+            "projects": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "projectId": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the project."
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "ADMIN",
+                    "PROJECT_VIEWER",
+                    "PROJECT_DEVELOPER",
+                    "None"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The project role that will be added to this Access Group. \\\"null\\\" will remove this project level role."
+                }
+              },
+              "description": null
+            },
+            "membersToAdd": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of members to add to the access group."
+            },
+            "membersToRemove": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "List of members to remove from the access group."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the access group\",\n            \"maxLength\": 50,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"example\": \"My access group\"\n          },\n          \"projects\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"additionalProperties\": false,\n              \"required\": [\n                \"role\",\n                \"projectId\"\n              ],\n              \"properties\": {\n                \"projectId\": {\n                  \"type\": \"string\",\n                  \"maxLength\": 256,\n                  \"example\": \"prj_ndlgr43fadlPyCtREAqxxdyFK\",\n                  \"description\": \"The ID of the project.\"\n                },\n                \"role\": {\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"ADMIN\",\n                    \"PROJECT_VIEWER\",\n                    \"PROJECT_DEVELOPER\",\n                    null\n                  ],\n                  \"example\": \"ADMIN\",\n                  \"description\": \"The project role that will be added to this Access Group. \\\\\\\"null\\\\\\\" will remove this project level role.\",\n                  \"nullable\": true\n                }\n              }\n            }\n          },\n          \"membersToAdd\": {\n            \"description\": \"List of members to add to the access group.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"usr_1a2b3c4d5e6f7g8h9i0j\",\n              \"usr_2b3c4d5e6f7g8h9i0j1k\"\n            ]\n          },\n          \"membersToRemove\": {\n            \"description\": \"List of members to remove from the access group.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"example\": [\n              \"usr_1a2b3c4d5e6f7g8h9i0j\",\n              \"usr_2b3c4d5e6f7g8h9i0j1k\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

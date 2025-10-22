@@ -1,0 +1,301 @@
+{
+  "name": "RefundVendorCredit",
+  "fully_qualified_name": "ZohoBooksApi.RefundVendorCredit@0.1.0",
+  "description": "Process a refund for vendor credit.\n\nUse this tool to initiate a refund for a specified vendor credit. Suitable when needing to refund amounts credited to a vendor.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The ID of the organization for which the vendor credit refund is being processed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "vendor_credit_identifier",
+        "required": true,
+        "description": "Unique identifier for the vendor credit that needs to be refunded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the vendor credit."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor_credit_id"
+      },
+      {
+        "name": "refund_details",
+        "required": false,
+        "description": "JSON object containing details of the refund, including date, refund mode, reference number, amount, exchange rate, account ID, and description.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date of Vendor Credit Refund"
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Refund"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'refund_vendor_credit'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.debitnotes.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/vendorcredits/{vendor_credit_id}/refunds",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "vendor_credit_id",
+        "tool_parameter_name": "vendor_credit_identifier",
+        "description": "Unique identifier of the vendor credit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the vendor credit."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "refund_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date of Vendor Credit Refund"
+            },
+            "refund_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of Refund"
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "exchange_rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"date\",\n          \"amount\",\n          \"account_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"date\": {\n            \"description\": \"Date of Vendor Credit Refund\",\n            \"type\": \"string\",\n            \"example\": \"2014-08-30\"\n          },\n          \"refund_mode\": {\n            \"description\": \"Mode of Refund\",\n            \"type\": \"string\",\n            \"example\": \"cash\"\n          },\n          \"reference_number\": {\n            \"description\": \"Optional reference number for tracking purposes. Can be any custom string or auto-generated. Useful for linking to external systems or internal tracking. Max-Length [100]\",\n            \"type\": \"string\"\n          },\n          \"amount\": {\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 13\n          },\n          \"exchange_rate\": {\n            \"description\": \"Exchange rate for converting the vendor credit currency to base currency. Required when currency differs from base currency. Retrieve rates from currency exchange rate APIs.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 1\n          },\n          \"account_id\": {\n            \"description\": \"Unique identifier for the chart of accounts entry. Retrieve account IDs from the List Chart of Accounts API endpoint. Determines which account the line item affects for accounting purposes.\",\n            \"type\": \"string\",\n            \"example\": \"460000000020097\"\n          },\n          \"description\": {\n            \"description\": \"Detailed description of the line item. Provides additional information about the product or service being credited. Displayed on the vendor credit document.\",\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

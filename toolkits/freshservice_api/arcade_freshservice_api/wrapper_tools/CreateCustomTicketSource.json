@@ -1,0 +1,313 @@
+{
+  "name": "CreateCustomTicketSource",
+  "fully_qualified_name": "FreshserviceApi.CreateCustomTicketSource@1.0.0",
+  "description": "Create a custom ticket source in Freshservice.\n\nUse this tool to create a custom ticket source within the Freshservice platform. Ideal for when you need to define new ticket origin types beyond the defaults provided.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "source_name",
+        "required": true,
+        "description": "Specify the name for the custom ticket source in Freshservice.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the source"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "source_id",
+        "required": false,
+        "description": "Unique identifier for the custom ticket source.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the source"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "source_position_in_list",
+        "required": false,
+        "description": "The position of the custom ticket source in the source list. It determines where this source appears in the list of sources.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position of the source value in the source list"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "position"
+      },
+      {
+        "name": "created_timestamp",
+        "required": false,
+        "description": "The timestamp when the source was created in Freshservice. Format: YYYY-MM-DDTHH:MM:SSZ.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the source was created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_at"
+      },
+      {
+        "name": "last_modified_timestamp",
+        "required": false,
+        "description": "The timestamp indicating when the custom ticket source was last modified. Expected in ISO 8601 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the source was last modified"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "updated_at"
+      },
+      {
+        "name": "source_present_by_default",
+        "required": false,
+        "description": "Set to true if the source value is present by default in Freshservice.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "True if the source value is present by default in Freshservice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "default"
+      },
+      {
+        "name": "is_visible_for_selection",
+        "required": false,
+        "description": "True if the source value is visible for selection in Freshservice.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "True if the source value is visible for selection in Freshservice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "visible"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-ticket-field-source'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/ticket_fields/sources",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "source_id",
+        "description": "Unique identifier of the source",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the source"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "source_name",
+        "description": "Name of the source",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the source"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "position",
+        "tool_parameter_name": "source_position_in_list",
+        "description": "Position of the source value in the source list",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position of the source value in the source list"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "default",
+        "tool_parameter_name": "source_present_by_default",
+        "description": "True if the source value is present by default in Freshservice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "True if the source value is present by default in Freshservice"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "visible",
+        "tool_parameter_name": "is_visible_for_selection",
+        "description": "True if the source value is visible for selection in Freshservice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "True if the source value is visible for selection in Freshservice"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_at",
+        "tool_parameter_name": "created_timestamp",
+        "description": "Timestamp at which the source was created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the source was created"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "updated_at",
+        "tool_parameter_name": "last_modified_timestamp",
+        "description": "Timestamp at which the source was last modified",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp at which the source was last modified"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Custom ticket source that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the source\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 124324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the source\",\n            \"example\": \"Email\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"description\": \"Position of the source value in the source list\",\n            \"format\": \"int64\",\n            \"example\": 1\n          },\n          \"default\": {\n            \"type\": \"boolean\",\n            \"description\": \"True if the source value is present by default in Freshservice\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"visible\": {\n            \"type\": \"boolean\",\n            \"description\": \"True if the source value is visible for selection in Freshservice\",\n            \"readOnly\": true,\n            \"example\": true\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the source was created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2019-06-11T07:16:45Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the source was last modified\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2019-06-11T07:16:45Z\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,392 @@
+{
+  "name": "UpdateSolutionFolder",
+  "fully_qualified_name": "FreshserviceApi.UpdateSolutionFolder@1.0.0",
+  "description": "Update a solution folder in Freshservice by ID.\n\nUse this tool to update a specific solution folder in Freshservice by providing the folder ID.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "solution_folder_id",
+        "required": true,
+        "description": "ID of the solution folder to update in Freshservice.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution folder that has to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "solution_folder_data",
+        "required": true,
+        "description": "JSON object detailing the solution folder update, including id, category_id, name, description, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution folder"
+            },
+            "category_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution category"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the solution folder"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the solution folder"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The position of the solution folder in the folder listing. When there are more than 1 folders in a category, then this will determine the position."
+            },
+            "managed_by_group": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Agent group ID who can edit the articles in the folder"
+            },
+            "managed_by_agent": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The agent ID who can edit the articles in the folder"
+            },
+            "visibility": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "requester_groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Requester group IDs that have access to view this folder"
+                },
+                "agent_groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Agent group IDs that have access to view this folder"
+                },
+                "departments": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The department IDs whose members will be able to view the folder"
+                },
+                "all_agents": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all agents can view this folder"
+                },
+                "everyone": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all users can view this folder"
+                },
+                "logged_in_users": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all logged in users can view this folder"
+                }
+              },
+              "inner_properties": null,
+              "description": "Users who can view this folder"
+            },
+            "default_folder": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If this is a default folder shipped with the product. You can create or rename a default folder."
+            }
+          },
+          "inner_properties": null,
+          "description": "Folder that needs to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-solution-folder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/solutions/folders/{folder_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "solution_folder_id",
+        "description": "ID of the solution folder that has to be updated",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the solution folder that has to be updated"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "solution_folder_data",
+        "description": "Folder that needs to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution folder"
+            },
+            "category_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique identifier of the solution category"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the solution folder"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of the solution folder"
+            },
+            "position": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The position of the solution folder in the folder listing. When there are more than 1 folders in a category, then this will determine the position."
+            },
+            "managed_by_group": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Agent group ID who can edit the articles in the folder"
+            },
+            "managed_by_agent": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The agent ID who can edit the articles in the folder"
+            },
+            "visibility": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "requester_groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Requester group IDs that have access to view this folder"
+                },
+                "agent_groups": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Agent group IDs that have access to view this folder"
+                },
+                "departments": {
+                  "val_type": "array",
+                  "inner_val_type": "integer",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The department IDs whose members will be able to view the folder"
+                },
+                "all_agents": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all agents can view this folder"
+                },
+                "everyone": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all users can view this folder"
+                },
+                "logged_in_users": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Is True if all logged in users can view this folder"
+                }
+              },
+              "inner_properties": null,
+              "description": "Users who can view this folder"
+            },
+            "default_folder": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If this is a default folder shipped with the product. You can create or rename a default folder."
+            }
+          },
+          "inner_properties": null,
+          "description": "Folder that needs to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Folder that needs to be created\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the solution folder\",\n            \"format\": \"int64\",\n            \"example\": 14000234234\n          },\n          \"category_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the solution category\",\n            \"format\": \"int64\",\n            \"example\": 140009808\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the solution folder\",\n            \"example\": \"Network FAQ\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Description of the solution folder\",\n            \"example\": \"Solution Articles for Network related queries\"\n          },\n          \"position\": {\n            \"type\": \"integer\",\n            \"description\": \"The position of the solution folder in the folder listing. When there are more than 1 folders in a category, then this will determine the position.\",\n            \"format\": \"int32\",\n            \"example\": 1\n          },\n          \"managed_by_group\": {\n            \"type\": \"integer\",\n            \"description\": \"Agent group ID who can edit the articles in the folder\",\n            \"format\": \"int32\",\n            \"example\": 938453\n          },\n          \"managed_by_agent\": {\n            \"type\": \"integer\",\n            \"description\": \"The agent ID who can edit the articles in the folder\",\n            \"format\": \"int32\",\n            \"example\": 349583\n          },\n          \"visibility\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"requester_groups\": {\n                \"type\": \"array\",\n                \"description\": \"Requester group IDs that have access to view this folder\",\n                \"example\": [\n                  234234,\n                  543444\n                ],\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                }\n              },\n              \"agent_groups\": {\n                \"type\": \"array\",\n                \"description\": \"Agent group IDs that have access to view this folder\",\n                \"example\": [\n                  234234,\n                  543444\n                ],\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                }\n              },\n              \"departments\": {\n                \"type\": \"array\",\n                \"description\": \"The department IDs whose members will be able to view the folder\",\n                \"example\": [\n                  234234,\n                  543444\n                ],\n                \"items\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\"\n                }\n              },\n              \"all_agents\": {\n                \"type\": \"boolean\",\n                \"description\": \"Is True if all agents can view this folder\",\n                \"example\": true\n              },\n              \"everyone\": {\n                \"type\": \"boolean\",\n                \"description\": \"Is True if all users can view this folder\",\n                \"example\": true\n              },\n              \"logged_in_users\": {\n                \"type\": \"boolean\",\n                \"description\": \"Is True if all logged in users can view this folder\",\n                \"example\": true\n              }\n            },\n            \"description\": \"Users who can view this folder\",\n            \"example\": {\n              \"requester_groups\": [\n                234234,\n                543444\n              ],\n              \"agent_groups\": [\n                498034,\n                349534\n              ],\n              \"departments\": [\n                485792,\n                298732\n              ],\n              \"all_agents\": false,\n              \"everyone\": false,\n              \"logged_in_users\": false\n            }\n          },\n          \"default_folder\": {\n            \"type\": \"boolean\",\n            \"description\": \"If this is a default folder shipped with the product. You can create or rename a default folder.\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

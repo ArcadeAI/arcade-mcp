@@ -1,0 +1,334 @@
+{
+  "name": "CreateIntegrationStore",
+  "fully_qualified_name": "VercelApi.CreateIntegrationStore@0.1.0",
+  "description": "Create integration stores for FREE and PAID billing plans.\n\nThis tool creates integration stores on Vercel for both free and paid plans, handling billing automatically. It validates configurations, discovers free plans, and creates billing authorizations for paid resources. It should be called when you need to provision integration storage resources while managing billing. Requires admin access and, for paid plans, a valid payment method.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier of the team on whose behalf the request is being made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The unique slug of the team for which the integration store is being created. This identifies the team on behalf of which the request is made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "integration_store_details",
+        "required": false,
+        "description": "JSON object with details for store creation: includes name, integration configuration ID, product ID or slug, metadata, external ID, protocol settings, source, billing plan ID, payment method ID, and prepayment amount in cents for specific plans.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Human-readable name for the storage resource"
+            },
+            "integrationConfigurationId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of your integration configuration. Get this from GET /v1/integrations/configurations"
+            },
+            "integrationProductIdOrSlug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID or slug of the integration product. Get available products from GET /v1/integrations/configuration/{id}/products"
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional key-value pairs for resource metadata"
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional external identifier for tracking purposes"
+            },
+            "protocolSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Protocol-specific configuration settings"
+            },
+            "source": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Source of the store creation request"
+            },
+            "billingPlanId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the billing plan for paid resources. Get available plans from GET /integrations/integration/{id}/products/{productId}/plans. If not provided, automatically discovers free billing plans."
+            },
+            "paymentMethodId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment method ID for paid resources. Optional - uses default payment method if not provided."
+            },
+            "prepaymentAmountCents": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount in cents for prepayment billing plans. Required only for prepayment plans with variable amounts."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createIntegrationStoreDirect'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/storage/stores/integration/direct",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "integration_store_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Human-readable name for the storage resource"
+            },
+            "integrationConfigurationId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of your integration configuration. Get this from GET /v1/integrations/configurations"
+            },
+            "integrationProductIdOrSlug": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID or slug of the integration product. Get available products from GET /v1/integrations/configuration/{id}/products"
+            },
+            "metadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional key-value pairs for resource metadata"
+            },
+            "externalId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Optional external identifier for tracking purposes"
+            },
+            "protocolSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Protocol-specific configuration settings"
+            },
+            "source": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Source of the store creation request"
+            },
+            "billingPlanId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the billing plan for paid resources. Get available plans from GET /integrations/integration/{id}/products/{productId}/plans. If not provided, automatically discovers free billing plans."
+            },
+            "paymentMethodId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Payment method ID for paid resources. Optional - uses default payment method if not provided."
+            },
+            "prepaymentAmountCents": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount in cents for prepayment billing plans. Required only for prepayment plans with variable amounts."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"name\",\n          \"integrationConfigurationId\",\n          \"integrationProductIdOrSlug\"\n        ],\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"maxLength\": 128,\n            \"description\": \"Human-readable name for the storage resource\",\n            \"example\": \"my-dev-database\"\n          },\n          \"integrationConfigurationId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of your integration configuration. Get this from GET /v1/integrations/configurations\",\n            \"example\": \"icfg_cuwj0AdCdH3BwWT4LPijCC7t\",\n            \"pattern\": \"^icfg_[a-zA-Z0-9]+$\"\n          },\n          \"integrationProductIdOrSlug\": {\n            \"type\": \"string\",\n            \"description\": \"ID or slug of the integration product. Get available products from GET /v1/integrations/configuration/{id}/products\",\n            \"example\": \"iap_postgres_db\",\n            \"oneOf\": [\n              {\n                \"pattern\": \"^iap_[a-zA-Z0-9_]+$\",\n                \"description\": \"Product ID format\"\n              },\n              {\n                \"pattern\": \"^[a-z0-9-]+$\",\n                \"description\": \"Product slug format\"\n              }\n            ]\n          },\n          \"metadata\": {\n            \"type\": \"object\",\n            \"description\": \"Optional key-value pairs for resource metadata\",\n            \"additionalProperties\": {\n              \"oneOf\": [\n                {\n                  \"type\": \"string\"\n                },\n                {\n                  \"type\": \"number\"\n                },\n                {\n                  \"type\": \"boolean\"\n                },\n                {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"string\"\n                  }\n                },\n                {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"number\"\n                  }\n                }\n              ]\n            },\n            \"example\": {\n              \"environment\": \"development\",\n              \"project\": \"my-app\",\n              \"tags\": [\n                \"database\",\n                \"postgres\"\n              ]\n            }\n          },\n          \"externalId\": {\n            \"type\": \"string\",\n            \"description\": \"Optional external identifier for tracking purposes\",\n            \"example\": \"dev-db-001\"\n          },\n          \"protocolSettings\": {\n            \"type\": \"object\",\n            \"description\": \"Protocol-specific configuration settings\",\n            \"additionalProperties\": true,\n            \"example\": {\n              \"experimentation\": {\n                \"edgeConfigSyncingEnabled\": true\n              }\n            }\n          },\n          \"source\": {\n            \"type\": \"string\",\n            \"description\": \"Source of the store creation request\",\n            \"example\": \"api\",\n            \"default\": \"marketplace\"\n          },\n          \"billingPlanId\": {\n            \"type\": \"string\",\n            \"description\": \"ID of the billing plan for paid resources. Get available plans from GET /integrations/integration/{id}/products/{productId}/plans. If not provided, automatically discovers free billing plans.\",\n            \"example\": \"bp_abc123def456\"\n          },\n          \"paymentMethodId\": {\n            \"type\": \"string\",\n            \"description\": \"Payment method ID for paid resources. Optional - uses default payment method if not provided.\",\n            \"example\": \"pm_1AbcDefGhiJklMno\"\n          },\n          \"prepaymentAmountCents\": {\n            \"type\": \"number\",\n            \"minimum\": 50,\n            \"description\": \"Amount in cents for prepayment billing plans. Required only for prepayment plans with variable amounts.\",\n            \"example\": 5000\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

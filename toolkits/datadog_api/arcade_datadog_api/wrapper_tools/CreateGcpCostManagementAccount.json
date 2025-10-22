@@ -1,0 +1,328 @@
+{
+  "name": "CreateGcpCostManagementAccount",
+  "fully_qualified_name": "DatadogApi.CreateGcpCostManagementAccount@0.1.0",
+  "description": "Create a cost management account for Google Cloud usage.\n\nThis tool creates a Cloud Cost Management account specifically for Google Cloud Usage Cost configurations. It should be called when a user wants to set up or initiate tracking and managing costs related to their Google Cloud resources.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "usage_cost_config_type",
+        "required": true,
+        "description": "Specifies the type of Google Cloud Usage Cost configuration post request. Use \"gcp_uc_config_post_request\" to indicate this type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gcp_uc_config_post_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Google Cloud Usage Cost config post request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "google_cloud_billing_account_id",
+        "required": false,
+        "description": "The Google Cloud account ID for cost management.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Cloud account ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.billing_account_id"
+      },
+      {
+        "name": "gcp_bucket_name",
+        "required": false,
+        "description": "The name of the Google Cloud bucket where the Usage Cost exports are stored.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Cloud bucket name used to store the Usage Cost export."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.bucket_name"
+      },
+      {
+        "name": "gcp_usage_cost_export_dataset_name",
+        "required": false,
+        "description": "The dataset name used for exporting the Google Cloud Usage Cost report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The export dataset name used for the Google Cloud Usage Cost report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.export_dataset_name"
+      },
+      {
+        "name": "google_cloud_export_prefix",
+        "required": false,
+        "description": "The export prefix for the Google Cloud Usage Cost report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The export prefix used for the Google Cloud Usage Cost report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.export_prefix"
+      },
+      {
+        "name": "gcp_usage_cost_report_name",
+        "required": false,
+        "description": "The name of the Google Cloud Usage Cost report to be used for cost management.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Google Cloud Usage Cost report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.export_project_name"
+      },
+      {
+        "name": "google_cloud_service_account_email",
+        "required": false,
+        "description": "The unique Google Cloud service account email required for the cost management setup.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique Google Cloud service account email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.service_account"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCostGCPUsageCostConfig'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/gcp_uc_config",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.billing_account_id",
+        "tool_parameter_name": "google_cloud_billing_account_id",
+        "description": "The Google Cloud account ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Cloud account ID."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.bucket_name",
+        "tool_parameter_name": "gcp_bucket_name",
+        "description": "The Google Cloud bucket name used to store the Usage Cost export.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Google Cloud bucket name used to store the Usage Cost export."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.export_dataset_name",
+        "tool_parameter_name": "gcp_usage_cost_export_dataset_name",
+        "description": "The export dataset name used for the Google Cloud Usage Cost report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The export dataset name used for the Google Cloud Usage Cost report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.export_prefix",
+        "tool_parameter_name": "google_cloud_export_prefix",
+        "description": "The export prefix used for the Google Cloud Usage Cost report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The export prefix used for the Google Cloud Usage Cost report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.export_project_name",
+        "tool_parameter_name": "gcp_usage_cost_report_name",
+        "description": "The name of the Google Cloud Usage Cost report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the Google Cloud Usage Cost report."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.service_account",
+        "tool_parameter_name": "google_cloud_service_account_email",
+        "description": "The unique Google Cloud service account email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique Google Cloud service account email."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "usage_cost_config_type",
+        "description": "Type of Google Cloud Usage Cost config post request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "gcp_uc_config_post_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Google Cloud Usage Cost config post request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "gcp_uc_config_post_request",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Google Cloud Usage Cost config post request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Google Cloud Usage Cost config post data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for Google Cloud Usage Cost config post request.\",\n                \"properties\": {\n                  \"billing_account_id\": {\n                    \"description\": \"The Google Cloud account ID.\",\n                    \"example\": \"123456_A123BC_12AB34\",\n                    \"type\": \"string\"\n                  },\n                  \"bucket_name\": {\n                    \"description\": \"The Google Cloud bucket name used to store the Usage Cost export.\",\n                    \"example\": \"dd-cost-bucket\",\n                    \"type\": \"string\"\n                  },\n                  \"export_dataset_name\": {\n                    \"description\": \"The export dataset name used for the Google Cloud Usage Cost report.\",\n                    \"example\": \"billing\",\n                    \"type\": \"string\"\n                  },\n                  \"export_prefix\": {\n                    \"description\": \"The export prefix used for the Google Cloud Usage Cost report.\",\n                    \"example\": \"datadog_cloud_cost_usage_export\",\n                    \"type\": \"string\"\n                  },\n                  \"export_project_name\": {\n                    \"description\": \"The name of the Google Cloud Usage Cost report.\",\n                    \"example\": \"dd-cloud-cost-report\",\n                    \"type\": \"string\"\n                  },\n                  \"service_account\": {\n                    \"description\": \"The unique Google Cloud service account email.\",\n                    \"example\": \"dd-ccm-gcp-integration@my-environment.iam.gserviceaccount.com\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"billing_account_id\",\n                  \"bucket_name\",\n                  \"export_project_name\",\n                  \"export_dataset_name\",\n                  \"service_account\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"gcp_uc_config_post_request\",\n                \"description\": \"Type of Google Cloud Usage Cost config post request.\",\n                \"enum\": [\n                  \"gcp_uc_config_post_request\"\n                ],\n                \"example\": \"gcp_usage_cost_config_post_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"GCP_USAGE_COST_CONFIG_POST_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

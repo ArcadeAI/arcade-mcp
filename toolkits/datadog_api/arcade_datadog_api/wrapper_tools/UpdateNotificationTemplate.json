@@ -1,0 +1,361 @@
+{
+  "name": "UpdateNotificationTemplate",
+  "fully_qualified_name": "DatadogApi.UpdateNotificationTemplate@0.1.0",
+  "description": "Update attributes of a notification template.\n\nUse this tool to update an existing notification template's attributes in Datadog's incident management system.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "notification_template_id",
+        "required": true,
+        "description": "The unique identifier of the notification template to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "template_id",
+        "required": true,
+        "description": "The unique identifier of the notification template to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "notification_template_resource_type",
+        "required": true,
+        "description": "Specifies the type of the notification template resource. Must be 'notification_templates'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "notification_templates"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Notification templates resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "relationships_to_include",
+        "required": false,
+        "description": "Comma-separated list of relationships to include. Valid values: `created_by_user`, `last_modified_by_user`, `incident_type`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of relationships to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "notification_template_category",
+        "required": false,
+        "description": "The category of the notification template to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The category of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.category"
+      },
+      {
+        "name": "notification_template_content",
+        "required": false,
+        "description": "The content body of the notification template to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The content body of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.content"
+      },
+      {
+        "name": "notification_template_name",
+        "required": false,
+        "description": "The name of the notification template to update in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "notification_template_subject",
+        "required": false,
+        "description": "The subject line of the notification template to be updated in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The subject line of the notification template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.subject"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIncidentNotificationTemplate'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/config/notification-templates/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "relationships_to_include",
+        "description": "Comma-separated list of relationships to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Comma-separated list of relationships to include. Supported values: `created_by_user`, `last_modified_by_user`, `incident_type`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "notification_template_id",
+        "description": "The ID of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the notification template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.category",
+        "tool_parameter_name": "notification_template_category",
+        "description": "The category of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The category of the notification template."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.content",
+        "tool_parameter_name": "notification_template_content",
+        "description": "The content body of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The content body of the notification template."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "notification_template_name",
+        "description": "The name of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the notification template."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.subject",
+        "tool_parameter_name": "notification_template_subject",
+        "description": "The subject line of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The subject line of the notification template."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "template_id",
+        "description": "The unique identifier of the notification template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the notification template."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "notification_template_resource_type",
+        "description": "Notification templates resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "notification_templates"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Notification templates resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update request for a notification template.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Notification template data for an update request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes to update on a notification template.\",\n                \"properties\": {\n                  \"category\": {\n                    \"description\": \"The category of the notification template.\",\n                    \"example\": \"update\",\n                    \"type\": \"string\"\n                  },\n                  \"content\": {\n                    \"description\": \"The content body of the notification template.\",\n                    \"example\": \"Incident Status Update:\\n\\nTitle: {{incident.title}}\\nNew Status: {{incident.state}}\\nSeverity: {{incident.severity}}\\nServices: {{incident.services}}\\nCommander: {{incident.commander}}\\n\\nFor more details, visit the incident page.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the notification template.\",\n                    \"example\": \"Incident Status Update Template\",\n                    \"type\": \"string\"\n                  },\n                  \"subject\": {\n                    \"description\": \"The subject line of the notification template.\",\n                    \"example\": \"Incident Update: {{incident.title}} - {{incident.state}}\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the notification template.\",\n                \"example\": \"00000000-0000-0000-0000-000000000001\",\n                \"format\": \"uuid\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"description\": \"Notification templates resource type.\",\n                \"enum\": [\n                  \"notification_templates\"\n                ],\n                \"example\": \"notification_templates\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"NOTIFICATION_TEMPLATES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

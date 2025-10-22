@@ -1,0 +1,247 @@
+{
+  "name": "ForceDeleteReplications",
+  "fully_qualified_name": "WeaviateApi.ForceDeleteReplications@0.1.0",
+  "description": "Forcefully delete replication operations with caution.\n\nThis tool is used to forcefully delete operations from the FSM in Weaviate. It should be called when there is a need to remove replication operations without performing state checks, which may lead to data corruption or loss. Ensure replication engine workers are scaled to 0 before using this to prevent in-flight operations.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "replication_operation_id",
+        "required": false,
+        "description": "The unique identifier (ID) of the replication operation to be forcefully deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier (ID) of the replication operation to be forcefully deleted."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "collection_name",
+        "required": false,
+        "description": "The name of the collection associated with the shard being replicated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection to which the shard being replicated belongs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "collection"
+      },
+      {
+        "name": "shard_identifier",
+        "required": false,
+        "description": "The unique identifier of the shard involved in the replication operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the shard involved in the replication operations."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shard"
+      },
+      {
+        "name": "target_node_name",
+        "required": false,
+        "description": "The name of the target node where replication operations are registered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the target node where the replication operations are registered."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "node"
+      },
+      {
+        "name": "dry_run",
+        "required": false,
+        "description": "When set to true, the operation simulates the deletion and returns the expected result without executing it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the operation will not actually delete anything but will return the expected outcome of the deletion."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "dryRun"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'forceDeleteReplications'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/replication/replicate/force-delete",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "replication_operation_id",
+        "description": "The unique identifier (ID) of the replication operation to be forcefully deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier (ID) of the replication operation to be forcefully deleted."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "collection",
+        "tool_parameter_name": "collection_name",
+        "description": "The name of the collection to which the shard being replicated belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the collection to which the shard being replicated belongs."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "shard",
+        "tool_parameter_name": "shard_identifier",
+        "description": "The identifier of the shard involved in the replication operations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The identifier of the shard involved in the replication operations."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "node",
+        "tool_parameter_name": "target_node_name",
+        "description": "The name of the target node where the replication operations are registered.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the target node where the replication operations are registered."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "dryRun",
+        "tool_parameter_name": "dry_run",
+        "description": "If true, the operation will not actually delete anything but will return the expected outcome of the deletion.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If true, the operation will not actually delete anything but will return the expected outcome of the deletion."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The unique identifier (ID) of the replication operation to be forcefully deleted.\",\n            \"format\": \"uuid\"\n          },\n          \"collection\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the collection to which the shard being replicated belongs.\"\n          },\n          \"shard\": {\n            \"type\": \"string\",\n            \"description\": \"The identifier of the shard involved in the replication operations.\"\n          },\n          \"node\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the target node where the replication operations are registered.\"\n          },\n          \"dryRun\": {\n            \"type\": \"boolean\",\n            \"description\": \"If true, the operation will not actually delete anything but will return the expected outcome of the deletion.\",\n            \"default\": false\n          }\n        },\n        \"description\": \"Specifies the parameters available when force deleting replication operations.\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"The unique identifier (ID) of the replication operation to be forcefully deleted.\",\n            \"format\": \"uuid\"\n          },\n          \"collection\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the collection to which the shard being replicated belongs.\"\n          },\n          \"shard\": {\n            \"type\": \"string\",\n            \"description\": \"The identifier of the shard involved in the replication operations.\"\n          },\n          \"node\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the target node where the replication operations are registered.\"\n          },\n          \"dryRun\": {\n            \"type\": \"boolean\",\n            \"description\": \"If true, the operation will not actually delete anything but will return the expected outcome of the deletion.\",\n            \"default\": false\n          }\n        },\n        \"description\": \"Specifies the parameters available when force deleting replication operations.\"\n      }\n    }\n  },\n  \"required\": false\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

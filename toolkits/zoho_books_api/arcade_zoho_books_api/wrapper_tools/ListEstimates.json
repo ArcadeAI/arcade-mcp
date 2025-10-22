@@ -1,0 +1,715 @@
+{
+  "name": "ListEstimates",
+  "fully_qualified_name": "ZohoBooksApi.ListEstimates@0.1.0",
+  "description": "Retrieve a list of all estimates with pagination.\n\nUse this tool to fetch all estimates, including pagination information, from Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Specifies the ID of the organization to filter the estimates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "estimate_number_filter",
+        "required": false,
+        "description": "Specify an estimate number or use variants like 'startswith' or 'contains' for partial matching to filter estimates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by their unique estimate number. Supports variants such as <code>estimate_number_startswith</code> and <code>estimate_number_contains</code> for partial matches. Useful for quickly locating a specific estimate or a group of estimates with similar numbering."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "estimate_number"
+      },
+      {
+        "name": "reference_number_filter",
+        "required": false,
+        "description": "Filter or search estimates by their reference number. Supports partial matches using 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by their reference number. Supports variants such as <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matches. Useful for linking estimates to external systems, customer requests, or internal workflows."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reference_number"
+      },
+      {
+        "name": "customer_name",
+        "required": false,
+        "description": "Search estimates by customer's name with optional variants for partial matches, such as 'startswith' and 'contains'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the customer\u2019s name. Supports variants such as <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matches. Useful for quickly locating all estimates associated with a specific customer or group of customers with similar names."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_name"
+      },
+      {
+        "name": "total_filter",
+        "required": false,
+        "description": "Specify a condition to search estimates by their total amount. Use variants like 'less_than', 'less_equals', 'greater_than', and 'greater_equals' for range queries.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the total amount of the estimate. Supports variants such as <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code> for range-based queries. Useful for finding estimates within a specific budget or identifying high-value quotes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "total"
+      },
+      {
+        "name": "filter_by_customer_id",
+        "required": false,
+        "description": "Filter or search estimates using the unique customer ID. Use the `customer_id` provided by the Contacts API for the same organization to retrieve estimates linked to a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the unique customer ID. Use the <code>customer_id</code> returned by the Contacts API for the same organization. This helps you retrieve all estimates linked to a specific customer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "filter_by_item_id",
+        "required": false,
+        "description": "Filter or search estimates by the unique item ID. Use the item_id returned by the Items API for the same organization to find estimates including a specific product or service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the unique item ID. Use the <code>item_id</code> returned by the Items API for the same organization. This allows you to find all estimates that include a specific product or service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_id"
+      },
+      {
+        "name": "item_name_filter",
+        "required": false,
+        "description": "Search estimates by item name. Supports variants like 'item_name_startswith' and 'item_name_contains' for partial matches.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by item name.Variants <code>item_name_startswith</code> and <code>item_name_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_name"
+      },
+      {
+        "name": "search_by_item_description",
+        "required": false,
+        "description": "Search estimates by item description. Use variants 'item_description_startswith' and 'item_description_contains' for pattern matching.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by item description.Variants<code>item_description_startswith</code> and <code>item_description_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_description"
+      },
+      {
+        "name": "search_by_custom_field",
+        "required": false,
+        "description": "Search estimates by a custom field, supporting variants like 'startswith' or 'contains' for partial matches. Useful for identifying estimates linked to specific custom data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by custom field.Variants<code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "custom_field"
+      },
+      {
+        "name": "expiry_date",
+        "required": false,
+        "description": "Specify the expiration date of the estimates to filter the results. Use the format YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of expiration of the estimates"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expiry_date"
+      },
+      {
+        "name": "estimate_date_filter",
+        "required": false,
+        "description": "Search estimates by date using variants like 'date_start', 'date_end', 'date_before', or 'date_after'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date"
+      },
+      {
+        "name": "estimate_status_filter",
+        "required": false,
+        "description": "Filter estimates by status. Allowed values: draft, sent, invoiced, accepted, declined, expired.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by status.Allowed Values<code>draft</code>, <code>sent</code>,<code> invoiced </code>, <code>accepted</code>, <code>declined</code> and <code>expired</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "filter_estimates_by_status",
+        "required": false,
+        "description": "Specify the status to filter estimates. Allowed values: Status.All, Status.Sent, Status.Draft, Status.Invoiced, Status.Accepted, Status.Declined, Status.Expired.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter estimates by status.Allowed Values <code>Status.All</code>, <code>Status.Sent</code>, <code>Status.Draft</code>, <code>Status.Invoiced</code>, <code>Status.Accepted</code>, <code>Status.Declined</code> and <code>Status.Expired</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter_by"
+      },
+      {
+        "name": "keyword_search",
+        "required": false,
+        "description": "Keyword search across estimate number, reference number, or customer name to quickly find matching estimates.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Perform a keyword search across estimate number, reference number, or customer name. Use this parameter to quickly find estimates that match any of these fields, making it easier to locate relevant records with minimal input."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "sort_estimates_by_column",
+        "required": false,
+        "description": "Specify the column to sort estimates by. Options: customer_name, estimate_number, date, total, created_time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort estimates. Allowed Values <code>customer_name</code>, <code>estimate_number</code>, <code>date</code>, <code>total</code> and <code>created_time</code>"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort_column"
+      },
+      {
+        "name": "deal_potential_id",
+        "required": false,
+        "description": "Potential ID of a Deal in CRM. Use this to filter estimates linked to specific deals.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Potential ID of a Deal in CRM."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zcrm_potential_id"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "Specify the page number to fetch. Default is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Number of records to fetch per page. Default is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list_estimates'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.estimates.READ"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/estimates",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "estimate_number",
+        "tool_parameter_name": "estimate_number_filter",
+        "description": "Filter or search estimates by their unique estimate number. Supports variants such as <code>estimate_number_startswith</code> and <code>estimate_number_contains</code> for partial matches. Useful for quickly locating a specific estimate or a group of estimates with similar numbering.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by their unique estimate number. Supports variants such as <code>estimate_number_startswith</code> and <code>estimate_number_contains</code> for partial matches. Useful for quickly locating a specific estimate or a group of estimates with similar numbering."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "reference_number",
+        "tool_parameter_name": "reference_number_filter",
+        "description": "Filter or search estimates by their reference number. Supports variants such as <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matches. Useful for linking estimates to external systems, customer requests, or internal workflows.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by their reference number. Supports variants such as <code>reference_number_startswith</code> and <code>reference_number_contains</code> for partial matches. Useful for linking estimates to external systems, customer requests, or internal workflows."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_name",
+        "tool_parameter_name": "customer_name",
+        "description": "Filter or search estimates by the customer\u2019s name. Supports variants such as <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matches. Useful for quickly locating all estimates associated with a specific customer or group of customers with similar names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the customer\u2019s name. Supports variants such as <code>customer_name_startswith</code> and <code>customer_name_contains</code> for partial matches. Useful for quickly locating all estimates associated with a specific customer or group of customers with similar names."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "total",
+        "tool_parameter_name": "total_filter",
+        "description": "Filter or search estimates by the total amount of the estimate. Supports variants such as <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code> for range-based queries. Useful for finding estimates within a specific budget or identifying high-value quotes.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the total amount of the estimate. Supports variants such as <code>total_less_than</code>, <code>total_less_equals</code>, <code>total_greater_than</code>, and <code>total_greater_equals</code> for range-based queries. Useful for finding estimates within a specific budget or identifying high-value quotes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "filter_by_customer_id",
+        "description": "Filter or search estimates by the unique customer ID. Use the <code>customer_id</code> returned by the Contacts API for the same organization. This helps you retrieve all estimates linked to a specific customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the unique customer ID. Use the <code>customer_id</code> returned by the Contacts API for the same organization. This helps you retrieve all estimates linked to a specific customer."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_id",
+        "tool_parameter_name": "filter_by_item_id",
+        "description": "Filter or search estimates by the unique item ID. Use the <code>item_id</code> returned by the Items API for the same organization. This allows you to find all estimates that include a specific product or service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter or search estimates by the unique item ID. Use the <code>item_id</code> returned by the Items API for the same organization. This allows you to find all estimates that include a specific product or service."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_name",
+        "tool_parameter_name": "item_name_filter",
+        "description": "Search estimates by item name.Variants <code>item_name_startswith</code> and <code>item_name_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by item name.Variants <code>item_name_startswith</code> and <code>item_name_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_description",
+        "tool_parameter_name": "search_by_item_description",
+        "description": "Search estimates by item description.Variants<code>item_description_startswith</code> and <code>item_description_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by item description.Variants<code>item_description_startswith</code> and <code>item_description_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "custom_field",
+        "tool_parameter_name": "search_by_custom_field",
+        "description": "Search estimates by custom field.Variants<code>custom_field_startswith</code> and <code>custom_field_contains</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by custom field.Variants<code>custom_field_startswith</code> and <code>custom_field_contains</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "expiry_date",
+        "tool_parameter_name": "expiry_date",
+        "description": "The date of expiration of the estimates",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The date of expiration of the estimates"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "date",
+        "tool_parameter_name": "estimate_date_filter",
+        "description": "Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by estimate date.Variants <code>date_start</code>, <code>date_end</code>, <code>date_before</code> and <code>date_after</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "estimate_status_filter",
+        "description": "Search estimates by status.Allowed Values<code>draft</code>, <code>sent</code>,<code> invoiced </code>, <code>accepted</code>, <code>declined</code> and <code>expired</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Search estimates by status.Allowed Values<code>draft</code>, <code>sent</code>,<code> invoiced </code>, <code>accepted</code>, <code>declined</code> and <code>expired</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter_by",
+        "tool_parameter_name": "filter_estimates_by_status",
+        "description": "Filter estimates by status.Allowed Values <code>Status.All</code>, <code>Status.Sent</code>, <code>Status.Draft</code>, <code>Status.Invoiced</code>, <code>Status.Accepted</code>, <code>Status.Declined</code> and <code>Status.Expired</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter estimates by status.Allowed Values <code>Status.All</code>, <code>Status.Sent</code>, <code>Status.Draft</code>, <code>Status.Invoiced</code>, <code>Status.Accepted</code>, <code>Status.Declined</code> and <code>Status.Expired</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_text",
+        "tool_parameter_name": "keyword_search",
+        "description": "Perform a keyword search across estimate number, reference number, or customer name. Use this parameter to quickly find estimates that match any of these fields, making it easier to locate relevant records with minimal input.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Perform a keyword search across estimate number, reference number, or customer name. Use this parameter to quickly find estimates that match any of these fields, making it easier to locate relevant records with minimal input."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort_column",
+        "tool_parameter_name": "sort_estimates_by_column",
+        "description": "Sort estimates. Allowed Values <code>customer_name</code>, <code>estimate_number</code>, <code>date</code>, <code>total</code> and <code>created_time</code>",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort estimates. Allowed Values <code>customer_name</code>, <code>estimate_number</code>, <code>date</code>, <code>total</code> and <code>created_time</code>"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "zcrm_potential_id",
+        "tool_parameter_name": "deal_potential_id",
+        "description": "Potential ID of a Deal in CRM.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Potential ID of a Deal in CRM."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "Page number to be fetched. Default value is 1.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Page number to be fetched. Default value is 1."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "per_page",
+        "tool_parameter_name": "records_per_page",
+        "description": "Number of records to be fetched per page. Default value is 200.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of records to be fetched per page. Default value is 200."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 200,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

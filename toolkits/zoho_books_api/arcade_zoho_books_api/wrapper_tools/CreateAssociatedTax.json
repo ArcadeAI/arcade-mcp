@@ -1,0 +1,444 @@
+{
+  "name": "CreateAssociatedTax",
+  "fully_qualified_name": "ZohoBooksApi.CreateAssociatedTax@0.1.0",
+  "description": "Create and associate a tax with an item.\n\nThis tool creates a tax that can be added to an item within the Zoho Books system. It is used when a new tax needs to be defined and linked to specific goods or services.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "ID of the organization in Zoho Books where the tax will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "tax_details",
+        "required": false,
+        "description": "JSON object containing details of the tax to be created, including name, percentage, type, authority information, country code, and update flags.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "tax_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Tax"
+            },
+            "tax_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of Percentage Taxable."
+            },
+            "tax_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type to determine whether it is a simple or compound tax. <code>Allowed Values: tax and compound_tax</code>"
+            },
+            "tax_factor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Tax Factor. Allowed values: <code>rate</code>, <code>share</code>"
+            },
+            "tax_specific_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Tax For <b>Indian</b> Edition. Allowed Values : <code>igst</code> ,<code>cgst</code> ,<code>sgst</code> ,<code>nil</code>, <code> cess </code>.</br>Type of Tax for <b>Mexico</b> Edition. Allowed Values : <code>isr</code>, <code>iva</code>, <code>ieps</code>.</br>Type of Tax for <b>South Africa</b> Edition. Allowed Values : </br><code>soa_less_than_28d</code> - Supply of accommodation not exceeding 28 days, </br><code>soa_more_than_28d</code> - Supply of accommodation exceeding than 28 days, </br><code>ciu_prev_tax_supply</code> - Change in use (Taxable supplies), </br><code>ciu_prev_nontax_supply</code> - Change in use (Non-Taxable supplies), </br><code>export_of_shg</code> - Export of second hand goods."
+            },
+            "tax_authority_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Tax Authority"
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "country_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Two letter country code for the EU country to which the tax belongs."
+            },
+            "purchase_tax_expense_account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Account ID in which Purchase Tax will be Computed"
+            },
+            "is_value_added": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Tax is Value Added"
+            },
+            "update_recurring_invoice": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if recurring invoice should be updated"
+            },
+            "update_recurring_expense": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if recurring expenses should be updated"
+            },
+            "update_draft_invoice": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Draft Invoices should be updated"
+            },
+            "update_recurring_bills": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Recurring Bills should be updated"
+            },
+            "update_draft_so": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Draft Sales Orders should be updated"
+            },
+            "update_subscription": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Subscriptions should be updated"
+            },
+            "update_project": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Projects should be updated"
+            },
+            "is_editable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if tax is editable"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_tax'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/settings/taxes",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "tax_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "tax_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Tax"
+            },
+            "tax_percentage": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Number of Percentage Taxable."
+            },
+            "tax_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type to determine whether it is a simple or compound tax. <code>Allowed Values: tax and compound_tax</code>"
+            },
+            "tax_factor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Tax Factor. Allowed values: <code>rate</code>, <code>share</code>"
+            },
+            "tax_specific_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of Tax For <b>Indian</b> Edition. Allowed Values : <code>igst</code> ,<code>cgst</code> ,<code>sgst</code> ,<code>nil</code>, <code> cess </code>.</br>Type of Tax for <b>Mexico</b> Edition. Allowed Values : <code>isr</code>, <code>iva</code>, <code>ieps</code>.</br>Type of Tax for <b>South Africa</b> Edition. Allowed Values : </br><code>soa_less_than_28d</code> - Supply of accommodation not exceeding 28 days, </br><code>soa_more_than_28d</code> - Supply of accommodation exceeding than 28 days, </br><code>ciu_prev_tax_supply</code> - Change in use (Taxable supplies), </br><code>ciu_prev_nontax_supply</code> - Change in use (Non-Taxable supplies), </br><code>export_of_shg</code> - Export of second hand goods."
+            },
+            "tax_authority_name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the Tax Authority"
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+            },
+            "country_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Two letter country code for the EU country to which the tax belongs."
+            },
+            "purchase_tax_expense_account_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Account ID in which Purchase Tax will be Computed"
+            },
+            "is_value_added": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Tax is Value Added"
+            },
+            "update_recurring_invoice": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if recurring invoice should be updated"
+            },
+            "update_recurring_expense": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if recurring expenses should be updated"
+            },
+            "update_draft_invoice": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Draft Invoices should be updated"
+            },
+            "update_recurring_bills": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Recurring Bills should be updated"
+            },
+            "update_draft_so": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Draft Sales Orders should be updated"
+            },
+            "update_subscription": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Subscriptions should be updated"
+            },
+            "update_project": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if Projects should be updated"
+            },
+            "is_editable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if tax is editable"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"tax_name\": {\n            \"description\": \"Name of the Tax\",\n            \"type\": \"string\",\n            \"example\": \"Sales Group\"\n          },\n          \"tax_percentage\": {\n            \"description\": \"Number of Percentage Taxable.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 10.5\n          },\n          \"tax_type\": {\n            \"description\": \"Type to determine whether it is a simple or compound tax. <code>Allowed Values: tax and compound_tax</code>\",\n            \"type\": \"string\",\n            \"example\": \"tax\"\n          },\n          \"tax_factor\": {\n            \"description\": \"Type of Tax Factor. Allowed values: <code>rate</code>, <code>share</code>\",\n            \"type\": \"string\",\n            \"example\": \"rate\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_specific_type\": {\n            \"description\": \"Type of Tax For <b>Indian</b> Edition. Allowed Values : <code>igst</code> ,<code>cgst</code> ,<code>sgst</code> ,<code>nil</code>, <code> cess </code>.</br>Type of Tax for <b>Mexico</b> Edition. Allowed Values : <code>isr</code>, <code>iva</code>, <code>ieps</code>.</br>Type of Tax for <b>South Africa</b> Edition. Allowed Values : </br><code>soa_less_than_28d</code> - Supply of accommodation not exceeding 28 days, </br><code>soa_more_than_28d</code> - Supply of accommodation exceeding than 28 days, </br><code>ciu_prev_tax_supply</code> - Change in use (Taxable supplies), </br><code>ciu_prev_nontax_supply</code> - Change in use (Non-Taxable supplies), </br><code>export_of_shg</code> - Export of second hand goods.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"mx\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_authority_name\": {\n            \"description\": \"Name of the Tax Authority\",\n            \"type\": \"string\",\n            \"example\": \"Illinois Department of Revenue\"\n          },\n          \"tax_authority_id\": {\n            \"description\": \"ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority.\",\n            \"type\": \"string\",\n            \"example\": \"460000000066001\",\n            \"x-node_available_in\": [\n              \"us\",\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"country_code\": {\n            \"description\": \"Two letter country code for the EU country to which the tax belongs.\",\n            \"type\": \"string\",\n            \"example\": \"UK\",\n            \"x-node_available_in\": [\n              \"uk\",\n              \"eu\",\n              \"gcc\",\n              \"global\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"purchase_tax_expense_account_id\": {\n            \"description\": \"Account ID in which Purchase Tax will be Computed\",\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"x-node_available_in\": [\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"is_value_added\": {\n            \"description\": \"Check if Tax is Value Added\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_recurring_invoice\": {\n            \"description\": \"Check if recurring invoice should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_recurring_expense\": {\n            \"description\": \"Check if recurring expenses should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_draft_invoice\": {\n            \"description\": \"Check if Draft Invoices should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_recurring_bills\": {\n            \"description\": \"Check if Recurring Bills should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_draft_so\": {\n            \"description\": \"Check if Draft Sales Orders should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_subscription\": {\n            \"description\": \"Check if Subscriptions should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"update_project\": {\n            \"description\": \"Check if Projects should be updated\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"is_editable\": {\n            \"description\": \"Check if tax is editable\",\n            \"type\": \"boolean\",\n            \"example\": true\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

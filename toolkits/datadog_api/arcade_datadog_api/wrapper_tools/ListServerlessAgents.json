@@ -1,0 +1,231 @@
+{
+  "name": "ListServerlessAgents",
+  "fully_qualified_name": "DatadogApi.ListServerlessAgents@0.1.0",
+  "description": "Retrieve all running CSM Serverless Agents.\n\nUse this tool to get a list of all CSM Serverless Agents currently running on your hosts and containers. It's ideal for monitoring and managing your serverless agent deployments.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "page_index",
+        "required": false,
+        "description": "The zero-based page index for pagination when retrieving serverless agents.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page index for pagination (zero-based)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "items_per_page",
+        "required": false,
+        "description": "The number of items to include in a single page of results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of items to include in a single page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "size"
+      },
+      {
+        "name": "filter_query",
+        "required": false,
+        "description": "A search string to filter serverless agents, such as `hostname:COMP-T2H4J27423`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A search query string to filter results (for example, `hostname:COMP-T2H4J27423`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "sort_direction",
+        "required": false,
+        "description": "The direction to sort results: 'asc' for ascending or 'desc' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sort direction for results. Use `asc` for ascending or `desc` for descending."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_direction"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListAllCSMServerlessAgents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/csm/onboarding/serverless/agents",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page",
+        "tool_parameter_name": "page_index",
+        "description": "The page index for pagination (zero-based).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page index for pagination (zero-based)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "size",
+        "tool_parameter_name": "items_per_page",
+        "description": "The number of items to include in a single page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of items to include in a single page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "filter_query",
+        "description": "A search query string to filter results (for example, `hostname:COMP-T2H4J27423`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A search query string to filter results (for example, `hostname:COMP-T2H4J27423`)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_direction",
+        "tool_parameter_name": "sort_direction",
+        "description": "The sort direction for results. Use `asc` for ascending or `desc` for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The sort direction for results. Use `asc` for ascending or `desc` for descending."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

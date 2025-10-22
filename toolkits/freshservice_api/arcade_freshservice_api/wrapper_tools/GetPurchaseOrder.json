@@ -1,18 +1,18 @@
 {
   "name": "GetPurchaseOrder",
-  "fully_qualified_name": "FreshserviceApi.GetPurchaseOrder@0.1.0",
-  "description": "Retrieve details of an existing purchase order by ID.\n\nUse this tool to fetch the details of a specific purchase order using its ID. This is useful when you need to view or verify purchase order information.",
+  "fully_qualified_name": "FreshserviceApi.GetPurchaseOrder@1.0.0",
+  "description": "Retrieve details of a specific Purchase Order.\n\nThis tool fetches the details of an existing Purchase Order using the provided purchase order ID. Use this to obtain information about a purchase order in the Freshservice system when prompted to provide specific order details.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "purchase_order_id",
         "required": true,
-        "description": "The unique identifier for the purchase order you wish to retrieve. This must be an integer.",
+        "description": "The ID of the purchase order to be retrieved. Must be an integer identifying a specific order.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -44,29 +44,22 @@
   },
   "requirements": {
     "authorization": null,
-    "secrets": [
-      {
-        "key": "FRESHSERVICE_API_KEY"
-      },
-      {
-        "key": "FRESHSERVICE_SUBDOMAIN"
-      }
-    ],
+    "secrets": null,
     "metadata": null
   },
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/purchase_orders/{purchase_order_id}",
+    "url": "https://api.freshservice.com/api/v2/purchase_orders/{purchase_order_id}",
     "http_method": "GET",
     "headers": {},
     "parameters": [
@@ -90,23 +83,9 @@
       }
     ],
     "documentation_urls": [],
-    "secrets": [
-      {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
-        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
-        "parameter_name": "freshservice_subdomain",
-        "accepted_as": "path",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      }
-    ]
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,515 @@
+{
+  "name": "CategorizeTransactionAsVendorPayment",
+  "fully_qualified_name": "ZohoBooksApi.CategorizeTransactionAsVendorPayment@0.1.0",
+  "description": "Categorize a bank transaction as a vendor payment.\n\nUse this tool to categorize an uncategorized bank transaction as a vendor payment in Zoho Books.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique string ID of the organization in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "transaction_id",
+        "required": true,
+        "description": "Unique identifier of the bank transaction to categorize as vendor payment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transaction_id"
+      },
+      {
+        "name": "transaction_details",
+        "required": false,
+        "description": "JSON object containing details such as vendor_id, bills, payment_mode, description, date, reference_number, exchange_rate, paid_through_account_id, amount, custom_fields, is_paid_via_print_check, and check_details for categorizing the transaction.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vendor"
+            },
+            "bills": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "bill_payment_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill Payment"
+                },
+                "bill_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill"
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount applied to the Entity"
+                },
+                "tax_amount_withheld": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the credit/ bank account the payment is made."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "is_paid_via_print_check": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Is the entity paid via print check"
+            },
+            "check_details": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "memo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "check_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of the Check Created"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'categorize_bank_transaction_as_vendor_payment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions/uncategorized/{transaction_id}/categorize/vendorpayments",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transaction_id",
+        "tool_parameter_name": "transaction_id",
+        "description": "Unique identifier of the bank transaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the bank transaction."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "transaction_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Vendor"
+            },
+            "bills": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "bill_payment_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill Payment"
+                },
+                "bill_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Bill"
+                },
+                "amount_applied": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Amount applied to the Entity"
+                },
+                "tax_amount_withheld": {
+                  "val_type": "number",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "description": null
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "paid_through_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the credit/ bank account the payment is made."
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            },
+            "is_paid_via_print_check": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Is the entity paid via print check"
+            },
+            "check_details": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "memo": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "check_number": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Number of the Check Created"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"vendor_id\": {\n            \"description\": \"ID of the Vendor\",\n            \"type\": \"string\",\n            \"example\": \"460000000026049\"\n          },\n          \"bills\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"bill_payment_id\": {\n                  \"description\": \"ID of the Bill Payment\",\n                  \"type\": \"string\"\n                },\n                \"bill_id\": {\n                  \"description\": \"ID of the Bill\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000053199\"\n                },\n                \"amount_applied\": {\n                  \"description\": \"Amount applied to the Entity\",\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 150\n                },\n                \"tax_amount_withheld\": {\n                  \"type\": \"number\",\n                  \"format\": \"double\",\n                  \"example\": 0\n                }\n              }\n            }\n          },\n          \"payment_mode\": {\n            \"description\": \"Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,\",\n            \"type\": \"string\",\n            \"example\": \"Cash\"\n          },\n          \"description\": {\n            \"description\": \"A brief description about the transaction.\",\n            \"type\": \"string\"\n          },\n          \"date\": {\n            \"description\": \"Transaction date.\",\n            \"type\": \"string\",\n            \"example\": \"2013-10-01\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference Number of the transaction\",\n            \"type\": \"string\",\n            \"example\": \"Ref-121\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"The foreign currency exchange rate value.\",\n            \"type\": \"integer\",\n            \"example\": 1\n          },\n          \"paid_through_account_id\": {\n            \"description\": \"ID of the credit/ bank account the payment is made.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000358\"\n          },\n          \"amount\": {\n            \"description\": \"Amount of the transaction\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 2000\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"index\": {\n                  \"description\": \"Index of the custom field\",\n                  \"type\": \"integer\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"is_paid_via_print_check\": {\n            \"description\": \"Is the entity paid via print check\",\n            \"type\": \"boolean\",\n            \"example\": false,\n            \"x-node_available_in\": [\n              \"us\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"check_details\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"memo\": {\n                  \"type\": \"string\"\n                },\n                \"check_number\": {\n                  \"description\": \"Number of the Check Created\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

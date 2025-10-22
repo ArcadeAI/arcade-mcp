@@ -1,0 +1,291 @@
+{
+  "name": "ListDatastoreItems",
+  "fully_qualified_name": "DatadogApi.ListDatastoreItems@0.1.0",
+  "description": "Retrieve items from a specified datastore.\n\nUse this tool to list items from a datastore. You can filter the results by using either an item key or a filter query parameter, but not both simultaneously. Supports server-side pagination for managing large datasets.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "datastore_identifier",
+        "required": true,
+        "description": "The unique identifier for the datastore from which to fetch items.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "datastore_id"
+      },
+      {
+        "name": "search_filter",
+        "required": false,
+        "description": "Query filter to search datastore items using the logs search syntax. Cannot be used with item_key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional query filter to search items using the [logs search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "primary_item_key",
+        "required": false,
+        "description": "Primary key to retrieve a specific item. Cannot be used with the filter parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional primary key value to retrieve a specific item. Cannot be used together with the filter parameter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "item_key"
+      },
+      {
+        "name": "item_limit_per_page",
+        "required": false,
+        "description": "Limit the number of items to return per page for pagination. Maximum of 100 items per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to limit the number of items to return per page for pagination. Up to 100 items can be returned per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[limit]"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Specifies the number of items to skip from the beginning of the result set for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to offset the number of items to skip from the beginning of the result set for pagination."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page[offset]"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Sort results by a specific field. Use '-' prefix for descending order (e.g., '-created_at').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to sort results by. Prefix with '-' for descending order (e.g., '-created_at')."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListDatastoreItems'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/actions-datastores/{datastore_id}/items",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "search_filter",
+        "description": "Optional query filter to search items using the [logs search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional query filter to search items using the [logs search syntax](https://docs.datadoghq.com/logs/explorer/search_syntax/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "item_key",
+        "tool_parameter_name": "primary_item_key",
+        "description": "Optional primary key value to retrieve a specific item. Cannot be used together with the filter parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional primary key value to retrieve a specific item. Cannot be used together with the filter parameter."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[limit]",
+        "tool_parameter_name": "item_limit_per_page",
+        "description": "Optional field to limit the number of items to return per page for pagination. Up to 100 items can be returned per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to limit the number of items to return per page for pagination. Up to 100 items can be returned per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "page[offset]",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Optional field to offset the number of items to skip from the beginning of the result set for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to offset the number of items to skip from the beginning of the result set for pagination."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Optional field to sort results by. Prefix with '-' for descending order (e.g., '-created_at').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional field to sort results by. Prefix with '-' for descending order (e.g., '-created_at')."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "datastore_id",
+        "tool_parameter_name": "datastore_identifier",
+        "description": "The unique identifier of the datastore to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the datastore to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

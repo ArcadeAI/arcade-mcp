@@ -1,0 +1,493 @@
+{
+  "name": "FetchDeploymentLogs",
+  "fully_qualified_name": "VercelApi.FetchDeploymentLogs@0.1.0",
+  "description": "Retrieve build logs for a specific deployment by ID.\n\nUse this tool to access the build logs or events of a deployment using its deployment ID and build ID. It can stream logs continuously or return them in JSON format based on input parameters.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deployment_identifier_or_hostname",
+        "required": true,
+        "description": "The unique identifier or hostname of the deployment to fetch logs for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier or hostname of the deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idOrUrl"
+      },
+      {
+        "name": "event_order",
+        "required": false,
+        "description": "Specifies the order of returned events by timestamp. Use 'forward' for chronological order or 'backward' for reverse order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "backward",
+            "forward"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order of the returned events based on the timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "direction"
+      },
+      {
+        "name": "enable_live_streaming",
+        "required": false,
+        "description": "Set to '1' to enable live streaming of events as they happen. Use '0' to disable live streaming.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "When enabled, this endpoint will return live events as they happen."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "follow"
+      },
+      {
+        "name": "maximum_events_to_return",
+        "required": false,
+        "description": "Specify the max number of events to return. Use `-1` for all available logs.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of events to return. Provide `-1` to return all available logs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "deployment_build_id",
+        "required": false,
+        "description": "The unique identifier for the deployment build for which logs are to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deployment build ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "start_timestamp_for_logs",
+        "required": false,
+        "description": "Timestamp from which to start retrieving build logs. Provide in milliseconds.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp for when build logs should be pulled from."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "fetch_until_timestamp",
+        "required": false,
+        "description": "Timestamp up to which the build logs should be retrieved.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp for when the build logs should be pulled up until."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "filter_by_status_code",
+        "required": false,
+        "description": "Specify the HTTP status code range to filter deployment events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "HTTP status code range to filter events by."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "statusCode"
+      },
+      {
+        "name": "build_event_delimiter",
+        "required": false,
+        "description": "Specify the delimiter type for separating logged events. Use '0' for no delimiter and '1' for an alternative separation method.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "delimiter"
+      },
+      {
+        "name": "include_builds",
+        "required": false,
+        "description": "Specify whether to include build events (1) or not (0) in the response.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "builds"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "Identifies the team on whose behalf the request is performed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The unique identifier (slug) of the Team for which the request is made. Used to specify the team context.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getDeploymentEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v3/deployments/{idOrUrl}/events",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "direction",
+        "tool_parameter_name": "event_order",
+        "description": "Order of the returned events based on the timestamp.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "backward",
+            "forward"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order of the returned events based on the timestamp."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "forward",
+        "documentation_urls": []
+      },
+      {
+        "name": "follow",
+        "tool_parameter_name": "enable_live_streaming",
+        "description": "When enabled, this endpoint will return live events as they happen.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "When enabled, this endpoint will return live events as they happen."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_events_to_return",
+        "description": "Maximum number of events to return. Provide `-1` to return all available logs.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of events to return. Provide `-1` to return all available logs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "deployment_build_id",
+        "description": "Deployment build ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Deployment build ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "start_timestamp_for_logs",
+        "description": "Timestamp for when build logs should be pulled from.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp for when build logs should be pulled from."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "fetch_until_timestamp",
+        "description": "Timestamp for when the build logs should be pulled up until.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Timestamp for when the build logs should be pulled up until."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "statusCode",
+        "tool_parameter_name": "filter_by_status_code",
+        "description": "HTTP status code range to filter events by.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "HTTP status code range to filter events by."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "delimiter",
+        "tool_parameter_name": "build_event_delimiter",
+        "description": "",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "builds",
+        "tool_parameter_name": "include_builds",
+        "description": "",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": [
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idOrUrl",
+        "tool_parameter_name": "deployment_identifier_or_hostname",
+        "description": "The unique identifier or hostname of the deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier or hostname of the deployment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

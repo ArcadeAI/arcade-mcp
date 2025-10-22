@@ -1,0 +1,302 @@
+{
+  "name": "CreateSecurityFilter",
+  "fully_qualified_name": "DatadogApi.CreateSecurityFilter@0.1.0",
+  "description": "Create a security filter using Datadog's API.\n\nUse this tool to create a security filter for monitoring purposes in Datadog. Ideal for setting up security monitoring based on predefined conditions.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "security_filter_definition",
+        "required": true,
+        "description": "JSON object defining the new security filter, including attributes like name, query, exclusion filters, and type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "exclusion_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Exclusion filter name."
+                        },
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Exclusion filter query. Logs that match this query are excluded from the security filter."
+                        }
+                      },
+                      "description": "Exclusion filters to exclude some logs from the security filter."
+                    },
+                    "filtered_data_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "logs"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The filtered data type."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the security filter is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the security filter."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query of the security filter."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Object containing the attributes of the security filter to be created."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "security_filters"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `security_filters`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single security filter."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new security filter."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateSecurityFilter'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/configuration/security_filters",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "security_filter_definition",
+        "description": "The definition of the new security filter.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "exclusion_filters": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Exclusion filter name."
+                        },
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Exclusion filter query. Logs that match this query are excluded from the security filter."
+                        }
+                      },
+                      "description": "Exclusion filters to exclude some logs from the security filter."
+                    },
+                    "filtered_data_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "logs"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The filtered data type."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether the security filter is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The name of the security filter."
+                    },
+                    "query": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The query of the security filter."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Object containing the attributes of the security filter to be created."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "security_filters"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be `security_filters`."
+                }
+              },
+              "inner_properties": null,
+              "description": "Object for a single security filter."
+            }
+          },
+          "inner_properties": null,
+          "description": "The definition of the new security filter."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request object that includes the security filter that you would like to create.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object for a single security filter.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Object containing the attributes of the security filter to be created.\",\n                \"properties\": {\n                  \"exclusion_filters\": {\n                    \"description\": \"Exclusion filters to exclude some logs from the security filter.\",\n                    \"example\": [\n                      {\n                        \"name\": \"Exclude staging\",\n                        \"query\": \"source:staging\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"Exclusion filter for the security filter.\",\n                      \"example\": {\n                        \"name\": \"Exclude staging\",\n                        \"query\": \"source:staging\"\n                      },\n                      \"properties\": {\n                        \"name\": {\n                          \"description\": \"Exclusion filter name.\",\n                          \"example\": \"Exclude staging\",\n                          \"type\": \"string\"\n                        },\n                        \"query\": {\n                          \"description\": \"Exclusion filter query. Logs that match this query are excluded from the security filter.\",\n                          \"example\": \"source:staging\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"name\",\n                        \"query\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"filtered_data_type\": {\n                    \"description\": \"The filtered data type.\",\n                    \"enum\": [\n                      \"logs\"\n                    ],\n                    \"example\": \"logs\",\n                    \"type\": \"string\",\n                    \"x-enum-varnames\": [\n                      \"LOGS\"\n                    ]\n                  },\n                  \"is_enabled\": {\n                    \"description\": \"Whether the security filter is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  },\n                  \"name\": {\n                    \"description\": \"The name of the security filter.\",\n                    \"example\": \"Custom security filter\",\n                    \"type\": \"string\"\n                  },\n                  \"query\": {\n                    \"description\": \"The query of the security filter.\",\n                    \"example\": \"service:api\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"query\",\n                  \"exclusion_filters\",\n                  \"filtered_data_type\",\n                  \"is_enabled\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"security_filters\",\n                \"description\": \"The type of the resource. The value should always be `security_filters`.\",\n                \"enum\": [\n                  \"security_filters\"\n                ],\n                \"example\": \"security_filters\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SECURITY_FILTERS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"The definition of the new security filter.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "name": "UpdateDatadogApiKey",
+  "fully_qualified_name": "DatadogApi.UpdateDatadogApiKey@0.1.0",
+  "description": "Update an API key in Datadog.\n\nThis tool updates an existing API key in Datadog. It should be called when you need to modify the details of an API key for access permissions or other configurations within the Datadog platform.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "api_key_id",
+        "required": true,
+        "description": "The unique identifier for the API key to be updated in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the API key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "api_key_id"
+      },
+      {
+        "name": "api_key_name",
+        "required": true,
+        "description": "The new name for the API key to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the API key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.name"
+      },
+      {
+        "name": "key_id",
+        "required": true,
+        "description": "ID of the API key to be updated in Datadog.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the API key."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.id"
+      },
+      {
+        "name": "api_keys_resource_type",
+        "required": true,
+        "description": "Specifies the resource type for API keys. Must be 'api_keys'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "api_keys"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "API Keys resource type."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "api_key_category",
+        "required": false,
+        "description": "The category of the API key for the update operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The APIKeyUpdateAttributes category."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.category"
+      },
+      {
+        "name": "enable_remote_config_read",
+        "required": false,
+        "description": "Enable remote config read for the API key. Use true to enable, false to disable.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The APIKeyUpdateAttributes remote_config_read_enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.remote_config_read_enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAPIKey'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/api_keys/{api_key_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "api_key_id",
+        "tool_parameter_name": "api_key_id",
+        "description": "The ID of the API key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the API key."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.category",
+        "tool_parameter_name": "api_key_category",
+        "description": "The APIKeyUpdateAttributes category.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The APIKeyUpdateAttributes category."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.name",
+        "tool_parameter_name": "api_key_name",
+        "description": "Name of the API key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the API key."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.remote_config_read_enabled",
+        "tool_parameter_name": "enable_remote_config_read",
+        "description": "The APIKeyUpdateAttributes remote_config_read_enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The APIKeyUpdateAttributes remote_config_read_enabled."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.id",
+        "tool_parameter_name": "key_id",
+        "description": "ID of the API key.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the API key."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "api_keys_resource_type",
+        "description": "API Keys resource type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "api_keys"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "API Keys resource type."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "api_keys",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request used to update an API key.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Object used to update an API key.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes used to update an API Key.\",\n                \"properties\": {\n                  \"category\": {\n                    \"description\": \"The APIKeyUpdateAttributes category.\",\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the API key.\",\n                    \"example\": \"API Key for submitting metrics\",\n                    \"type\": \"string\"\n                  },\n                  \"remote_config_read_enabled\": {\n                    \"description\": \"The APIKeyUpdateAttributes remote_config_read_enabled.\",\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"required\": [\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the API key.\",\n                \"example\": \"00112233-4455-6677-8899-aabbccddeeff\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"api_keys\",\n                \"description\": \"API Keys resource type.\",\n                \"enum\": [\n                  \"api_keys\"\n                ],\n                \"example\": \"api_keys\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"API_KEYS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

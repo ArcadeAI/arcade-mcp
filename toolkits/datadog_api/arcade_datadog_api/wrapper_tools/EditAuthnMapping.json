@@ -1,0 +1,281 @@
+{
+  "name": "EditAuthnMapping",
+  "fully_qualified_name": "DatadogApi.EditAuthnMapping@0.1.0",
+  "description": "Edit an AuthN Mapping in Datadog.\n\nThis tool allows editing an authentication mapping in Datadog. It should be called when modifications to an existing AuthN Mapping are needed.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "authn_mapping_uuid",
+        "required": true,
+        "description": "The UUID of the AuthN Mapping to edit.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the AuthN Mapping."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "authn_mapping_id"
+      },
+      {
+        "name": "authn_mapping_update_data",
+        "required": true,
+        "description": "JSON object containing details for updating an AuthN Mapping, including attributes and relationships.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Key portion of a key/value pair of the attribute sent from the Identity Provider."
+                    },
+                    "attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value portion of a key/value pair of the attribute sent from the Identity Provider."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Key/Value pair of attributes used for update request."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the AuthN Mapping."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Relationship of AuthN Mapping update object to a Role or Team."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "authn_mappings"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AuthN Mappings resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data for updating an AuthN Mapping."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateAuthNMapping'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/authn_mappings/{authn_mapping_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "authn_mapping_id",
+        "tool_parameter_name": "authn_mapping_uuid",
+        "description": "The UUID of the AuthN Mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the AuthN Mapping."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "authn_mapping_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "attribute_key": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Key portion of a key/value pair of the attribute sent from the Identity Provider."
+                    },
+                    "attribute_value": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Value portion of a key/value pair of the attribute sent from the Identity Provider."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Key/Value pair of attributes used for update request."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the AuthN Mapping."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Relationship of AuthN Mapping update object to a Role or Team."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "authn_mappings"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "AuthN Mappings resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data for updating an AuthN Mapping."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request to update an AuthN Mapping.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data for updating an AuthN Mapping.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Key/Value pair of attributes used for update request.\",\n                \"properties\": {\n                  \"attribute_key\": {\n                    \"description\": \"Key portion of a key/value pair of the attribute sent from the Identity Provider.\",\n                    \"example\": \"member-of\",\n                    \"type\": \"string\"\n                  },\n                  \"attribute_value\": {\n                    \"description\": \"Value portion of a key/value pair of the attribute sent from the Identity Provider.\",\n                    \"example\": \"Development\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the AuthN Mapping.\",\n                \"example\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationship of AuthN Mapping update object to a Role or Team.\",\n                \"oneOf\": [\n                  {\n                    \"description\": \"Relationship of AuthN Mapping to a Role.\",\n                    \"properties\": {\n                      \"role\": {\n                        \"description\": \"Relationship to role.\",\n                        \"properties\": {\n                          \"data\": {\n                            \"description\": \"Relationship to role object.\",\n                            \"properties\": {\n                              \"id\": {\n                                \"description\": \"The unique identifier of the role.\",\n                                \"example\": \"3653d3c6-0c75-11ea-ad28-fb5701eabc7d\",\n                                \"type\": \"string\"\n                              },\n                              \"type\": {\n                                \"default\": \"roles\",\n                                \"description\": \"Roles type.\",\n                                \"enum\": [\n                                  \"roles\"\n                                ],\n                                \"example\": \"roles\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"ROLES\"\n                                ]\n                              }\n                            },\n                            \"type\": \"object\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"role\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  {\n                    \"description\": \"Relationship of AuthN Mapping to a Team.\",\n                    \"properties\": {\n                      \"team\": {\n                        \"description\": \"Relationship to team.\",\n                        \"properties\": {\n                          \"data\": {\n                            \"description\": \"Relationship to Team object.\",\n                            \"properties\": {\n                              \"id\": {\n                                \"description\": \"The unique identifier of the team.\",\n                                \"example\": \"f9bb8444-af7f-11ec-ac2c-da7ad0900001\",\n                                \"type\": \"string\"\n                              },\n                              \"type\": {\n                                \"default\": \"team\",\n                                \"description\": \"Team type\",\n                                \"enum\": [\n                                  \"team\"\n                                ],\n                                \"example\": \"team\",\n                                \"type\": \"string\",\n                                \"x-enum-varnames\": [\n                                  \"TEAM\"\n                                ]\n                              }\n                            },\n                            \"type\": \"object\"\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"team\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                ]\n              },\n              \"type\": {\n                \"default\": \"authn_mappings\",\n                \"description\": \"AuthN Mappings resource type.\",\n                \"enum\": [\n                  \"authn_mappings\"\n                ],\n                \"example\": \"authn_mappings\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AUTHN_MAPPINGS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

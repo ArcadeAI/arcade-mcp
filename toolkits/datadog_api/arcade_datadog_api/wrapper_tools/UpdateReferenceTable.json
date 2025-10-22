@@ -1,0 +1,387 @@
+{
+  "name": "UpdateReferenceTable",
+  "fully_qualified_name": "DatadogApi.UpdateReferenceTable@0.1.0",
+  "description": "Update data, description, and tags of a reference table.\n\nThis tool updates a reference table by its ID, allowing changes to the data, description, or tags. It is useful when modifications are needed for existing reference tables, including those with different source types like LOCAL_FILE, S3, GCS, or AZURE.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "reference_table_id",
+        "required": true,
+        "description": "The ID of the reference table that needs to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the reference table to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "update_data_description_tags",
+        "required": true,
+        "description": "JSON object to update the reference table's data, description, and tags. Includes table ID, resource type, data attributes like description, file metadata, schema, sync status, and tags.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of the reference table."
+                    },
+                    "file_metadata": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `PatchTableRequestDataAttributesFileMetadata` object."
+                    },
+                    "schema": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "fields": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field name."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "STRING",
+                                "INT32"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field type for reference table schema fields."
+                            }
+                          },
+                          "description": "The `schema` `fields`."
+                        },
+                        "primary_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "List of field names that serve as primary keys for the table. Only one primary key is supported, and it is used as an ID to retrieve rows."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `PatchTableRequestDataAttributesSchema` object."
+                    },
+                    "sync_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether this table is synced automatically."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The tags of the reference table."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `PatchTableRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the reference table."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "reference_table"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Reference table resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `PatchTableRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateReferenceTable'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/reference-tables/tables/{id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "reference_table_id",
+        "description": "The ID of the reference table to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the reference table to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "update_data_description_tags",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The description of the reference table."
+                    },
+                    "file_metadata": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The definition of `PatchTableRequestDataAttributesFileMetadata` object."
+                    },
+                    "schema": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "fields": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "name": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field name."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "STRING",
+                                "INT32"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The field type for reference table schema fields."
+                            }
+                          },
+                          "description": "The `schema` `fields`."
+                        },
+                        "primary_keys": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "List of field names that serve as primary keys for the table. Only one primary key is supported, and it is used as an ID to retrieve rows."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The definition of `PatchTableRequestDataAttributesSchema` object."
+                    },
+                    "sync_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether this table is synced automatically."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The tags of the reference table."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The definition of `PatchTableRequestDataAttributes` object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The ID of the reference table."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "reference_table"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Reference table resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "The definition of `PatchTableRequestData` object."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The definition of `PatchTableRequest` object.\",\n        \"example\": {\n          \"data\": {\n            \"attributes\": {\n              \"description\": \"this is a cloud table generated via a cloud bucket sync\",\n              \"file_metadata\": {\n                \"access_details\": {\n                  \"aws_detail\": {\n                    \"aws_account_id\": \"test-account-id\",\n                    \"aws_bucket_name\": \"test-bucket\",\n                    \"file_path\": \"test_rt.csv\"\n                  }\n                },\n                \"sync_enabled\": true\n              },\n              \"schema\": {\n                \"fields\": [\n                  {\n                    \"name\": \"id\",\n                    \"type\": \"INT32\"\n                  },\n                  {\n                    \"name\": \"name\",\n                    \"type\": \"STRING\"\n                  }\n                ],\n                \"primary_keys\": [\n                  \"id\"\n                ]\n              },\n              \"sync_enabled\": false,\n              \"tags\": [\n                \"test_tag\"\n              ]\n            },\n            \"id\": \"00000000-0000-0000-0000-000000000000\",\n            \"type\": \"reference_table\"\n          }\n        },\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of `PatchTableRequestData` object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The definition of `PatchTableRequestDataAttributes` object.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"The description of the reference table.\",\n                    \"type\": \"string\"\n                  },\n                  \"file_metadata\": {\n                    \"description\": \"The definition of `PatchTableRequestDataAttributesFileMetadata` object.\",\n                    \"oneOf\": [\n                      {\n                        \"additionalProperties\": false,\n                        \"description\": \"Cloud storage file metadata for patch requests. Allows partial updates of access_details and sync_enabled.\",\n                        \"properties\": {\n                          \"access_details\": {\n                            \"description\": \"The definition of `PatchTableRequestDataAttributesFileMetadataOneOfAccessDetails` object.\",\n                            \"properties\": {\n                              \"aws_detail\": {\n                                \"description\": \"The definition of `PatchTableRequestDataAttributesFileMetadataOneOfAccessDetailsAwsDetail` object.\",\n                                \"properties\": {\n                                  \"aws_account_id\": {\n                                    \"description\": \"The ID of the AWS account.\",\n                                    \"example\": \"123456789000\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"aws_bucket_name\": {\n                                    \"description\": \"The name of the AWS bucket.\",\n                                    \"example\": \"example-data-bucket\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"file_path\": {\n                                    \"description\": \"The relative file path from the S3 bucket root to the CSV file.\",\n                                    \"example\": \"reference-tables/users.csv\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"type\": \"object\",\n                                \"x-oneOf-parent\": [\n                                  \"AwsDetail\"\n                                ]\n                              },\n                              \"azure_detail\": {\n                                \"description\": \"The definition of `PatchTableRequestDataAttributesFileMetadataOneOfAccessDetailsAzureDetail` object.\",\n                                \"properties\": {\n                                  \"azure_client_id\": {\n                                    \"description\": \"The Azure client ID.\",\n                                    \"example\": \"aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"azure_container_name\": {\n                                    \"description\": \"The name of the Azure container.\",\n                                    \"example\": \"reference-data\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"azure_storage_account_name\": {\n                                    \"description\": \"The name of the Azure storage account.\",\n                                    \"example\": \"examplestorageaccount\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"azure_tenant_id\": {\n                                    \"description\": \"The ID of the Azure tenant.\",\n                                    \"example\": \"cccccccc-4444-5555-6666-dddddddddddd\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"file_path\": {\n                                    \"description\": \"The relative file path from the Azure container root to the CSV file.\",\n                                    \"example\": \"tables/users.csv\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"type\": \"object\",\n                                \"x-oneOf-parent\": [\n                                  \"AzureDetail\"\n                                ]\n                              },\n                              \"gcp_detail\": {\n                                \"description\": \"The definition of `PatchTableRequestDataAttributesFileMetadataOneOfAccessDetailsGcpDetail` object.\",\n                                \"properties\": {\n                                  \"file_path\": {\n                                    \"description\": \"The relative file path from the GCS bucket root to the CSV file.\",\n                                    \"example\": \"data/reference_tables/users.csv\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"gcp_bucket_name\": {\n                                    \"description\": \"The name of the GCP bucket.\",\n                                    \"example\": \"example-data-bucket\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"gcp_project_id\": {\n                                    \"description\": \"The ID of the GCP project.\",\n                                    \"example\": \"example-gcp-project-12345\",\n                                    \"type\": \"string\"\n                                  },\n                                  \"gcp_service_account_email\": {\n                                    \"description\": \"The email of the GCP service account.\",\n                                    \"example\": \"example-service@example-gcp-project-12345.iam.gserviceaccount.com\",\n                                    \"type\": \"string\"\n                                  }\n                                },\n                                \"type\": \"object\",\n                                \"x-oneOf-parent\": [\n                                  \"GcpDetail\"\n                                ]\n                              }\n                            },\n                            \"type\": \"object\"\n                          },\n                          \"sync_enabled\": {\n                            \"description\": \"Whether this table is synced automatically.\",\n                            \"example\": false,\n                            \"type\": \"boolean\"\n                          }\n                        },\n                        \"title\": \"CloudFileMetadataV2\",\n                        \"type\": \"object\"\n                      },\n                      {\n                        \"additionalProperties\": false,\n                        \"description\": \"Local file metadata for patch requests using upload ID.\",\n                        \"properties\": {\n                          \"upload_id\": {\n                            \"description\": \"The upload ID.\",\n                            \"example\": \"\",\n                            \"type\": \"string\"\n                          }\n                        },\n                        \"required\": [\n                          \"upload_id\"\n                        ],\n                        \"title\": \"LocalFileMetadataV2\",\n                        \"type\": \"object\"\n                      }\n                    ]\n                  },\n                  \"schema\": {\n                    \"description\": \"The definition of `PatchTableRequestDataAttributesSchema` object.\",\n                    \"properties\": {\n                      \"fields\": {\n                        \"description\": \"The `schema` `fields`.\",\n                        \"items\": {\n                          \"description\": \"The definition of `PatchTableRequestDataAttributesSchemaFieldsItems` object.\",\n                          \"properties\": {\n                            \"name\": {\n                              \"description\": \"The field name.\",\n                              \"example\": \"\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"description\": \"The field type for reference table schema fields.\",\n                              \"enum\": [\n                                \"STRING\",\n                                \"INT32\"\n                              ],\n                              \"example\": \"STRING\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"STRING\",\n                                \"INT32\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"name\",\n                            \"type\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      },\n                      \"primary_keys\": {\n                        \"description\": \"List of field names that serve as primary keys for the table. Only one primary key is supported, and it is used as an ID to retrieve rows.\",\n                        \"example\": [\n                          \"\"\n                        ],\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"required\": [\n                      \"fields\",\n                      \"primary_keys\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"sync_enabled\": {\n                    \"description\": \"Whether this table is synced automatically.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"tags\": {\n                    \"description\": \"The tags of the reference table.\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The ID of the reference table.\",\n                \"type\": \"string\"\n              },\n              \"type\": {\n                \"default\": \"reference_table\",\n                \"description\": \"Reference table resource type.\",\n                \"enum\": [\n                  \"reference_table\"\n                ],\n                \"example\": \"reference_table\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"REFERENCE_TABLE\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

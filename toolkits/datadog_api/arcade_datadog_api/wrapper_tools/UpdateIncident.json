@@ -1,0 +1,662 @@
+{
+  "name": "UpdateIncident",
+  "fully_qualified_name": "DatadogApi.UpdateIncident@0.1.0",
+  "description": "Partially update an incident's details.\n\nUse this tool to update specific attributes of an existing incident in Datadog. Only the provided attributes will be modified.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_uuid",
+        "required": true,
+        "description": "The unique identifier (UUID) for the incident to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "incident_id"
+      },
+      {
+        "name": "incident_payload",
+        "required": true,
+        "description": "JSON object containing the attributes and relationships to update an incident in Datadog, such as timestamps, impact details, and user relationships.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "customer_impact_end": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when customers were no longer impacted by the incident."
+                    },
+                    "customer_impact_scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A summary of the impact customers experienced during the incident."
+                    },
+                    "customer_impact_start": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when customers began being impacted by the incident."
+                    },
+                    "customer_impacted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A flag indicating whether the incident caused customer impact."
+                    },
+                    "detected": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident was detected."
+                    },
+                    "fields": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A condensed view of the user-defined fields for which to update selections."
+                    },
+                    "notification_handles": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "display_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the notified handle."
+                        },
+                        "handle": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The handle used for the notification. This includes an email address, Slack channel, or workflow."
+                        }
+                      },
+                      "description": "Notification handles that will be notified of the incident during update."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the incident, which summarizes what happened."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The incident's attributes for an update request."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident's ID."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "commander_user": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    },
+                    "integrations": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the integration metadata."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_integrations"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Integration metadata resource type."
+                            }
+                          },
+                          "description": "Integration metadata relationship array"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference for multiple integration metadata objects."
+                    },
+                    "postmortem": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the postmortem."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_postmortems"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Incident postmortem resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The postmortem relationship data."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference for postmortems."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The incident's relationships for an update request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incidents"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident data for an update request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident Payload."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "include_related_objects",
+        "required": false,
+        "description": "List of related object types to include in the response, such as 'users', 'comments', etc.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects should be included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateIncident'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/incidents/{incident_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "include",
+        "tool_parameter_name": "include_related_objects",
+        "description": "Specifies which types of related objects should be included in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which types of related objects should be included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "incident_id",
+        "tool_parameter_name": "incident_uuid",
+        "description": "The UUID of the incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID of the incident."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "incident_payload",
+        "description": "Incident Payload.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "customer_impact_end": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when customers were no longer impacted by the incident."
+                    },
+                    "customer_impact_scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A summary of the impact customers experienced during the incident."
+                    },
+                    "customer_impact_start": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when customers began being impacted by the incident."
+                    },
+                    "customer_impacted": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A flag indicating whether the incident caused customer impact."
+                    },
+                    "detected": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Timestamp when the incident was detected."
+                    },
+                    "fields": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A condensed view of the user-defined fields for which to update selections."
+                    },
+                    "notification_handles": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "display_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the notified handle."
+                        },
+                        "handle": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The handle used for the notification. This includes an email address, Slack channel, or workflow."
+                        }
+                      },
+                      "description": "Notification handles that will be notified of the incident during update."
+                    },
+                    "title": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The title of the incident, which summarizes what happened."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The incident's attributes for an update request."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The incident's ID."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "commander_user": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    },
+                    "integrations": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the integration metadata."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_integrations"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Integration metadata resource type."
+                            }
+                          },
+                          "description": "Integration metadata relationship array"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference for multiple integration metadata objects."
+                    },
+                    "postmortem": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the postmortem."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "incident_postmortems"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Incident postmortem resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "The postmortem relationship data."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A relationship reference for postmortems."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The incident's relationships for an update request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incidents"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Incident resource type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Incident data for an update request."
+            }
+          },
+          "inner_properties": null,
+          "description": "Incident Payload."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update request for an incident.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Incident data for an update request.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The incident's attributes for an update request.\",\n                \"properties\": {\n                  \"customer_impact_end\": {\n                    \"description\": \"Timestamp when customers were no longer impacted by the incident.\",\n                    \"format\": \"date-time\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"customer_impact_scope\": {\n                    \"description\": \"A summary of the impact customers experienced during the incident.\",\n                    \"example\": \"Example customer impact scope\",\n                    \"type\": \"string\"\n                  },\n                  \"customer_impact_start\": {\n                    \"description\": \"Timestamp when customers began being impacted by the incident.\",\n                    \"format\": \"date-time\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"customer_impacted\": {\n                    \"description\": \"A flag indicating whether the incident caused customer impact.\",\n                    \"example\": false,\n                    \"type\": \"boolean\"\n                  },\n                  \"detected\": {\n                    \"description\": \"Timestamp when the incident was detected.\",\n                    \"format\": \"date-time\",\n                    \"nullable\": true,\n                    \"type\": \"string\"\n                  },\n                  \"fields\": {\n                    \"additionalProperties\": {\n                      \"description\": \"Dynamic fields for which selections can be made, with field names as keys.\",\n                      \"oneOf\": [\n                        {\n                          \"description\": \"A field with a single value selected.\",\n                          \"properties\": {\n                            \"type\": {\n                              \"default\": \"dropdown\",\n                              \"description\": \"Type of the single value field definitions.\",\n                              \"enum\": [\n                                \"dropdown\",\n                                \"textbox\"\n                              ],\n                              \"example\": \"dropdown\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"DROPDOWN\",\n                                \"TEXTBOX\"\n                              ]\n                            },\n                            \"value\": {\n                              \"description\": \"The single value selected for this field.\",\n                              \"example\": \"SEV-1\",\n                              \"nullable\": true,\n                              \"type\": \"string\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        {\n                          \"description\": \"A field with potentially multiple values selected.\",\n                          \"properties\": {\n                            \"type\": {\n                              \"default\": \"multiselect\",\n                              \"description\": \"Type of the multiple value field definitions.\",\n                              \"enum\": [\n                                \"multiselect\",\n                                \"textarray\",\n                                \"metrictag\",\n                                \"autocomplete\"\n                              ],\n                              \"example\": \"multiselect\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"MULTISELECT\",\n                                \"TEXTARRAY\",\n                                \"METRICTAG\",\n                                \"AUTOCOMPLETE\"\n                              ]\n                            },\n                            \"value\": {\n                              \"description\": \"The multiple values selected for this field.\",\n                              \"example\": [\n                                \"1.0\",\n                                \"1.1\"\n                              ],\n                              \"items\": {\n                                \"description\": \"A value which has been selected for the parent field.\",\n                                \"example\": \"1.1\",\n                                \"type\": \"string\"\n                              },\n                              \"nullable\": true,\n                              \"type\": \"array\"\n                            }\n                          },\n                          \"type\": \"object\"\n                        }\n                      ]\n                    },\n                    \"description\": \"A condensed view of the user-defined fields for which to update selections.\",\n                    \"example\": {\n                      \"severity\": {\n                        \"type\": \"dropdown\",\n                        \"value\": \"SEV-5\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"notification_handles\": {\n                    \"description\": \"Notification handles that will be notified of the incident during update.\",\n                    \"example\": [\n                      {\n                        \"display_name\": \"Jane Doe\",\n                        \"handle\": \"@user@email.com\"\n                      },\n                      {\n                        \"display_name\": \"Slack Channel\",\n                        \"handle\": \"@slack-channel\"\n                      },\n                      {\n                        \"display_name\": \"Incident Workflow\",\n                        \"handle\": \"@workflow-from-incident\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"A notification handle that will be notified at incident creation.\",\n                      \"properties\": {\n                        \"display_name\": {\n                          \"description\": \"The name of the notified handle.\",\n                          \"example\": \"Jane Doe\",\n                          \"type\": \"string\"\n                        },\n                        \"handle\": {\n                          \"description\": \"The handle used for the notification. This includes an email address, Slack channel, or workflow.\",\n                          \"example\": \"@test.user@test.com\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"title\": {\n                    \"description\": \"The title of the incident, which summarizes what happened.\",\n                    \"example\": \"A test incident title\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The incident's ID.\",\n                \"example\": \"00000000-0000-0000-4567-000000000000\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"The incident's relationships for an update request.\",\n                \"properties\": {\n                  \"commander_user\": {\n                    \"description\": \"Relationship to user.\",\n                    \"nullable\": true,\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationship to user object.\",\n                        \"nullable\": true,\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"A unique identifier that represents the user.\",\n                            \"example\": \"00000000-0000-0000-0000-000000000000\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"users\",\n                            \"description\": \"Users resource type.\",\n                            \"enum\": [\n                              \"users\"\n                            ],\n                            \"example\": \"users\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USERS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"integrations\": {\n                    \"description\": \"A relationship reference for multiple integration metadata objects.\",\n                    \"example\": {\n                      \"data\": [\n                        {\n                          \"id\": \"00000000-abcd-0005-0000-000000000000\",\n                          \"type\": \"incident_integrations\"\n                        },\n                        {\n                          \"id\": \"00000000-abcd-0006-0000-000000000000\",\n                          \"type\": \"incident_integrations\"\n                        }\n                      ]\n                    },\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Integration metadata relationship array\",\n                        \"example\": [\n                          {\n                            \"id\": \"00000000-abcd-0003-0000-000000000000\",\n                            \"type\": \"incident_integrations\"\n                          },\n                          {\n                            \"id\": \"00000000-abcd-0004-0000-000000000000\",\n                            \"type\": \"incident_integrations\"\n                          }\n                        ],\n                        \"items\": {\n                          \"description\": \"A relationship reference for an integration metadata object.\",\n                          \"example\": {\n                            \"id\": \"00000000-abcd-0002-0000-000000000000\",\n                            \"type\": \"incident_integrations\"\n                          },\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"A unique identifier that represents the integration metadata.\",\n                              \"example\": \"00000000-abcd-0001-0000-000000000000\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"incident_integrations\",\n                              \"description\": \"Integration metadata resource type.\",\n                              \"enum\": [\n                                \"incident_integrations\"\n                              ],\n                              \"example\": \"incident_integrations\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"INCIDENT_INTEGRATIONS\"\n                              ]\n                            }\n                          },\n                          \"required\": [\n                            \"id\",\n                            \"type\"\n                          ],\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"postmortem\": {\n                    \"description\": \"A relationship reference for postmortems.\",\n                    \"example\": {\n                      \"data\": {\n                        \"id\": \"00000000-0000-abcd-3000-000000000000\",\n                        \"type\": \"incident_postmortems\"\n                      }\n                    },\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"The postmortem relationship data.\",\n                        \"example\": {\n                          \"id\": \"00000000-0000-abcd-2000-000000000000\",\n                          \"type\": \"incident_postmortems\"\n                        },\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"A unique identifier that represents the postmortem.\",\n                            \"example\": \"00000000-0000-abcd-1000-000000000000\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"incident_postmortems\",\n                            \"description\": \"Incident postmortem resource type.\",\n                            \"enum\": [\n                              \"incident_postmortems\"\n                            ],\n                            \"example\": \"incident_postmortems\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"INCIDENT_POSTMORTEMS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"incidents\",\n                \"description\": \"Incident resource type.\",\n                \"enum\": [\n                  \"incidents\"\n                ],\n                \"example\": \"incidents\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"INCIDENTS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"id\",\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Incident Payload.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

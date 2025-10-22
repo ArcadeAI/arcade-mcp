@@ -1,0 +1,280 @@
+{
+  "name": "UpdateAssetType",
+  "fully_qualified_name": "FreshserviceApi.UpdateAssetType@1.0.0",
+  "description": "Update an existing asset type in Freshservice.\n\nUse this tool to update information about an existing asset type within the Freshservice platform. The asset type to be updated is identified by its asset_type_id.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "asset_type_id",
+        "required": true,
+        "description": "Unique identifier of the asset type to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "asset_type_id"
+      },
+      {
+        "name": "asset_id",
+        "required": false,
+        "description": "Unique identifier of the asset type to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the asset type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "asset_type_name",
+        "required": false,
+        "description": "The new name for the asset type to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the asset type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "asset_type_description_html",
+        "required": false,
+        "description": "Provide a short HTML-formatted description of the asset type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Short description of the asset type in HTML format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "plain_text_description",
+        "required": false,
+        "description": "Provide a short plain text description of the asset type. Avoid using HTML or special formatting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Short description of the asset type in plain text format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description_text"
+      },
+      {
+        "name": "parent_asset_type_id",
+        "required": false,
+        "description": "Unique identifier for the parent asset type to establish hierarchy.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the parent asset type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parent_asset_type_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-asset-type'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/asset_types/{asset_type_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "asset_type_id",
+        "tool_parameter_name": "asset_type_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "asset_id",
+        "description": "Unique identifier of the asset type",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the asset type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "asset_type_name",
+        "description": "Name of the asset type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the asset type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "asset_type_description_html",
+        "description": "Short description of the asset type in HTML format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Short description of the asset type in HTML format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description_text",
+        "tool_parameter_name": "plain_text_description",
+        "description": "Short description of the asset type in plain text format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Short description of the asset type in plain text format"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "parent_asset_type_id",
+        "tool_parameter_name": "parent_asset_type_id",
+        "description": "Unique identifier of the parent asset type",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the parent asset type"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the asset type\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14000234324\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the asset type\",\n            \"example\": \"Hardware\"\n          },\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"Short description of the asset type in HTML format\",\n            \"example\": \"Computer or Laptop Hardware\"\n          },\n          \"description_text\": {\n            \"type\": \"string\",\n            \"description\": \"Short description of the asset type in plain text format\",\n            \"readOnly\": true,\n            \"example\": \"Computer or Laptop Hardware\"\n          },\n          \"parent_asset_type_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique identifier of the parent asset type\",\n            \"format\": \"int64\",\n            \"example\": 14000234324\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

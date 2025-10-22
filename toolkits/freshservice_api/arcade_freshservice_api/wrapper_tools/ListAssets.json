@@ -1,0 +1,280 @@
+{
+  "name": "ListAssets",
+  "fully_qualified_name": "FreshserviceApi.ListAssets@1.0.0",
+  "description": "Retrieve a list of all assets in Freshservice.\n\nThis tool is used to get a complete list of all assets available in the Freshservice platform. It can be called to fetch detailed inventory information, aiding in asset management tasks.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "entries_per_page",
+        "required": false,
+        "description": "Specify the number of asset entries to retrieve per page in a paginated list. Not applicable when a search or filter is used.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list. This is not applicable when search or filter query is present."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "page_number",
+        "required": false,
+        "description": "The page number to retrieve from the list of assets.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "include_asset_type_fields",
+        "required": false,
+        "description": "Specify asset type fields to include in the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to include asset type fields in response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include"
+      },
+      {
+        "name": "asset_filter_query",
+        "required": false,
+        "description": "A URL-encoded query string to filter the asset list. Supports parameters like asset_type_id, department_id, location_id, and more.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple or compound query which needs to be applied as a filter to the list of asset. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>asset_type_id, department_id, location_id, asset_state, user_id, agent_id, name, asset_tag, created_at, updated_at.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?filter=\"asset_type_id:12034 AND asset_tag:'HSN2323' AND created_at:>'2018-08-10'\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "search_query",
+        "required": false,
+        "description": "A simple query to search for an asset. Supports 'name', 'asset_tag', and 'serial_number'. Example: \"name:'dell monitor'\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple query which needs to be applied to search an asset from the list of assets.<br/> Supported Query Parameters:<br/>name, asset_tag, serial_number.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?search=\"name:'dell monitor'\""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search"
+      },
+      {
+        "name": "list_trashed_assets_only",
+        "required": false,
+        "description": "Set to true to list only assets in the trash.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List assets in trash."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "trashed"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-assets'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/assets",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "per_page",
+        "tool_parameter_name": "entries_per_page",
+        "description": "The number of entries to retrieve in each page of a paginated list. This is not applicable when search or filter query is present.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list. This is not applicable when search or filter query is present."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number",
+        "description": "The page number to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "trashed",
+        "tool_parameter_name": "list_trashed_assets_only",
+        "description": "List assets in trash.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List assets in trash."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "include",
+        "tool_parameter_name": "include_asset_type_fields",
+        "description": "Query param to include asset type fields in response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query param to include asset type fields in response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter",
+        "tool_parameter_name": "asset_filter_query",
+        "description": "The simple or compound query which needs to be applied as a filter to the list of asset. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>asset_type_id, department_id, location_id, asset_state, user_id, agent_id, name, asset_tag, created_at, updated_at.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?filter=\"asset_type_id:12034 AND asset_tag:'HSN2323' AND created_at:>'2018-08-10'\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple or compound query which needs to be applied as a filter to the list of asset. This string needs to be URL encoded.<br/> Supported Query Parameters:<br/>asset_type_id, department_id, location_id, asset_state, user_id, agent_id, name, asset_tag, created_at, updated_at.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?filter=\"asset_type_id:12034 AND asset_tag:'HSN2323' AND created_at:>'2018-08-10'\""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "search",
+        "tool_parameter_name": "search_query",
+        "description": "The simple query which needs to be applied to search an asset from the list of assets.<br/> Supported Query Parameters:<br/>name, asset_tag, serial_number.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?search=\"name:'dell monitor'\"",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The simple query which needs to be applied to search an asset from the list of assets.<br/> Supported Query Parameters:<br/>name, asset_tag, serial_number.<br/>Sample Query: https://account.freshservice.com/api/v2/assets?search=\"name:'dell monitor'\""
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

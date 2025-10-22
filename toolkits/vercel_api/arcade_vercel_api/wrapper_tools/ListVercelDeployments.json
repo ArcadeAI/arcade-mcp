@@ -1,0 +1,601 @@
+{
+  "name": "ListVercelDeployments",
+  "fully_qualified_name": "VercelApi.ListVercelDeployments@0.1.0",
+  "description": "Retrieve deployments from Vercel for a user or team.\n\nThis tool fetches the list of deployments for the authenticated user or team from Vercel. It should be called when users need to view their recent deployment history. If a deployment is incomplete, the URL will be null.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deployment_name",
+        "required": false,
+        "description": "The name of the deployment to filter results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "app"
+      },
+      {
+        "name": "created_after_timestamp",
+        "required": false,
+        "description": "Retrieve deployments created after this Date timestamp. Defaults to current time if not specified.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gets the deployment created after this Date timestamp. (default: current time)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "maximum_deployments_to_list",
+        "required": false,
+        "description": "Sets the maximum number of deployments to retrieve in one request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of deployments to list from a request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "filter_by_project_id",
+        "required": false,
+        "description": "Filter deployments using a specific project ID or name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments from the given ID or name."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectId"
+      },
+      {
+        "name": "filter_by_project_ids",
+        "required": false,
+        "description": "Filter deployments from specified project IDs. Cannot be used with the 'filter_by_project_id' argument.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments from the given project IDs. Cannot be used when projectId is specified."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "projectIds"
+      },
+      {
+        "name": "filter_by_environment",
+        "required": false,
+        "description": "Specify the environment to filter deployments (e.g., 'production', 'staging').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the environment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "target"
+      },
+      {
+        "name": "get_deployments_before_timestamp",
+        "required": false,
+        "description": "A timestamp to get deployments created before a specific date. Useful for filtering older deployments. Defaults to the current time if not specified.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gets the deployment created before this Date timestamp. (default: current time)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "user_filter",
+        "required": false,
+        "description": "Filter deployments by the user who created them. Provide a username or user ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out deployments based on users who have created the deployment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "users"
+      },
+      {
+        "name": "deployment_since_timestamp",
+        "required": false,
+        "description": "Retrieve deployments created after this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get Deployments created after this JavaScript timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "since"
+      },
+      {
+        "name": "fetch_deployments_before_timestamp",
+        "required": false,
+        "description": "Specify a JavaScript timestamp to retrieve deployments created before this time.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get Deployments created before this JavaScript timestamp."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "until"
+      },
+      {
+        "name": "deployment_state_filter",
+        "required": false,
+        "description": "Filter deployments by their state, such as `BUILDING`, `ERROR`, `INITIALIZING`, `QUEUED`, `READY`, or `CANCELED`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on their state (`BUILDING`, `ERROR`, `INITIALIZING`, `QUEUED`, `READY`, `CANCELED`)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "state"
+      },
+      {
+        "name": "branch_name_filter",
+        "required": false,
+        "description": "Specify the branch name to filter deployments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the branch name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "branch"
+      },
+      {
+        "name": "filter_by_sha",
+        "required": false,
+        "description": "Filter deployments based on the specific SHA value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the SHA"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sha"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The identifier for the team to perform the request on behalf of. Use when filtering deployments by team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The team slug to perform the request on behalf of. Specify which team's deployments to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "filter_by_rollback_candidacy",
+        "required": false,
+        "description": "Set to true to filter and include only rollback candidate deployments.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on their rollback candidacy"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rollbackCandidate"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getDeployments'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v6/deployments",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "app",
+        "tool_parameter_name": "deployment_name",
+        "description": "Name of the deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the deployment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "from",
+        "tool_parameter_name": "created_after_timestamp",
+        "description": "Gets the deployment created after this Date timestamp. (default: current time)",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gets the deployment created after this Date timestamp. (default: current time)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_deployments_to_list",
+        "description": "Maximum number of deployments to list from a request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Maximum number of deployments to list from a request."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projectId",
+        "tool_parameter_name": "filter_by_project_id",
+        "description": "Filter deployments from the given ID or name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments from the given ID or name."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "projectIds",
+        "tool_parameter_name": "filter_by_project_ids",
+        "description": "Filter deployments from the given project IDs. Cannot be used when projectId is specified.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments from the given project IDs. Cannot be used when projectId is specified."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "target",
+        "tool_parameter_name": "filter_by_environment",
+        "description": "Filter deployments based on the environment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the environment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "get_deployments_before_timestamp",
+        "description": "Gets the deployment created before this Date timestamp. (default: current time)",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Gets the deployment created before this Date timestamp. (default: current time)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "users",
+        "tool_parameter_name": "user_filter",
+        "description": "Filter out deployments based on users who have created the deployment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter out deployments based on users who have created the deployment."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "since",
+        "tool_parameter_name": "deployment_since_timestamp",
+        "description": "Get Deployments created after this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get Deployments created after this JavaScript timestamp."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "until",
+        "tool_parameter_name": "fetch_deployments_before_timestamp",
+        "description": "Get Deployments created before this JavaScript timestamp.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Get Deployments created before this JavaScript timestamp."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "state",
+        "tool_parameter_name": "deployment_state_filter",
+        "description": "Filter deployments based on their state (`BUILDING`, `ERROR`, `INITIALIZING`, `QUEUED`, `READY`, `CANCELED`)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on their state (`BUILDING`, `ERROR`, `INITIALIZING`, `QUEUED`, `READY`, `CANCELED`)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rollbackCandidate",
+        "tool_parameter_name": "filter_by_rollback_candidacy",
+        "description": "Filter deployments based on their rollback candidacy",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on their rollback candidacy"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "branch",
+        "tool_parameter_name": "branch_name_filter",
+        "description": "Filter deployments based on the branch name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the branch name"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sha",
+        "tool_parameter_name": "filter_by_sha",
+        "description": "Filter deployments based on the SHA",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter deployments based on the SHA"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

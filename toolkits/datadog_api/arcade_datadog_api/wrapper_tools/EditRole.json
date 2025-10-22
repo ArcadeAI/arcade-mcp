@@ -1,0 +1,387 @@
+{
+  "name": "EditRole",
+  "fully_qualified_name": "DatadogApi.EditRole@0.1.0",
+  "description": "Edit a role with administrator application keys.\n\nUse this tool to edit an existing role in Datadog. It's designed for administrators using application keys to make updates to specified roles.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "role_identifier",
+        "required": true,
+        "description": "The unique identifier for the role to be edited.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the role."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "role_id"
+      },
+      {
+        "name": "role_update_data",
+        "required": true,
+        "description": "JSON object containing the updated role data, including attributes like name, created_at, modified_at, user_count, and relationships like permissions.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Creation time of the role."
+                    },
+                    "modified_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Time of last role modification."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the role."
+                    },
+                    "user_count": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The user count."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the role."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the role."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "permissions": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the permission."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "permissions"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Permissions resource type."
+                            }
+                          },
+                          "description": "Relationships to permission objects."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to multiple permissions objects."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the role object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "roles"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Roles type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a role."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateRole'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/roles/{role_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "role_id",
+        "tool_parameter_name": "role_identifier",
+        "description": "The unique identifier of the role.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier of the role."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "role_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "created_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Creation time of the role."
+                    },
+                    "modified_at": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Time of last role modification."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the role."
+                    },
+                    "user_count": {
+                      "val_type": "integer",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The user count."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the role."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The unique identifier of the role."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "permissions": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the permission."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "permissions"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Permissions resource type."
+                            }
+                          },
+                          "description": "Relationships to permission objects."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to multiple permissions objects."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the role object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "roles"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Roles type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a role."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update a role.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data related to the update of a role.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of the role.\",\n                \"properties\": {\n                  \"created_at\": {\n                    \"description\": \"Creation time of the role.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"modified_at\": {\n                    \"description\": \"Time of last role modification.\",\n                    \"format\": \"date-time\",\n                    \"readOnly\": true,\n                    \"type\": \"string\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the role.\",\n                    \"type\": \"string\"\n                  },\n                  \"user_count\": {\n                    \"description\": \"The user count.\",\n                    \"format\": \"int32\",\n                    \"maximum\": 2147483647,\n                    \"type\": \"integer\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"The unique identifier of the role.\",\n                \"example\": \"00000000-0000-1111-0000-000000000000\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships of the role object.\",\n                \"properties\": {\n                  \"permissions\": {\n                    \"description\": \"Relationship to multiple permissions objects.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationships to permission objects.\",\n                        \"items\": {\n                          \"description\": \"Relationship to permission object.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"ID of the permission.\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"permissions\",\n                              \"description\": \"Permissions resource type.\",\n                              \"enum\": [\n                                \"permissions\"\n                              ],\n                              \"example\": \"permissions\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"PERMISSIONS\"\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"roles\",\n                \"description\": \"Roles type.\",\n                \"enum\": [\n                  \"roles\"\n                ],\n                \"example\": \"roles\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ROLES\"\n                ]\n              }\n            },\n            \"required\": [\n              \"attributes\",\n              \"type\",\n              \"id\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

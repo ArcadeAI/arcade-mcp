@@ -1,0 +1,587 @@
+{
+  "name": "UpdateScanningGroup",
+  "fully_qualified_name": "DatadogApi.UpdateScanningGroup@0.1.0",
+  "description": "Update a scanning group's rule order in Datadog.\n\nUse this tool to update and reorder the rules within a specific scanning group in Datadog. Ensure all current rules are included in the update to maintain the group integrity.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_id",
+        "required": true,
+        "description": "The ID of the scanning group whose rules are being updated. This is required to identify the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a group of rules."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "group_update_data",
+        "required": true,
+        "description": "JSON object containing data related to the update of a group, including attributes, relationships, and metadata.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the group."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Query to filter the events."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter for the Scanning Group."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether or not the group is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the group."
+                    },
+                    "product_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of products the scanning group applies."
+                    },
+                    "samplings": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "product": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "logs",
+                            "rum",
+                            "events",
+                            "apm"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Datadog product onto which Sensitive Data Scanner can be activated."
+                        },
+                        "rate": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Rate at which data in product type will be scanned, as a percentage."
+                        }
+                      },
+                      "description": "List of sampling rates per product type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the Sensitive Data Scanner group."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the group."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "configuration": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the configuration."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_configuration"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner configuration type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A Sensitive Data Scanner configuration."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A Sensitive Data Scanner configuration data."
+                    },
+                    "rules": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the rule."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_rule"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner rule type."
+                            }
+                          },
+                          "description": "Rules included in the group. The order is important."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Rules included in the group."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the group."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_group"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner group type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a group."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateScanningGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/sensitive-data-scanner/config/groups/{group_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "group_id",
+        "tool_parameter_name": "group_id",
+        "description": "The ID of a group of rules.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of a group of rules."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "group_update_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of the group."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Query to filter the events."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter for the Scanning Group."
+                    },
+                    "is_enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Whether or not the group is enabled."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the group."
+                    },
+                    "product_list": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of products the scanning group applies."
+                    },
+                    "samplings": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "product": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "logs",
+                            "rum",
+                            "events",
+                            "apm"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Datadog product onto which Sensitive Data Scanner can be activated."
+                        },
+                        "rate": {
+                          "val_type": "number",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Rate at which data in product type will be scanned, as a percentage."
+                        }
+                      },
+                      "description": "List of sampling rates per product type."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes of the Sensitive Data Scanner group."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the group."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "configuration": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the configuration."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_configuration"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner configuration type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "A Sensitive Data Scanner configuration."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A Sensitive Data Scanner configuration data."
+                    },
+                    "rules": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "array",
+                          "inner_val_type": "json",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "ID of the rule."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "sensitive_data_scanner_rule"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Sensitive Data Scanner rule type."
+                            }
+                          },
+                          "description": "Rules included in the group. The order is important."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Rules included in the group."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Relationships of the group."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "sensitive_data_scanner_group"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Sensitive Data Scanner group type."
+                }
+              },
+              "inner_properties": null,
+              "description": "Data related to the update of a group."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "version": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Version of the API (optional)."
+                }
+              },
+              "inner_properties": null,
+              "description": "Meta payload containing information about the API."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Update group request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data related to the update of a group.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes of the Sensitive Data Scanner group.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Description of the group.\",\n                    \"type\": \"string\"\n                  },\n                  \"filter\": {\n                    \"description\": \"Filter for the Scanning Group.\",\n                    \"properties\": {\n                      \"query\": {\n                        \"description\": \"Query to filter the events.\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"is_enabled\": {\n                    \"description\": \"Whether or not the group is enabled.\",\n                    \"type\": \"boolean\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the group.\",\n                    \"type\": \"string\"\n                  },\n                  \"product_list\": {\n                    \"description\": \"List of products the scanning group applies.\",\n                    \"items\": {\n                      \"default\": \"logs\",\n                      \"description\": \"Datadog product onto which Sensitive Data Scanner can be activated.\",\n                      \"enum\": [\n                        \"logs\",\n                        \"rum\",\n                        \"events\",\n                        \"apm\"\n                      ],\n                      \"type\": \"string\",\n                      \"x-enum-varnames\": [\n                        \"LOGS\",\n                        \"RUM\",\n                        \"EVENTS\",\n                        \"APM\"\n                      ]\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"samplings\": {\n                    \"description\": \"List of sampling rates per product type.\",\n                    \"items\": {\n                      \"description\": \"Sampling configurations for the Scanning Group.\",\n                      \"properties\": {\n                        \"product\": {\n                          \"default\": \"logs\",\n                          \"description\": \"Datadog product onto which Sensitive Data Scanner can be activated.\",\n                          \"enum\": [\n                            \"logs\",\n                            \"rum\",\n                            \"events\",\n                            \"apm\"\n                          ],\n                          \"type\": \"string\",\n                          \"x-enum-varnames\": [\n                            \"LOGS\",\n                            \"RUM\",\n                            \"EVENTS\",\n                            \"APM\"\n                          ]\n                        },\n                        \"rate\": {\n                          \"description\": \"Rate at which data in product type will be scanned, as a percentage.\",\n                          \"example\": 100.0,\n                          \"format\": \"double\",\n                          \"maximum\": 100.0,\n                          \"minimum\": 0.0,\n                          \"type\": \"number\"\n                        }\n                      },\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the group.\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Relationships of the group.\",\n                \"properties\": {\n                  \"configuration\": {\n                    \"description\": \"A Sensitive Data Scanner configuration data.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"A Sensitive Data Scanner configuration.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"ID of the configuration.\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"sensitive_data_scanner_configuration\",\n                            \"description\": \"Sensitive Data Scanner configuration type.\",\n                            \"enum\": [\n                              \"sensitive_data_scanner_configuration\"\n                            ],\n                            \"example\": \"sensitive_data_scanner_configuration\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"SENSITIVE_DATA_SCANNER_CONFIGURATIONS\"\n                            ]\n                          }\n                        },\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"rules\": {\n                    \"description\": \"Rules included in the group.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Rules included in the group. The order is important.\",\n                        \"items\": {\n                          \"description\": \"Rule item included in the group.\",\n                          \"properties\": {\n                            \"id\": {\n                              \"description\": \"ID of the rule.\",\n                              \"type\": \"string\"\n                            },\n                            \"type\": {\n                              \"default\": \"sensitive_data_scanner_rule\",\n                              \"description\": \"Sensitive Data Scanner rule type.\",\n                              \"enum\": [\n                                \"sensitive_data_scanner_rule\"\n                              ],\n                              \"example\": \"sensitive_data_scanner_rule\",\n                              \"type\": \"string\",\n                              \"x-enum-varnames\": [\n                                \"SENSITIVE_DATA_SCANNER_RULE\"\n                              ]\n                            }\n                          },\n                          \"type\": \"object\"\n                        },\n                        \"type\": \"array\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"sensitive_data_scanner_group\",\n                \"description\": \"Sensitive Data Scanner group type.\",\n                \"enum\": [\n                  \"sensitive_data_scanner_group\"\n                ],\n                \"example\": \"sensitive_data_scanner_group\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"SENSITIVE_DATA_SCANNER_GROUP\"\n                ]\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"meta\": {\n            \"description\": \"Meta payload containing information about the API.\",\n            \"properties\": {\n              \"version\": {\n                \"description\": \"Version of the API (optional).\",\n                \"example\": 0,\n                \"format\": \"int64\",\n                \"minimum\": 0,\n                \"type\": \"integer\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\",\n          \"meta\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

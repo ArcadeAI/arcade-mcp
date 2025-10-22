@@ -1,0 +1,196 @@
+{
+  "name": "UpdateAzureConfigStatus",
+  "fully_qualified_name": "DatadogApi.UpdateAzureConfigStatus@0.1.0",
+  "description": "Update status of Azure config to active or archived.\n\nThis tool updates the status of a specified Azure configuration to either active or archived. It should be called when there is a need to change the operational state of an Azure config.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "required": true,
+        "description": "The identifier for the Azure Cloud account whose configuration status is being updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cloud_account_id"
+      },
+      {
+        "name": "azure_config_patch_request_type",
+        "required": true,
+        "description": "Specify the type of Azure config Patch Request, typically 'azure_uc_config_patch_request'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "azure_uc_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Azure config Patch Request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      },
+      {
+        "name": "enable_cloud_cost_management",
+        "required": false,
+        "description": "Set to true to enable the Cloud Cost Management account, false to disable it.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.is_enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCostAzureUCConfigs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/azure_uc_config/{cloud_account_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cloud_account_id",
+        "tool_parameter_name": "cloud_account_id",
+        "description": "Cloud Account id.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Cloud Account id."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.is_enabled",
+        "tool_parameter_name": "enable_cloud_cost_management",
+        "description": "Whether or not the Cloud Cost Management account is enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether or not the Cloud Cost Management account is enabled."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "azure_config_patch_request_type",
+        "description": "Type of Azure config Patch Request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "azure_uc_config_patch_request"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of Azure config Patch Request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": "azure_uc_config_patch_request",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Azure config Patch Request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Azure config Patch data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for Azure config Patch Request.\",\n                \"properties\": {\n                  \"is_enabled\": {\n                    \"description\": \"Whether or not the Cloud Cost Management account is enabled.\",\n                    \"example\": true,\n                    \"type\": \"boolean\"\n                  }\n                },\n                \"required\": [\n                  \"is_enabled\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"azure_uc_config_patch_request\",\n                \"description\": \"Type of Azure config Patch Request.\",\n                \"enum\": [\n                  \"azure_uc_config_patch_request\"\n                ],\n                \"example\": \"azure_uc_config_patch_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AZURE_UC_CONFIG_PATCH_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

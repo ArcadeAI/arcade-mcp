@@ -1,0 +1,407 @@
+{
+  "name": "UpdateFreshserviceChangeTimeEntry",
+  "fully_qualified_name": "FreshserviceApi.UpdateFreshserviceChangeTimeEntry@1.0.0",
+  "description": "Update a time entry on a Freshservice Change request.\n\nUse this tool to modify an existing time entry for a Change request in Freshservice, specifying the Change ID and the Time Entry ID to update.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "change_request_id",
+        "required": true,
+        "description": "ID of the change request to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of change request"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "change_id"
+      },
+      {
+        "name": "time_entry_identifier",
+        "required": true,
+        "description": "Provide the integer ID of the time entry to be updated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the time entry"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "time_entry_id"
+      },
+      {
+        "name": "time_entry_details",
+        "required": true,
+        "description": "JSON object containing time entry details to be updated, such as start_time, time_spent, and custom_fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the time entry"
+            },
+            "task_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the task associated with the time entry"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the parent entity to which the time entry belongs"
+            },
+            "parent_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the parent entity - [Ticket, Problem, Change, Release, Project]"
+            },
+            "start_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time at which the timer started"
+            },
+            "time_spent": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Duration of time spent in seconds"
+            },
+            "timer_running": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if timer is running, false otherwise"
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if billable, false otherwise"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the time entry"
+            },
+            "note": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description note of the time entry"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the time entry is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time stamp at which the time entry is updated"
+            },
+            "executed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the time entry is executed"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            }
+          },
+          "inner_properties": null,
+          "description": "time entry details that needs to be updated"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-change-time-entry'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "FRESHSERVICE_SUBDOMAIN"
+      },
+      {
+        "key": "FRESHSERVICE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/changes/{change_id}/time_entries/{time_entry_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "change_id",
+        "tool_parameter_name": "change_request_id",
+        "description": "ID of change request",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of change request"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "time_entry_id",
+        "tool_parameter_name": "time_entry_identifier",
+        "description": "ID of the time entry",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the time entry"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "time_entry_details",
+        "description": "time entry details that needs to be updated",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the time entry"
+            },
+            "task_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the task associated with the time entry"
+            },
+            "parent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the parent entity to which the time entry belongs"
+            },
+            "parent_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the parent entity - [Ticket, Problem, Change, Release, Project]"
+            },
+            "start_time": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time at which the timer started"
+            },
+            "time_spent": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Duration of time spent in seconds"
+            },
+            "timer_running": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if timer is running, false otherwise"
+            },
+            "billable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "true if billable, false otherwise"
+            },
+            "agent_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Unique ID of the user who created the time entry"
+            },
+            "note": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description note of the time entry"
+            },
+            "created_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Timestamp at which the time entry is created"
+            },
+            "updated_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Time stamp at which the time entry is updated"
+            },
+            "executed_at": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Date time at which the time entry is executed"
+            },
+            "custom_fields": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Key value pairs containing the names and values of custom fields"
+            }
+          },
+          "inner_properties": null,
+          "description": "time entry details that needs to be updated"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "FRESHSERVICE_SUBDOMAIN",
+        "parameter_name": "freshservice_subdomain",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"time entry details that needs to be updated\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the time entry\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 14702899\n          },\n          \"task_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the task associated with the time entry\",\n            \"format\": \"int64\",\n            \"example\": 45\n          },\n          \"parent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the parent entity to which the time entry belongs\",\n            \"format\": \"int64\",\n            \"readOnly\": true,\n            \"example\": 500\n          },\n          \"parent_type\": {\n            \"type\": \"string\",\n            \"description\": \"Type of the parent entity - [Ticket, Problem, Change, Release, Project]\",\n            \"example\": \"Ticket\"\n          },\n          \"start_time\": {\n            \"type\": \"string\",\n            \"description\": \"Time at which the timer started\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-10-15T12:31:42Z\"\n          },\n          \"time_spent\": {\n            \"type\": \"string\",\n            \"description\": \"Duration of time spent in seconds\",\n            \"example\": \"10:15\"\n          },\n          \"timer_running\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if timer is running, false otherwise\",\n            \"example\": true\n          },\n          \"billable\": {\n            \"type\": \"boolean\",\n            \"description\": \"true if billable, false otherwise\",\n            \"example\": true\n          },\n          \"agent_id\": {\n            \"type\": \"integer\",\n            \"description\": \"Unique ID of the user who created the time entry\",\n            \"format\": \"int64\",\n            \"example\": 14007423\n          },\n          \"note\": {\n            \"type\": \"string\",\n            \"description\": \"Description note of the time entry\",\n            \"format\": \"text\",\n            \"example\": \"Spent time on task\"\n          },\n          \"created_at\": {\n            \"type\": \"string\",\n            \"description\": \"Timestamp at which the time entry is created\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-10-15T12:31:42Z\"\n          },\n          \"updated_at\": {\n            \"type\": \"string\",\n            \"description\": \"Time stamp at which the time entry is updated\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-10-15T12:31:42Z\"\n          },\n          \"executed_at\": {\n            \"type\": \"string\",\n            \"description\": \"Date time at which the time entry is executed\",\n            \"format\": \"date-time\",\n            \"readOnly\": true,\n            \"example\": \"2021-10-15T12:31:00Z\"\n          },\n          \"custom_fields\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Key value pairs containing the names and values of custom fields\",\n            \"example\": {\n              \"field1\": \"Value 1\",\n              \"field2\": \"Value 2\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,710 @@
+{
+  "name": "CreateBankTransaction",
+  "fully_qualified_name": "ZohoBooksApi.CreateBankTransaction@0.1.0",
+  "description": "Creates a bank transaction in Zoho Books.\n\nThis tool is used to create a bank transaction within Zoho Books. It should be called when a user needs to log a financial transaction using allowed transaction types.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique ID of the organization for which the bank transaction is to be created. This ID helps identify the specific organization within Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "bank_transaction_details",
+        "required": false,
+        "description": "JSON object with details of the bank transaction, including from_account_id, to_account_id, transaction_type, amount, payment_mode, exchange_rate, date, customer_id, reference_number, description, currency_id, tax_id, is_inclusive_tax, tags, from_account_tags, to_account_tags, documents, bank_charges, user_id, tax_authority_id, tax_exemption_id, and custom_fields.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account ID from which money will be transferred(Mandatory for specific type of transactions). These accounts differ with respect to transaction_type. Ex: To a bank account, from-account can be: bank , card, income, refund. To a card account, from account can be: bank, card, refund."
+            },
+            "to_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account to which the money gets transferred(Mandatory for specific type of transactions). Ex: From a bank account, to-account can be: bank, card, drawings, expense,credit notes. From a card account, to-account can be: card, bank, expense."
+            },
+            "transaction_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,"
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer or vendor."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency ID involved in the transaction."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group applied"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if transaction is tax Inclusive"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "from_account_tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "to_account_tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "file_name": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached file."
+                },
+                "document_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the attached file."
+                }
+              },
+              "description": "List of files to be attached to a particular transaction."
+            },
+            "bank_charges": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Bank Charges applied to the transaction"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the User involved in the Transaction"
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Authority"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_field_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create_bank_transaction'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.banking.CREATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/banktransactions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "bank_transaction_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "from_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The account ID from which money will be transferred(Mandatory for specific type of transactions). These accounts differ with respect to transaction_type. Ex: To a bank account, from-account can be: bank , card, income, refund. To a card account, from account can be: bank, card, refund."
+            },
+            "to_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account to which the money gets transferred(Mandatory for specific type of transactions). Ex: From a bank account, to-account can be: bank, card, drawings, expense,credit notes. From a card account, to-account can be: card, bank, expense."
+            },
+            "transaction_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\"#Expenses\">Expense</a>, <a href=\"#Vendor-Payments\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\"#Vendor-Credits_Refund_a_vendor_credit\">Vendor Credit Refund</a>, <a href=\"#Vendor-Payments_Refund_an_excess_vendor_payment\">Vendor Payment Refund</a>, <a href=\"#Customer-Payments\">Customer Advance/Customer Payment</a>, <a href=\"#Credit-Notes_Refund_credit_note\">Credit Note Refund</a>, <a href=\"#Customer-Payments_Refund_an_excess_customer_payment\">Payment Refund</a>. Hence, refer them in their repective modules.</div>"
+            },
+            "amount": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Amount of the transaction"
+            },
+            "payment_mode": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,"
+            },
+            "exchange_rate": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The foreign currency exchange rate value."
+            },
+            "date": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Transaction date."
+            },
+            "customer_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the customer or vendor."
+            },
+            "reference_number": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reference Number of the transaction"
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A brief description about the transaction."
+            },
+            "currency_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The currency ID involved in the transaction."
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax or tax group applied"
+            },
+            "is_inclusive_tax": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Check if transaction is tax Inclusive"
+            },
+            "tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "from_account_tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "to_account_tags": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tag_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the Tag"
+                },
+                "tag_option_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Id of the Tag Option"
+                }
+              },
+              "description": null
+            },
+            "documents": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "file_name": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Name of the attached file."
+                },
+                "document_id": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unique ID of the attached file."
+                }
+              },
+              "description": "List of files to be attached to a particular transaction."
+            },
+            "bank_charges": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Bank Charges applied to the transaction"
+            },
+            "user_id": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the User involved in the Transaction"
+            },
+            "tax_authority_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Authority"
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the Tax Exemption"
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "custom_field_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "index": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Index of the custom field"
+                },
+                "label": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Label of the Custom Field"
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"transaction_type\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"from_account_id\": {\n            \"description\": \"The account ID from which money will be transferred(Mandatory for specific type of transactions). These accounts differ with respect to transaction_type. Ex: To a bank account, from-account can be: bank , card, income, refund. To a card account, from account can be: bank, card, refund.\",\n            \"type\": \"string\",\n            \"example\": \"460000000070003\"\n          },\n          \"to_account_id\": {\n            \"description\": \"ID of the account to which the money gets transferred(Mandatory for specific type of transactions). Ex: From a bank account, to-account can be: bank, card, drawings, expense,credit notes. From a card account, to-account can be: card, bank, expense.\",\n            \"type\": \"string\",\n            \"example\": \"460000000048001\"\n          },\n          \"transaction_type\": {\n            \"description\": \"Type of the transaction. <br> <strong>Allowed transaction types</strong> : deposit, refund(*Supported only in Credit Card accounts), transfer_fund, card_payment, sales_without_invoices, expense_refund, owner_contribution, interest_income, other_income, owner_drawings, sales_return <br> <strong>Note:</strong> You will not be able to create the following module-specific transaction types under Bank Transaction endpoints :<div> <a href=\\\"#Expenses\\\">Expense</a>, <a href=\\\"#Vendor-Payments\\\">Vendor Advance/Vendor Payment/Bill Payment</a>, <a href=\\\"#Vendor-Credits_Refund_a_vendor_credit\\\">Vendor Credit Refund</a>, <a href=\\\"#Vendor-Payments_Refund_an_excess_vendor_payment\\\">Vendor Payment Refund</a>, <a href=\\\"#Customer-Payments\\\">Customer Advance/Customer Payment</a>, <a href=\\\"#Credit-Notes_Refund_credit_note\\\">Credit Note Refund</a>, <a href=\\\"#Customer-Payments_Refund_an_excess_customer_payment\\\">Payment Refund</a>. Hence, refer them in their repective modules.</div>\",\n            \"type\": \"string\",\n            \"example\": \"deposit\"\n          },\n          \"amount\": {\n            \"description\": \"Amount of the transaction\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 2000\n          },\n          \"payment_mode\": {\n            \"description\": \"Mode of payment for the transaction. (not applicable for transfer_fund, card_payment, owner_drawings). Ex:cash, cheque, etc.,\",\n            \"type\": \"string\",\n            \"example\": \"Cash\"\n          },\n          \"exchange_rate\": {\n            \"description\": \"The foreign currency exchange rate value.\",\n            \"type\": \"integer\",\n            \"example\": 1\n          },\n          \"date\": {\n            \"description\": \"Transaction date.\",\n            \"type\": \"string\",\n            \"example\": \"2013-10-01\"\n          },\n          \"customer_id\": {\n            \"description\": \"ID of the customer or vendor.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000111\"\n          },\n          \"reference_number\": {\n            \"description\": \"Reference Number of the transaction\",\n            \"type\": \"string\",\n            \"example\": \"Ref-121\"\n          },\n          \"description\": {\n            \"description\": \"A brief description about the transaction.\",\n            \"type\": \"string\"\n          },\n          \"currency_id\": {\n            \"description\": \"The currency ID involved in the transaction.\",\n            \"type\": \"string\",\n            \"example\": \"460000000000097\"\n          },\n          \"tax_id\": {\n            \"description\": \"ID of the tax or tax group applied\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\"\n            ]\n          },\n          \"is_inclusive_tax\": {\n            \"description\": \"Check if transaction is tax Inclusive\",\n            \"type\": \"boolean\",\n            \"example\": false\n          },\n          \"tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the Tag\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"tag_option_id\": {\n                  \"description\": \"Id of the Tag Option\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                }\n              }\n            }\n          },\n          \"from_account_tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the Tag\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"tag_option_id\": {\n                  \"description\": \"Id of the Tag Option\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                }\n              }\n            }\n          },\n          \"to_account_tags\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tag_id\": {\n                  \"description\": \"ID of the Tag\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"tag_option_id\": {\n                  \"description\": \"Id of the Tag Option\",\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                }\n              }\n            }\n          },\n          \"documents\": {\n            \"description\": \"List of files to be attached to a particular transaction.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"file_name\": {\n                  \"description\": \"Name of the attached file.\"\n                },\n                \"document_id\": {\n                  \"description\": \"Unique ID of the attached file.\"\n                }\n              }\n            }\n          },\n          \"bank_charges\": {\n            \"description\": \"Bank Charges applied to the transaction\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 0\n          },\n          \"user_id\": {\n            \"description\": \"ID of the User involved in the Transaction\",\n            \"type\": \"integer\",\n            \"format\": \"int64\"\n          },\n          \"tax_authority_id\": {\n            \"description\": \"ID of the Tax Authority\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"ID of the Tax Exemption\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"au\",\n              \"ca\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"custom_fields\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"custom_field_id\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int64\"\n                },\n                \"index\": {\n                  \"description\": \"Index of the custom field\",\n                  \"type\": \"integer\"\n                },\n                \"label\": {\n                  \"description\": \"Label of the Custom Field\",\n                  \"type\": \"string\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

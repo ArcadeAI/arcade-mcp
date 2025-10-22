@@ -1,18 +1,18 @@
 {
   "name": "GetTicketTimeEntries",
-  "fully_qualified_name": "FreshserviceApi.GetTicketTimeEntries@0.1.0",
-  "description": "Retrieve time entries for a given ticket ID.\n\nUse this tool to fetch all time entries associated with a specific ticket ID on Freshservice. It helps track time spent on each ticket.",
+  "fully_qualified_name": "FreshserviceApi.GetTicketTimeEntries@1.0.0",
+  "description": "Retrieve time entries for a specific ticket in Freshservice.\n\nUse this tool to get all time entries associated with a specific ticket ID from Freshservice. Ideal for tracking time spent and managing ticket details.",
   "toolkit": {
     "name": "ArcadeFreshserviceApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "ticket_request_id",
         "required": true,
-        "description": "The unique ID of the ticket request to retrieve time entries for.",
+        "description": "The ID of the ticket request for which the time entries need to be retrieved. This should be an integer value identifying a specific ticket in Freshservice.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "ticket_id"
       },
       {
-        "name": "number_of_entries_per_page",
+        "name": "entries_per_page",
         "required": false,
-        "description": "The number of time entries to retrieve in each page of a paginated list.",
+        "description": "Number of time entries to retrieve per page in a paginated list.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "page_number",
         "required": false,
-        "description": "The page number to retrieve from the paginated list of time entries.",
+        "description": "The page number of time entries to retrieve for the given ticket ID.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -76,10 +76,10 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "FRESHSERVICE_API_KEY"
+        "key": "FRESHSERVICE_SUBDOMAIN"
       },
       {
-        "key": "FRESHSERVICE_SUBDOMAIN"
+        "key": "FRESHSERVICE_API_KEY"
       }
     ],
     "metadata": null
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Freshservice API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://{freshservice_subdomain}.freshservice.com/api/v2/tickets/{ticket_id}/time_entries",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "per_page",
-        "tool_parameter_name": "number_of_entries_per_page",
+        "tool_parameter_name": "entries_per_page",
         "description": "The number of time entries to retrieve in each page of a paginated list.",
         "value_schema": {
           "val_type": "integer",
@@ -158,21 +158,24 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "FRESHSERVICE_API_KEY",
-        "parameter_name": "username",
-        "accepted_as": "basic_auth_username",
-        "formatted_value": null,
-        "description": "",
-        "is_auth_token": false
-      },
-      {
         "arcade_key": "FRESHSERVICE_SUBDOMAIN",
         "parameter_name": "freshservice_subdomain",
         "accepted_as": "path",
         "formatted_value": null,
         "description": "",
         "is_auth_token": false
+      },
+      {
+        "arcade_key": "FRESHSERVICE_API_KEY",
+        "parameter_name": "username",
+        "accepted_as": "basic_auth_username",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

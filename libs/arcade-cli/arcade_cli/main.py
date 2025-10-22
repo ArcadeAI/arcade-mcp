@@ -27,7 +27,6 @@ from arcade_cli.display import (
 from arcade_cli.secret import app as secret_app
 from arcade_cli.server import app as server_app
 from arcade_cli.show import show_logic
-from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
     Provider,
@@ -472,59 +471,80 @@ def configure(
     client: str = typer.Argument(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
+        click_type=click.Choice(["claude", "cursor", "vscode"], case_sensitive=False),
+        show_choices=True,
+    ),
+    entrypoint_file: str = typer.Option(
+        "server.py",
+        "--entrypoint",
+        "-e",
+        help="The name of the Python file in the current directory that runs the server. This file must run the server when invoked directly. Only used for stdio servers.",
+        rich_help_panel="Stdio Options",
+    ),
+    transport: str = typer.Option(
+        "stdio",
+        "--transport",
+        "-t",
+        help="The transport to use for the MCP server configuration",
+        click_type=click.Choice(["stdio", "http"], case_sensitive=False),
+        show_choices=True,
     ),
     server_name: Optional[str] = typer.Option(
         None,
-        "--server",
-        "-s",
-        help="Name of the server to connect to (defaults to current directory name)",
+        "--name",
+        "-n",
+        help="Optional name of the server to set in the configuration file (defaults to the name of the current directory)",
+        rich_help_panel="Configuration File Options",
     ),
-    from_local: bool = typer.Option(
-        False,
-        "--from-local",
-        help="Connect to a local MCP server",
-        is_flag=True,
-    ),
-    from_arcade: bool = typer.Option(
-        False,
-        "--from-arcade",
-        help="Connect to an Arcade Cloud MCP server",
-        is_flag=True,
+    host: str = typer.Option(
+        "local",
+        "--host",
+        "-h",
+        help="The host of the HTTP server to configure. Use 'local' to connect to a local MCP server or 'arcade' to connect to an Arcade Cloud MCP server.",
+        click_type=click.Choice(["local", "arcade"], case_sensitive=False),
+        show_choices=True,
+        rich_help_panel="HTTP Options",
     ),
     port: int = typer.Option(
         8000,
         "--port",
         "-p",
-        help="Port for local servers",
+        help="Port for local HTTP servers",
+        rich_help_panel="HTTP Options",
     ),
-    path: Optional[Path] = typer.Option(
+    config_path: Optional[Path] = typer.Option(
         None,
-        "--path",
-        "-f",
+        "--config",
+        "-c",
         exists=False,
         help="Optional path to a specific MCP client config file (overrides default path)",
+        rich_help_panel="Configuration File Options",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Configure MCP clients to connect to your server.
 
+    The default behavior is to configure the specified client for a local stdio server that
+    runs when the server.py file in the current directory is invoked directly.
+
     Examples:
-        arcade configure claude --from-local
-        arcade configure cursor --from-local --port 8080
-        arcade configure vscode --from-local --path .vscode/mcp.json
-        arcade configure claude --from-arcade --server my_server_name
+        arcade configure claude
+        arcade configure cursor --transport http --port 8080
+        arcade configure vscode --host arcade --entrypoint ../../../mcp/server.py --config .vscode/mcp.json
+        arcade configure claude --host local --name my_server_name
     """
     from arcade_cli.configure import configure_client
 
     try:
         configure_client(
             client=client,
+            entrypoint_file=entrypoint_file,
             server_name=server_name,
-            from_local=from_local,
-            from_arcade=from_arcade,
+            transport=transport,
+            host=host,
             port=port,
-            path=path,
+            config_path=config_path,
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)
@@ -705,115 +725,6 @@ def dashboard(
             )
     except Exception as e:
         handle_cli_error("Failed to open dashboard", e, debug)
-
-
-@cli.command(
-    help=(
-        "Generate documentation for a server. "
-        "Note: make sure to have the server installed in your current Python environment "
-        "before running this command."
-    ),
-    rich_help_panel="Document",
-    hidden=True,
-)
-def docs(
-    server_name: str = typer.Option(
-        ...,
-        "--server-name",
-        "-n",
-        help="The name of the server to generate documentation for.",
-    ),
-    server_dir: str = typer.Option(
-        ...,
-        "--server-dir",
-        "-t",
-        help=(
-            "The path to the server root directory (where the server code is implemented). "
-            "Works with relative and absolute paths."
-        ),
-    ),
-    docs_dir: str = typer.Option(
-        ...,
-        "--docs-dir",
-        "-r",
-        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
-    ),
-    docs_section: str = typer.Option(
-        "",
-        "--docs-section",
-        "-s",
-        help=(
-            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
-            "This should be the name of the folder in /pages/tools. "
-            "Defaults to an empty string (generate the docs in the root of /pages/tools)"
-        ),
-    ),
-    openai_model: str = typer.Option(
-        "gpt-5-mini",
-        "--openai-model",
-        "-m",
-        help=(
-            "A few parts of the documentation are generated using OpenAI API. "
-            "Choose one of the 'gpt-4o' and 'gpt-5' series models."
-        ),
-        show_default=True,
-    ),
-    openai_api_key: str = typer.Option(
-        None,
-        "--openai-api-key",
-        "-o",
-        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
-    ),
-    skip_tool_call_examples: bool = typer.Option(
-        False,
-        "--skip-tool-call-examples",
-        "-se",
-        help="Whether to skip generating tool call examples in Python and Javascript.",
-        show_default=True,
-    ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-) -> None:
-    if not openai_model.startswith("gpt-4o") and not openai_model.startswith("gpt-5"):
-        console.print(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models.",
-            style="bold red",
-        )
-        handle_cli_error(
-            f"Attention: '{openai_model}' is not a valid OpenAI model. "
-            "Please choose one of the 'gpt-4o' and 'gpt-5' series models."
-        )
-
-    try:
-        success = generate_toolkit_docs(
-            console=console,
-            toolkit_name=server_name,
-            toolkit_dir=server_dir,
-            docs_dir=docs_dir,
-            docs_section=docs_section,
-            openai_model=openai_model,
-            openai_api_key=openai_api_key,
-            tool_call_examples=not skip_tool_call_examples,
-            debug=debug,
-        )
-    except Exception as error:
-        handle_cli_error(
-            message=f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            error=error,
-            debug=debug,
-        )
-        success = False
-
-    if success:
-        console.print(
-            f"Generated documentation for '{server_name}' in '{docs_dir}'",
-            style="bold green",
-        )
-    else:
-        console.print(
-            f"Failed to generate documentation for '{server_name}' in '{docs_dir}'",
-            style="bold red",
-        )
 
 
 @cli.callback()

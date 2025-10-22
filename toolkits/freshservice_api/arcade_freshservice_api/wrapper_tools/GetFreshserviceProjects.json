@@ -1,0 +1,200 @@
+{
+  "name": "GetFreshserviceProjects",
+  "fully_qualified_name": "FreshserviceApi.GetFreshserviceProjects@1.0.0",
+  "description": "Retrieves a list of all projects in Freshservice.\n\nUse this tool to obtain a complete list of projects from Freshservice. It is useful when you need an overview of all projects currently tracked within the service.",
+  "toolkit": {
+    "name": "ArcadeFreshserviceApi",
+    "description": null,
+    "version": "1.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "entries_per_page",
+        "required": false,
+        "description": "Number of entries to retrieve per page in a paginated list. Expect an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "per_page"
+      },
+      {
+        "name": "page_number_to_retrieve",
+        "required": false,
+        "description": "The specific page number of the project list you wish to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      },
+      {
+        "name": "project_status_filter",
+        "required": false,
+        "description": "Specify the project status to filter results: 'all', 'open', 'in_progress', or 'completed'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "open",
+            "in_progress",
+            "completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to be applied in retrieving projects"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "retrieve_archived_projects",
+        "required": false,
+        "description": "Retrieve archived projects when true; active projects when false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter archived or active projects"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-projects'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Freshservice API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.freshservice.com/api/v2/projects",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "per_page",
+        "tool_parameter_name": "entries_per_page",
+        "description": "The number of entries to retrieve in each page of a paginated list.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of entries to retrieve in each page of a paginated list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 30,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "page_number_to_retrieve",
+        "description": "The page number to retrieve.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number to retrieve."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 1,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "project_status_filter",
+        "description": "Filter to be applied in retrieving projects",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "open",
+            "in_progress",
+            "completed"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter to be applied in retrieving projects"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "all",
+        "documentation_urls": []
+      },
+      {
+        "name": "archived",
+        "tool_parameter_name": "retrieve_archived_projects",
+        "description": "Filter archived or active projects",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter archived or active projects"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

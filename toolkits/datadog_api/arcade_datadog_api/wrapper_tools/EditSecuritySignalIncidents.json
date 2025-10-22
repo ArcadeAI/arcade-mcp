@@ -1,0 +1,192 @@
+{
+  "name": "EditSecuritySignalIncidents",
+  "fully_qualified_name": "DatadogApi.EditSecuritySignalIncidents@0.1.0",
+  "description": "Modify incidents linked to a security signal.\n\nThis tool allows for updating the incidents related to a specific security monitoring signal. Use it when you need to change how a security signal is associated with incidents.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "signal_id",
+        "required": true,
+        "description": "The unique identifier for the security signal to modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "signal_id"
+      },
+      {
+        "name": "incident_ids",
+        "required": true,
+        "description": "An array of incident IDs to associate with the security signal.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of incidents that are associated with this signal."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.incident_ids"
+      },
+      {
+        "name": "signal_version",
+        "required": false,
+        "description": "Version of the updated signal. Ensure the client-side version is not lower than the server-side version to avoid rejection.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'EditSecurityMonitoringSignalIncidents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/security_monitoring/signals/{signal_id}/incidents",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "signal_id",
+        "tool_parameter_name": "signal_id",
+        "description": "The ID of the signal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the signal."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.incident_ids",
+        "tool_parameter_name": "incident_ids",
+        "description": "Array of incidents that are associated with this signal.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "integer",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Array of incidents that are associated with this signal."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.attributes.version",
+        "tool_parameter_name": "signal_version",
+        "description": "Version of the updated signal. If server side version is higher, update will be rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version of the updated signal. If server side version is higher, update will be rejected."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Request body for changing the related incidents of a given security monitoring signal.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Data containing the patch for changing the related incidents of a signal.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes describing the new list of related signals for a security signal.\",\n                \"properties\": {\n                  \"incident_ids\": {\n                    \"description\": \"Array of incidents that are associated with this signal.\",\n                    \"example\": [\n                      2066\n                    ],\n                    \"items\": {\n                      \"description\": \"Public ID attribute of the incident that is associated with the signal.\",\n                      \"example\": 2066,\n                      \"format\": \"int64\",\n                      \"type\": \"integer\"\n                    },\n                    \"type\": \"array\"\n                  },\n                  \"version\": {\n                    \"description\": \"Version of the updated signal. If server side version is higher, update will be rejected.\",\n                    \"format\": \"int64\",\n                    \"type\": \"integer\"\n                  }\n                },\n                \"required\": [\n                  \"incident_ids\"\n                ],\n                \"type\": \"object\"\n              }\n            },\n            \"required\": [\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Attributes describing the signal update.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

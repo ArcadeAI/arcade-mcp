@@ -1,0 +1,918 @@
+{
+  "name": "CreateVercelDeployment",
+  "fully_qualified_name": "VercelApi.CreateVercelDeployment@0.1.0",
+  "description": "Create a new deployment on Vercel.\n\nThis tool helps create a new deployment on Vercel, ideal for deploying projects that aren't directly linked to a git repository. Use it to initiate a deployment by providing necessary files either as references or inlined content. It also allows redeployment of previous deployments by specifying a deployment ID.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deployment_request_body",
+        "required": true,
+        "description": "JSON object containing all deployment details including files, metadata, and settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customEnvironmentSlugOrId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deploy to a custom environment, which will override the default environment"
+            },
+            "deploymentId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An deployment id for an existing deployment to redeploy"
+            },
+            "files": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "A list of objects with the files to be deployed"
+            },
+            "gitMetadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "remoteUrl": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The git repository's remote origin url"
+                },
+                "commitAuthorName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author of the commit"
+                },
+                "commitAuthorEmail": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author of the commit"
+                },
+                "commitMessage": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The commit message"
+                },
+                "commitRef": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The branch on which the commit was made"
+                },
+                "commitSha": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The hash of the commit"
+                },
+                "dirty": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not there have been modifications to the working tree since the latest commit"
+                },
+                "ci": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "True if process.env.CI was set when deploying"
+                },
+                "ciType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of CI system used"
+                },
+                "ciGitProviderUsername": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The username used for the Git Provider (e.g. GitHub) if their CI (e.g. GitHub Actions) was used, if available"
+                },
+                "ciGitRepoVisibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility of the Git repository if their CI (e.g. GitHub Actions) was used, if available"
+                }
+              },
+              "inner_properties": null,
+              "description": "Populates initial git metadata for different git providers."
+            },
+            "gitSource": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the Git Repository source to be deployed. This property can not be used in combination with `files`."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An object containing the deployment's metadata. Multiple key-value pairs can be attached to a deployment"
+            },
+            "monorepoManager": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The monorepo manager that is being used for this deployment. When `null` is used no monorepo manager is selected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string with the project name used in the deployment URL"
+            },
+            "project": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target project identifier in which the deployment will be created. When defined, this parameter overrides name"
+            },
+            "projectSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "buildCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The build command for this project. When `null` is used this value will be automatically detected"
+                },
+                "commandForIgnoringBuildStep": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "devCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+                },
+                "framework": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "None",
+                    "blitzjs",
+                    "nextjs",
+                    "gatsby",
+                    "remix",
+                    "react-router",
+                    "astro",
+                    "hexo",
+                    "eleventy",
+                    "docusaurus-2",
+                    "docusaurus",
+                    "preact",
+                    "solidstart-1",
+                    "solidstart",
+                    "dojo",
+                    "ember",
+                    "vue",
+                    "scully",
+                    "ionic-angular",
+                    "angular",
+                    "polymer",
+                    "svelte",
+                    "sveltekit",
+                    "sveltekit-1",
+                    "ionic-react",
+                    "create-react-app",
+                    "gridsome",
+                    "umijs",
+                    "sapper",
+                    "saber",
+                    "stencil",
+                    "nuxtjs",
+                    "redwoodjs",
+                    "hugo",
+                    "jekyll",
+                    "brunch",
+                    "middleman",
+                    "zola",
+                    "hydrogen",
+                    "vite",
+                    "vitepress",
+                    "vuepress",
+                    "parcel",
+                    "fastapi",
+                    "flask",
+                    "fasthtml",
+                    "sanity-v3",
+                    "sanity",
+                    "storybook",
+                    "nitro",
+                    "hono",
+                    "express",
+                    "h3",
+                    "nestjs",
+                    "xmcp"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+                },
+                "installCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The install command for this project. When `null` is used this value will be automatically detected"
+                },
+                "nodeVersion": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "22.x",
+                    "20.x",
+                    "18.x",
+                    "16.x",
+                    "14.x",
+                    "12.x",
+                    "10.x",
+                    "8.10.x"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Override the Node.js version that should be used for this deployment"
+                },
+                "outputDirectory": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+                },
+                "rootDirectory": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+                },
+                "serverlessFunctionRegion": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The region to deploy Serverless Functions in this project"
+                },
+                "skipGitConnectDuringLink": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+                },
+                "sourceFilesOutsideRootDirectory": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates if there are source files outside of the root directory, typically used for monorepos"
+                }
+              },
+              "inner_properties": null,
+              "description": "Project settings that will be applied to the deployment. It is required for the first deployment of a project and will be saved for any following deployments"
+            },
+            "target": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either not defined, `staging`, `production`, or a custom environment identifier. If `staging`, a staging alias in the format `<project>-<team>.vercel.app` will be assigned. If `production`, any aliases defined in `alias` will be assigned. If omitted, the target will be `preview`."
+            },
+            "withLatestCommit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When `true` and `deploymentId` is passed in, the sha from the previous deployment's `gitSource` is removed forcing the latest commit to be used."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "force_new_deployment",
+        "required": false,
+        "description": "Set to 'true' to force a new deployment even if a similar one exists.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Forces a new deployment even if there is a previous similar deployment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "forceNew"
+      },
+      {
+        "name": "skip_framework_detection_confirmation",
+        "required": false,
+        "description": "Set to 'true' to skip framework detection and avoid confirmation request failures.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allows to skip framework detection so the API would not fail to ask for confirmation"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "skipAutoDetectionConfirmation"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The Team identifier to perform the request on behalf of for creating a deployment on Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug identifying the team to perform the deployment on behalf of. This is essential for specifying the target team for the deployment request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createDeployment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v13/deployments",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "forceNew",
+        "tool_parameter_name": "force_new_deployment",
+        "description": "Forces a new deployment even if there is a previous similar deployment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Forces a new deployment even if there is a previous similar deployment"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "skipAutoDetectionConfirmation",
+        "tool_parameter_name": "skip_framework_detection_confirmation",
+        "description": "Allows to skip framework detection so the API would not fail to ask for confirmation",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Allows to skip framework detection so the API would not fail to ask for confirmation"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "deployment_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "customEnvironmentSlugOrId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Deploy to a custom environment, which will override the default environment"
+            },
+            "deploymentId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An deployment id for an existing deployment to redeploy"
+            },
+            "files": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "A list of objects with the files to be deployed"
+            },
+            "gitMetadata": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "remoteUrl": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The git repository's remote origin url"
+                },
+                "commitAuthorName": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of the author of the commit"
+                },
+                "commitAuthorEmail": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The email of the author of the commit"
+                },
+                "commitMessage": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The commit message"
+                },
+                "commitRef": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The branch on which the commit was made"
+                },
+                "commitSha": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The hash of the commit"
+                },
+                "dirty": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Whether or not there have been modifications to the working tree since the latest commit"
+                },
+                "ci": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "True if process.env.CI was set when deploying"
+                },
+                "ciType": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of CI system used"
+                },
+                "ciGitProviderUsername": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The username used for the Git Provider (e.g. GitHub) if their CI (e.g. GitHub Actions) was used, if available"
+                },
+                "ciGitRepoVisibility": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The visibility of the Git repository if their CI (e.g. GitHub Actions) was used, if available"
+                }
+              },
+              "inner_properties": null,
+              "description": "Populates initial git metadata for different git providers."
+            },
+            "gitSource": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Defines the Git Repository source to be deployed. This property can not be used in combination with `files`."
+            },
+            "meta": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An object containing the deployment's metadata. Multiple key-value pairs can be attached to a deployment"
+            },
+            "monorepoManager": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The monorepo manager that is being used for this deployment. When `null` is used no monorepo manager is selected"
+            },
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A string with the project name used in the deployment URL"
+            },
+            "project": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The target project identifier in which the deployment will be created. When defined, this parameter overrides name"
+            },
+            "projectSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "buildCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The build command for this project. When `null` is used this value will be automatically detected"
+                },
+                "commandForIgnoringBuildStep": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "devCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The dev command for this project. When `null` is used this value will be automatically detected"
+                },
+                "framework": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "None",
+                    "blitzjs",
+                    "nextjs",
+                    "gatsby",
+                    "remix",
+                    "react-router",
+                    "astro",
+                    "hexo",
+                    "eleventy",
+                    "docusaurus-2",
+                    "docusaurus",
+                    "preact",
+                    "solidstart-1",
+                    "solidstart",
+                    "dojo",
+                    "ember",
+                    "vue",
+                    "scully",
+                    "ionic-angular",
+                    "angular",
+                    "polymer",
+                    "svelte",
+                    "sveltekit",
+                    "sveltekit-1",
+                    "ionic-react",
+                    "create-react-app",
+                    "gridsome",
+                    "umijs",
+                    "sapper",
+                    "saber",
+                    "stencil",
+                    "nuxtjs",
+                    "redwoodjs",
+                    "hugo",
+                    "jekyll",
+                    "brunch",
+                    "middleman",
+                    "zola",
+                    "hydrogen",
+                    "vite",
+                    "vitepress",
+                    "vuepress",
+                    "parcel",
+                    "fastapi",
+                    "flask",
+                    "fasthtml",
+                    "sanity-v3",
+                    "sanity",
+                    "storybook",
+                    "nitro",
+                    "hono",
+                    "express",
+                    "h3",
+                    "nestjs",
+                    "xmcp"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The framework that is being used for this project. When `null` is used no framework is selected"
+                },
+                "installCommand": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The install command for this project. When `null` is used this value will be automatically detected"
+                },
+                "nodeVersion": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "22.x",
+                    "20.x",
+                    "18.x",
+                    "16.x",
+                    "14.x",
+                    "12.x",
+                    "10.x",
+                    "8.10.x"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Override the Node.js version that should be used for this deployment"
+                },
+                "outputDirectory": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The output directory of the project. When `null` is used this value will be automatically detected"
+                },
+                "rootDirectory": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root"
+                },
+                "serverlessFunctionRegion": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The region to deploy Serverless Functions in this project"
+                },
+                "skipGitConnectDuringLink": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`."
+                },
+                "sourceFilesOutsideRootDirectory": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Indicates if there are source files outside of the root directory, typically used for monorepos"
+                }
+              },
+              "inner_properties": null,
+              "description": "Project settings that will be applied to the deployment. It is required for the first deployment of a project and will be saved for any following deployments"
+            },
+            "target": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Either not defined, `staging`, `production`, or a custom environment identifier. If `staging`, a staging alias in the format `<project>-<team>.vercel.app` will be assigned. If `production`, any aliases defined in `alias` will be assigned. If omitted, the target will be `preview`."
+            },
+            "withLatestCommit": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "When `true` and `deploymentId` is passed in, the sha from the previous deployment's `gitSource` is removed forcing the latest commit to be used."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"customEnvironmentSlugOrId\": {\n            \"description\": \"Deploy to a custom environment, which will override the default environment\",\n            \"type\": \"string\"\n          },\n          \"deploymentId\": {\n            \"description\": \"An deployment id for an existing deployment to redeploy\",\n            \"type\": \"string\",\n            \"example\": \"dpl_2qn7PZrx89yxY34vEZPD31Y9XVj6\"\n          },\n          \"files\": {\n            \"description\": \"A list of objects with the files to be deployed\",\n            \"items\": {\n              \"oneOf\": [\n                {\n                  \"additionalProperties\": false,\n                  \"description\": \"Used in the case you want to inline a file inside the request\",\n                  \"properties\": {\n                    \"data\": {\n                      \"description\": \"The file content, it could be either a `base64` (useful for images, etc.) of the files or the plain content for source code\",\n                      \"type\": \"string\"\n                    },\n                    \"encoding\": {\n                      \"description\": \"The file content encoding, it could be either a base64 (useful for images, etc.) of the files or the plain text for source code.\",\n                      \"enum\": [\n                        \"base64\",\n                        \"utf-8\"\n                      ]\n                    },\n                    \"file\": {\n                      \"description\": \"The file name including the whole path\",\n                      \"example\": \"folder/file.js\",\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\n                    \"file\",\n                    \"data\"\n                  ],\n                  \"title\": \"InlinedFile\",\n                  \"type\": \"object\"\n                },\n                {\n                  \"additionalProperties\": false,\n                  \"description\": \"Used in the case you want to reference a file that was already uploaded\",\n                  \"properties\": {\n                    \"file\": {\n                      \"description\": \"The file path relative to the project root\",\n                      \"example\": \"folder/file.js\",\n                      \"type\": \"string\"\n                    },\n                    \"sha\": {\n                      \"description\": \"The file contents hashed with SHA1, used to check the integrity\",\n                      \"type\": \"string\"\n                    },\n                    \"size\": {\n                      \"description\": \"The file size in bytes\",\n                      \"type\": \"integer\"\n                    }\n                  },\n                  \"required\": [\n                    \"file\"\n                  ],\n                  \"title\": \"UploadedFile\",\n                  \"type\": \"object\"\n                }\n              ]\n            },\n            \"type\": \"array\"\n          },\n          \"gitMetadata\": {\n            \"description\": \"Populates initial git metadata for different git providers.\",\n            \"additionalProperties\": false,\n            \"type\": \"object\",\n            \"properties\": {\n              \"remoteUrl\": {\n                \"type\": \"string\",\n                \"description\": \"The git repository's remote origin url\",\n                \"example\": \"https://github.com/vercel/next.js\"\n              },\n              \"commitAuthorName\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the author of the commit\",\n                \"example\": \"kyliau\"\n              },\n              \"commitAuthorEmail\": {\n                \"type\": \"string\",\n                \"description\": \"The email of the author of the commit\",\n                \"example\": \"kyliau@example.com\"\n              },\n              \"commitMessage\": {\n                \"type\": \"string\",\n                \"description\": \"The commit message\",\n                \"example\": \"add method to measure Interaction to Next Paint (INP) (#36490)\"\n              },\n              \"commitRef\": {\n                \"type\": \"string\",\n                \"description\": \"The branch on which the commit was made\",\n                \"example\": \"main\"\n              },\n              \"commitSha\": {\n                \"type\": \"string\",\n                \"description\": \"The hash of the commit\",\n                \"example\": \"dc36199b2234c6586ebe05ec94078a895c707e29\"\n              },\n              \"dirty\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether or not there have been modifications to the working tree since the latest commit\",\n                \"example\": true\n              },\n              \"ci\": {\n                \"type\": \"boolean\",\n                \"description\": \"True if process.env.CI was set when deploying\",\n                \"example\": true\n              },\n              \"ciType\": {\n                \"type\": \"string\",\n                \"description\": \"The type of CI system used\",\n                \"example\": \"github-actions\"\n              },\n              \"ciGitProviderUsername\": {\n                \"type\": \"string\",\n                \"description\": \"The username used for the Git Provider (e.g. GitHub) if their CI (e.g. GitHub Actions) was used, if available\",\n                \"example\": \"rauchg\"\n              },\n              \"ciGitRepoVisibility\": {\n                \"type\": \"string\",\n                \"description\": \"The visibility of the Git repository if their CI (e.g. GitHub Actions) was used, if available\",\n                \"example\": \"private\"\n              }\n            }\n          },\n          \"gitSource\": {\n            \"description\": \"Defines the Git Repository source to be deployed. This property can not be used in combination with `files`.\",\n            \"anyOf\": [\n              {\n                \"properties\": {\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"repoId\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      }\n                    ],\n                    \"example\": 123456789\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"github\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"repoId\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"org\": {\n                    \"type\": \"string\",\n                    \"example\": \"vercel\"\n                  },\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"repo\": {\n                    \"type\": \"string\",\n                    \"example\": \"next.js\"\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"github\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"org\",\n                  \"repo\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"repoId\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      }\n                    ],\n                    \"example\": 123456789\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"github-limited\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"repoId\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"org\": {\n                    \"type\": \"string\",\n                    \"example\": \"vercel\"\n                  },\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"repo\": {\n                    \"type\": \"string\",\n                    \"example\": \"next.js\"\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"github-limited\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"org\",\n                  \"repo\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"projectId\": {\n                    \"oneOf\": [\n                      {\n                        \"type\": \"number\"\n                      },\n                      {\n                        \"type\": \"string\"\n                      }\n                    ],\n                    \"example\": 987654321\n                  },\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"gitlab\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"projectId\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"repoUuid\": {\n                    \"type\": \"string\",\n                    \"example\": \"123e4567-e89b-12d3-a456-426614174000\"\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"bitbucket\"\n                    ],\n                    \"type\": \"string\"\n                  },\n                  \"workspaceUuid\": {\n                    \"type\": \"string\",\n                    \"example\": \"987e6543-e21b-12d3-a456-426614174000\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"repoUuid\"\n                ],\n                \"type\": \"object\"\n              },\n              {\n                \"properties\": {\n                  \"owner\": {\n                    \"type\": \"string\",\n                    \"example\": \"bitbucket_user\"\n                  },\n                  \"ref\": {\n                    \"type\": \"string\",\n                    \"example\": \"main\"\n                  },\n                  \"sha\": {\n                    \"type\": \"string\",\n                    \"example\": \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0\"\n                  },\n                  \"slug\": {\n                    \"type\": \"string\",\n                    \"example\": \"my-awesome-project\"\n                  },\n                  \"type\": {\n                    \"enum\": [\n                      \"bitbucket\"\n                    ],\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"type\",\n                  \"ref\",\n                  \"owner\",\n                  \"slug\"\n                ],\n                \"type\": \"object\"\n              }\n            ]\n          },\n          \"meta\": {\n            \"additionalProperties\": {\n              \"maxLength\": 65536,\n              \"type\": \"string\"\n            },\n            \"description\": \"An object containing the deployment's metadata. Multiple key-value pairs can be attached to a deployment\",\n            \"example\": {\n              \"foo\": \"bar\"\n            },\n            \"maxProperties\": 100,\n            \"type\": \"object\"\n          },\n          \"monorepoManager\": {\n            \"description\": \"The monorepo manager that is being used for this deployment. When `null` is used no monorepo manager is selected\",\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"name\": {\n            \"description\": \"A string with the project name used in the deployment URL\",\n            \"example\": \"my-instant-deployment\",\n            \"type\": \"string\"\n          },\n          \"project\": {\n            \"description\": \"The target project identifier in which the deployment will be created. When defined, this parameter overrides name\",\n            \"example\": \"my-deployment-project\",\n            \"type\": \"string\"\n          },\n          \"projectSettings\": {\n            \"additionalProperties\": false,\n            \"description\": \"Project settings that will be applied to the deployment. It is required for the first deployment of a project and will be saved for any following deployments\",\n            \"properties\": {\n              \"buildCommand\": {\n                \"description\": \"The build command for this project. When `null` is used this value will be automatically detected\",\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"next build\"\n              },\n              \"commandForIgnoringBuildStep\": {\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true\n              },\n              \"devCommand\": {\n                \"description\": \"The dev command for this project. When `null` is used this value will be automatically detected\",\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true\n              },\n              \"framework\": {\n                \"description\": \"The framework that is being used for this project. When `null` is used no framework is selected\",\n                \"type\": \"string\",\n                \"enum\": [\n                  null,\n                  \"blitzjs\",\n                  \"nextjs\",\n                  \"gatsby\",\n                  \"remix\",\n                  \"react-router\",\n                  \"astro\",\n                  \"hexo\",\n                  \"eleventy\",\n                  \"docusaurus-2\",\n                  \"docusaurus\",\n                  \"preact\",\n                  \"solidstart-1\",\n                  \"solidstart\",\n                  \"dojo\",\n                  \"ember\",\n                  \"vue\",\n                  \"scully\",\n                  \"ionic-angular\",\n                  \"angular\",\n                  \"polymer\",\n                  \"svelte\",\n                  \"sveltekit\",\n                  \"sveltekit-1\",\n                  \"ionic-react\",\n                  \"create-react-app\",\n                  \"gridsome\",\n                  \"umijs\",\n                  \"sapper\",\n                  \"saber\",\n                  \"stencil\",\n                  \"nuxtjs\",\n                  \"redwoodjs\",\n                  \"hugo\",\n                  \"jekyll\",\n                  \"brunch\",\n                  \"middleman\",\n                  \"zola\",\n                  \"hydrogen\",\n                  \"vite\",\n                  \"vitepress\",\n                  \"vuepress\",\n                  \"parcel\",\n                  \"fastapi\",\n                  \"flask\",\n                  \"fasthtml\",\n                  \"sanity-v3\",\n                  \"sanity\",\n                  \"storybook\",\n                  \"nitro\",\n                  \"hono\",\n                  \"express\",\n                  \"h3\",\n                  \"nestjs\",\n                  \"xmcp\"\n                ],\n                \"nullable\": true\n              },\n              \"installCommand\": {\n                \"description\": \"The install command for this project. When `null` is used this value will be automatically detected\",\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true,\n                \"example\": \"pnpm install\"\n              },\n              \"nodeVersion\": {\n                \"description\": \"Override the Node.js version that should be used for this deployment\",\n                \"enum\": [\n                  \"22.x\",\n                  \"20.x\",\n                  \"18.x\",\n                  \"16.x\",\n                  \"14.x\",\n                  \"12.x\",\n                  \"10.x\",\n                  \"8.10.x\"\n                ],\n                \"type\": \"string\"\n              },\n              \"outputDirectory\": {\n                \"description\": \"The output directory of the project. When `null` is used this value will be automatically detected\",\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true\n              },\n              \"rootDirectory\": {\n                \"description\": \"The name of a directory or relative path to the source code of your project. When `null` is used it will default to the project root\",\n                \"maxLength\": 256,\n                \"type\": \"string\",\n                \"nullable\": true\n              },\n              \"serverlessFunctionRegion\": {\n                \"description\": \"The region to deploy Serverless Functions in this project\",\n                \"maxLength\": 4,\n                \"type\": \"string\",\n                \"nullable\": true\n              },\n              \"skipGitConnectDuringLink\": {\n                \"description\": \"Opts-out of the message prompting a CLI user to connect a Git repository in `vercel link`.\",\n                \"type\": \"boolean\",\n                \"deprecated\": true\n              },\n              \"sourceFilesOutsideRootDirectory\": {\n                \"description\": \"Indicates if there are source files outside of the root directory, typically used for monorepos\",\n                \"type\": \"boolean\"\n              }\n            },\n            \"type\": \"object\"\n          },\n          \"target\": {\n            \"description\": \"Either not defined, `staging`, `production`, or a custom environment identifier. If `staging`, a staging alias in the format `<project>-<team>.vercel.app` will be assigned. If `production`, any aliases defined in `alias` will be assigned. If omitted, the target will be `preview`.\",\n            \"type\": \"string\",\n            \"example\": \"production\"\n          },\n          \"withLatestCommit\": {\n            \"description\": \"When `true` and `deploymentId` is passed in, the sha from the previous deployment's `gitSource` is removed forcing the latest commit to be used.\",\n            \"type\": \"boolean\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

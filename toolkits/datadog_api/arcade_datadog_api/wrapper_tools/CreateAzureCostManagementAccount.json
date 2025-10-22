@@ -1,0 +1,396 @@
+{
+  "name": "CreateAzureCostManagementAccount",
+  "fully_qualified_name": "DatadogApi.CreateAzureCostManagementAccount@0.1.0",
+  "description": "Create a Cloud Cost Management account for Azure.\n\nUse this tool to set up a Cloud Cost Management account for an Azure configuration using Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "azure_config_post_data",
+        "required": true,
+        "description": "JSON object containing Azure account details including account_id, client_id, scope, and bill configurations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The tenant ID of the Azure account."
+                    },
+                    "actual_bill_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "export_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the configured Azure Export."
+                        },
+                        "export_path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path where the Azure Export is saved."
+                        },
+                        "storage_account": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage account where the Azure Export is saved."
+                        },
+                        "storage_container": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage container where the Azure Export is saved."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Bill config."
+                    },
+                    "amortized_bill_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "export_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the configured Azure Export."
+                        },
+                        "export_path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path where the Azure Export is saved."
+                        },
+                        "storage_account": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage account where the Azure Export is saved."
+                        },
+                        "storage_container": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage container where the Azure Export is saved."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Bill config."
+                    },
+                    "client_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The client ID of the Azure account."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scope of your observed subscription."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for Azure config Post Request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "azure_uc_config_post_request"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of Azure config Post Request."
+                }
+              },
+              "inner_properties": null,
+              "description": "Azure config Post data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateCostAzureUCConfigs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/cost/azure_uc_config",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "azure_config_post_data",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "account_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The tenant ID of the Azure account."
+                    },
+                    "actual_bill_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "export_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the configured Azure Export."
+                        },
+                        "export_path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path where the Azure Export is saved."
+                        },
+                        "storage_account": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage account where the Azure Export is saved."
+                        },
+                        "storage_container": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage container where the Azure Export is saved."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Bill config."
+                    },
+                    "amortized_bill_config": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "export_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the configured Azure Export."
+                        },
+                        "export_path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path where the Azure Export is saved."
+                        },
+                        "storage_account": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage account where the Azure Export is saved."
+                        },
+                        "storage_container": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the storage container where the Azure Export is saved."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Bill config."
+                    },
+                    "client_id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The client ID of the Azure account."
+                    },
+                    "scope": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The scope of your observed subscription."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Attributes for Azure config Post Request."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "azure_uc_config_post_request"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of Azure config Post Request."
+                }
+              },
+              "inner_properties": null,
+              "description": "Azure config Post data."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Azure config Post Request.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Azure config Post data.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Attributes for Azure config Post Request.\",\n                \"properties\": {\n                  \"account_id\": {\n                    \"description\": \"The tenant ID of the Azure account.\",\n                    \"example\": \"1234abcd-1234-abcd-1234-1234abcd1234\",\n                    \"type\": \"string\"\n                  },\n                  \"actual_bill_config\": {\n                    \"description\": \"Bill config.\",\n                    \"properties\": {\n                      \"export_name\": {\n                        \"description\": \"The name of the configured Azure Export.\",\n                        \"example\": \"dd-actual-export\",\n                        \"type\": \"string\"\n                      },\n                      \"export_path\": {\n                        \"description\": \"The path where the Azure Export is saved.\",\n                        \"example\": \"dd-export-path\",\n                        \"type\": \"string\"\n                      },\n                      \"storage_account\": {\n                        \"description\": \"The name of the storage account where the Azure Export is saved.\",\n                        \"example\": \"dd-storage-account\",\n                        \"type\": \"string\"\n                      },\n                      \"storage_container\": {\n                        \"description\": \"The name of the storage container where the Azure Export is saved.\",\n                        \"example\": \"dd-storage-container\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"export_name\",\n                      \"export_path\",\n                      \"storage_account\",\n                      \"storage_container\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"amortized_bill_config\": {\n                    \"description\": \"Bill config.\",\n                    \"properties\": {\n                      \"export_name\": {\n                        \"description\": \"The name of the configured Azure Export.\",\n                        \"example\": \"dd-actual-export\",\n                        \"type\": \"string\"\n                      },\n                      \"export_path\": {\n                        \"description\": \"The path where the Azure Export is saved.\",\n                        \"example\": \"dd-export-path\",\n                        \"type\": \"string\"\n                      },\n                      \"storage_account\": {\n                        \"description\": \"The name of the storage account where the Azure Export is saved.\",\n                        \"example\": \"dd-storage-account\",\n                        \"type\": \"string\"\n                      },\n                      \"storage_container\": {\n                        \"description\": \"The name of the storage container where the Azure Export is saved.\",\n                        \"example\": \"dd-storage-container\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"required\": [\n                      \"export_name\",\n                      \"export_path\",\n                      \"storage_account\",\n                      \"storage_container\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"client_id\": {\n                    \"description\": \"The client ID of the Azure account.\",\n                    \"example\": \"1234abcd-1234-abcd-1234-1234abcd1234\",\n                    \"type\": \"string\"\n                  },\n                  \"scope\": {\n                    \"description\": \"The scope of your observed subscription.\",\n                    \"example\": \"/subscriptions/1234abcd-1234-abcd-1234-1234abcd1234\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"account_id\",\n                  \"actual_bill_config\",\n                  \"amortized_bill_config\",\n                  \"client_id\",\n                  \"scope\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"azure_uc_config_post_request\",\n                \"description\": \"Type of Azure config Post Request.\",\n                \"enum\": [\n                  \"azure_uc_config_post_request\"\n                ],\n                \"example\": \"azure_uc_config_post_request\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"AZURE_UC_CONFIG_POST_REQUEST\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

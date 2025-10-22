@@ -1,0 +1,335 @@
+{
+  "name": "UpdateLogBasedMetric",
+  "fully_qualified_name": "DatadogApi.UpdateLogBasedMetric@0.1.0",
+  "description": "Update a specific log-based metric in your organization.\n\nCall this tool to update a particular log-based metric within your organization using Datadog's API. Ideal for modifying metrics configurations to refine log analysis and monitoring.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "log_metric_name",
+        "required": true,
+        "description": "The name of the log-based metric to be updated. It specifies which metric to modify in your organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the log-based metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metric_id"
+      },
+      {
+        "name": "new_log_metric_definition",
+        "required": true,
+        "description": "JSON object detailing the updated properties of the log-based metric. It includes attributes for computation rules, filters, and group-by settings.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "compute": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "include_percentiles": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Toggle to include or exclude percentile aggregations for distribution metrics.\nOnly present when the `aggregation_type` is `distribution`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The compute rule to compute the log-based metric."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The search query - following the log search syntax."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The log-based metric filter. Logs matching this filter will be aggregated in this metric."
+                    },
+                    "group_by": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the log-based metric will be aggregated over."
+                        },
+                        "tag_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Eventual name of the tag that gets created. By default, the path attribute is used as the tag name."
+                        }
+                      },
+                      "description": "The rules for the group by."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The log-based metric properties that will be updated."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "logs_metrics"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be logs_metrics."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new log-based metric properties."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the log-based metric."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateLogsMetric'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/config/metrics/{metric_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "metric_id",
+        "tool_parameter_name": "log_metric_name",
+        "description": "The name of the log-based metric.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the log-based metric."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_log_metric_definition",
+        "description": "New definition of the log-based metric.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "compute": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "include_percentiles": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Toggle to include or exclude percentile aggregations for distribution metrics.\nOnly present when the `aggregation_type` is `distribution`."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The compute rule to compute the log-based metric."
+                    },
+                    "filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "query": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The search query - following the log search syntax."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "The log-based metric filter. Logs matching this filter will be aggregated in this metric."
+                    },
+                    "group_by": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "path": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The path to the value the log-based metric will be aggregated over."
+                        },
+                        "tag_name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Eventual name of the tag that gets created. By default, the path attribute is used as the tag name."
+                        }
+                      },
+                      "description": "The rules for the group by."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "The log-based metric properties that will be updated."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "logs_metrics"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the resource. The value should always be logs_metrics."
+                }
+              },
+              "inner_properties": null,
+              "description": "The new log-based metric properties."
+            }
+          },
+          "inner_properties": null,
+          "description": "New definition of the log-based metric."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"The new log-based metric body.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The new log-based metric properties.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The log-based metric properties that will be updated.\",\n                \"properties\": {\n                  \"compute\": {\n                    \"description\": \"The compute rule to compute the log-based metric.\",\n                    \"properties\": {\n                      \"include_percentiles\": {\n                        \"description\": \"Toggle to include or exclude percentile aggregations for distribution metrics.\\nOnly present when the `aggregation_type` is `distribution`.\",\n                        \"example\": true,\n                        \"type\": \"boolean\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"filter\": {\n                    \"description\": \"The log-based metric filter. Logs matching this filter will be aggregated in this metric.\",\n                    \"properties\": {\n                      \"query\": {\n                        \"default\": \"*\",\n                        \"description\": \"The search query - following the log search syntax.\",\n                        \"example\": \"service:web* AND @http.status_code:[200 TO 299]\",\n                        \"type\": \"string\"\n                      }\n                    },\n                    \"type\": \"object\"\n                  },\n                  \"group_by\": {\n                    \"description\": \"The rules for the group by.\",\n                    \"items\": {\n                      \"description\": \"A group by rule.\",\n                      \"properties\": {\n                        \"path\": {\n                          \"description\": \"The path to the value the log-based metric will be aggregated over.\",\n                          \"example\": \"@http.status_code\",\n                          \"type\": \"string\"\n                        },\n                        \"tag_name\": {\n                          \"description\": \"Eventual name of the tag that gets created. By default, the path attribute is used as the tag name.\",\n                          \"example\": \"status_code\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"path\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"logs_metrics\",\n                \"description\": \"The type of the resource. The value should always be logs_metrics.\",\n                \"enum\": [\n                  \"logs_metrics\"\n                ],\n                \"example\": \"logs_metrics\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"LOGS_METRICS\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"required\": [\n          \"data\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"New definition of the log-based metric.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

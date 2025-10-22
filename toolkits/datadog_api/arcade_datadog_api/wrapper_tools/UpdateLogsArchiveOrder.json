@@ -1,0 +1,163 @@
+{
+  "name": "UpdateLogsArchiveOrder",
+  "fully_qualified_name": "DatadogApi.UpdateLogsArchiveOrder@0.1.0",
+  "description": "Updates the order of log archives in Datadog.\n\nThis tool updates the sequence in which log archives are processed within Datadog. Reordering them may impact the structure and content of logs processed by other archives. Use this when you need to change how logs are archived.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "archive_ids_order",
+        "required": false,
+        "description": "An ordered list of `<ARCHIVE_ID>` strings to define the new archives order in Datadog.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array\ndefine the overall archives order for Datadog."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.attributes.archive_ids"
+      },
+      {
+        "name": "archive_order_type",
+        "required": false,
+        "description": "Specifies the type for the archive order definition. Must be 'archive_order'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "archive_order"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the archive order definition."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "data.type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateLogsArchiveOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/logs/config/archive-order",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "data.attributes.archive_ids",
+        "tool_parameter_name": "archive_ids_order",
+        "description": "An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array\ndefine the overall archives order for Datadog.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array\ndefine the overall archives order for Datadog."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "data.type",
+        "tool_parameter_name": "archive_order_type",
+        "description": "Type of the archive order definition.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "archive_order"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Type of the archive order definition."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "archive_order",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"A ordered list of archive IDs.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"The definition of an archive order.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"The attributes associated with the archive order.\",\n                \"properties\": {\n                  \"archive_ids\": {\n                    \"description\": \"An ordered array of `<ARCHIVE_ID>` strings, the order of archive IDs in the array\\ndefine the overall archives order for Datadog.\",\n                    \"example\": [\n                      \"a2zcMylnM4OCHpYusxIi1g\",\n                      \"a2zcMylnM4OCHpYusxIi2g\",\n                      \"a2zcMylnM4OCHpYusxIi3g\"\n                    ],\n                    \"items\": {\n                      \"description\": \"A given archive ID.\",\n                      \"type\": \"string\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"archive_ids\"\n                ],\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"default\": \"archive_order\",\n                \"description\": \"Type of the archive order definition.\",\n                \"enum\": [\n                  \"archive_order\"\n                ],\n                \"example\": \"archive_order\",\n                \"type\": \"string\",\n                \"x-enum-varnames\": [\n                  \"ARCHIVE_ORDER\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"attributes\"\n            ],\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"An object containing the new ordered list of archive IDs.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

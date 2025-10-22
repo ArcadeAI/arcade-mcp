@@ -1,0 +1,305 @@
+{
+  "name": "ListReferenceTables",
+  "fully_qualified_name": "DatadogApi.ListReferenceTables@0.1.0",
+  "description": "Retrieve all reference tables in the organization.\n\nUse this tool to fetch a list of all reference tables available in the current organization. It provides an overview of the reference tables configured in Datadog.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "number_of_tables_to_return",
+        "required": false,
+        "description": "Specify the number of tables to return in the response. Use an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of tables to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_offset",
+        "required": false,
+        "description": "Number of tables to skip for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of tables to skip for pagination."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "sort_field_and_direction",
+        "required": false,
+        "description": "Specify the field to sort by and the direction. Use a field name for ascending, prefix with \"-\" for descending. Options include: updated_at, table_name, status, and their descending counterparts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "updated_at",
+            "table_name",
+            "status",
+            "-updated_at",
+            "-table_name",
+            "-status"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort field and direction. Use field name for ascending, prefix with \"-\" for descending."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "filter_by_table_status",
+        "required": false,
+        "description": "Filter tables by their status. Accepts status as a string, such as 'active', 'inactive', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by table status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[status]"
+      },
+      {
+        "name": "exact_table_name_filter",
+        "required": false,
+        "description": "Filter by an exact table name match to retrieve specific reference tables.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by exact table name match."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[table_name][exact]"
+      },
+      {
+        "name": "filter_table_name_contains",
+        "required": false,
+        "description": "Filter tables by name containing this substring.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by table name containing substring."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter[table_name][contains]"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListTables'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/reference-tables/tables",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "number_of_tables_to_return",
+        "description": "Number of tables to return.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of tables to return."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 15,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "pagination_offset",
+        "description": "Number of tables to skip for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of tables to skip for pagination."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 0,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_field_and_direction",
+        "description": "Sort field and direction. Use field name for ascending, prefix with \"-\" for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "updated_at",
+            "table_name",
+            "status",
+            "-updated_at",
+            "-table_name",
+            "-status"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort field and direction. Use field name for ascending, prefix with \"-\" for descending."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "-updated_at",
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[status]",
+        "tool_parameter_name": "filter_by_table_status",
+        "description": "Filter by table status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by table status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[table_name][exact]",
+        "tool_parameter_name": "exact_table_name_filter",
+        "description": "Filter by exact table name match.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by exact table name match."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "filter[table_name][contains]",
+        "tool_parameter_name": "filter_table_name_contains",
+        "description": "Filter by table name containing substring.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter by table name containing substring."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

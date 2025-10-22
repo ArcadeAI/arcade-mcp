@@ -1,0 +1,762 @@
+{
+  "name": "CreatePowerpack",
+  "fully_qualified_name": "DatadogApi.CreatePowerpack@0.1.0",
+  "description": "Creates a new powerpack in Datadog.\n\nUse this tool to initiate a powerpack creation in Datadog when managing monitoring configurations is required.",
+  "toolkit": {
+    "name": "ArcadeDatadogApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "powerpack_request_body",
+        "required": true,
+        "description": "JSON object containing powerpack details like attributes, name, tags, template variables, relationships, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of this powerpack."
+                    },
+                    "group_widget": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "definition": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "layout_type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Layout type of widgets."
+                            },
+                            "show_title": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Boolean indicating whether powerpack group title should be visible or not."
+                            },
+                            "title": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Name for the group widget."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Type of widget, must be group."
+                            },
+                            "widgets": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "definition": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Information about widget."
+                                },
+                                "layout": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "height": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The height of the widget. Should be a non-negative integer."
+                                    },
+                                    "width": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The width of the widget. Should be a non-negative integer."
+                                    },
+                                    "x": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The position of the widget on the x (horizontal) axis. Should be a non-negative integer."
+                                    },
+                                    "y": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The position of the widget on the y (vertical) axis. Should be a non-negative integer."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "Powerpack inner widget layout."
+                                }
+                              },
+                              "description": "Widgets inside the powerpack."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Powerpack group widget object."
+                        },
+                        "layout": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "height": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The height of the widget. Should be a non-negative integer."
+                            },
+                            "width": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The width of the widget. Should be a non-negative integer."
+                            },
+                            "x": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The position of the widget on the x (horizontal) axis. Should be a non-negative integer."
+                            },
+                            "y": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The position of the widget on the y (vertical) axis. Should be a non-negative integer."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Powerpack group widget layout."
+                        },
+                        "live_span": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "1m",
+                            "5m",
+                            "10m",
+                            "15m",
+                            "30m",
+                            "1h",
+                            "4h",
+                            "1d",
+                            "2d",
+                            "1w",
+                            "1mo",
+                            "3mo",
+                            "6mo",
+                            "1y",
+                            "alert"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The available timeframes depend on the widget you are using."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Powerpack group widget definition object."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the powerpack."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of tags to identify this powerpack."
+                    },
+                    "template_variables": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "available_values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The list of values that the template variable drop-down is limited to."
+                        },
+                        "defaults": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "One or many template variable default values within the saved view, which are unioned together using `OR` if more than one is specified."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the variable."
+                        },
+                        "prefix": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The tag prefix associated with the variable. Only tags with this prefix appear in the variable drop-down."
+                        }
+                      },
+                      "description": "List of template variables for this powerpack."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Powerpack attribute object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the powerpack."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "author": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Powerpack relationship object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of widget, must be powerpack."
+                }
+              },
+              "inner_properties": null,
+              "description": "Powerpack data object."
+            }
+          },
+          "inner_properties": null,
+          "description": "Create a powerpack request body."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreatePowerpack'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "DATADOG_API_KEY"
+      },
+      {
+        "key": "DATADOG_APPLICATION_KEY"
+      },
+      {
+        "key": "DATADOG_BASE_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Datadog API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://{datadog_base_url}/api/v2/powerpacks",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "powerpack_request_body",
+        "description": "Create a powerpack request body.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "data": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "attributes": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "description": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Description of this powerpack."
+                    },
+                    "group_widget": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "definition": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "layout_type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Layout type of widgets."
+                            },
+                            "show_title": {
+                              "val_type": "boolean",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Boolean indicating whether powerpack group title should be visible or not."
+                            },
+                            "title": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Name for the group widget."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Type of widget, must be group."
+                            },
+                            "widgets": {
+                              "val_type": "array",
+                              "inner_val_type": "json",
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": {
+                                "definition": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": null,
+                                  "inner_properties": null,
+                                  "description": "Information about widget."
+                                },
+                                "layout": {
+                                  "val_type": "json",
+                                  "inner_val_type": null,
+                                  "enum": null,
+                                  "properties": {
+                                    "height": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The height of the widget. Should be a non-negative integer."
+                                    },
+                                    "width": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The width of the widget. Should be a non-negative integer."
+                                    },
+                                    "x": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The position of the widget on the x (horizontal) axis. Should be a non-negative integer."
+                                    },
+                                    "y": {
+                                      "val_type": "integer",
+                                      "inner_val_type": null,
+                                      "enum": null,
+                                      "properties": null,
+                                      "inner_properties": null,
+                                      "description": "The position of the widget on the y (vertical) axis. Should be a non-negative integer."
+                                    }
+                                  },
+                                  "inner_properties": null,
+                                  "description": "Powerpack inner widget layout."
+                                }
+                              },
+                              "description": "Widgets inside the powerpack."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Powerpack group widget object."
+                        },
+                        "layout": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "height": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The height of the widget. Should be a non-negative integer."
+                            },
+                            "width": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The width of the widget. Should be a non-negative integer."
+                            },
+                            "x": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The position of the widget on the x (horizontal) axis. Should be a non-negative integer."
+                            },
+                            "y": {
+                              "val_type": "integer",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "The position of the widget on the y (vertical) axis. Should be a non-negative integer."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Powerpack group widget layout."
+                        },
+                        "live_span": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": [
+                            "1m",
+                            "5m",
+                            "10m",
+                            "15m",
+                            "30m",
+                            "1h",
+                            "4h",
+                            "1d",
+                            "2d",
+                            "1w",
+                            "1mo",
+                            "3mo",
+                            "6mo",
+                            "1y",
+                            "alert"
+                          ],
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The available timeframes depend on the widget you are using."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Powerpack group widget definition object."
+                    },
+                    "name": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Name of the powerpack."
+                    },
+                    "tags": {
+                      "val_type": "array",
+                      "inner_val_type": "string",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "List of tags to identify this powerpack."
+                    },
+                    "template_variables": {
+                      "val_type": "array",
+                      "inner_val_type": "json",
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": {
+                        "available_values": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The list of values that the template variable drop-down is limited to."
+                        },
+                        "defaults": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "One or many template variable default values within the saved view, which are unioned together using `OR` if more than one is specified."
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The name of the variable."
+                        },
+                        "prefix": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "The tag prefix associated with the variable. Only tags with this prefix appear in the variable drop-down."
+                        }
+                      },
+                      "description": "List of template variables for this powerpack."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Powerpack attribute object."
+                },
+                "id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the powerpack."
+                },
+                "relationships": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "author": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "data": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "id": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A unique identifier that represents the user."
+                            },
+                            "type": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": [
+                                "users"
+                              ],
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "Users resource type."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Relationship to user object."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Relationship to user."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Powerpack relationship object."
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Type of widget, must be powerpack."
+                }
+              },
+              "inner_properties": null,
+              "description": "Powerpack data object."
+            }
+          },
+          "inner_properties": null,
+          "description": "Create a powerpack request body."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DATADOG_API_KEY",
+        "parameter_name": "DD-API-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_APPLICATION_KEY",
+        "parameter_name": "DD-APPLICATION-KEY",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "DATADOG_BASE_URL",
+        "parameter_name": "datadog_base_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"Powerpacks are templated groups of dashboard widgets you can save from an existing dashboard and turn into reusable packs in the widget tray.\",\n        \"properties\": {\n          \"data\": {\n            \"description\": \"Powerpack data object.\",\n            \"properties\": {\n              \"attributes\": {\n                \"description\": \"Powerpack attribute object.\",\n                \"properties\": {\n                  \"description\": {\n                    \"description\": \"Description of this powerpack.\",\n                    \"example\": \"Powerpack for ABC\",\n                    \"type\": \"string\"\n                  },\n                  \"group_widget\": {\n                    \"description\": \"Powerpack group widget definition object.\",\n                    \"properties\": {\n                      \"definition\": {\n                        \"description\": \"Powerpack group widget object.\",\n                        \"properties\": {\n                          \"layout_type\": {\n                            \"description\": \"Layout type of widgets.\",\n                            \"example\": \"ordered\",\n                            \"type\": \"string\"\n                          },\n                          \"show_title\": {\n                            \"description\": \"Boolean indicating whether powerpack group title should be visible or not.\",\n                            \"example\": true,\n                            \"type\": \"boolean\"\n                          },\n                          \"title\": {\n                            \"description\": \"Name for the group widget.\",\n                            \"example\": \"Sample Powerpack\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"description\": \"Type of widget, must be group.\",\n                            \"example\": \"group\",\n                            \"type\": \"string\"\n                          },\n                          \"widgets\": {\n                            \"description\": \"Widgets inside the powerpack.\",\n                            \"example\": [\n                              {\n                                \"definition\": {\n                                  \"content\": \"example\",\n                                  \"type\": \"note\"\n                                },\n                                \"layout\": {\n                                  \"height\": 5,\n                                  \"width\": 10,\n                                  \"x\": 0,\n                                  \"y\": 0\n                                }\n                              }\n                            ],\n                            \"items\": {\n                              \"description\": \"Powerpack group widget definition of individual widgets.\",\n                              \"properties\": {\n                                \"definition\": {\n                                  \"additionalProperties\": {},\n                                  \"description\": \"Information about widget.\",\n                                  \"example\": {\n                                    \"definition\": {\n                                      \"content\": \"example\",\n                                      \"type\": \"note\"\n                                    }\n                                  },\n                                  \"type\": \"object\"\n                                },\n                                \"layout\": {\n                                  \"description\": \"Powerpack inner widget layout.\",\n                                  \"properties\": {\n                                    \"height\": {\n                                      \"description\": \"The height of the widget. Should be a non-negative integer.\",\n                                      \"example\": 0,\n                                      \"format\": \"int64\",\n                                      \"minimum\": 0,\n                                      \"type\": \"integer\"\n                                    },\n                                    \"width\": {\n                                      \"description\": \"The width of the widget. Should be a non-negative integer.\",\n                                      \"example\": 0,\n                                      \"format\": \"int64\",\n                                      \"minimum\": 0,\n                                      \"type\": \"integer\"\n                                    },\n                                    \"x\": {\n                                      \"description\": \"The position of the widget on the x (horizontal) axis. Should be a non-negative integer.\",\n                                      \"example\": 0,\n                                      \"format\": \"int64\",\n                                      \"minimum\": 0,\n                                      \"type\": \"integer\"\n                                    },\n                                    \"y\": {\n                                      \"description\": \"The position of the widget on the y (vertical) axis. Should be a non-negative integer.\",\n                                      \"example\": 0,\n                                      \"format\": \"int64\",\n                                      \"minimum\": 0,\n                                      \"type\": \"integer\"\n                                    }\n                                  },\n                                  \"required\": [\n                                    \"x\",\n                                    \"y\",\n                                    \"width\",\n                                    \"height\"\n                                  ],\n                                  \"type\": \"object\"\n                                }\n                              },\n                              \"required\": [\n                                \"definition\"\n                              ],\n                              \"type\": \"object\"\n                            },\n                            \"type\": \"array\"\n                          }\n                        },\n                        \"required\": [\n                          \"widgets\",\n                          \"layout_type\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      \"layout\": {\n                        \"description\": \"Powerpack group widget layout.\",\n                        \"properties\": {\n                          \"height\": {\n                            \"description\": \"The height of the widget. Should be a non-negative integer.\",\n                            \"example\": 0,\n                            \"format\": \"int64\",\n                            \"minimum\": 0,\n                            \"type\": \"integer\"\n                          },\n                          \"width\": {\n                            \"description\": \"The width of the widget. Should be a non-negative integer.\",\n                            \"example\": 0,\n                            \"format\": \"int64\",\n                            \"minimum\": 0,\n                            \"type\": \"integer\"\n                          },\n                          \"x\": {\n                            \"description\": \"The position of the widget on the x (horizontal) axis. Should be a non-negative integer.\",\n                            \"example\": 0,\n                            \"format\": \"int64\",\n                            \"minimum\": 0,\n                            \"type\": \"integer\"\n                          },\n                          \"y\": {\n                            \"description\": \"The position of the widget on the y (vertical) axis. Should be a non-negative integer.\",\n                            \"example\": 0,\n                            \"format\": \"int64\",\n                            \"minimum\": 0,\n                            \"type\": \"integer\"\n                          }\n                        },\n                        \"required\": [\n                          \"x\",\n                          \"y\",\n                          \"width\",\n                          \"height\"\n                        ],\n                        \"type\": \"object\"\n                      },\n                      \"live_span\": {\n                        \"description\": \"The available timeframes depend on the widget you are using.\",\n                        \"enum\": [\n                          \"1m\",\n                          \"5m\",\n                          \"10m\",\n                          \"15m\",\n                          \"30m\",\n                          \"1h\",\n                          \"4h\",\n                          \"1d\",\n                          \"2d\",\n                          \"1w\",\n                          \"1mo\",\n                          \"3mo\",\n                          \"6mo\",\n                          \"1y\",\n                          \"alert\"\n                        ],\n                        \"example\": \"5m\",\n                        \"type\": \"string\",\n                        \"x-enum-varnames\": [\n                          \"PAST_ONE_MINUTE\",\n                          \"PAST_FIVE_MINUTES\",\n                          \"PAST_TEN_MINUTES\",\n                          \"PAST_FIFTEEN_MINUTES\",\n                          \"PAST_THIRTY_MINUTES\",\n                          \"PAST_ONE_HOUR\",\n                          \"PAST_FOUR_HOURS\",\n                          \"PAST_ONE_DAY\",\n                          \"PAST_TWO_DAYS\",\n                          \"PAST_ONE_WEEK\",\n                          \"PAST_ONE_MONTH\",\n                          \"PAST_THREE_MONTHS\",\n                          \"PAST_SIX_MONTHS\",\n                          \"PAST_ONE_YEAR\",\n                          \"ALERT\"\n                        ]\n                      }\n                    },\n                    \"required\": [\n                      \"definition\"\n                    ],\n                    \"type\": \"object\"\n                  },\n                  \"name\": {\n                    \"description\": \"Name of the powerpack.\",\n                    \"example\": \"Sample Powerpack\",\n                    \"type\": \"string\"\n                  },\n                  \"tags\": {\n                    \"description\": \"List of tags to identify this powerpack.\",\n                    \"example\": [\n                      \"tag:foo1\"\n                    ],\n                    \"items\": {\n                      \"maxLength\": 80,\n                      \"type\": \"string\"\n                    },\n                    \"maxItems\": 8,\n                    \"type\": \"array\"\n                  },\n                  \"template_variables\": {\n                    \"description\": \"List of template variables for this powerpack.\",\n                    \"example\": [\n                      {\n                        \"defaults\": [\n                          \"*\"\n                        ],\n                        \"name\": \"test\"\n                      }\n                    ],\n                    \"items\": {\n                      \"description\": \"Powerpack template variables.\",\n                      \"properties\": {\n                        \"available_values\": {\n                          \"description\": \"The list of values that the template variable drop-down is limited to.\",\n                          \"example\": [\n                            \"my-host\",\n                            \"host1\",\n                            \"host2\"\n                          ],\n                          \"items\": {\n                            \"description\": \"Template variable value.\",\n                            \"type\": \"string\"\n                          },\n                          \"nullable\": true,\n                          \"type\": \"array\"\n                        },\n                        \"defaults\": {\n                          \"description\": \"One or many template variable default values within the saved view, which are unioned together using `OR` if more than one is specified.\",\n                          \"items\": {\n                            \"description\": \"One or many default values of the template variable.\",\n                            \"minLength\": 1,\n                            \"type\": \"string\"\n                          },\n                          \"type\": \"array\"\n                        },\n                        \"name\": {\n                          \"description\": \"The name of the variable.\",\n                          \"example\": \"datacenter\",\n                          \"type\": \"string\"\n                        },\n                        \"prefix\": {\n                          \"description\": \"The tag prefix associated with the variable. Only tags with this prefix appear in the variable drop-down.\",\n                          \"example\": \"host\",\n                          \"nullable\": true,\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"name\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"type\": \"array\"\n                  }\n                },\n                \"required\": [\n                  \"group_widget\",\n                  \"name\"\n                ],\n                \"type\": \"object\"\n              },\n              \"id\": {\n                \"description\": \"ID of the powerpack.\",\n                \"type\": \"string\"\n              },\n              \"relationships\": {\n                \"description\": \"Powerpack relationship object.\",\n                \"properties\": {\n                  \"author\": {\n                    \"description\": \"Relationship to user.\",\n                    \"properties\": {\n                      \"data\": {\n                        \"description\": \"Relationship to user object.\",\n                        \"properties\": {\n                          \"id\": {\n                            \"description\": \"A unique identifier that represents the user.\",\n                            \"example\": \"00000000-0000-0000-2345-000000000000\",\n                            \"type\": \"string\"\n                          },\n                          \"type\": {\n                            \"default\": \"users\",\n                            \"description\": \"Users resource type.\",\n                            \"enum\": [\n                              \"users\"\n                            ],\n                            \"example\": \"users\",\n                            \"type\": \"string\",\n                            \"x-enum-varnames\": [\n                              \"USERS\"\n                            ]\n                          }\n                        },\n                        \"required\": [\n                          \"id\",\n                          \"type\"\n                        ],\n                        \"type\": \"object\"\n                      }\n                    },\n                    \"required\": [\n                      \"data\"\n                    ],\n                    \"type\": \"object\"\n                  }\n                },\n                \"type\": \"object\"\n              },\n              \"type\": {\n                \"description\": \"Type of widget, must be powerpack.\",\n                \"example\": \"powerpack\",\n                \"type\": \"string\"\n              }\n            },\n            \"type\": \"object\"\n          }\n        },\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"description\": \"Create a powerpack request body.\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

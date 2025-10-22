@@ -1,0 +1,302 @@
+{
+  "name": "CreateIntegrationLogDrain",
+  "fully_qualified_name": "VercelApi.CreateIntegrationLogDrain@0.1.0",
+  "description": "Sets up an Integration log drain for Vercel.\n\nThis tool creates an Integration log drain in Vercel, accessible via an OAuth2 client. It should be used when you need to tie log drains to specific integrations within Vercel.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "log_drain_configuration",
+        "required": true,
+        "description": "Configuration for the integration log drain, including name, project IDs, secret, delivery format, URL, sources, headers, and environments. This should be a JSON object detailing each parameter of the log drain.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the log drain"
+            },
+            "projectIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A secret to sign log drain notification headers so a consumer can verify their authenticity"
+            },
+            "deliveryFormat": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The delivery log format"
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The url where you will receive logs. The protocol must be `https://` or `http://` when type is `json` and `ndjson`."
+            },
+            "sources": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "headers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Headers to be sent together with the request"
+            },
+            "environments": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The Team identifier for performing the request on behalf of a specific team in Vercel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug representing the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createLogDrain'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v2/integrations/log-drains",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "log_drain_configuration",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The name of the log drain"
+            },
+            "projectIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "secret": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A secret to sign log drain notification headers so a consumer can verify their authenticity"
+            },
+            "deliveryFormat": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The delivery log format"
+            },
+            "url": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The url where you will receive logs. The protocol must be `https://` or `http://` when type is `json` and `ndjson`."
+            },
+            "sources": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "headers": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Headers to be sent together with the request"
+            },
+            "environments": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the log drain\",\n            \"example\": \"My first log drain\",\n            \"maxLength\": 100,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"type\": \"string\"\n          },\n          \"projectIds\": {\n            \"minItems\": 1,\n            \"maxItems\": 50,\n            \"type\": \"array\",\n            \"items\": {\n              \"pattern\": \"^[a-zA-z0-9_]+$\",\n              \"type\": \"string\"\n            }\n          },\n          \"secret\": {\n            \"description\": \"A secret to sign log drain notification headers so a consumer can verify their authenticity\",\n            \"example\": \"a1Xsfd325fXcs\",\n            \"maxLength\": 100,\n            \"pattern\": \"^[A-z0-9_ -]+$\",\n            \"type\": \"string\"\n          },\n          \"deliveryFormat\": {\n            \"description\": \"The delivery log format\",\n            \"example\": \"json\",\n            \"enum\": [\n              \"json\",\n              \"ndjson\"\n            ]\n          },\n          \"url\": {\n            \"description\": \"The url where you will receive logs. The protocol must be `https://` or `http://` when type is `json` and `ndjson`.\",\n            \"example\": \"https://example.com/log-drain\",\n            \"format\": \"uri\",\n            \"pattern\": \"^https?://\",\n            \"type\": \"string\"\n          },\n          \"sources\": {\n            \"type\": \"array\",\n            \"uniqueItems\": true,\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"static\",\n                \"lambda\",\n                \"build\",\n                \"edge\",\n                \"external\",\n                \"firewall\"\n              ]\n            },\n            \"minItems\": 1\n          },\n          \"headers\": {\n            \"description\": \"Headers to be sent together with the request\",\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"string\"\n            }\n          },\n          \"environments\": {\n            \"type\": \"array\",\n            \"uniqueItems\": true,\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"preview\",\n                \"production\"\n              ]\n            },\n            \"minItems\": 1\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"url\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "name": "ExecuteGraphqlQuery",
+  "fully_qualified_name": "WeaviateApi.ExecuteGraphqlQuery@0.1.0",
+  "description": "Executes a GraphQL query on Weaviate.\n\nUse this tool to perform data queries and exploration on the Weaviate platform by executing a provided GraphQL query.",
+  "toolkit": {
+    "name": "ArcadeWeaviateApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "operation_name",
+        "required": false,
+        "description": "The name of the operation if multiple operations exist in the GraphQL query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the operation if multiple exist in the query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "operationName"
+      },
+      {
+        "name": "graphql_query",
+        "required": false,
+        "description": "A GraphQL query string to execute on Weaviate, following GraphQL syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query based on GraphQL syntax."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "query_variables",
+        "required": false,
+        "description": "Additional JSON variables for the GraphQL query used to provide external values for operations.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Additional variables for the query."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "variables"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'graphql.post'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "WEAVIATE_API_KEY"
+      },
+      {
+        "key": "WEAVIATE_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the weaviate API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "{weaviate_server_url}/v1/graphql",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "operationName",
+        "tool_parameter_name": "operation_name",
+        "description": "The name of the operation if multiple exist in the query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the operation if multiple exist in the query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "graphql_query",
+        "description": "Query based on GraphQL syntax.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query based on GraphQL syntax."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "variables",
+        "tool_parameter_name": "query_variables",
+        "description": "Additional variables for the query.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Additional variables for the query."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "WEAVIATE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "WEAVIATE_SERVER_URL",
+        "parameter_name": "weaviate_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The GraphQL query to execute, including the query string and optional variables.\",\n  \"content\": {\n    \"application/yaml\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"operationName\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the operation if multiple exist in the query.\"\n          },\n          \"query\": {\n            \"type\": \"string\",\n            \"description\": \"Query based on GraphQL syntax.\"\n          },\n          \"variables\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Additional variables for the query.\"\n          }\n        },\n        \"description\": \"GraphQL query based on: http://facebook.github.io/graphql/.\"\n      }\n    },\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"operationName\": {\n            \"type\": \"string\",\n            \"description\": \"The name of the operation if multiple exist in the query.\"\n          },\n          \"query\": {\n            \"type\": \"string\",\n            \"description\": \"Query based on GraphQL syntax.\"\n          },\n          \"variables\": {\n            \"type\": \"object\",\n            \"properties\": {},\n            \"description\": \"Additional variables for the query.\"\n          }\n        },\n        \"description\": \"GraphQL query based on: http://facebook.github.io/graphql/.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

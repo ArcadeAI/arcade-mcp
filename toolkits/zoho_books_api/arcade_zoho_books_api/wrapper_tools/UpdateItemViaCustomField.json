@@ -1,0 +1,821 @@
+{
+  "name": "UpdateItemViaCustomField",
+  "fully_qualified_name": "ZohoBooksApi.UpdateItemViaCustomField@0.1.0",
+  "description": "Update or create an item using a unique custom field.\n\nUse this tool to update an existing item or create a new one based on a unique custom field value in Zoho Books. If the custom field value matches, the item is updated; otherwise, a new item is created if allowed.",
+  "toolkit": {
+    "name": "ArcadeZohoBooksApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization in Zoho Books. This ID is used to specify which organization's data you are trying to access or modify.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_id"
+      },
+      {
+        "name": "unique_custom_field_api_name",
+        "required": true,
+        "description": "The API name of the unique custom field used for identifying the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Key"
+      },
+      {
+        "name": "unique_custom_field_value",
+        "required": true,
+        "description": "The unique value of the custom field used to identify or create an item in Zoho Books.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Unique-Identifier-Value"
+      },
+      {
+        "name": "item_details",
+        "required": false,
+        "description": "JSON object containing details of the item to be updated or created. Includes fields like name, rate, description, and more.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the item. Max-length [100]"
+            },
+            "rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Price of the item."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the item. Max-length [2000]"
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax to be associated to the item."
+            },
+            "purchase_tax_rule_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the purchase tax rule"
+            },
+            "sales_tax_rule_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the sales tax rule"
+            },
+            "tax_percentage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Percent of the tax."
+            },
+            "hsn_or_sac": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "HSN Code"
+            },
+            "sat_item_key_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+            },
+            "unitkey_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+            },
+            "sku": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "SKU value of item,should be unique throughout the product"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify the type of an item. Allowed values:<br/><code> goods</code> or <code> service</code> or <code> digital_service</code>. <br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "is_taxable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to track the taxability of the item."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false."
+            },
+            "purchase_tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the purchase tax exemption. Mandatory, if <code>is_taxable</code> is false."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account to which the item has to be associated with."
+            },
+            "avatax_tax_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A tax code is a unique label used to group Items (products, services, or charges) together. Max-length [25]"
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+            },
+            "item_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the item. Allowed values: <code>sales</code>,<code>purchases</code>,<code>sales_and_purchases</code> and <code>inventory</code>. Default value will be <code>sales</code>."
+            },
+            "purchase_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Purchase description for the item."
+            },
+            "purchase_rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Purchase price of the item."
+            },
+            "purchase_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the COGS account to which the item has to be associated with. Mandatory, if item_type is purchase / sales and purchase / inventory."
+            },
+            "inventory_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the stock account to which the item has to be associated with. Mandatory, if item_type is inventory."
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Preferred vendor ID."
+            },
+            "reorder_level": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reorder level of the item."
+            },
+            "locations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "initial_stock": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opening stock of the item."
+                },
+                "initial_stock_rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price of the opening stock."
+                }
+              },
+              "description": null
+            },
+            "item_tax_preferences": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax to be associated to the item."
+                },
+                "tax_specification": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set whether the tax type is intra/interstate"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": "Custom fields for an item."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      },
+      {
+        "name": "create_item_if_not_found",
+        "required": false,
+        "description": "Set to true to create a new item if no item matches the unique custom field value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "X-Upsert"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update_item_using_custom_field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoho",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ZohoBooks.settings.UPDATE"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "ZOHO_SERVER_URL"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the zoho-books API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.1.0",
+      "description": ""
+    },
+    "url": "{zoho_server_url}/books/v3/items",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "organization_id",
+        "tool_parameter_name": "organization_id",
+        "description": "ID of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the organization"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Key",
+        "tool_parameter_name": "unique_custom_field_api_name",
+        "description": "Unique CustomField Api Name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Api Name"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Unique-Identifier-Value",
+        "tool_parameter_name": "unique_custom_field_value",
+        "description": "Unique CustomField Value",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique CustomField Value"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "X-Upsert",
+        "tool_parameter_name": "create_item_if_not_found",
+        "description": "If there is no record is found unique custom field value , will create new invoice",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If there is no record is found unique custom field value , will create new invoice"
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "item_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "name": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Name of the item. Max-length [100]"
+            },
+            "rate": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Price of the item."
+            },
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description for the item. Max-length [2000]"
+            },
+            "tax_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax to be associated to the item."
+            },
+            "purchase_tax_rule_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the purchase tax rule"
+            },
+            "sales_tax_rule_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Id of the sales tax rule"
+            },
+            "tax_percentage": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Percent of the tax."
+            },
+            "hsn_or_sac": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "HSN Code"
+            },
+            "sat_item_key_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+            },
+            "unitkey_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Add Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>"
+            },
+            "sku": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "SKU value of item,should be unique throughout the product"
+            },
+            "product_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Specify the type of an item. Allowed values:<br/><code> goods</code> or <code> service</code> or <code> digital_service</code>. <br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>"
+            },
+            "is_taxable": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Boolean to track the taxability of the item."
+            },
+            "tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false."
+            },
+            "purchase_tax_exemption_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the purchase tax exemption. Mandatory, if <code>is_taxable</code> is false."
+            },
+            "account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the account to which the item has to be associated with."
+            },
+            "avatax_tax_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A tax code is a unique label used to group Items (products, services, or charges) together. Max-length [25]"
+            },
+            "avatax_use_code": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+            },
+            "item_type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Type of the item. Allowed values: <code>sales</code>,<code>purchases</code>,<code>sales_and_purchases</code> and <code>inventory</code>. Default value will be <code>sales</code>."
+            },
+            "purchase_description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Purchase description for the item."
+            },
+            "purchase_rate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Purchase price of the item."
+            },
+            "purchase_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the COGS account to which the item has to be associated with. Mandatory, if item_type is purchase / sales and purchase / inventory."
+            },
+            "inventory_account_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the stock account to which the item has to be associated with. Mandatory, if item_type is inventory."
+            },
+            "vendor_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Preferred vendor ID."
+            },
+            "reorder_level": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Reorder level of the item."
+            },
+            "locations": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "location_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Location ID"
+                },
+                "initial_stock": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Opening stock of the item."
+                },
+                "initial_stock_rate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Unit price of the opening stock."
+                }
+              },
+              "description": null
+            },
+            "item_tax_preferences": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "tax_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "ID of the tax to be associated to the item."
+                },
+                "tax_specification": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Set whether the tax type is intra/interstate"
+                }
+              },
+              "description": null
+            },
+            "custom_fields": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "customfield_id": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "value": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Value of the Custom Field"
+                }
+              },
+              "description": "Custom fields for an item."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ZOHO_SERVER_URL",
+        "parameter_name": "zoho_server_url",
+        "accepted_as": "path",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"name\",\n          \"rate\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": {\n            \"description\": \"Name of the item. Max-length [100]\",\n            \"type\": \"string\",\n            \"example\": \"Hard Drive\"\n          },\n          \"rate\": {\n            \"description\": \"Price of the item.\",\n            \"type\": \"number\",\n            \"format\": \"double\",\n            \"example\": 120\n          },\n          \"description\": {\n            \"description\": \"Description for the item. Max-length [2000]\",\n            \"type\": \"string\",\n            \"example\": \"500GB\"\n          },\n          \"tax_id\": {\n            \"description\": \"ID of the tax to be associated to the item.\",\n            \"type\": \"string\",\n            \"example\": 982000000037049,\n            \"x-node_available_in\": [],\n            \"x-node_unavailable_in\": [\n              \"us\",\n              \"in\"\n            ]\n          },\n          \"purchase_tax_rule_id\": {\n            \"description\": \"Id of the purchase tax rule\",\n            \"type\": \"string\",\n            \"example\": 127919000000106780,\n            \"x-node_available_in\": [\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"sales_tax_rule_id\": {\n            \"description\": \"Id of the sales tax rule\",\n            \"type\": \"string\",\n            \"example\": 127919000000106780,\n            \"x-node_available_in\": [\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_percentage\": {\n            \"description\": \"Percent of the tax.\",\n            \"type\": \"string\",\n            \"example\": \"70%\"\n          },\n          \"hsn_or_sac\": {\n            \"description\": \"HSN Code\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"sat_item_key_code\": {\n            \"description\": \"Add SAT Item Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"unitkey_code\": {\n            \"description\": \"Add Unit Key Code for your goods/services. Download the <a href= http://omawww.sat.gob.mx/tramitesyservicios/Paginas/documentos/catCFDI_V_4_07122022.xls  >CFDI Catalogs.</a>\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"mx\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"sku\": {\n            \"description\": \"SKU value of item,should be unique throughout the product\",\n            \"type\": \"string\",\n            \"example\": \"s12345\"\n          },\n          \"product_type\": {\n            \"description\": \"Specify the type of an item. Allowed values:<br/><code> goods</code> or <code> service</code> or <code> digital_service</code>. <br/><b>For SouthAfrica Edition:</b> <code>service</code>, <code>goods</code>, <code>capital_service</code> and <code>capital_goods</code>\",\n            \"type\": \"string\",\n            \"example\": \"goods\"\n          },\n          \"is_taxable\": {\n            \"description\": \"Boolean to track the taxability of the item.\",\n            \"type\": \"boolean\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"tax_exemption_id\": {\n            \"description\": \"ID of the tax exemption. Mandatory, if <code>is_taxable</code> is false.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"in\",\n              \"us\",\n              \"mx\",\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"purchase_tax_exemption_id\": {\n            \"description\": \"ID of the purchase tax exemption. Mandatory, if <code>is_taxable</code> is false.\",\n            \"type\": \"string\",\n            \"x-node_available_in\": [\n              \"ke\",\n              \"za\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"account_id\": {\n            \"description\": \"ID of the account to which the item has to be associated with.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"avatax_tax_code\": {\n            \"description\": \"A tax code is a unique label used to group Items (products, services, or charges) together. Max-length [25]\",\n            \"type\": \"string\",\n            \"example\": 982000000037049,\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"avatax_use_code\": {\n            \"description\": \"Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]\",\n            \"type\": \"string\",\n            \"example\": 982000000037049,\n            \"x-node_available_in\": [\n              \"Avalara Integration\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"item_type\": {\n            \"description\": \"Type of the item. Allowed values: <code>sales</code>,<code>purchases</code>,<code>sales_and_purchases</code> and <code>inventory</code>. Default value will be <code>sales</code>.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"purchase_description\": {\n            \"description\": \"Purchase description for the item.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"purchase_rate\": {\n            \"description\": \"Purchase price of the item.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"purchase_account_id\": {\n            \"description\": \"ID of the COGS account to which the item has to be associated with. Mandatory, if item_type is purchase / sales and purchase / inventory.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"inventory_account_id\": {\n            \"description\": \"ID of the stock account to which the item has to be associated with. Mandatory, if item_type is inventory.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"vendor_id\": {\n            \"description\": \"Preferred vendor ID.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"reorder_level\": {\n            \"description\": \"Reorder level of the item.\",\n            \"type\": \"string\",\n            \"example\": \" \"\n          },\n          \"locations\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"location_id\": {\n                  \"description\": \"Location ID\",\n                  \"type\": \"string\",\n                  \"example\": \"460000000038080\"\n                },\n                \"initial_stock\": {\n                  \"description\": \"Opening stock of the item.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                },\n                \"initial_stock_rate\": {\n                  \"description\": \"Unit price of the opening stock.\",\n                  \"type\": \"string\",\n                  \"example\": \" \"\n                }\n              }\n            }\n          },\n          \"item_tax_preferences\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"tax_id\": {\n                  \"description\": \"ID of the tax to be associated to the item.\",\n                  \"type\": \"string\",\n                  \"example\": 982000000037049,\n                  \"x-node_available_in\": [\n                    \"in\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                },\n                \"tax_specification\": {\n                  \"description\": \"Set whether the tax type is intra/interstate\",\n                  \"type\": \"string\",\n                  \"example\": \"intra\",\n                  \"x-node_available_in\": [\n                    \"in\"\n                  ],\n                  \"x-node_unavailable_in\": []\n                }\n              }\n            },\n            \"x-node_available_in\": [\n              \"in\"\n            ],\n            \"x-node_unavailable_in\": []\n          },\n          \"custom_fields\": {\n            \"description\": \"Custom fields for an item.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"customfield_id\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"example\": \"46000000012845\"\n                },\n                \"value\": {\n                  \"description\": \"Value of the Custom Field\",\n                  \"type\": \"string\",\n                  \"example\": \"Normal\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

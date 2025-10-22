@@ -1,0 +1,370 @@
+{
+  "name": "CreateNewDeploymentCheck",
+  "fully_qualified_name": "VercelApi.CreateNewDeploymentCheck@0.1.0",
+  "description": "Create a new deployment check using Vercel API.\n\nUse this tool to initiate a new check for a specific deployment in Vercel. This requires providing a deployment ID and must be authorized with OAuth2 to avoid errors.",
+  "toolkit": {
+    "name": "ArcadeVercelApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deployment_id",
+        "required": true,
+        "description": "The unique identifier of the deployment to create the check for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The deployment to create the check for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "deploymentId"
+      },
+      {
+        "name": "check_name",
+        "required": true,
+        "description": "The name of the check being created. This is required to identify the check purpose.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the check being created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "block_deployment_on_failure",
+        "required": true,
+        "description": "Indicates if the check should block a deployment from succeeding.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the check should block a deployment from succeeding"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "blocking"
+      },
+      {
+        "name": "team_identifier",
+        "required": false,
+        "description": "The unique identifier used to perform the request on behalf of a team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "teamId"
+      },
+      {
+        "name": "team_slug",
+        "required": false,
+        "description": "The slug (unique identifier) of the team to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "slug"
+      },
+      {
+        "name": "page_path_to_check",
+        "required": false,
+        "description": "Specify the path of the page that is being checked. This should be a string value representing the specific page path for the deployment check.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path of the page that is being checked"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "path"
+      },
+      {
+        "name": "details_url",
+        "required": false,
+        "description": "A URL that provides further details about the check. Expected format is a valid URL string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL to display for further details"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "detailsUrl"
+      },
+      {
+        "name": "external_identifier",
+        "required": false,
+        "description": "A unique identifier used as an external reference for the check.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An identifier that can be used as an external reference"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "externalId"
+      },
+      {
+        "name": "allow_rerun_request",
+        "required": false,
+        "description": "Allow users to request a rerun of the check if it fails. Use a boolean value.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether a user should be able to request for the check to be rerun if it fails"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rerequestable"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createCheck'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "VERCEL_ACCESS_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the vercel API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.vercel.com/v1/deployments/{deploymentId}/checks",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "parameters": [
+      {
+        "name": "teamId",
+        "tool_parameter_name": "team_identifier",
+        "description": "The Team identifier to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team identifier to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "slug",
+        "tool_parameter_name": "team_slug",
+        "description": "The Team slug to perform the request on behalf of.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Team slug to perform the request on behalf of."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "deploymentId",
+        "tool_parameter_name": "deployment_id",
+        "description": "The deployment to create the check for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The deployment to create the check for."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "check_name",
+        "description": "The name of the check being created",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the check being created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "path",
+        "tool_parameter_name": "page_path_to_check",
+        "description": "Path of the page that is being checked",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Path of the page that is being checked"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "blocking",
+        "tool_parameter_name": "block_deployment_on_failure",
+        "description": "Whether the check should block a deployment from succeeding",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the check should block a deployment from succeeding"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "detailsUrl",
+        "tool_parameter_name": "details_url",
+        "description": "URL to display for further details",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "URL to display for further details"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "externalId",
+        "tool_parameter_name": "external_identifier",
+        "description": "An identifier that can be used as an external reference",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An identifier that can be used as an external reference"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "rerequestable",
+        "tool_parameter_name": "allow_rerun_request",
+        "description": "Whether a user should be able to request for the check to be rerun if it fails",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether a user should be able to request for the check to be rerun if it fails"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "VERCEL_ACCESS_TOKEN",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"properties\": {\n          \"name\": {\n            \"description\": \"The name of the check being created\",\n            \"maxLength\": 100,\n            \"example\": \"Performance Check\",\n            \"type\": \"string\"\n          },\n          \"path\": {\n            \"description\": \"Path of the page that is being checked\",\n            \"type\": \"string\",\n            \"maxLength\": 255,\n            \"example\": \"/\"\n          },\n          \"blocking\": {\n            \"description\": \"Whether the check should block a deployment from succeeding\",\n            \"type\": \"boolean\",\n            \"example\": true\n          },\n          \"detailsUrl\": {\n            \"description\": \"URL to display for further details\",\n            \"type\": \"string\",\n            \"example\": \"http://example.com\"\n          },\n          \"externalId\": {\n            \"description\": \"An identifier that can be used as an external reference\",\n            \"type\": \"string\",\n            \"example\": \"1234abc\"\n          },\n          \"rerequestable\": {\n            \"description\": \"Whether a user should be able to request for the check to be rerun if it fails\",\n            \"type\": \"boolean\",\n            \"example\": true\n          }\n        },\n        \"required\": [\n          \"name\",\n          \"blocking\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
