@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 
 import typer
+from dotenv import dotenv_values
 from rich.console import Console
 
 console = Console()
@@ -58,6 +59,15 @@ def is_uv_installed() -> bool:
     return shutil.which("uv") is not None
 
 
+def get_tool_secrets() -> dict:
+    """Only useful for stdio servers, because HTTP servers load in envvars at runtime"""
+    # TODO: Allow for a custom .env file to be used
+    env_path = Path.cwd() / ".env"
+    if env_path.exists():
+        return dotenv_values(env_path)
+    return {}
+
+
 def find_python_interpreter() -> Path:
     # Find the Python interpreter in the virtual environment
     venv_python = None
@@ -93,6 +103,7 @@ def get_stdio_config(entrypoint_file: str, server_name: str) -> dict:
                 "python",
                 entrypoint_file,
             ],
+            "env": get_tool_secrets(),
         }
     else:
         console.print(
@@ -102,6 +113,7 @@ def get_stdio_config(entrypoint_file: str, server_name: str) -> dict:
         return {
             "command": str(venv_python),
             "args": [str(server_file)],
+            "env": get_tool_secrets(),
         }
 
 
