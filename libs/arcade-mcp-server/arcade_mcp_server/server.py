@@ -767,7 +767,7 @@ class MCPServer:
                         "message": (
                             f"Tool '{tool_name}' cannot be executed over HTTP transport for security reasons. "
                             "This tool requires end-user authorization or access to sensitive secrets, and therefore "
-                            "must not run over HTTP. This restriction is permanent - retrying the call will not resolve the issue.\n\n"
+                            "must not run over unauthenticated HTTP. This restriction is permanent - retrying the call will not resolve the issue.\n\n"
                             "To use this tool, the server developer must either:\n"
                             "1) Use the stdio transport (recommended for local development and desktop clients),\n"
                             "2) Deploy the server using 'arcade deploy', or\n"
