@@ -17,7 +17,7 @@ def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
     return f"Hello, {name}!"
 
 
-# To use this tool, you need to either set the secret in the .env file or as an environment variable
+# To use this tool locally, you need to either set the secret in the .env file or as an environment variable
 @app.tool(requires_secrets=["MY_SECRET_KEY"])
 def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of the secret"]:
     """Reveal the last 4 characters of a secret"""
@@ -31,8 +31,8 @@ def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of
 
     return "The last 4 characters of the secret are: " + secret[-4:]
 
-# To use this tool, you need to either set your ARCADE_API_KEY as an environment variable or
-# use the Arcade CLI (uv pip install arcade-mcp) and run 'arcade login' to authenticate.
+# To use this tool locally, you need to install the Arcade CLI (uv tool install arcade-mcp)
+# and then run 'arcade login' to authenticate.
 @app.tool(requires_auth=Reddit(scopes=["read"]))
 async def get_posts_in_subreddit(
     context: Context, subreddit: Annotated[str, "The name of the subreddit"]

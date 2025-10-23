@@ -531,7 +531,7 @@ def configure(
     Examples:
         arcade configure claude
         arcade configure cursor --transport http --port 8080
-        arcade configure vscode --host arcade --entrypoint ../../../mcp/server.py --config .vscode/mcp.json
+        arcade configure vscode --host arcade --entrypoint my_server.py --config .vscode/mcp.json
         arcade configure claude --host local --name my_server_name
     """
     from arcade_cli.configure import configure_client
