@@ -1,0 +1,620 @@
+{
+  "name": "OpenaiChatInteraction",
+  "fully_qualified_name": "EngineApi.OpenaiChatInteraction@0.1.0",
+  "description": "Engage with language models using OpenAI's chat API.\n\nUse this tool to interact with language models via OpenAI's chat completions API, suitable for generating conversation responses.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "openai_chat_request_data",
+        "required": true,
+        "description": "Payload containing parameters such as messages, model, temperature, and others for the chat interaction.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "frequency_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "logit_bias": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.\nincorrect: `\"logit_bias\":{\"You\": 6}`, correct: `\"logit_bias\":{\"1639\": 6}`\nrefs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias"
+            },
+            "logprobs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "LogProbs indicates whether to return log probabilities of the output tokens or not.\nIf true, returns the log probabilities of each output token returned in the content of message.\nThis option is currently not available on the gpt-4-vision-preview model."
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content of the message."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "tool Name"
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The role of the author of this message. One of system, user, tool, or assistant."
+                },
+                "tool_call_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "tool_call_id"
+                },
+                "tool_calls": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "function": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "arguments": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "function"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "tool calls if any"
+                }
+              },
+              "description": null
+            },
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "n": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parallel_tool_calls": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Disable the default behavior of parallel tool calls by setting it: false."
+            },
+            "presence_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_format": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "json_object",
+                    "text"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "seed": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stop": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stream_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Options for streaming response. Only set this when you set stream: true."
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This can be either a string or an ToolChoice object."
+            },
+            "tools": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "top_logprobs": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each\ntoken position, each with an associated log probability.\nlogprobs must be set to true if this parameter is used."
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "user": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Request Data"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'llm-chat'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/chat/completions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "openai_chat_request_data",
+        "description": "Request Data",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "frequency_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "logit_bias": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.\nincorrect: `\"logit_bias\":{\"You\": 6}`, correct: `\"logit_bias\":{\"1639\": 6}`\nrefs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias"
+            },
+            "logprobs": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "LogProbs indicates whether to return log probabilities of the output tokens or not.\nIf true, returns the log probabilities of each output token returned in the content of message.\nThis option is currently not available on the gpt-4-vision-preview model."
+            },
+            "max_tokens": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "messages": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "content": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The content of the message."
+                },
+                "name": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "tool Name"
+                },
+                "role": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The role of the author of this message. One of system, user, tool, or assistant."
+                },
+                "tool_call_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "tool_call_id"
+                },
+                "tool_calls": {
+                  "val_type": "array",
+                  "inner_val_type": "json",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": {
+                    "function": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "arguments": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "name": {
+                          "val_type": "string",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "function"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "description": "tool calls if any"
+                }
+              },
+              "description": null
+            },
+            "model": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "n": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "parallel_tool_calls": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Disable the default behavior of parallel tool calls by setting it: false."
+            },
+            "presence_penalty": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "response_format": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "json_object",
+                    "text"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "seed": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stop": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stream": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "stream_options": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Options for streaming response. Only set this when you set stream: true."
+            },
+            "temperature": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "tool_choice": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "This can be either a string or an ToolChoice object."
+            },
+            "tools": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "top_logprobs": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each\ntoken position, each with an associated log probability.\nlogprobs must be set to true if this parameter is used."
+            },
+            "top_p": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "user": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "Request Data"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Request Data\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"frequency_penalty\": {\n            \"type\": \"number\"\n          },\n          \"logit_bias\": {\n            \"type\": \"object\",\n            \"additionalProperties\": {\n              \"type\": \"integer\"\n            },\n            \"description\": \"LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.\\nincorrect: `\\\"logit_bias\\\":{\\\"You\\\": 6}`, correct: `\\\"logit_bias\\\":{\\\"1639\\\": 6}`\\nrefs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias\"\n          },\n          \"logprobs\": {\n            \"type\": \"boolean\",\n            \"description\": \"LogProbs indicates whether to return log probabilities of the output tokens or not.\\nIf true, returns the log probabilities of each output token returned in the content of message.\\nThis option is currently not available on the gpt-4-vision-preview model.\"\n          },\n          \"max_tokens\": {\n            \"type\": \"integer\"\n          },\n          \"messages\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"required\": [\n                \"content\",\n                \"role\"\n              ],\n              \"type\": \"object\",\n              \"properties\": {\n                \"content\": {\n                  \"type\": \"string\",\n                  \"description\": \"The content of the message.\"\n                },\n                \"name\": {\n                  \"type\": \"string\",\n                  \"description\": \"tool Name\"\n                },\n                \"role\": {\n                  \"type\": \"string\",\n                  \"description\": \"The role of the author of this message. One of system, user, tool, or assistant.\"\n                },\n                \"tool_call_id\": {\n                  \"type\": \"string\",\n                  \"description\": \"tool_call_id\"\n                },\n                \"tool_calls\": {\n                  \"type\": \"array\",\n                  \"description\": \"tool calls if any\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"function\": {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"arguments\": {\n                            \"type\": \"string\"\n                          },\n                          \"name\": {\n                            \"type\": \"string\"\n                          }\n                        }\n                      },\n                      \"id\": {\n                        \"type\": \"string\"\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"function\"\n                        ],\n                        \"x-enum-varnames\": [\n                          \"ToolTypeFunction\"\n                        ]\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"model\": {\n            \"type\": \"string\"\n          },\n          \"n\": {\n            \"type\": \"integer\"\n          },\n          \"parallel_tool_calls\": {\n            \"type\": \"boolean\",\n            \"description\": \"Disable the default behavior of parallel tool calls by setting it: false.\"\n          },\n          \"presence_penalty\": {\n            \"type\": \"number\"\n          },\n          \"response_format\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"json_object\",\n                  \"text\"\n                ],\n                \"x-enum-varnames\": [\n                  \"ResponseFormatJSON\",\n                  \"ResponseFormatText\"\n                ]\n              }\n            }\n          },\n          \"seed\": {\n            \"type\": \"integer\"\n          },\n          \"stop\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"stream\": {\n            \"type\": \"boolean\"\n          },\n          \"stream_options\": {\n            \"type\": \"object\",\n            \"description\": \"Options for streaming response. Only set this when you set stream: true.\",\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"include_usage\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"If set, an additional chunk will be streamed before the data: [DONE] message.\\nThe usage field on this chunk shows the token usage statistics for the entire request,\\nand the choices field will always be an empty array.\\nAll other chunks will also include a usage field, but with a null value.\"\n                  }\n                }\n              }\n            ]\n          },\n          \"temperature\": {\n            \"type\": \"number\"\n          },\n          \"tool_choice\": {\n            \"type\": \"object\",\n            \"description\": \"This can be either a string or an ToolChoice object.\"\n          },\n          \"tools\": {\n            \"type\": \"object\"\n          },\n          \"top_logprobs\": {\n            \"type\": \"integer\",\n            \"description\": \"TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each\\ntoken position, each with an associated log probability.\\nlogprobs must be set to true if this parameter is used.\"\n          },\n          \"top_p\": {\n            \"type\": \"number\"\n          },\n          \"user\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
