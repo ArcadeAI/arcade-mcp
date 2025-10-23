@@ -658,10 +658,8 @@ def deploy_server_to_engine(
         response.raise_for_status()
         return cast(dict, response.json())
     except httpx.ConnectError as e:
-        print(e)
         raise ValueError(f"Failed to connect to Arcade Engine at {engine_url}: {e}") from e
     except httpx.HTTPStatusError as e:
-        print(e)
         error_detail = ""
         try:
             error_json = e.response.json()

@@ -145,21 +145,17 @@ class MCPApp:
         if not name:
             raise ValueError("MCPApp's name cannot be empty")
 
-        # Check if name contains only alphanumeric characters and underscores
         if not re.match(r"^[a-zA-Z0-9_]+$", name):
             raise ValueError(
                 "MCPApp's name must contain only alphanumeric characters and underscores"
             )
 
-        # Check if name starts with underscore
         if name.startswith("_"):
             raise ValueError("MCPApp's name cannot start with an underscore")
 
-        # Check if name has consecutive underscores
         if "__" in name:
             raise ValueError("MCPApp's name cannot have consecutive underscores")
 
-        # Check if name ends with alphanumeric character
         if not re.match(r".*[a-zA-Z0-9]$", name):
             raise ValueError("MCPApp's name must end with an alphanumeric character")
 
@@ -175,9 +171,6 @@ class MCPApp:
     def name(self, value: str) -> None:
         """Set the server name with validation."""
         self._name = self._validate_name(value)
-        # Update the title if it was using the old name
-        if self.title == self._name:
-            self.title = self._name
 
     @property
     def tools(self) -> _ToolsAPI:

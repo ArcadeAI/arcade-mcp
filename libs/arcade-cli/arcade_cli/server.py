@@ -322,7 +322,6 @@ def _display_deployment_logs(
 ) -> None:
     try:
         with httpx.Client() as client:
-            # engine can take 'start_time_utc' and 'end_time_utc' as query parameters and parses them as golang's time.RFC3339 format
             params = {"start_time_utc": since.isoformat(), "end_time_utc": until.isoformat()}
             response = client.get(engine_url, headers=headers, params=params)
             response.raise_for_status()
@@ -344,7 +343,6 @@ async def _stream_deployment_logs(
     try:
         async with (
             httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
-            # engine can take 'start_time_utc' and 'end_time_utc' as query parameters and parses them as golang's time.RFC3339 format
             client.stream(
                 "GET",
                 engine_url,
