@@ -1,9 +1,14 @@
 import asyncio
+import json
+import re
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import httpx
 import typer
 from arcadepy import Arcade, NotFoundError
 from arcadepy.types import WorkerHealthResponse, WorkerResponse
+from dateutil import parser
 from rich.console import Console
 from rich.table import Table
 
@@ -18,6 +23,83 @@ from arcade_cli.utils import (
 )
 
 console = Console()
+
+
+def _format_timestamp_to_local(timestamp_str: str) -> str:
+    """
+    Convert a UTC timestamp string to local timezone format.
+
+    Args:
+        timestamp_str: UTC timestamp in format "2025-10-22T21:08:23.508906574Z"
+
+    Returns:
+        Formatted timestamp string in local timezone
+    """
+    try:
+        # Parse the UTC timestamp and convert to local timezone
+        utc_dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        local_dt = utc_dt.astimezone()
+        return local_dt.strftime("%Y-%m-%d %H:%M:%S %Z")
+    except (ValueError, TypeError):
+        # If parsing fails, return the original timestamp
+        return timestamp_str
+
+
+def _parse_time_string(time_str: str) -> datetime:
+    """
+    Parse a time string that can be either relative (e.g., "1h", "42m", "2d")
+    or absolute (e.g., "2025-10-03T12:24:36Z").
+
+    Args:
+        time_str: Time string in relative or absolute format
+
+    Returns:
+        datetime object in UTC timezone
+
+    Raises:
+        ValueError: If the time string cannot be parsed
+    """
+    if not time_str:
+        raise ValueError("Time string cannot be empty")
+
+    # Handle relative time formats (e.g., "1h", "42m", "2d", "0m")
+    relative_pattern = r"^(\d+)([smhd])$"
+    match = re.match(relative_pattern, time_str.lower())
+
+    if match:
+        value = int(match.group(1))
+        unit = match.group(2)
+
+        now = datetime.now(timezone.utc)
+
+        if unit == "s":
+            delta = timedelta(seconds=value)
+        elif unit == "m":
+            delta = timedelta(minutes=value)
+        elif unit == "h":
+            delta = timedelta(hours=value)
+        elif unit == "d":
+            delta = timedelta(days=value)
+        else:
+            raise ValueError(f"Unsupported time unit: {unit}")
+
+        return now - delta
+
+    # Handle absolute time formats using dateutil parser
+    try:
+        parsed_dt = parser.parse(time_str)
+
+        # Ensure timezone awareness
+        if parsed_dt.tzinfo is None:
+            # Assume UTC if no timezone info
+            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+        else:
+            # Convert to UTC
+            parsed_dt = parsed_dt.astimezone(timezone.utc)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Unable to parse time string '{time_str}': {e}")
+
+    return parsed_dt
 
 
 app = TrackedTyper(
@@ -176,12 +258,27 @@ def delete_server(
 @app.command("logs", help="Get logs for a server that is managed by Arcade")
 def get_server_logs(
     server_name: str,
-    no_stream: bool = typer.Option(
+    follow: bool = typer.Option(
         False,
-        "--no-stream",
-        "-n",
+        "--follow",
+        "-f",
         is_flag=True,
-        help="Do not stream the logs for the server",
+        help="Follow (stream) the log output in real-time",
+        rich_help_panel="Streaming Options",
+    ),
+    since: Optional[str] = typer.Option(
+        None,
+        "--since",
+        "-s",
+        help="Show logs since timestamp (e.g., 2025-10-03T12:24:36Z) or relative (e.g., 42m for 42 minutes ago). Defaults to 1h (1 hour ago) for non-streaming, 0s (now) for streaming.",
+        rich_help_panel="Time Range Options",
+    ),
+    until: Optional[str] = typer.Option(
+        None,
+        "--until",
+        "-u",
+        help="Show logs until timestamp (e.g., 2025-10-03T12:24:36Z) or relative (e.g., 42m for 42 minutes ago). Defaults to 0s (now).",
+        rich_help_panel="Time Range Options",
     ),
     debug: bool = typer.Option(
         False,
@@ -193,24 +290,46 @@ def get_server_logs(
     config = validate_and_get_config()
     headers = {"Authorization": f"Bearer {config.api.key}", "Content-Type": "application/json"}
 
-    if no_stream:
-        # Use the non-streaming endpoint
-        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs"
-        _display_deployment_logs(engine_url, headers, debug=debug)
-    else:
+    # Set defaults based on whether we're following or not
+    if since is None:
+        since = "0s" if follow else "1h"
+    if until is None:
+        until = "0s"
+
+    try:
+        # Parse time strings to UTC datetime objects
+        since_dt = _parse_time_string(since)
+        until_dt = _parse_time_string(until)
+
+        # Validate that since is before until
+        if since_dt >= until_dt:
+            raise ValueError(f"'since' time ({since}) must be before 'until' time ({until})")  # noqa: TRY301
+    except ValueError as e:
+        handle_cli_error(f"Invalid time format: {e}", debug=debug)
+
+    if follow:
         # Use the streaming endpoint
         engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs/stream"
-        asyncio.run(_stream_deployment_logs(engine_url, headers, debug=debug))
+        asyncio.run(_stream_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug))
+    else:
+        # Use the non-streaming endpoint
+        engine_url = state["engine_url"] + f"/v1/deployments/{server_name}/logs"
+        _display_deployment_logs(engine_url, headers, since_dt, until_dt, debug=debug)
 
 
-def _display_deployment_logs(engine_url: str, headers: dict, debug: bool) -> None:
+def _display_deployment_logs(
+    engine_url: str, headers: dict, since: datetime, until: datetime, debug: bool
+) -> None:
     try:
         with httpx.Client() as client:
-            response = client.get(engine_url, headers=headers)
+            # engine can take 'start_time_utc' and 'end_time_utc' as query parameters and parses them as golang's time.RFC3339 format
+            params = {"start_time_utc": since.isoformat(), "end_time_utc": until.isoformat()}
+            response = client.get(engine_url, headers=headers, params=params)
             response.raise_for_status()
             logs = response.json()
             for log in logs:
-                print(f"[{log['timestamp']}] {log['line']}")
+                formatted_timestamp = _format_timestamp_to_local(log["timestamp"])
+                print(f"[{formatted_timestamp}] {log['line']}")
     except httpx.HTTPStatusError as e:
         handle_cli_error(
             f"Failed to fetch logs: {e.response.status_code} {e.response.text}", debug=debug
@@ -219,15 +338,37 @@ def _display_deployment_logs(engine_url: str, headers: dict, debug: bool) -> Non
         handle_cli_error(f"Error fetching logs: {e}", debug=debug)
 
 
-async def _stream_deployment_logs(engine_url: str, headers: dict, debug: bool) -> None:
+async def _stream_deployment_logs(
+    engine_url: str, headers: dict, since: datetime, until: datetime, debug: bool
+) -> None:
     try:
         async with (
             httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
-            client.stream("GET", engine_url, headers=headers) as response,
+            # engine can take 'start_time_utc' and 'end_time_utc' as query parameters and parses them as golang's time.RFC3339 format
+            client.stream(
+                "GET",
+                engine_url,
+                headers=headers,
+                params={"start_time_utc": since.isoformat(), "end_time_utc": until.isoformat()},
+            ) as response,
         ):
             response.raise_for_status()
             async for line in response.aiter_lines():
-                print(line)
+                if not line:
+                    continue
+
+                # Handle SSE format: "data: {json}"
+                if line.startswith("data: "):
+                    try:
+                        data = json.loads(line[6:])
+                        timestamp_str = data.get("Timestamp", "")
+                        log_line = data.get("Line", "")
+                        formatted_timestamp = _format_timestamp_to_local(timestamp_str)
+                        print(f"[{formatted_timestamp}] {log_line}")
+                    except (json.JSONDecodeError, KeyError, IndexError):
+                        print(line)
+                else:
+                    print(line)
     except httpx.HTTPStatusError as e:
         handle_cli_error(f"Failed to stream logs: {e.response.status_code}", debug=debug)
     except Exception as e:

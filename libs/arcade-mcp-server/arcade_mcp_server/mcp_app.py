@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -89,7 +90,7 @@ class MCPApp:
             reload: Enable auto-reload for development
             **kwargs: Additional server configuration
         """
-        self.name = name
+        self._name = self._validate_name(name)
         self.version = version
         self.title = title or name
         self.instructions = instructions
@@ -109,7 +110,7 @@ class MCPApp:
 
         self._mcp_settings = MCPSettings(
             server=ServerSettings(
-                name=self.name,
+                name=self._name,
                 version=self.version,
                 title=self.title,
                 instructions=self.instructions,
@@ -120,7 +121,64 @@ class MCPApp:
         if not logger._core.handlers:  # type: ignore[attr-defined]
             self._setup_logging(transport == "stdio")
 
+    def _validate_name(self, name: str) -> str:
+        """
+        Validate that the name follows the required pattern:
+        - Alphanumeric characters and underscores only
+        - Must end with alphanumeric character
+        - Cannot start with underscore
+        - Cannot have consecutive underscores
+
+        Args:
+            name: The name to validate
+
+        Returns:
+            The validated name
+
+        Raises:
+            TypeError: If the name is not a string
+            ValueError: If the name doesn't follow the required pattern
+        """
+        if not isinstance(name, str):
+            raise TypeError("MCPApp's name must be a string")
+
+        if not name:
+            raise ValueError("MCPApp's name cannot be empty")
+
+        # Check if name contains only alphanumeric characters and underscores
+        if not re.match(r"^[a-zA-Z0-9_]+$", name):
+            raise ValueError(
+                "MCPApp's name must contain only alphanumeric characters and underscores"
+            )
+
+        # Check if name starts with underscore
+        if name.startswith("_"):
+            raise ValueError("MCPApp's name cannot start with an underscore")
+
+        # Check if name has consecutive underscores
+        if "__" in name:
+            raise ValueError("MCPApp's name cannot have consecutive underscores")
+
+        # Check if name ends with alphanumeric character
+        if not re.match(r".*[a-zA-Z0-9]$", name):
+            raise ValueError("MCPApp's name must end with an alphanumeric character")
+
+        return name
+
     # Properties (exposed below initializer)
+    @property
+    def name(self) -> str:
+        """Get the server name."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the server name with validation."""
+        self._name = self._validate_name(value)
+        # Update the title if it was using the old name
+        if self.title == self._name:
+            self.title = self._name
+
     @property
     def tools(self) -> _ToolsAPI:
         """Runtime and build-time tools API: add/update/remove/list."""
@@ -239,7 +297,7 @@ class MCPApp:
             # parent watcher has already been setup
             reload = False
 
-        logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
+        logger.info(f"Starting {self._name} v{self.version} with {len(self._catalog)} tools")
 
         if transport in ["http", "streamable-http", "streamable"]:
             if reload:

@@ -120,7 +120,7 @@ async def _poll_deployment_status(
     debug: bool = False,
 ) -> None:
     """Poll deployment status until it's running or failed."""
-    while state["status"] in ["pending", "unknown"]:
+    while state["status"] in ["pending", "unknown", "updating"]:
         try:
             status = get_deployment_status(engine_url, api_key, server_name)
             state["status"] = status
@@ -144,7 +144,7 @@ async def _stream_deployment_logs_to_deque(
     stream_url = f"{engine_url}/v1/deployments/{server_name}/logs/stream"
     headers = {"Authorization": f"Bearer {api_key}"}
 
-    while state["status"] in ["pending", "unknown"]:
+    while state["status"] in ["pending", "unknown", "updating"]:
         try:
             async with (
                 httpx.AsyncClient(timeout=None) as client,  # noqa: S113 - expected indefinite log stream
@@ -155,7 +155,7 @@ async def _stream_deployment_logs_to_deque(
                     if line.strip():
                         log_deque.append(line)
                     # End state check
-                    if state["status"] not in ["pending", "unknown"]:
+                    if state["status"] not in ["pending", "unknown", "updating"]:
                         break
         except httpx.HTTPStatusError as e:
             if debug:
@@ -204,12 +204,18 @@ async def _monitor_deployment_with_logs(
     start_time = time.time()
 
     with Live(console=console, refresh_per_second=4) as live:
-        while state["status"] in ["pending", "unknown"]:
+        while state["status"] in ["pending", "unknown", "updating"]:
             elapsed = int(time.time() - start_time)
 
-            status_text = Text(
-                "Deployment in progress (this may take a few minutes)...", style="bold green"
-            )
+            # Show different messages based on status
+            if state["status"] == "updating":
+                status_text = Text(
+                    "Updating deployment (this may take a few minutes)...", style="bold green"
+                )
+            else:
+                status_text = Text(
+                    "Deployment in progress (this may take a few minutes)...", style="bold green"
+                )
             status_line = Columns([spinner, status_text], padding=(0, 1))
 
             logs_header = Text("\nRecent logs:", style="dim")
@@ -314,20 +320,16 @@ def create_package_archive(package_dir: Path) -> str:
         name = tarinfo.name
 
         parts = Path(name).parts
-        if any(part.startswith(".") for part in parts):
-            return None
 
-        if "__pycache__" in parts:
-            return None
-
-        if any(part.endswith(".egg-info") for part in parts):
-            return None
-
-        if "dist" in parts or "build" in parts:
-            return None
-
-        if name.endswith(".lock"):
-            return None
+        for part in parts:
+            if (
+                part.startswith(".")
+                or part == "__pycache__"
+                or part.endswith(".egg-info")
+                or part in ["dist", "build"]
+                or part.endswith(".lock")
+            ):
+                return None
 
         return tarinfo
 
@@ -741,6 +743,7 @@ def deploy_server_logic(
             raise ValueError("server_name must be provided when skip_validate is True")
         if server_version is None:
             raise ValueError("server_version must be provided when skip_validate is True")
+
         console.print(f"✓ Using server name: {server_name}", style="green")
         console.print(f"✓ Using server version: {server_version}", style="green")
     else:
@@ -805,18 +808,18 @@ def deploy_server_logic(
         deployment_toolkits = DeploymentToolkits(bundles=[toolkit_bundle])
 
         if server_already_exists(engine_url, config.api.key, server_name):
-            request = UpdateDeploymentRequest(
+            create_request = UpdateDeploymentRequest(
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            update_deployment(engine_url, config.api.key, server_name, request.model_dump())
+            update_deployment(engine_url, config.api.key, server_name, create_request.model_dump())
         else:
-            request = CreateDeploymentRequest(
+            update_request = CreateDeploymentRequest(
                 name=server_name,
                 description="MCP Server deployed via CLI",
                 toolkits=deployment_toolkits,
             )
-            deploy_server_to_engine(engine_url, config.api.key, request.model_dump(), debug)
+            deploy_server_to_engine(engine_url, config.api.key, update_request.model_dump(), debug)
     except Exception as e:
         raise ValueError(f"Deployment failed: {e}") from e
 
