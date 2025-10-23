@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "{{ toolkit_name }}"
 version = "0.1.0"
@@ -25,14 +21,14 @@ dev = [
 [project.entry-points.arcade_toolkits]
 toolkit_name = "{{ toolkit_name }}"
 
-[tool.setuptools.packages.find]
-include = ["{{ toolkit_name }}*"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/{{ toolkit_name }}"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_unused_configs = true
 disallow_untyped_defs = false
