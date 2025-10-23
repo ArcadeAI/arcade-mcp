@@ -1,0 +1,433 @@
+{
+  "name": "CreateTaskTicktick",
+  "fully_qualified_name": "TicktickApi.CreateTaskTicktick@0.1.0",
+  "description": "Create a new task in Ticktick with specified properties.\n\nUse this tool to create a new task in Ticktick by specifying title, content, dates, reminders, subtasks, and the project it belongs to.",
+  "toolkit": {
+    "name": "ArcadeTicktickApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "task_details_json",
+        "required": true,
+        "description": "A JSON object containing task properties such as title, projectId, content, subtasks, dates, reminders, etc.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task title - the name or summary of the task (required)"
+            },
+            "projectId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project id - the project where this task will be created (required)"
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task content - additional details or description"
+            },
+            "desc": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of checklist - detailed description for checklist tasks"
+            },
+            "isAllDay": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "All day flag - set to true for all-day tasks"
+            },
+            "startDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+            },
+            "dueDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+            },
+            "timeZone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone in which the time is specified"
+            },
+            "reminders": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Lists of reminders specific to the task"
+            },
+            "repeatFlag": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Recurring rules of task in RRULE format"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The priority of task - default is 0 (None: 0, Low: 1, Medium: 3, High: 5)"
+            },
+            "sortOrder": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order of task"
+            },
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Subtask title"
+                },
+                "startDate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+                },
+                "isAllDay": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "All day flag"
+                },
+                "sortOrder": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The order of subtask"
+                },
+                "timeZone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time zone in which the Start time is specified"
+                },
+                "status": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The completion status of subtask - Normal: 0, Completed: 1"
+                },
+                "completedTime": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Completed time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+                }
+              },
+              "description": "The list of subtasks"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTask'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-ticktick",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the ticktick API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.ticktick.com/open/v1/task",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "task_details_json",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "title": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task title - the name or summary of the task (required)"
+            },
+            "projectId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Project id - the project where this task will be created (required)"
+            },
+            "content": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Task content - additional details or description"
+            },
+            "desc": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Description of checklist - detailed description for checklist tasks"
+            },
+            "isAllDay": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "All day flag - set to true for all-day tasks"
+            },
+            "startDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+            },
+            "dueDate": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Due date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+            },
+            "timeZone": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time zone in which the time is specified"
+            },
+            "reminders": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Lists of reminders specific to the task"
+            },
+            "repeatFlag": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Recurring rules of task in RRULE format"
+            },
+            "priority": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The priority of task - default is 0 (None: 0, Low: 1, Medium: 3, High: 5)"
+            },
+            "sortOrder": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The order of task"
+            },
+            "items": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Subtask title"
+                },
+                "startDate": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+                },
+                "isAllDay": {
+                  "val_type": "boolean",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "All day flag"
+                },
+                "sortOrder": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The order of subtask"
+                },
+                "timeZone": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The time zone in which the Start time is specified"
+                },
+                "status": {
+                  "val_type": "integer",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The completion status of subtask - Normal: 0, Completed: 1"
+                },
+                "completedTime": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Completed time in 'yyyy-MM-dd'T'HH:mm:ssZ' format"
+                }
+              },
+              "description": "The list of subtasks"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Input schema for creating a new task\",\n        \"properties\": {\n          \"title\": {\n            \"type\": \"string\",\n            \"description\": \"Task title - the name or summary of the task (required)\"\n          },\n          \"projectId\": {\n            \"type\": \"string\",\n            \"description\": \"Project id - the project where this task will be created (required)\"\n          },\n          \"content\": {\n            \"type\": \"string\",\n            \"description\": \"Task content - additional details or description\"\n          },\n          \"desc\": {\n            \"type\": \"string\",\n            \"description\": \"Description of checklist - detailed description for checklist tasks\"\n          },\n          \"isAllDay\": {\n            \"type\": \"boolean\",\n            \"description\": \"All day flag - set to true for all-day tasks\"\n          },\n          \"startDate\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"description\": \"Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format\",\n            \"example\": \"2019-11-13T03:00:00+0000\"\n          },\n          \"dueDate\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"description\": \"Due date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format\",\n            \"example\": \"2019-11-13T03:00:00+0000\"\n          },\n          \"timeZone\": {\n            \"type\": \"string\",\n            \"description\": \"The time zone in which the time is specified\",\n            \"example\": \"America/Los_Angeles\"\n          },\n          \"reminders\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"Lists of reminders specific to the task\"\n          },\n          \"repeatFlag\": {\n            \"type\": \"string\",\n            \"description\": \"Recurring rules of task in RRULE format\"\n          },\n          \"priority\": {\n            \"type\": \"integer\",\n            \"description\": \"The priority of task - default is 0 (None: 0, Low: 1, Medium: 3, High: 5)\",\n            \"default\": 0\n          },\n          \"sortOrder\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"description\": \"The order of task\"\n          },\n          \"items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"description\": \"Input schema for creating or updating a checklist item\",\n              \"properties\": {\n                \"title\": {\n                  \"type\": \"string\",\n                  \"description\": \"Subtask title\"\n                },\n                \"startDate\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"description\": \"Start date and time in 'yyyy-MM-dd'T'HH:mm:ssZ' format\"\n                },\n                \"isAllDay\": {\n                  \"type\": \"boolean\",\n                  \"description\": \"All day flag\"\n                },\n                \"sortOrder\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int64\",\n                  \"description\": \"The order of subtask\"\n                },\n                \"timeZone\": {\n                  \"type\": \"string\",\n                  \"description\": \"The time zone in which the Start time is specified\"\n                },\n                \"status\": {\n                  \"type\": \"integer\",\n                  \"format\": \"int32\",\n                  \"description\": \"The completion status of subtask - Normal: 0, Completed: 1\"\n                },\n                \"completedTime\": {\n                  \"type\": \"string\",\n                  \"format\": \"date-time\",\n                  \"description\": \"Completed time in 'yyyy-MM-dd'T'HH:mm:ssZ' format\",\n                  \"example\": \"2019-11-13T03:00:00+0000\"\n                }\n              }\n            },\n            \"description\": \"The list of subtasks\"\n          }\n        },\n        \"required\": [\n          \"title\",\n          \"projectId\"\n        ]\n      },\n      \"example\": {\n        \"title\": \"Task Title\",\n        \"projectId\": \"6226ff9877acee87727f6bca\",\n        \"content\": \"Task Content\",\n        \"isAllDay\": true,\n        \"startDate\": \"2019-11-13T03:00:00+0000\",\n        \"dueDate\": \"2019-11-14T03:00:00+0000\",\n        \"priority\": 1\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
