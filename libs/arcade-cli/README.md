@@ -14,7 +14,7 @@ Arcade CLI provides a comprehensive command-line interface for the Arcade platfo
 
 ## Installation
 ```bash
-pip install arcade-mcp
+uv tool install arcade-mcp
 ```
 
 ## Usage

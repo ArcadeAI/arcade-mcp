@@ -32,16 +32,16 @@
 </div>
 
 <p align="center" style="display: flex; justify-content: center; gap: 5px; font-size: 15px;">
-    <a href="https://docs.arcade.dev/home" target="_blank">Documentation</a> •
-    <a href="https://docs.arcade.dev/tools" target="_blank">Tools</a> •
-    <a href="https://docs.arcade.dev/home/quickstart" target="_blank">Quickstart</a> •
+    <a href="https://docs.arcade.dev/tools" target="_blank">Prebuilt Tools</a> •
     <a href="https://docs.arcade.dev/home/contact-us" target="_blank">Contact Us</a>
 
 # Arcade MCP Server Framework
 
-**To learn more about Arcade.dev, check out our [documentation](https://docs.arcade.dev/home).**
+* **To see example servers built with Arcade MCP Server Framework (this repo), check out our [examples](examples/)**
 
-**To learn more about the Arcade MCP Server Framework, check out our [Arcade MCP documentation](https://python.mcp.arcade.dev/)**
+* **To learn more about the Arcade MCP Server Framework (this repo), check out our [Arcade MCP documentation](https://docs.arcade.dev/en/home/build-tools/create-a-mcp-server)**
+
+* **To learn more about other offerings from Arcade.dev, check out our [documentation](https://docs.arcade.dev/home).**
 
 _Pst. hey, you, give us a star if you like it!_
 
@@ -49,13 +49,13 @@ _Pst. hey, you, give us a star if you like it!_
   <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-mcp.svg" alt="GitHub stars">
 </a>
 
-### Quick Start: Create a New Server
+## Quick Start: Create a New Server
 
-The fastest way to get started is with the `arcade new` command, which creates a complete MCP server project:
+The fastest way to get started is with the `arcade new` CLI command, which creates a complete MCP server project:
 
 ```bash
 # Install the CLI
-uv pip install arcade-mcp
+uv tool install arcade-mcp
 
 # Create a new server project
 arcade new my_server
@@ -64,7 +64,7 @@ arcade new my_server
 cd my_server
 ```
 
-This generates a complete project with:
+This generates a project with:
 
 - **server.py** - Main server file with MCPApp and example tools
 
@@ -72,24 +72,84 @@ This generates a complete project with:
 
 - **.env.example** - Example `.env` file containing a secret required by one of the generated tools in `server.py`
 
-The generated `server.py` includes proper command-line argument handling:
+The generated `server.py` includes proper command-line argument handling and three example tools:
 
 ```python
 #!/usr/bin/env python3
+"""simple_server MCP server"""
+
 import sys
 from typing import Annotated
-from arcade_mcp_server import MCPApp
 
-app = MCPApp(name="my_server", version="1.0.0")
+import httpx
+from arcade_mcp_server import Context, MCPApp
+from arcade_mcp_server.auth import Reddit
+
+app = MCPApp(name="simple_server", version="1.0.0", log_level="DEBUG")
+
 
 @app.tool
-def greet(name: Annotated[str, "Name to greet"]) -> str:
-    """Greet someone by name."""
+def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
+    """Greet a person by name."""
     return f"Hello, {name}!"
 
+
+# To use this tool locally, you need to either set the secret in the .env file or as an environment variable
+@app.tool(requires_secrets=["MY_SECRET_KEY"])
+def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of the secret"]:
+    """Reveal the last 4 characters of a secret"""
+    # Secrets are injected into the context at runtime.
+    # LLMs and MCP clients cannot see or access your secrets
+    # You can define secrets in a .env file.
+    try:
+        secret = context.get_secret("MY_SECRET_KEY")
+    except Exception as e:
+        return str(e)
+
+    return "The last 4 characters of the secret are: " + secret[-4:]
+
+# To use this tool locally, you need to install the Arcade CLI (uv tool install arcade-mcp)
+# and then run 'arcade login' to authenticate.
+@app.tool(requires_auth=Reddit(scopes=["read"]))
+async def get_posts_in_subreddit(
+    context: Context, subreddit: Annotated[str, "The name of the subreddit"]
+) -> dict:
+    """Get posts from a specific subreddit"""
+    # Normalize the subreddit name
+    subreddit = subreddit.lower().replace("r/", "").replace(" ", "")
+
+    # Prepare the httpx request
+    # OAuth token is injected into the context at runtime.
+    # LLMs and MCP clients cannot see or access your OAuth tokens.
+    oauth_token = context.get_auth_token_or_empty()
+    headers = {
+        "Authorization": f"Bearer {oauth_token}",
+        "User-Agent": "{{ toolkit_name }}-mcp-server",
+    }
+    params = {"limit": 5}
+    url = f"https://oauth.reddit.com/r/{subreddit}/hot"
+
+    # Make the request
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+        response.raise_for_status()
+
+        # Return the response
+        return response.json()
+
+# Run with specific transport
 if __name__ == "__main__":
-    transport = sys.argv[1] if len(sys.argv) > 1 else "http"
+    # Get transport from command line argument, default to "stdio"
+    # - "stdio" (default): Standard I/O for Claude Desktop, CLI tools, etc.
+    #   Supports tools that require_auth or require_secrets out-of-the-box
+    # - "http": HTTPS streaming for Cursor, VS Code, etc.
+    #   Does not support tools that require_auth or require_secrets unless the server is deployed
+    #   using 'arcade deploy' or added in the Arcade Developer Dashboard with 'Arcade' server type
+    transport = sys.argv[1] if len(sys.argv) > 1 else "stdio"
+
+    # Run the server
     app.run(transport=transport, host="127.0.0.1", port=8000)
+
 ```
 
 This approach gives you:
@@ -106,11 +166,11 @@ This approach gives you:
 Run your server directly with Python:
 
 ```bash
-# Run with HTTP transport (default)
+# Run with stdio transport (default)
 uv run server.py
 
-# Run with stdio transport (for Claude Desktop)
-uv run server.py stdio
+# Run with http transport via command line argument
+uv run server.py http
 
 # Or use python directly
 python server.py http
@@ -124,26 +184,15 @@ Your server will start and listen for connections. With HTTP transport, you can 
 Once your server is running, connect it to your favorite AI assistant:
 
 ```bash
-# Configure Claude Desktop (configures for stdio)
-arcade configure claude --from-local
-
-# Configure Cursor (configures for http streamable)
-arcade configure cursor --from-local
-
-# Configure VS Code (configures for http streamable)
-arcade configure vscode --from-local
+arcade configure claude # Configure Claude Desktop to connect to your stdio server in your current directory
+arcade configure cursor --transport http --port 8080 # Configure Cursor to connect to your local HTTP server on port 8080
+arcade configure vscode --entrypoint my_server.py # Configure VSCode to connect to your stdio server that will run when my_server.py is executed directly
 ```
 
-## Client Libraries
-
--   **[ArcadeAI/arcade-py](https://github.com/ArcadeAI/arcade-py):**
-    The Python client for interacting with Arcade.
-
--   **[ArcadeAI/arcade-js](https://github.com/ArcadeAI/arcade-js):**
-    The JavaScript client for interacting with Arcade.
-
--   **[ArcadeAI/arcade-go](https://github.com/ArcadeAI/arcade-go):**
-    The Go client for interacting with Arcade.
+## Installing this Repo from Source
+```bash
+git clone https://github.com/ArcadeAI/arcade-mcp.git && cd arcade-mcp && make install
+```
 
 ## Support and Community
 
