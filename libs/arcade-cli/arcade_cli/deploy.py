@@ -99,7 +99,7 @@ def get_deployment_status(engine_url: str, api_key: str, server_name: str) -> st
 
     Returns:
         The status of the deployment.
-        Possible values are: "pending", "unknown", "running", "failed".
+        Possible values are: "pending", "updating", "unknown", "running", "failed".
     """
     client = httpx.Client(
         base_url=engine_url,
