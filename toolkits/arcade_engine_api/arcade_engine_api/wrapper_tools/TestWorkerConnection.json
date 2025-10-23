@@ -1,0 +1,170 @@
+{
+  "name": "TestWorkerConnection",
+  "fully_qualified_name": "EngineApi.TestWorkerConnection@0.1.0",
+  "description": "Test a worker connection before adding it to the system.\n\nUse this tool to verify if a worker connection is functioning properly before integrating it into your system.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "worker_connection_type",
+        "required": true,
+        "description": "Specify the type of worker connection to test. It must be a string value indicating the category or mode of the worker.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "http_uri",
+        "required": false,
+        "description": "Specify the HTTP URI of the worker to test the connection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "http.uri"
+      },
+      {
+        "name": "mcp_uri",
+        "required": false,
+        "description": "The URI for the MCP connection required to test a worker connection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mcp.uri"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'workers-test'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/workers/test",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "http.uri",
+        "tool_parameter_name": "http_uri",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "mcp.uri",
+        "tool_parameter_name": "mcp_uri",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "worker_connection_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Minimal worker configuration to test\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"type\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"http\": {\n            \"required\": [\n              \"uri\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"uri\": {\n                \"maxLength\": 256,\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"mcp\": {\n            \"required\": [\n              \"uri\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"uri\": {\n                \"maxLength\": 256,\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"type\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

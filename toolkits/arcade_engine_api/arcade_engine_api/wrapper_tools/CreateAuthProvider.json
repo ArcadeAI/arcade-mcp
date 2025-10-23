@@ -1,0 +1,1134 @@
+{
+  "name": "CreateAuthProvider",
+  "fully_qualified_name": "EngineApi.CreateAuthProvider@0.1.0",
+  "description": "Create a new authentication provider.\n\nThis tool is used to create a new authentication provider for the system, allowing integration with different authentication services.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "auth_provider_details",
+        "required": true,
+        "description": "JSON object containing details of the auth provider to create, including OAuth2 configurations, external ID, and status.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique external ID for the auth provider"
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "oauth2": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "authorize_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "client_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "client_secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "pkce": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "code_challenge_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "refresh_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "scope_delimiter": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    ",",
+                    " "
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "token_introspection_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "triggers": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "on_token_grant": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "on_token_refresh": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "token_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "user_info_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "triggers": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "on_token_grant": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "on_token_refresh": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "provider_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The auth provider to create"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'auth-providers-create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/admin/auth_providers",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "auth_provider_details",
+        "description": "The auth provider to create",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "description": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "external_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The unique external ID for the auth provider"
+            },
+            "id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "oauth2": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "authorize_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "client_id": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "client_secret": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "pkce": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "code_challenge_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "enabled": {
+                      "val_type": "boolean",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "refresh_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "scope_delimiter": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    ",",
+                    " "
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "token_introspection_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "triggers": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "on_token_grant": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "on_token_refresh": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "token_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                },
+                "user_info_request": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "auth_method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "endpoint": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "method": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "params": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "request_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_content_type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "application/x-www-form-urlencoded",
+                        "application/json"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "response_map": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "triggers": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "on_token_grant": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        },
+                        "on_token_refresh": {
+                          "val_type": "boolean",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": null
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            },
+            "provider_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "status": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            },
+            "type": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The auth provider to create"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"The auth provider to create\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"description\": {\n            \"maxLength\": 1000,\n            \"type\": \"string\"\n          },\n          \"external_id\": {\n            \"maxLength\": 50,\n            \"type\": \"string\",\n            \"description\": \"The unique external ID for the auth provider\"\n          },\n          \"id\": {\n            \"maxLength\": 100,\n            \"type\": \"string\"\n          },\n          \"oauth2\": {\n            \"required\": [\n              \"client_id\"\n            ],\n            \"type\": \"object\",\n            \"properties\": {\n              \"authorize_request\": {\n                \"required\": [\n                  \"endpoint\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"auth_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"endpoint\": {\n                    \"maxLength\": 1000,\n                    \"type\": \"string\"\n                  },\n                  \"method\": {\n                    \"type\": \"string\"\n                  },\n                  \"params\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"request_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_map\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              },\n              \"client_id\": {\n                \"maxLength\": 1000,\n                \"type\": \"string\"\n              },\n              \"client_secret\": {\n                \"maxLength\": 1000,\n                \"type\": \"string\"\n              },\n              \"pkce\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"code_challenge_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"enabled\": {\n                    \"type\": \"boolean\"\n                  }\n                }\n              },\n              \"refresh_request\": {\n                \"required\": [\n                  \"endpoint\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"auth_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"endpoint\": {\n                    \"maxLength\": 1000,\n                    \"type\": \"string\"\n                  },\n                  \"method\": {\n                    \"type\": \"string\"\n                  },\n                  \"params\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"request_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_map\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              },\n              \"scope_delimiter\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \",\",\n                  \" \"\n                ]\n              },\n              \"token_introspection_request\": {\n                \"required\": [\n                  \"endpoint\",\n                  \"triggers\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"auth_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"endpoint\": {\n                    \"maxLength\": 1000,\n                    \"type\": \"string\"\n                  },\n                  \"method\": {\n                    \"type\": \"string\"\n                  },\n                  \"params\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"request_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_map\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"triggers\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"on_token_grant\": {\n                        \"type\": \"boolean\"\n                      },\n                      \"on_token_refresh\": {\n                        \"type\": \"boolean\"\n                      }\n                    }\n                  }\n                }\n              },\n              \"token_request\": {\n                \"required\": [\n                  \"endpoint\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"auth_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"endpoint\": {\n                    \"maxLength\": 1000,\n                    \"type\": \"string\"\n                  },\n                  \"method\": {\n                    \"type\": \"string\"\n                  },\n                  \"params\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"request_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_map\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              },\n              \"user_info_request\": {\n                \"required\": [\n                  \"endpoint\",\n                  \"triggers\"\n                ],\n                \"type\": \"object\",\n                \"properties\": {\n                  \"auth_method\": {\n                    \"type\": \"string\"\n                  },\n                  \"endpoint\": {\n                    \"maxLength\": 1000,\n                    \"type\": \"string\"\n                  },\n                  \"method\": {\n                    \"type\": \"string\"\n                  },\n                  \"params\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"request_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_content_type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"application/x-www-form-urlencoded\",\n                      \"application/json\"\n                    ]\n                  },\n                  \"response_map\": {\n                    \"type\": \"object\",\n                    \"additionalProperties\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"triggers\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"on_token_grant\": {\n                        \"type\": \"boolean\"\n                      },\n                      \"on_token_refresh\": {\n                        \"type\": \"boolean\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"provider_id\": {\n            \"type\": \"string\"\n          },\n          \"status\": {\n            \"type\": \"string\"\n          },\n          \"type\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "DeleteMcpEndpoint",
+  "fully_qualified_name": "EngineApi.DeleteMcpEndpoint@0.1.0",
+  "description": "Delete the Model Context Protocol endpoint data.\n\nThis tool deletes data at the Model Context Protocol (MCP) endpoint, which supports Streamable HTTP transport. Use it to remove existing configurations or data tied to this endpoint.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": []
+  },
+  "output": {
+    "description": "Response from the API endpoint 'mcp-endpoint'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/mcp",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

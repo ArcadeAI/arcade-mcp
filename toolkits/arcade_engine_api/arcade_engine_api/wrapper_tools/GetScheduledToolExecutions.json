@@ -1,0 +1,137 @@
+{
+  "name": "GetScheduledToolExecutions",
+  "fully_qualified_name": "EngineApi.GetScheduledToolExecutions@0.1.0",
+  "description": "Fetch a list of scheduled tool executions.\n\nUse this tool to retrieve a page of scheduled tool executions, useful for monitoring upcoming automated processes.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "items_limit",
+        "required": false,
+        "description": "The number of scheduled tool executions to return. Defaults to 25, max is 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of items to return (default: 25, max: 100)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "list_offset",
+        "required": false,
+        "description": "The starting position in the list of scheduled tool executions, default is 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset from the start of the list (default: 0)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tool-scheduled-list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/scheduled_tools",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "items_limit",
+        "description": "Number of items to return (default: 25, max: 100)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of items to return (default: 25, max: 100)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "list_offset",
+        "description": "Offset from the start of the list (default: 0)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset from the start of the list (default: 0)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

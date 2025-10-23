@@ -1,0 +1,236 @@
+{
+  "name": "RetrieveFormattedToolsList",
+  "fully_qualified_name": "EngineApi.RetrieveFormattedToolsList@0.1.0",
+  "description": "Fetches a formatted list of tools from engine configuration.\n\nUse this tool to retrieve a page of tools from the engine's configuration, which can be filtered by toolkit and formatted for a specific provider.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_toolkit",
+        "required": false,
+        "description": "Specify the toolkit name to filter the list of tools.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Toolkit name"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "toolkit"
+      },
+      {
+        "name": "number_of_items_to_return",
+        "required": false,
+        "description": "Specify the number of tools to return. Defaults to 25, with a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of items to return (default: 25, max: 100)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "offset_start_index",
+        "required": false,
+        "description": "Offset from the start of the tools list. Default is 0.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset from the start of the list (default: 0)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      },
+      {
+        "name": "provider_format",
+        "required": false,
+        "description": "Format the tools according to the provider's specifications. Accepts a string value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provider format"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "format"
+      },
+      {
+        "name": "user_identifier",
+        "required": false,
+        "description": "The ID of the user for whom the tool list is to be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User ID"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'tools-list-formatted'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/formatted_tools",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "toolkit",
+        "tool_parameter_name": "filter_by_toolkit",
+        "description": "Toolkit name",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Toolkit name"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "number_of_items_to_return",
+        "description": "Number of items to return (default: 25, max: 100)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Number of items to return (default: 25, max: 100)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "offset_start_index",
+        "description": "Offset from the start of the list (default: 0)",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Offset from the start of the list (default: 0)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "format",
+        "tool_parameter_name": "provider_format",
+        "description": "Provider format",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Provider format"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_identifier",
+        "description": "User ID",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "User ID"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}
