@@ -327,9 +327,10 @@ class TestMCPApp:
 
     def test_create_and_run_server(self, mcp_app: MCPApp):
         """Test _create_and_run_server method with mocked dependencies."""
-        with patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create, patch(
-            "arcade_mcp_server.mcp_app.uvicorn"
-        ) as mock_uvicorn:
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.uvicorn") as mock_uvicorn,
+        ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app
 
@@ -352,9 +353,10 @@ class TestMCPApp:
             )
 
         # Test with DEBUG log level
-        with patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create, patch(
-            "arcade_mcp_server.mcp_app.uvicorn"
-        ) as mock_uvicorn:
+        with (
+            patch("arcade_mcp_server.mcp_app.create_arcade_mcp") as mock_create,
+            patch("arcade_mcp_server.mcp_app.uvicorn") as mock_uvicorn,
+        ):
             mock_fastapi_app = Mock()
             mock_create.return_value = mock_fastapi_app
 
@@ -381,9 +383,10 @@ class TestMCPApp:
         mock_process.terminate = Mock()
         mock_process.wait = Mock()
 
-        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
-            "arcade_mcp_server.mcp_app.watch"
-        ) as mock_watch:
+        with (
+            patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen,
+            patch("arcade_mcp_server.mcp_app.watch") as mock_watch,
+        ):
             mock_popen.return_value = mock_process
             # Return empty iterator to exit immediately
             mock_watch.return_value = iter([])
@@ -401,9 +404,10 @@ class TestMCPApp:
         mock_process1 = Mock()
         mock_process2 = Mock()
 
-        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
-            "arcade_mcp_server.mcp_app.watch"
-        ) as mock_watch:
+        with (
+            patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen,
+            patch("arcade_mcp_server.mcp_app.watch") as mock_watch,
+        ):
             mock_popen.side_effect = [mock_process1, mock_process2]
             # Yield one set of changes then stop
             mock_watch.return_value = iter([{("change", "test.py")}])
@@ -422,9 +426,10 @@ class TestMCPApp:
         mock_process = Mock()
         mock_process.wait = Mock()  # Succeeds without timeout
 
-        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
-            "arcade_mcp_server.mcp_app.watch"
-        ) as mock_watch:
+        with (
+            patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen,
+            patch("arcade_mcp_server.mcp_app.watch") as mock_watch,
+        ):
             mock_popen.return_value = mock_process
             mock_watch.return_value = iter([{("change", "test.py")}])
 
@@ -439,13 +444,12 @@ class TestMCPApp:
         """Test _run_with_reload force kills process on timeout."""
         mock_process = Mock()
         # First wait times out, second succeeds
-        mock_process.wait = Mock(
-            side_effect=[subprocess.TimeoutExpired("cmd", 5), None]
-        )
+        mock_process.wait = Mock(side_effect=[subprocess.TimeoutExpired("cmd", 5), None])
 
-        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
-            "arcade_mcp_server.mcp_app.watch"
-        ) as mock_watch:
+        with (
+            patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen,
+            patch("arcade_mcp_server.mcp_app.watch") as mock_watch,
+        ):
             mock_popen.return_value = mock_process
             mock_watch.return_value = iter([{("change", "test.py")}])
 
@@ -460,9 +464,10 @@ class TestMCPApp:
         """Test _run_with_reload handles KeyboardInterrupt gracefully."""
         mock_process = Mock()
 
-        with patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen, patch(
-            "arcade_mcp_server.mcp_app.watch"
-        ) as mock_watch:
+        with (
+            patch("arcade_mcp_server.mcp_app.subprocess.Popen") as mock_popen,
+            patch("arcade_mcp_server.mcp_app.watch") as mock_watch,
+        ):
             mock_popen.return_value = mock_process
             mock_watch.side_effect = KeyboardInterrupt()
 
@@ -474,9 +479,10 @@ class TestMCPApp:
 
     def test_run_routes_to_reload_method(self, mcp_app: MCPApp):
         """Test run() routes to _run_with_reload when reload=True."""
-        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
-            mcp_app, "_create_and_run_server"
-        ) as mock_direct:
+        with (
+            patch.object(mcp_app, "_run_with_reload") as mock_reload,
+            patch.object(mcp_app, "_create_and_run_server") as mock_direct,
+        ):
             mcp_app.run(reload=True, transport="http", host="127.0.0.1", port=8000)
 
             mock_reload.assert_called_once_with("127.0.0.1", 8000)
@@ -484,9 +490,10 @@ class TestMCPApp:
 
     def test_run_routes_to_direct_method(self, mcp_app: MCPApp):
         """Test run() routes to _create_and_run_server when reload=False."""
-        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
-            mcp_app, "_create_and_run_server"
-        ) as mock_direct:
+        with (
+            patch.object(mcp_app, "_run_with_reload") as mock_reload,
+            patch.object(mcp_app, "_create_and_run_server") as mock_direct,
+        ):
             mcp_app.run(reload=False, transport="http", host="127.0.0.1", port=8000)
 
             mock_direct.assert_called_once_with("127.0.0.1", 8000)
@@ -496,9 +503,10 @@ class TestMCPApp:
         """Test run() disables reload when ARCADE_MCP_CHILD_PROCESS is set."""
         monkeypatch.setenv("ARCADE_MCP_CHILD_PROCESS", "1")
 
-        with patch.object(mcp_app, "_run_with_reload") as mock_reload, patch.object(
-            mcp_app, "_create_and_run_server"
-        ) as mock_direct:
+        with (
+            patch.object(mcp_app, "_run_with_reload") as mock_reload,
+            patch.object(mcp_app, "_create_and_run_server") as mock_direct,
+        ):
             mcp_app.run(reload=True, transport="http", host="127.0.0.1", port=8000)
 
             # Should route to direct method even though reload=True
@@ -517,3 +525,105 @@ class TestMCPApp:
             # Test with reload=False
             mcp_app.run(reload=False, transport="stdio")
             mock_stdio.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "name,expected_result",
+        [
+            # Valid names
+            ("ValidName", "ValidName"),
+            ("valid_name", "valid_name"),
+            ("ValidName123", "ValidName123"),
+            ("valid_name_123", "valid_name_123"),
+            ("a", "a"),
+            ("A", "A"),
+            ("1", "1"),
+            ("name1", "name1"),
+            ("Name1", "Name1"),
+            ("validName", "validName"),
+            ("Valid_Name", "Valid_Name"),
+            ("valid_name_test", "valid_name_test"),
+            ("Test123Name", "Test123Name"),
+            ("a1b2c3", "a1b2c3"),
+            ("A1B2C3", "A1B2C3"),
+        ],
+    )
+    def test_validate_name_valid_names(self, name: str, expected_result: str):
+        """Test _validate_name with valid names."""
+        app = MCPApp()
+        result = app._validate_name(name)
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "name,expected_error",
+        [
+            # Empty name
+            ("", ValueError),
+            # Non-string types
+            (None, TypeError),
+            (123, TypeError),
+            ([], TypeError),
+            ({}, TypeError),
+            # Names starting with underscore
+            ("_invalid", ValueError),
+            ("_name", ValueError),
+            ("_123", ValueError),
+            ("_", ValueError),
+            # Names with consecutive underscores
+            ("name__test", ValueError),
+            ("test__name", ValueError),
+            ("__name", ValueError),
+            ("name__", ValueError),
+            ("__", ValueError),
+            # Names ending with underscore
+            ("name_", ValueError),
+            ("test_", ValueError),
+            ("_", ValueError),
+            # Names with invalid characters
+            ("name-test", ValueError),
+            ("name.test", ValueError),
+            ("name test", ValueError),
+            ("name@test", ValueError),
+            ("name#test", ValueError),
+            ("name$test", ValueError),
+            ("name%test", ValueError),
+            ("name^test", ValueError),
+            ("name&test", ValueError),
+            ("name*test", ValueError),
+            ("name+test", ValueError),
+            ("name=test", ValueError),
+            ("name[test", ValueError),
+            ("name]test", ValueError),
+            ("name{test", ValueError),
+            ("name}test", ValueError),
+            ("name|test", ValueError),
+            ("name\\test", ValueError),
+            ("name:test", ValueError),
+            ("name;test", ValueError),
+            ("name'test", ValueError),
+            ('name"test', ValueError),
+            ("name<test", ValueError),
+            ("name>test", ValueError),
+            ("name,test", ValueError),
+            ("name.test", ValueError),
+            ("name?test", ValueError),
+            ("name/test", ValueError),
+            ("name!test", ValueError),
+            ("name~test", ValueError),
+            ("name`test", ValueError),
+            # Names with spaces
+            ("name test", ValueError),
+            (" name", ValueError),
+            ("name ", ValueError),
+            (" name ", ValueError),
+            # Names with special unicode characters
+            ("nameñ", ValueError),
+            ("nameé", ValueError),
+            ("name中", ValueError),
+            ("name🚀", ValueError),
+        ],
+    )
+    def test_validate_name_invalid_names(self, name, expected_error):
+        """Test _validate_name with invalid names."""
+        app = MCPApp()
+        with pytest.raises(expected_error):
+            app._validate_name(name)
