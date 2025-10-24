@@ -275,8 +275,7 @@ def server_already_exists(engine_url: str, api_key: str, server_name: str) -> bo
 
     response.raise_for_status()
 
-    # TODO: Return response.json().get("managed") == True once Engine-side bug is fixed
-    return True
+    return response.json().get("managed")
 
 
 def update_deployment(
