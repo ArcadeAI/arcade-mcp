@@ -3,7 +3,7 @@ requires = [ "hatchling",]
 build-backend = "hatchling.build"
 
 [project]
-name = "arcade_engine_api"
+name = "arcade_arcade_engine_api"
 version = "0.1.0"
 description = "Tools that enable LLMs to interact directly with the engine API."
 requires-python = ">=3.10"
