@@ -1,4 +1,4 @@
-files: ^.*/arcade_engine_api/.*
+files: ^.*/arcade_arcade_engine_api/.*
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.4.0"
