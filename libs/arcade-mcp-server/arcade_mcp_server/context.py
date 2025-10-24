@@ -32,6 +32,7 @@ from contextvars import ContextVar, Token
 from typing import Any, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
+from arcade_core.executor import ToolExecutor
 from arcade_core.schema import (
     ToolCallOutput,
     ToolContext,
@@ -508,7 +509,7 @@ class Tools(_ContextComponent):
             async def async_func(**kw: Any) -> Any:
                 return func(**kw)
 
-        result = await self._ctx.server.executor.run(
+        result = await ToolExecutor.run(
             func=async_func,
             definition=tool.definition,
             input_model=tool.input_model,
@@ -516,7 +517,14 @@ class Tools(_ContextComponent):
             context=self._ctx,
             **params,
         )
+
         return cast(ToolCallOutput, result)
+
+    async def call(self, name: str, params: dict[str, Any]) -> Any:
+        result = await self.call_raw(name, params)
+        if result.error:
+            raise ValueError(result.error.message)  # TODO determine what type of error to raise
+        return result.value
 
 
 class Prompts(_ContextComponent):
