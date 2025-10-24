@@ -1,0 +1,373 @@
+{
+  "name": "CreateBreakType",
+  "fully_qualified_name": "SquareupApi.CreateBreakType@2.0.0",
+  "description": "Create a new BreakType template for a location.\n\nThis tool creates a new BreakType, which is a template for establishing Break objects. Required inputs include location ID, break name, expected duration, and payment status. Note that each location can have a maximum of three BreakType instances.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "location_id",
+        "required": true,
+        "description": "The ID of the business location where this break type will apply. It is required to associate the break type with a specific location.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the business location this type of break applies to."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.location_id"
+      },
+      {
+        "name": "break_name",
+        "required": true,
+        "description": "A human-readable name for the break type, displayed to team members.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable name for this type of break. The name is displayed to\nteam members in Square products."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.break_name"
+      },
+      {
+        "name": "break_expected_duration",
+        "required": true,
+        "description": "The expected length of the break in RFC-3339 duration format (e.g., PT15M for 15 minutes).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Format: RFC-3339 P[n]Y[n]M[n]DT[n]H[n]M[n]S. The expected length of\nthis break. Precision less than minutes is truncated.\n\nExample for break expected duration of 15 minutes: PT15M"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.expected_duration"
+      },
+      {
+        "name": "is_break_paid",
+        "required": true,
+        "description": "Indicates if the break counts towards compensated work time. Use true for a paid break, false for an unpaid break.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether this break counts towards time worked for compensation\npurposes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.is_paid"
+      },
+      {
+        "name": "idempotency_key",
+        "required": false,
+        "description": "A unique string to ensure the operation is idempotent, avoiding duplicate actions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string value to ensure the idempotency of the operation."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "break_type_uuid",
+        "required": false,
+        "description": "The UUID for the BreakType object. It uniquely identifies the break type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for this object."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.id"
+      },
+      {
+        "name": "concurrency_version",
+        "required": false,
+        "description": "Integer for resolving concurrency issues; fails if it doesn't match server version.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If a value is not\nprovided, Square's servers execute a \"blind\" write; potentially\noverwriting another writer's data."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.version"
+      },
+      {
+        "name": "created_at_timestamp",
+        "required": false,
+        "description": "A read-only timestamp in RFC 3339 format, automatically populated and not required for input.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.created_at"
+      },
+      {
+        "name": "updated_at_timestamp",
+        "required": false,
+        "description": "A read-only timestamp in RFC 3339 format indicating when the BreakType was last updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "break_type.updated_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateBreakType'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "TIMECARDS_SETTINGS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/labor/break-types",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "idempotency_key",
+        "description": "A unique string value to ensure the idempotency of the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string value to ensure the idempotency of the operation."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.id",
+        "tool_parameter_name": "break_type_uuid",
+        "description": "The UUID for this object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The UUID for this object."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.location_id",
+        "tool_parameter_name": "location_id",
+        "description": "The ID of the business location this type of break applies to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the business location this type of break applies to."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.break_name",
+        "tool_parameter_name": "break_name",
+        "description": "A human-readable name for this type of break. The name is displayed to\nteam members in Square products.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A human-readable name for this type of break. The name is displayed to\nteam members in Square products."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.expected_duration",
+        "tool_parameter_name": "break_expected_duration",
+        "description": "Format: RFC-3339 P[n]Y[n]M[n]DT[n]H[n]M[n]S. The expected length of\nthis break. Precision less than minutes is truncated.\n\nExample for break expected duration of 15 minutes: PT15M",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Format: RFC-3339 P[n]Y[n]M[n]DT[n]H[n]M[n]S. The expected length of\nthis break. Precision less than minutes is truncated.\n\nExample for break expected duration of 15 minutes: PT15M"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.is_paid",
+        "tool_parameter_name": "is_break_paid",
+        "description": "Whether this break counts towards time worked for compensation\npurposes.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether this break counts towards time worked for compensation\npurposes."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.version",
+        "tool_parameter_name": "concurrency_version",
+        "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If a value is not\nprovided, Square's servers execute a \"blind\" write; potentially\noverwriting another writer's data.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Used for resolving concurrency issues. The request fails if the version\nprovided does not match the server version at the time of the request. If a value is not\nprovided, Square's servers execute a \"blind\" write; potentially\noverwriting another writer's data."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.created_at",
+        "tool_parameter_name": "created_at_timestamp",
+        "description": "A read-only timestamp in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "break_type.updated_at",
+        "tool_parameter_name": "updated_at_timestamp",
+        "description": "A read-only timestamp in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A read-only timestamp in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to create a new `BreakType`.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"break_type\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string value to ensure the idempotency of the operation.\",\n            \"maxLength\": 128\n          },\n          \"break_type\": {\n            \"type\": \"object\",\n            \"description\": \"A template for a type of [break](entity:Break) that can be added to a\\n[timecard](entity:Timecard), including the expected duration and paid status.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"location_id\",\n              \"break_name\",\n              \"expected_duration\",\n              \"is_paid\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"The UUID for this object.\",\n                \"maxLength\": 255\n              },\n              \"location_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the business location this type of break applies to.\",\n                \"minLength\": 1\n              },\n              \"break_name\": {\n                \"type\": \"string\",\n                \"description\": \"A human-readable name for this type of break. The name is displayed to\\nteam members in Square products.\",\n                \"minLength\": 1\n              },\n              \"expected_duration\": {\n                \"type\": \"string\",\n                \"description\": \"Format: RFC-3339 P[n]Y[n]M[n]DT[n]H[n]M[n]S. The expected length of\\nthis break. Precision less than minutes is truncated.\\n\\nExample for break expected duration of 15 minutes: PT15M\",\n                \"minLength\": 1\n              },\n              \"is_paid\": {\n                \"type\": \"boolean\",\n                \"description\": \"Whether this break counts towards time worked for compensation\\npurposes.\"\n              },\n              \"version\": {\n                \"type\": \"integer\",\n                \"description\": \"Used for resolving concurrency issues. The request fails if the version\\nprovided does not match the server version at the time of the request. If a value is not\\nprovided, Square's servers execute a \\\"blind\\\" write; potentially\\noverwriting another writer's data.\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"A read-only timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"A read-only timestamp in RFC 3339 format.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"break_type\": {\n            \"break_name\": \"Lunch Break\",\n            \"expected_duration\": \"PT30M\",\n            \"is_paid\": true,\n            \"location_id\": \"CGJN03P1D08GF\"\n          },\n          \"idempotency_key\": \"PAD3NG5KSN2GL\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

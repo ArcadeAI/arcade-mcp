@@ -1,18 +1,18 @@
 {
   "name": "RemoveTeamEscalationPolicy",
-  "fully_qualified_name": "PagerdutyApi.RemoveTeamEscalationPolicy@0.1.0",
-  "description": "Remove an escalation policy from a specified team in PagerDuty.\n\nUse this tool to delete a specific escalation policy from a given team within PagerDuty. This operation modifies the team's configured escalation policies and requires appropriate OAuth permissions (`teams.write`).",
+  "fully_qualified_name": "PagerdutyApi.RemoveTeamEscalationPolicy@2.0.0",
+  "description": "Remove an escalation policy from a team.\n\nThis tool removes an escalation policy from a specific team in PagerDuty. It's useful when you need to alter team configurations by deleting unnecessary or outdated escalation policies.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "resource_id",
         "required": true,
-        "description": "The ID of the team resource to modify.",
+        "description": "The unique identifier of the team resource from which the escalation policy will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "escalation_policy_id",
         "required": true,
-        "description": "The ID of the escalation policy to be removed from the team. It should be provided as a string.",
+        "description": "The identifier of the escalation policy to remove from the team.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "accept_header_version",
         "required": true,
-        "description": "Set the `Accept` header for API versioning when removing an escalation policy.",
+        "description": "Specifies the versioning of the API response using the `Accept` header for the PagerDuty API.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "force_content_type_json",
+        "name": "content_type",
         "required": true,
-        "description": "Specify 'application/json' as the content type. It ensures the request is formatted as JSON.",
+        "description": "The MIME type of the body of the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/teams/{id}/escalation_policies/{escalation_policy_id}",
@@ -171,7 +171,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "force_content_type_json",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,299 @@
+{
+  "name": "UpdateIncidentLogEntry",
+  "fully_qualified_name": "PagerdutyApi.UpdateIncidentLogEntry@2.0.0",
+  "description": "Update an existing incident log entry channel.\n\nThis tool updates an existing incident log entry channel in PagerDuty. Use it when you need to modify the communication channel for a specific log entry. Requires OAuth scope: `incidents.write`.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_resource_id",
+        "required": true,
+        "description": "The unique ID of the incident log entry resource to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "header_version",
+        "required": true,
+        "description": "The versioning information for the API request. This is specified using the `Accept` header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Set to 'application/json' to specify the MIME type of the request body.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_email",
+        "required": true,
+        "description": "The email address of a valid user associated with the account making the log entry update request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "log_entry_channel_update",
+        "required": false,
+        "description": "JSON object with the log entry channel details to be updated. Includes 'type' (one of 'web_trigger', 'mobile') and 'details'.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "channel": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "New channel details"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "web_trigger",
+                    "mobile"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Channel type. Cannot be changed and must match the present value."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters to update."
+            }
+          },
+          "inner_properties": null,
+          "description": "The log entry channel to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateLogEntryChannel'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/log_entries/{id}/channel",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "user_email",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "log_entry_channel_update",
+        "description": "The log entry channel to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "channel": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "details": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "New channel details"
+                },
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "web_trigger",
+                    "mobile"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Channel type. Cannot be changed and must match the present value."
+                }
+              },
+              "inner_properties": null,
+              "description": "The parameters to update."
+            }
+          },
+          "inner_properties": null,
+          "description": "The log entry channel to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"channel\": {\n            \"type\": \"object\",\n            \"description\": \"The parameters to update.\",\n            \"properties\": {\n              \"details\": {\n                \"type\": \"string\",\n                \"description\": \"New channel details\"\n              },\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"Channel type. Cannot be changed and must match the present value.\",\n                \"enum\": [\n                  \"web_trigger\",\n                  \"mobile\"\n                ]\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"details\"\n            ]\n          }\n        },\n        \"required\": [\n          \"channel\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"channel\": {\n              \"type\": \"web_trigger\",\n              \"details\": \"New channel details\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The log entry channel to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

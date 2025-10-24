@@ -1,18 +1,18 @@
 {
   "name": "RetrieveTrelloTokenInfo",
-  "fully_qualified_name": "TrelloApi.RetrieveTrelloTokenInfo@0.1.0",
-  "description": "Retrieve information about a Trello token.\n\nUse this tool to get details about a specific Trello token, which may include access permissions and associated user or application information. Call this when you need to verify or inspect Trello token data.",
+  "fully_qualified_name": "TrelloApi.RetrieveTrelloTokenInfo@2.0.0",
+  "description": "Retrieve information about a Trello token.\n\nUse this tool to obtain details about a specific Trello token. Ideal for checking token-related data when handling Trello API integrations.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "trello_token",
         "required": true,
-        "description": "The Trello token string for which you want to retrieve information. This token identifies the authentication session.",
+        "description": "The unique identifier for the Trello token to retrieve information about.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "token"
       },
       {
-        "name": "token_info_fields",
+        "name": "retrieve_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of fields (`dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`) to retrieve.",
+        "description": "Specify 'all' or a comma-separated list of fields: dateCreated, dateExpires, idMember, identifier, permissions.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -48,7 +48,7 @@
       {
         "name": "include_webhooks",
         "required": false,
-        "description": "Set to true to include webhooks in the token details.",
+        "description": "Set to true to include webhooks in the response; false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -93,13 +93,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/tokens/{token}",
@@ -108,7 +108,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "token_info_fields",
+        "tool_parameter_name": "retrieve_fields",
         "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`",
         "value_schema": {
           "val_type": "string",
@@ -127,6 +127,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -144,6 +145,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -161,6 +163,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -182,6 +185,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

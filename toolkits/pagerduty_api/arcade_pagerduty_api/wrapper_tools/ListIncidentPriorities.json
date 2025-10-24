@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentPriorities",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentPriorities@0.1.0",
-  "description": "Retrieve a list of incident priorities by severity.\n\nUse this tool to fetch and organize existing priorities, representing the importance and impact of incidents, from most to least severe. Applicable for Standard and Enterprise plans on Pagerduty.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentPriorities@2.0.0",
+  "description": "Retrieve a list of incident priorities by severity.\n\nThis tool retrieves the list of existing incident priorities, ordered from most to least severe. It is used to understand the importance and impact levels of incidents within the Standard and Enterprise plans.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "The versioning header for API requests, used to specify the API version to accept.",
+        "description": "The versioning string for the 'Accept' header, specifying API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Set the 'Content-Type' header as 'application/json'.",
+        "description": "Specifies the format of the response. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Number of incident priorities to include per page.",
+        "description": "The number of incident priorities to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "The starting point of the paginated results to list incident priorities.",
+        "description": "Offset to start pagination from this position in the results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to include the total number of items in the response. Set to false for a faster response without the total.",
+        "description": "Set to true to include the total number of results in the response, which is not shown by default for performance reasons.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/priorities",
@@ -181,12 +181,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

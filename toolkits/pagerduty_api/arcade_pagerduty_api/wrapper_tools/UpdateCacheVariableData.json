@@ -1,33 +1,33 @@
 {
   "name": "UpdateCacheVariableData",
-  "fully_qualified_name": "PagerdutyApi.UpdateCacheVariableData@0.1.0",
-  "description": "Update cache variable data in Global Event Orchestration.\n\nUse this tool to update the data for an external cache variable in a Global Event Orchestration. It is useful for storing string, number, or boolean values that can be used in Event Orchestration rules. Requires `event_orchestrations.write` OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.UpdateCacheVariableData@2.0.0",
+  "description": "Update cache variable data for service event orchestration.\n\nThis tool updates the data for an external data type cache variable within a service event orchestration. Use it to modify string, number, or boolean values stored via a dedicated API endpoint. These values can be used in event orchestration conditions and actions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "event_orchestration_id",
+        "name": "service_identifier",
         "required": true,
-        "description": "The unique ID of the Event Orchestration to update the cache variable for.",
+        "description": "A unique identifier for the service whose cache variable data is to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of an Event Orchestration."
+          "description": "The service ID"
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "id"
+        "http_endpoint_parameter_name": "service_id"
       },
       {
         "name": "cache_variable_id",
         "required": true,
-        "description": "The unique identifier for the Cache Variable to update.",
+        "description": "The unique identifier for the Cache Variable to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "cache_variable_id"
       },
       {
-        "name": "accept_version_header",
+        "name": "accept_header_versioning",
         "required": true,
-        "description": "Specify the API version using the 'Accept' header as a versioning header.",
+        "description": "Specify the API version using the 'Accept' header for versioning purposes.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Indicate the media type of the resource. Use 'application/json'.",
+        "description": "Specify the media type of the request payload. It should be set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'updateExternalDataCacheVarDataOnGlobalOrch'.",
+    "description": "Response from the API endpoint 'updateExternalDataCacheVarDataOnServiceOrch'.",
     "available_modes": [
       "value",
       "error",
@@ -102,30 +102,30 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.pagerduty.com/event_orchestrations/{id}/cache_variables/{cache_variable_id}/data",
+    "url": "https://api.pagerduty.com/event_orchestrations/services/{service_id}/cache_variables/{cache_variable_id}/data",
     "http_method": "PUT",
     "headers": {},
     "parameters": [
       {
-        "name": "id",
-        "tool_parameter_name": "event_orchestration_id",
-        "description": "The ID of an Event Orchestration.",
+        "name": "service_id",
+        "tool_parameter_name": "service_identifier",
+        "description": "The service ID",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of an Event Orchestration."
+          "description": "The service ID"
         },
         "accepted_as": "path",
         "required": true,
@@ -153,7 +153,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_header_versioning",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

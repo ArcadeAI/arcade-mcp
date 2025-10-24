@@ -1,18 +1,18 @@
 {
   "name": "GetEnterpriseMembers",
-  "fully_qualified_name": "TrelloApi.GetEnterpriseMembers@0.1.0",
-  "description": "Retrieve members of a specified enterprise on Trello.\n\nUse this tool to get a list of members associated with a particular enterprise by providing the enterprise ID. This is useful for managing team members or reviewing enterprise membership details.",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseMembers@2.0.0",
+  "description": "Retrieve members of a specific enterprise from Trello.\n\nUse this tool to get a list of all members associated with a specified enterprise on Trello. It should be called when you need to access or display information about the members of an enterprise, such as in management or collaboration scenarios.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "ID of the enterprise whose members are to be retrieved. This is required to specify which enterprise's members you want to access.",
+        "description": "The unique ID of the enterprise whose members you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_fields",
+        "name": "member_field_list",
         "required": false,
-        "description": "Comma-separated list of valid member fields to retrieve.",
+        "description": "A comma-separated list of member fields to include, e.g., 'fullName,email'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "scim_filter_query",
+        "name": "scim_style_filter",
         "required": false,
-        "description": "SCIM-style query to filter members. Overrides member type filters and controls pagination.",
+        "description": "A SCIM-style query to filter enterprise members, taking precedence over other member settings.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "sort_members",
+        "name": "sorting_order",
         "required": false,
-        "description": "SCIM-style sorting value. Prefix with '-' for descending order; otherwise, it's ascending.",
+        "description": "Specify how to sort members using a SCIM-style value. Prefix with `-` for descending order; otherwise, ascending.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "sort"
       },
       {
-        "name": "sort_criteria",
+        "name": "sort_by",
         "required": false,
-        "description": "Sorting option for members. Use 'sort' parameter instead, following SCIM-style sorting. Deprecated parameter.",
+        "description": "Deprecated: Use 'sort' instead. A SCIM-style value to sort members, affecting pagination.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "sortBy"
       },
       {
-        "name": "sort_order_for_listing",
+        "name": "use_deprecated_sort_order",
         "required": false,
-        "description": "Defines the order for sorting members. Use values: 'ascending', 'descending', 'asc', or 'desc'. Deprecated: Prefer 'sort'.",
+        "description": "Specify the sorting order for members: 'ascending', 'descending', 'asc', 'desc'. Deprecated; use 'sort' instead.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,9 +106,9 @@
         "http_endpoint_parameter_name": "sortOrder"
       },
       {
-        "name": "member_start_index",
+        "name": "start_index",
         "required": false,
-        "description": "An integer between 0 and 9999 indicating where to start retrieving members.",
+        "description": "The starting point for pagination, using an integer between 0 and 9999.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -123,7 +123,7 @@
       {
         "name": "member_count_filter",
         "required": false,
-        "description": "Apply a SCIM-style filter to specify the number of members to retrieve.",
+        "description": "A SCIM-style filter to specify the number of members to retrieve. Use this to filter results according to SCIM standards.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -138,7 +138,7 @@
       {
         "name": "organization_fields",
         "required": false,
-        "description": "Specify valid values for nested organization fields to retrieve specific organization-related data.",
+        "description": "Valid organization field values allowed by the Trello nested organization field resource. This customizes which organization data is returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -151,9 +151,9 @@
         "http_endpoint_parameter_name": "organization_fields"
       },
       {
-        "name": "included_board_fields",
+        "name": "board_fields_to_include",
         "required": false,
-        "description": "Comma-separated list of values accepted by the nested board resource to specify included fields.",
+        "description": "Specify valid board field values to include from the nested board resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -198,13 +198,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/enterprises/{id}/members",
@@ -213,7 +213,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "member_fields",
+        "tool_parameter_name": "member_field_list",
         "description": "A comma-seperated list of valid [member fields](/cloud/trello/guides/rest-api/object-definitions/#member-object).",
         "value_schema": {
           "val_type": "string",
@@ -226,11 +226,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "avatarHash, fullName, initials, username",
         "documentation_urls": []
       },
       {
         "name": "filter",
-        "tool_parameter_name": "scim_filter_query",
+        "tool_parameter_name": "scim_style_filter",
         "description": "Pass a [SCIM-style query](/cloud/trello/scim/) to filter members. This takes precedence over the all/normal/admins value of members. If any of the below member_* args are set, the member array will be paginated.",
         "value_schema": {
           "val_type": "string",
@@ -243,11 +244,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "sort",
-        "tool_parameter_name": "sort_members",
+        "tool_parameter_name": "sorting_order",
         "description": "This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value prefixed by a `-` to sort descending. If no `-` is prefixed, it will be sorted ascending. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data.",
         "value_schema": {
           "val_type": "string",
@@ -260,11 +262,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "sortBy",
-        "tool_parameter_name": "sort_criteria",
+        "tool_parameter_name": "sort_by",
         "description": "Deprecated: Please use `sort` instead. This parameter expects a [SCIM-style](/cloud/trello/scim/) sorting value. Note that the members array returned will be paginated if `members` is 'normal' or 'admins'. Pagination can be controlled with member_startIndex, etc, but the API response will not contain the total available result count or pagination status data.",
         "value_schema": {
           "val_type": "string",
@@ -277,11 +280,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "sortOrder",
-        "tool_parameter_name": "sort_order_for_listing",
+        "tool_parameter_name": "use_deprecated_sort_order",
         "description": "Deprecated: Please use `sort` instead. One of: `ascending`, `descending`, `asc`, `desc`.",
         "value_schema": {
           "val_type": "string",
@@ -300,11 +304,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "startIndex",
-        "tool_parameter_name": "member_start_index",
+        "tool_parameter_name": "start_index",
         "description": "Any integer between 0 and 9999.",
         "value_schema": {
           "val_type": "integer",
@@ -317,6 +322,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -334,6 +340,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "none",
         "documentation_urls": []
       },
       {
@@ -351,11 +358,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "displayName",
         "documentation_urls": []
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "included_board_fields",
+        "tool_parameter_name": "board_fields_to_include",
         "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
         "value_schema": {
           "val_type": "string",
@@ -368,6 +376,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "name",
         "documentation_urls": []
       },
       {
@@ -385,6 +394,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -406,6 +416,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

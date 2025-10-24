@@ -1,0 +1,142 @@
+{
+  "name": "DeleteDraftTransferOrder",
+  "fully_qualified_name": "SquareupApi.DeleteDraftTransferOrder@2.0.0",
+  "description": "Delete a draft transfer order and trigger webhook event.\n\nUse this tool to delete a transfer order in DRAFT status. Only applicable to orders that have not yet been started. A webhook event 'transfer_order.deleted' is triggered upon deletion.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "required": true,
+        "description": "The ID of the transfer order in DRAFT status to delete. Only draft orders are eligible.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to delete"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transfer_order_id"
+      },
+      {
+        "name": "optimistic_concurrency_version",
+        "required": false,
+        "description": "Version number used for optimistic concurrency control to ensure data consistency when deleting a draft transfer order.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/{transfer_order_id}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "version",
+        "tool_parameter_name": "optimistic_concurrency_version",
+        "description": "Version for optimistic concurrency",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "transfer_order_id",
+        "tool_parameter_name": "transfer_order_id",
+        "description": "The ID of the transfer order to delete",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to delete"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentWorkflowTriggers",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflowTriggers@0.1.0",
-  "description": "Retrieve a list of existing incident workflow triggers.\n\nUse this tool to fetch all existing incident workflow triggers from Pagerduty. It helps in identifying available workflow triggers for automation or integration purposes.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflowTriggers@2.0.0",
+  "description": "Retrieve a list of existing incident workflow triggers.\n\nUse this tool to obtain information about all current incident workflow triggers. It requires `incident_workflows.read` OAuth scope to access the data.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_version_header",
+        "name": "accept_versioning_header",
         "required": true,
-        "description": "Specify the `Accept` header for API versioning.",
+        "description": "The 'Accept' header used for versioning the API response. Specify the version needed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specifies the media type of the request. Use 'application/json'.",
+        "description": "Specifies the content type for the request, usually 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "filter_by_workflow_id",
+        "name": "workflow_id_filter",
         "required": false,
-        "description": "Filter triggers to those configured to start the specified workflow ID. Useful for listing services associated with it.",
+        "description": "If provided, only show triggers configured to start the specified workflow, useful for listing services linked to a workflow.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "workflow_id"
       },
       {
-        "name": "incident_identifier",
+        "name": "incident_id_filter",
         "required": false,
-        "description": "Filter triggers by the incident's service, if provided. Cannot be used with `service_identifier`.",
+        "description": "Show triggers for the service of the specified incident. Cannot be used with `service_id`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "incident_id"
       },
       {
-        "name": "specific_service_id",
+        "name": "filter_by_service_id",
         "required": false,
-        "description": "Filter triggers for incidents in a specific service. Cannot be used with `specific_incident_id`.",
+        "description": "Show triggers for incidents in the given service. Cannot be used with `incident_id`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "service_id"
       },
       {
-        "name": "trigger_type",
+        "name": "filter_by_trigger_type",
         "required": false,
-        "description": "Show triggers of a specified type, such as 'manual', 'conditional', or 'incident_type'.",
+        "description": "Specify the type of triggers to show, such as 'manual', 'conditional', or 'incident_type'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,9 +106,9 @@
         "http_endpoint_parameter_name": "trigger_type"
       },
       {
-        "name": "filter_workflow_name_contains",
+        "name": "workflow_name_contains",
         "required": false,
-        "description": "Filter triggers by workflows whose names contain this substring.",
+        "description": "Filter triggers by workflow names containing this value.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -123,7 +123,7 @@
       {
         "name": "sort_triggers_by",
         "required": false,
-        "description": "Specify a property to sort the triggers. Options: workflow_id, workflow_id asc, workflow_name desc, etc.",
+        "description": "Specify the property to sort triggers, such as 'workflow_id asc' or 'workflow_name desc'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -143,9 +143,9 @@
         "http_endpoint_parameter_name": "sort_by"
       },
       {
-        "name": "result_limit",
+        "name": "maximum_results",
         "required": false,
-        "description": "The number of incident workflow triggers to return, up to the API's maximum limit.",
+        "description": "Specify the maximum number of triggers to return. This limits the size of the response, constrained by the API's maximum request size.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -160,7 +160,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Optional string to request the next set of results. Use the `next_cursor` from the previous request; starts at the beginning if not provided.",
+        "description": "Optional parameter to request the next set of results, usually from the `next_cursor` field of a previous request. Starts at the beginning if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -173,9 +173,9 @@
         "http_endpoint_parameter_name": "cursor"
       },
       {
-        "name": "show_disabled_triggers",
+        "name": "filter_for_disabled_triggers",
         "required": false,
-        "description": "Set to true to show disabled triggers, false to show enabled. Deprecated and will be removed soon.",
+        "description": "Set to true to filter for disabled triggers, false for enabled. This parameter is deprecated.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -218,13 +218,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incident_workflows/triggers",
@@ -233,7 +233,7 @@
     "parameters": [
       {
         "name": "workflow_id",
-        "tool_parameter_name": "filter_by_workflow_id",
+        "tool_parameter_name": "workflow_id_filter",
         "description": "If provided, only show triggers configured to start the given workflow. Useful for listing all services associated with the given workflow",
         "value_schema": {
           "val_type": "string",
@@ -251,7 +251,7 @@
       },
       {
         "name": "incident_id",
-        "tool_parameter_name": "incident_identifier",
+        "tool_parameter_name": "incident_id_filter",
         "description": "If provided, only show triggers configured on the service of the given incident. Useful for finding manual triggers that are configured on the service for a specific incident. Cannot be specified if `service_id` is provided.",
         "value_schema": {
           "val_type": "string",
@@ -269,7 +269,7 @@
       },
       {
         "name": "service_id",
-        "tool_parameter_name": "specific_service_id",
+        "tool_parameter_name": "filter_by_service_id",
         "description": "If provided, only show triggers configured for incidents in the given service. Useful for listing all workflows associated with the given service. Cannot be specified if `incident_id` is provided.",
         "value_schema": {
           "val_type": "string",
@@ -287,7 +287,7 @@
       },
       {
         "name": "trigger_type",
-        "tool_parameter_name": "trigger_type",
+        "tool_parameter_name": "filter_by_trigger_type",
         "description": "If provided, only show triggers of the given type. For example \u201cmanual\u201d to search for manual triggers",
         "value_schema": {
           "val_type": "string",
@@ -309,7 +309,7 @@
       },
       {
         "name": "workflow_name_contains",
-        "tool_parameter_name": "filter_workflow_name_contains",
+        "tool_parameter_name": "workflow_name_contains",
         "description": "If provided, only show triggers configured to start workflows whose name contain the provided value.",
         "value_schema": {
           "val_type": "string",
@@ -327,7 +327,7 @@
       },
       {
         "name": "is_disabled",
-        "tool_parameter_name": "show_disabled_triggers",
+        "tool_parameter_name": "filter_for_disabled_triggers",
         "description": "If provided, filters between disabled and enabled Triggers.\nThis query parameter is deprecated, and will be removed in a future version of this API.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -370,7 +370,7 @@
       },
       {
         "name": "limit",
-        "tool_parameter_name": "result_limit",
+        "tool_parameter_name": "maximum_results",
         "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
         "value_schema": {
           "val_type": "integer",
@@ -406,7 +406,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "accept_versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -453,6 +453,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

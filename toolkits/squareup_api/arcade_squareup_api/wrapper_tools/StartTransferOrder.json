@@ -1,0 +1,176 @@
+{
+  "name": "StartTransferOrder",
+  "fully_qualified_name": "SquareupApi.StartTransferOrder@2.0.0",
+  "description": "Start a transfer order to mark it as in-transit.\n\nUse this tool to change a draft transfer order to started status, which decrements inventory at the source location and marks the order as in-transit. Once started, the order is locked from deletion but can be canceled. A webhook event is created upon starting the order.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "required": true,
+        "description": "The ID of the transfer order to start. Must be in DRAFT status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to start. Must be in DRAFT status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transfer_order_id"
+      },
+      {
+        "name": "unique_request_identifier",
+        "required": true,
+        "description": "A unique string to identify each UpdateTransferOrder request, ensuring it is not repeated for any request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "optimistic_concurrency_version",
+        "required": false,
+        "description": "Specify the version number for optimistic concurrency control. Ensure the version is current to avoid conflicts.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'StartTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ",
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/{transfer_order_id}/start",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "tool_parameter_name": "transfer_order_id",
+        "description": "The ID of the transfer order to start. Must be in DRAFT status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to start. Must be in DRAFT status."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_identifier",
+        "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "optimistic_concurrency_version",
+        "description": "Version for optimistic concurrency",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to start a transfer order, changing its status from DRAFT to STARTED.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this UpdateTransferOrder request. Keys can be\\nany valid string but must be unique for every UpdateTransferOrder request.\",\n            \"minLength\": 1\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"Version for optimistic concurrency\",\n            \"format\": \"int64\"\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"EXAMPLE_IDEMPOTENCY_KEY_789\",\n          \"transfer_order_id\": \"EXAMPLE_TRANSFER_ORDER_ID_123\",\n          \"version\": 1753109537351\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

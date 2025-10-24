@@ -1,0 +1,247 @@
+{
+  "name": "GetEnterpriseMember",
+  "fully_qualified_name": "TrelloApi.GetEnterpriseMember@2.0.0",
+  "description": "Retrieve a specific member of an enterprise by ID.\n\nUse this tool to obtain details about a particular member within an enterprise by providing the enterprise ID and member ID.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_id",
+        "required": true,
+        "description": "The unique identifier for the enterprise to retrieve. This is required to specify which enterprise's member data you are accessing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "member_id",
+        "required": true,
+        "description": "The ID of the member resource you want to retrieve details for within an enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of a member resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMember"
+      },
+      {
+        "name": "member_field_values",
+        "required": false,
+        "description": "Comma-separated valid values for member fields to retrieve details about a specific enterprise member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of any valid values that the [nested member field resource]() accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "organization_field_values",
+        "required": false,
+        "description": "Comma-separated list of organization fields to include. Refer to Trello's nested organization field resource for valid values.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_fields"
+      },
+      {
+        "name": "board_fields",
+        "required": false,
+        "description": "Comma-separated list of board fields to retrieve, as defined by the Trello nested board resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-enterprises-id-members-idmember'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/enterprises/{id}/members/{idMember}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "member_field_values",
+        "description": "A comma separated list of any valid values that the [nested member field resource]() accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of any valid values that the [nested member field resource]() accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "avatarHash, fullName, initials, username",
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_fields",
+        "tool_parameter_name": "organization_field_values",
+        "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization field resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "displayName",
+        "documentation_urls": []
+      },
+      {
+        "name": "board_fields",
+        "tool_parameter_name": "board_fields",
+        "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "name",
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "enterprise_id",
+        "description": "ID of the enterprise to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMember",
+        "tool_parameter_name": "member_id",
+        "description": "An ID of a member resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of a member resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

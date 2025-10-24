@@ -1,18 +1,18 @@
 {
   "name": "CreateChecklistOnCard",
-  "fully_qualified_name": "TrelloApi.CreateChecklistOnCard@0.1.0",
-  "description": "Create a new checklist on a Trello card.\n\nThis tool allows you to create a new checklist on a specified Trello card by providing the card ID. Use it to organize tasks or items within a card efficiently.",
+  "fully_qualified_name": "TrelloApi.CreateChecklistOnCard@2.0.0",
+  "description": "Create a new checklist on a Trello card.\n\nUse this tool to add a checklist to a specific Trello card by providing the card ID. It allows for organizing tasks within a card using checklists.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The ID of the Trello card where the checklist will be created.",
+        "description": "The unique identifier of the Trello card to which the checklist will be added.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_name",
         "required": false,
-        "description": "The name for the new checklist on the card.",
+        "description": "The name of the checklist to be created on a Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "source_checklist_id",
         "required": false,
-        "description": "The ID of a source checklist to copy into the new one being created on the card.",
+        "description": "The ID of a source checklist to copy into the new checklist. This is used to duplicate the tasks from another checklist.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "idChecklistSource"
       },
       {
-        "name": "checklist_position_on_card",
+        "name": "checklist_position",
         "required": false,
-        "description": "Specify the position of the checklist on the card. Can be 'top', 'bottom', or a positive number indicating the position.",
+        "description": "Specify the position of the checklist on the card. Accepts `top`, `bottom`, or a positive number indicating the exact position.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/checklists",
@@ -130,6 +130,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -147,11 +148,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "pos",
-        "tool_parameter_name": "checklist_position_on_card",
+        "tool_parameter_name": "checklist_position",
         "description": "The position of the checklist on the card. One of: `top`, `bottom`, or a positive number.",
         "value_schema": {
           "val_type": "string",
@@ -164,6 +166,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -181,6 +184,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -202,6 +206,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

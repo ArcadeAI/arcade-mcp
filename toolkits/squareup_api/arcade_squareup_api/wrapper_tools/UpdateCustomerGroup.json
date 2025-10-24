@@ -1,0 +1,241 @@
+{
+  "name": "UpdateCustomerGroup",
+  "fully_qualified_name": "SquareupApi.UpdateCustomerGroup@2.0.0",
+  "description": "Updates a customer group by its ID.\n\nThis tool updates the details of a specified customer group using its group ID. It should be called when you need to modify the attributes of an existing customer group.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "customer_group_id",
+        "required": true,
+        "description": "The ID of the customer group to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer group to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "customer_group_name",
+        "required": true,
+        "description": "The new name for the customer group to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the customer group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group.name"
+      },
+      {
+        "name": "customer_group_unique_id",
+        "required": false,
+        "description": "A unique Square-generated ID for the customer group to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique Square-generated ID for the customer group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group.id"
+      },
+      {
+        "name": "group_creation_timestamp",
+        "required": false,
+        "description": "The timestamp of when the customer group was created in RFC 3339 format. Required to track creation time.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the customer group was created, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group.created_at"
+      },
+      {
+        "name": "group_last_updated_timestamp",
+        "required": false,
+        "description": "The timestamp when the customer group was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the customer group was last updated, in RFC 3339 format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group.updated_at"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'UpdateCustomerGroup'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "CUSTOMERS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/customers/groups/{group_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "group_id",
+        "tool_parameter_name": "customer_group_id",
+        "description": "The ID of the customer group to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer group to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group.id",
+        "tool_parameter_name": "customer_group_unique_id",
+        "description": "A unique Square-generated ID for the customer group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique Square-generated ID for the customer group."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group.name",
+        "tool_parameter_name": "customer_group_name",
+        "description": "The name of the customer group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the customer group."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group.created_at",
+        "tool_parameter_name": "group_creation_timestamp",
+        "description": "The timestamp when the customer group was created, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the customer group was created, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "group.updated_at",
+        "tool_parameter_name": "group_last_updated_timestamp",
+        "description": "The timestamp when the customer group was last updated, in RFC 3339 format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp when the customer group was last updated, in RFC 3339 format."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the body parameters that can be included in a request to the\\n[UpdateCustomerGroup](api-endpoint:CustomerGroups-UpdateCustomerGroup) endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"group\"\n        ],\n        \"properties\": {\n          \"group\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a group of customer profiles. \\n\\nCustomer groups can be created, be modified, and have their membership defined using \\nthe Customers API or within the Customer Directory in the Square Seller Dashboard or Point of Sale.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"required\": [\n              \"name\"\n            ],\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"A unique Square-generated ID for the customer group.\",\n                \"maxLength\": 255,\n                \"readOnly\": true\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"The name of the customer group.\"\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the customer group was created, in RFC 3339 format.\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp when the customer group was last updated, in RFC 3339 format.\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"group\": {\n            \"name\": \"Loyal Customers\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

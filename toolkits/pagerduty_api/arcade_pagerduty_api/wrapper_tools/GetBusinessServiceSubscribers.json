@@ -1,18 +1,18 @@
 {
   "name": "GetBusinessServiceSubscribers",
-  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceSubscribers@0.1.0",
-  "description": "Retrieve subscribers of a business service.\n\nFetches a list of users subscribed for notifications on a specified business service. Ensure users are added through the appropriate POST method to be available via this endpoint. This requires OAuth scope 'subscribers.read'.",
+  "fully_qualified_name": "PagerdutyApi.GetBusinessServiceSubscribers@2.0.0",
+  "description": "Retrieve notification subscribers of a business service.\n\nFetches a list of notification subscribers for a specified business service. Use this tool when you need to find out who is subscribed to notifications for a particular service. Ensure users were added as subscribers via the appropriate POST method.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "business_service_id",
         "required": true,
-        "description": "The ID of the business service to retrieve subscribers for.",
+        "description": "The unique identifier for the business service to retrieve subscribers.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "versioning_header",
         "required": true,
-        "description": "The version identifier for the API, supplied in the 'Accept' header format.",
+        "description": "The versioning header to specify the API version to use. Typically in the format 'application/vnd.pagerduty+json;version=2'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/business_services/{id}/subscribers",
@@ -130,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

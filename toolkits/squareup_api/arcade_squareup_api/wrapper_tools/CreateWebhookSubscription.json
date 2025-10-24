@@ -1,0 +1,402 @@
+{
+  "name": "CreateWebhookSubscription",
+  "fully_qualified_name": "SquareupApi.CreateWebhookSubscription@2.0.0",
+  "description": "Creates a webhook subscription.\n\nUse this tool to establish a webhook subscription for receiving event notifications from the service.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "unique_request_identifier",
+        "required": false,
+        "description": "A unique string to ensure the idempotence of the CreateWebhookSubscription request, preventing duplicate entries.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the [CreateWebhookSubscription](api-endpoint:WebhookSubscriptions-CreateWebhookSubscription) request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "subscription_unique_id",
+        "required": false,
+        "description": "A Square-generated unique ID for the webhook subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A Square-generated unique ID for the subscription."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.id"
+      },
+      {
+        "name": "subscription_name",
+        "required": false,
+        "description": "The name for the webhook subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of this subscription."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.name"
+      },
+      {
+        "name": "event_types",
+        "required": false,
+        "description": "An array of event types for the subscription, each as a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event types associated with this subscription."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.event_types"
+      },
+      {
+        "name": "webhook_notification_url",
+        "required": false,
+        "description": "The URL where webhook notifications will be sent. Ensure it is accessible and accurately formatted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL to which webhooks are sent."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.notification_url"
+      },
+      {
+        "name": "api_version",
+        "required": false,
+        "description": "Specifies the API version for the webhook subscription. Optional; defaults to the application's current API version if not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API version of the subscription.\nThis field is optional for `CreateWebhookSubscription`. \nThe value defaults to the API version used by the application."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.api_version"
+      },
+      {
+        "name": "subscription_signature_key",
+        "required": false,
+        "description": "The Square-generated signature key used to validate the origin of the webhook event.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-generated signature key used to validate the origin of the webhook event."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.signature_key"
+      },
+      {
+        "name": "subscription_created_at",
+        "required": false,
+        "description": "The creation timestamp of the subscription in RFC 3339 format, e.g., \"2016-09-04T23:59:33.123Z\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp of when the subscription was created, in RFC 3339 format. For example, \"2016-09-04T23:59:33.123Z\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.created_at"
+      },
+      {
+        "name": "subscription_last_updated_timestamp",
+        "required": false,
+        "description": "The timestamp of when the subscription was last updated, in RFC 3339 format (e.g., '2016-09-04T23:59:33.123Z').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp of when the subscription was last updated, in RFC 3339 format.\nFor example, \"2016-09-04T23:59:33.123Z\"."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.updated_at"
+      },
+      {
+        "name": "enable_subscription",
+        "required": false,
+        "description": "Indicates whether the subscription is enabled (`true`) or not (`false`).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the subscription is enabled (`true`) or not (`false`)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription.enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CreateWebhookSubscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/webhooks/subscriptions",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_identifier",
+        "description": "A unique string that identifies the [CreateWebhookSubscription](api-endpoint:WebhookSubscriptions-CreateWebhookSubscription) request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the [CreateWebhookSubscription](api-endpoint:WebhookSubscriptions-CreateWebhookSubscription) request."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.id",
+        "tool_parameter_name": "subscription_unique_id",
+        "description": "A Square-generated unique ID for the subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A Square-generated unique ID for the subscription."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.name",
+        "tool_parameter_name": "subscription_name",
+        "description": "The name of this subscription.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of this subscription."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.enabled",
+        "tool_parameter_name": "enable_subscription",
+        "description": "Indicates whether the subscription is enabled (`true`) or not (`false`).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the subscription is enabled (`true`) or not (`false`)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.event_types",
+        "tool_parameter_name": "event_types",
+        "description": "The event types associated with this subscription.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The event types associated with this subscription."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.notification_url",
+        "tool_parameter_name": "webhook_notification_url",
+        "description": "The URL to which webhooks are sent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL to which webhooks are sent."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.api_version",
+        "tool_parameter_name": "api_version",
+        "description": "The API version of the subscription.\nThis field is optional for `CreateWebhookSubscription`. \nThe value defaults to the API version used by the application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The API version of the subscription.\nThis field is optional for `CreateWebhookSubscription`. \nThe value defaults to the API version used by the application."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.signature_key",
+        "tool_parameter_name": "subscription_signature_key",
+        "description": "The Square-generated signature key used to validate the origin of the webhook event.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The Square-generated signature key used to validate the origin of the webhook event."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.created_at",
+        "tool_parameter_name": "subscription_created_at",
+        "description": "The timestamp of when the subscription was created, in RFC 3339 format. For example, \"2016-09-04T23:59:33.123Z\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp of when the subscription was created, in RFC 3339 format. For example, \"2016-09-04T23:59:33.123Z\"."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "subscription.updated_at",
+        "tool_parameter_name": "subscription_last_updated_timestamp",
+        "description": "The timestamp of when the subscription was last updated, in RFC 3339 format.\nFor example, \"2016-09-04T23:59:33.123Z\".",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timestamp of when the subscription was last updated, in RFC 3339 format.\nFor example, \"2016-09-04T23:59:33.123Z\"."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Creates a [Subscription](entity:WebhookSubscription).\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"subscription\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies the [CreateWebhookSubscription](api-endpoint:WebhookSubscriptions-CreateWebhookSubscription) request.\",\n            \"maxLength\": 45\n          },\n          \"subscription\": {\n            \"type\": \"object\",\n            \"description\": \"Represents the details of a webhook subscription, including notification URL,\\nevent types, and signature key.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"A Square-generated unique ID for the subscription.\",\n                \"maxLength\": 64,\n                \"readOnly\": true\n              },\n              \"name\": {\n                \"type\": \"string\",\n                \"description\": \"The name of this subscription.\",\n                \"maxLength\": 64,\n                \"nullable\": true\n              },\n              \"enabled\": {\n                \"type\": \"boolean\",\n                \"description\": \"Indicates whether the subscription is enabled (`true`) or not (`false`).\",\n                \"nullable\": true\n              },\n              \"event_types\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                },\n                \"description\": \"The event types associated with this subscription.\",\n                \"nullable\": true\n              },\n              \"notification_url\": {\n                \"type\": \"string\",\n                \"description\": \"The URL to which webhooks are sent.\",\n                \"nullable\": true\n              },\n              \"api_version\": {\n                \"type\": \"string\",\n                \"description\": \"The API version of the subscription.\\nThis field is optional for `CreateWebhookSubscription`. \\nThe value defaults to the API version used by the application.\",\n                \"nullable\": true\n              },\n              \"signature_key\": {\n                \"type\": \"string\",\n                \"description\": \"The Square-generated signature key used to validate the origin of the webhook event.\",\n                \"readOnly\": true\n              },\n              \"created_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp of when the subscription was created, in RFC 3339 format. For example, \\\"2016-09-04T23:59:33.123Z\\\".\",\n                \"readOnly\": true\n              },\n              \"updated_at\": {\n                \"type\": \"string\",\n                \"description\": \"The timestamp of when the subscription was last updated, in RFC 3339 format.\\nFor example, \\\"2016-09-04T23:59:33.123Z\\\".\",\n                \"readOnly\": true\n              }\n            }\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"63f84c6c-2200-4c99-846c-2670a1311fbf\",\n          \"subscription\": {\n            \"api_version\": \"2021-12-15\",\n            \"event_types\": [\n              \"payment.created\",\n              \"payment.updated\"\n            ],\n            \"name\": \"Example Webhook Subscription\",\n            \"notification_url\": \"https://example-webhook-url.com\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

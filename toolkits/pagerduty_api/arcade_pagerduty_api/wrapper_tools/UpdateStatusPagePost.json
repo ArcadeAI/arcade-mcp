@@ -1,0 +1,364 @@
+{
+  "name": "UpdateStatusPagePost",
+  "fully_qualified_name": "PagerdutyApi.UpdateStatusPagePost@2.0.0",
+  "description": "Update a post on a status page by its ID.\n\nUse this tool to update an existing post on a specific status page. Requires the status pages write permission.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The ID of the status page resource to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "status_page_post_id",
+        "required": true,
+        "description": "The ID of the status page post to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "post_id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "The versioning header for the API request, used to specify the API version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "status_page_post_details",
+        "required": false,
+        "description": "JSON object containing details of the status page post, such as type, title, post type, and timing for maintenance posts. It includes the status page ID and type.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "post": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "status_page_post"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title given to a Post."
+                },
+                "post_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "maintenance"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the Post."
+                },
+                "starts_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post intent becomes effective - only for maintenance post type."
+                },
+                "ends_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post intent is concluded - only for maintenance post type."
+                },
+                "status_page": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page"
+                }
+              },
+              "inner_properties": null,
+              "description": "Request schema for creating a given Status Page Post resource."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateStatusPagePost'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_pages/{id}/posts/{post_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "post_id",
+        "tool_parameter_name": "status_page_post_id",
+        "description": "The ID of the Status Page Post.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Status Page Post."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "status_page_post_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "post": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "status_page_post"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the object returned by the API - in this case, a Status Page Post."
+                },
+                "title": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The title given to a Post."
+                },
+                "post_type": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "incident",
+                    "maintenance"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The type of the Post."
+                },
+                "starts_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post intent becomes effective - only for maintenance post type."
+                },
+                "ends_at": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "The date and time the Post intent is concluded - only for maintenance post type."
+                },
+                "status_page": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Status page unique identifier"
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "A string that determines the schema of the object."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Status Page"
+                }
+              },
+              "inner_properties": null,
+              "description": "Request schema for creating a given Status Page Post resource."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"post\": {\n            \"type\": \"object\",\n            \"title\": \"StatusPagePostPutRequest\",\n            \"description\": \"Request schema for creating a given Status Page Post resource.\",\n            \"properties\": {\n              \"type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of the object returned by the API - in this case, a Status Page Post.\",\n                \"nullable\": false,\n                \"enum\": [\n                  \"status_page_post\"\n                ]\n              },\n              \"title\": {\n                \"type\": \"string\",\n                \"description\": \"The title given to a Post.\",\n                \"nullable\": false,\n                \"minLength\": 1,\n                \"maxLength\": 128\n              },\n              \"post_type\": {\n                \"type\": \"string\",\n                \"description\": \"The type of the Post.\",\n                \"nullable\": false,\n                \"enum\": [\n                  \"incident\",\n                  \"maintenance\"\n                ]\n              },\n              \"starts_at\": {\n                \"type\": \"string\",\n                \"description\": \"The date and time the Post intent becomes effective - only for maintenance post type.\",\n                \"nullable\": true,\n                \"format\": \"date-time\"\n              },\n              \"ends_at\": {\n                \"type\": \"string\",\n                \"description\": \"The date and time the Post intent is concluded - only for maintenance post type.\",\n                \"nullable\": true,\n                \"format\": \"date-time\"\n              },\n              \"status_page\": {\n                \"description\": \"Status Page\",\n                \"nullable\": false,\n                \"properties\": {\n                  \"id\": {\n                    \"description\": \"Status page unique identifier\",\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"description\": \"A string that determines the schema of the object.\",\n                    \"type\": \"string\"\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ],\n                \"type\": \"object\"\n              }\n            },\n            \"required\": [\n              \"type\",\n              \"title\",\n              \"post_type\",\n              \"starts_at\",\n              \"ends_at\",\n              \"status_page\"\n            ]\n          }\n        },\n        \"required\": [\n          \"post\"\n        ]\n      },\n      \"example\": {\n        \"post\": {\n          \"ends_at\": \"2023-12-12T11:00:00.000Z\",\n          \"post_type\": \"maintenance\",\n          \"starts_at\": \"2023-12-12T11:00:00.000Z\",\n          \"status_page\": {\n            \"id\": \"PR5LMML\",\n            \"type\": \"status_page\"\n          },\n          \"title\": \"maintenance window for database upgrade\",\n          \"type\": \"status_page_post\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

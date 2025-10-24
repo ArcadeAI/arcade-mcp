@@ -1,18 +1,18 @@
 {
   "name": "GetPausedIncidentReportCounts",
-  "fully_qualified_name": "PagerdutyApi.GetPausedIncidentReportCounts@0.1.0",
-  "description": "Retrieve paused incident reporting counts for a specified period.\n\nThis tool fetches reporting counts for paused incident usage within a specific reporting period, with a maximum lookback of 6 months. It is part of the Event Intelligence package or Digital Operations plan. Use this tool to assess incident management efficiency over time.",
+  "fully_qualified_name": "PagerdutyApi.GetPausedIncidentReportCounts@2.0.0",
+  "description": "Retrieve reporting counts for paused incident usage.\n\nThis tool returns reporting counts for paused incident usage within a specified reporting period, up to a 6-month lookback. It is available with the Event Intelligence package or Digital Operations plan.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "use_accept_versioning",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify if the `Accept` header should be used as a versioning header. True to enable.",
+        "description": "Specifies the API version or response format using the 'Accept' header. Typically a string like 'application/vnd.pagerduty+json;version=2'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Sets the content type for the request; must be 'application/json'.",
+        "description": "Specifies the media type. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "start_date",
         "required": false,
-        "description": "The start date for the search range in YYYY-MM-DD format.",
+        "description": "The start date for the reporting period to search, in YYYY-MM-DD format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "end_date",
         "required": false,
-        "description": "The end date of the reporting period to search for paused incidents. Format: YYYY-MM-DD.",
+        "description": "End date for the date range over which to search for paused incident reports. Format: YYYY-MM-DD.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "until"
       },
       {
-        "name": "filter_by_service_id",
+        "name": "service_identifier",
         "required": false,
-        "description": "Specifies a filter to limit the scope of reporting to a particular service by its ID.",
+        "description": "Filter to limit reporting to a particular service by providing a specific service ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "service_id"
       },
       {
-        "name": "filter_by_suspended_source",
+        "name": "filter_by_suspended_type",
         "required": false,
-        "description": "Filter response to alerts suspended by Auto Pause or Event Rules.",
+        "description": "Filter to specify whether to include alerts suspended by Auto Pause or Event Rules. Use 'Auto Pause' or 'Event Rules'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/paused_incident_reports/counts",
@@ -183,7 +183,7 @@
       },
       {
         "name": "service_id",
-        "tool_parameter_name": "filter_by_service_id",
+        "tool_parameter_name": "service_identifier",
         "description": "Specifies a filter to limit the scope of reporting to a particular service",
         "value_schema": {
           "val_type": "string",
@@ -201,7 +201,7 @@
       },
       {
         "name": "suspended_by",
-        "tool_parameter_name": "filter_by_suspended_source",
+        "tool_parameter_name": "filter_by_suspended_type",
         "description": "Specifies a filter to scope the response to either alerts suspended by Auto Pause or Event Rules.",
         "value_schema": {
           "val_type": "string",
@@ -219,7 +219,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "use_accept_versioning",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,7 +237,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -266,6 +266,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

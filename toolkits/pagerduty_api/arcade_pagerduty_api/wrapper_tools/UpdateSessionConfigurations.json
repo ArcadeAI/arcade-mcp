@@ -1,0 +1,247 @@
+{
+  "name": "UpdateSessionConfigurations",
+  "fully_qualified_name": "PagerdutyApi.UpdateSessionConfigurations@2.0.0",
+  "description": "Create or update session configurations in PagerDuty.\n\nThis tool is used to create or update session configurations for a PagerDuty account. Changes will apply immediately to new sessions, and existing sessions of specified types will be revoked. Early access is required, and scoped OAuth with `session_configurations.write` permission is necessary.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "session_configuration_type",
+        "required": true,
+        "description": "Specify session configuration type: 'mobile', 'web', or a comma-separated list of both.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "mobile",
+            "web"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session configuration type. This can be either 'mobile' or 'web', or a comma-separated list of both."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "accept_versioning_header",
+        "required": true,
+        "description": "Used as a versioning header for the API. Specify the version of the API you wish to use.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specifies the media type of the request. Must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "absolute_session_time_to_live_seconds",
+        "required": true,
+        "description": "Specify the absolute session time to live in seconds.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Absolute session time to live in seconds"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "session_configuration.absolute_session_ttl"
+      },
+      {
+        "name": "idle_session_time_to_live",
+        "required": true,
+        "description": "Specify the idle session time to live in seconds. This determines how long a session remains active without activity before being terminated.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Idle session time to live in seconds"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "session_configuration.idle_session_ttl"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateSessionConfigurations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/session_configurations",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "session_configuration_type",
+        "description": "Session configuration type. This can be either 'mobile' or 'web', or a comma-separated list of both.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "mobile",
+            "web"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Session configuration type. This can be either 'mobile' or 'web', or a comma-separated list of both."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "session_configuration.absolute_session_ttl",
+        "tool_parameter_name": "absolute_session_time_to_live_seconds",
+        "description": "Absolute session time to live in seconds",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Absolute session time to live in seconds"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "session_configuration.idle_session_ttl",
+        "tool_parameter_name": "idle_session_time_to_live",
+        "description": "Idle session time to live in seconds",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Idle session time to live in seconds"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"session_configuration\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"absolute_session_ttl\": {\n                \"type\": \"integer\",\n                \"description\": \"Absolute session time to live in seconds\",\n                \"example\": 3600,\n                \"minimum\": 600,\n                \"maximum\": 18144000\n              },\n              \"idle_session_ttl\": {\n                \"type\": \"integer\",\n                \"description\": \"Idle session time to live in seconds\",\n                \"example\": 600,\n                \"minimum\": 60,\n                \"maximum\": 86400\n              }\n            },\n            \"required\": [\n              \"absolute_session_ttl\",\n              \"idle_session_ttl\"\n            ]\n          }\n        },\n        \"required\": [\n          \"session_configuration\"\n        ]\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

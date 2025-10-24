@@ -1,18 +1,18 @@
 {
   "name": "SendChangeEvent",
-  "fully_qualified_name": "PagerdutyApi.SendChangeEvent@0.1.0",
-  "description": "Send change events to Pagerduty's Events API.\n\nUse this tool to log or send change events to Pagerduty's Events API. It should be called whenever a change event needs to be recorded in Pagerduty's system.",
+  "fully_qualified_name": "PagerdutyApi.SendChangeEvent@2.0.0",
+  "description": "Send a change event to PagerDuty's API.\n\nUse this tool to send change events to PagerDuty via the V2 Events API. Useful for logging changes in systems and notifying PagerDuty of updates.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "api_version",
         "required": true,
-        "description": "The `Accept` header used for versioning the API request. Specify the API version required.",
+        "description": "Specifies the API version for the request. Used in the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "The MIME type of the request body. Should always be 'application/json'.",
+        "description": "Specify the format of the data being sent. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/change_events",
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "api_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

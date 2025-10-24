@@ -1,18 +1,18 @@
 {
   "name": "ListMerchantCustomAttributeDefinitions",
-  "fully_qualified_name": "SquareupApi.ListMerchantCustomAttributeDefinitions@0.1.0",
-  "description": "Retrieve custom attribute definitions for a Square seller account.\n\nLists all visible merchant-related custom attribute definitions for a Square seller account, including those created by other applications.",
+  "fully_qualified_name": "SquareupApi.ListMerchantCustomAttributeDefinitions@2.0.0",
+  "description": "Retrieve merchant custom attribute definitions.\n\nFetch all merchant-related custom attribute definitions for a Square seller account, including those visible to the requesting application, even if created by other applications.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "filter_by_visibility",
+        "name": "visibility_filter_option",
         "required": false,
-        "description": "Specify the visibility to filter custom attribute definitions. Options: 'ALL', 'READ', 'READ_WRITE'.",
+        "description": "Specify the visibility level of the CustomAttributeDefinition results. Options: ALL, READ, READ_WRITE.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -31,7 +31,7 @@
       {
         "name": "max_results_per_page",
         "required": false,
-        "description": "Specifies the maximum number of results to return per page. Valid values are between 1 and 100. Defaults to 20.",
+        "description": "The maximum number of results to return in a single response, ranging from 1 to 100. Default is 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -46,7 +46,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Cursor to retrieve the next page of results from a previous API call response.",
+        "description": "The cursor for retrieving the next page of results from a previous response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -93,13 +93,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/merchants/custom-attribute-definitions",
@@ -108,7 +108,7 @@
     "parameters": [
       {
         "name": "visibility_filter",
-        "tool_parameter_name": "filter_by_visibility",
+        "tool_parameter_name": "visibility_filter_option",
         "description": "Filters the `CustomAttributeDefinition` results by their `visibility` values.",
         "value_schema": {
           "val_type": "string",
@@ -125,6 +125,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -142,6 +143,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -159,6 +161,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -172,6 +175,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "UpdateTrelloChecklistItem",
-  "fully_qualified_name": "TrelloApi.UpdateTrelloChecklistItem@0.1.0",
-  "description": "Update an item in a Trello card checklist.\n\nUse this tool to update a specific item within a checklist on a Trello card by providing the card and item identifiers.",
+  "fully_qualified_name": "TrelloApi.UpdateTrelloChecklistItem@2.0.0",
+  "description": "Update an item in a Trello card checklist.\n\nUse this tool to update a specific item in a checklist on a Trello card. It should be called when you need to modify details of an existing checklist item.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique ID of the Trello card that contains the checklist item.",
+        "description": "The unique identifier for the Trello card where the checklist item is located.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -22,75 +22,42 @@
           "description": "The ID of the Card"
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "id"
+        "http_endpoint_parameter_name": "idCard"
       },
       {
-        "name": "checkitem_id",
+        "name": "checklist_item_id",
         "required": true,
-        "description": "The unique ID of the checklist item to update on the Trello card.",
+        "description": "The unique ID of the checklist item that needs to be updated on the Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of the checkitem"
+          "description": "The ID of the checklist item to update"
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "idCheckItem"
       },
       {
-        "name": "new_checklist_item_name",
-        "required": false,
-        "description": "The new name for the checklist item in a Trello card.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The new name for the checklist item"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "name"
-      },
-      {
-        "name": "checkitem_state",
-        "required": false,
-        "description": "Specify the state of the checklist item, either `complete` or `incomplete`.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "complete",
-            "incomplete"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "One of: `complete`, `incomplete`"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "state"
-      },
-      {
         "name": "checklist_id",
-        "required": false,
-        "description": "The unique ID of the checklist containing the item to update.",
+        "required": true,
+        "description": "The ID of the checklist item you want to update on the Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of the checklist this item is in"
+          "description": "The ID of the item to update."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "idChecklist"
       },
       {
-        "name": "position",
+        "name": "position_in_checklist",
         "required": false,
-        "description": "Position of the checklist item: `top`, `bottom`, or a numerical value for specific position.",
+        "description": "Position the checklist item at the 'top', 'bottom', or a specific order with a positive float.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -101,56 +68,11 @@
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "pos"
-      },
-      {
-        "name": "checkitem_due_date",
-        "required": false,
-        "description": "A due date for the checklist item; expected format is a date string.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "A due date for the checkitem"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "due"
-      },
-      {
-        "name": "due_reminder_minutes",
-        "required": false,
-        "description": "Specify the number of minutes before the due date when a reminder should be sent for the checkitem.",
-        "value_schema": {
-          "val_type": "number",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "A dueReminder for the due date on the checkitem"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "dueReminder"
-      },
-      {
-        "name": "member_id_to_remove",
-        "required": false,
-        "description": "The ID of the member to remove from the Trello card checklist item.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The ID of the member to remove from the card"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "idMember"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'put-cards-id-checkitem-idcheckitem'.",
+    "description": "Response from the API endpoint 'put-cards-idcard-checklist-idchecklist-checkitem-idcheckitem'.",
     "available_modes": [
       "value",
       "error",
@@ -180,76 +102,22 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
+    "url": "https://api.trello.com/1/cards/{idCard}/checklist/{idChecklist}/checkItem/{idCheckItem}",
     "http_method": "PUT",
     "headers": {},
     "parameters": [
       {
-        "name": "name",
-        "tool_parameter_name": "new_checklist_item_name",
-        "description": "The new name for the checklist item",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The new name for the checklist item"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "state",
-        "tool_parameter_name": "checkitem_state",
-        "description": "One of: `complete`, `incomplete`",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "complete",
-            "incomplete"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "One of: `complete`, `incomplete`"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "idChecklist",
-        "tool_parameter_name": "checklist_id",
-        "description": "The ID of the checklist this item is in",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The ID of the checklist this item is in"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
         "name": "pos",
-        "tool_parameter_name": "position",
+        "tool_parameter_name": "position_in_checklist",
         "description": "`top`, `bottom`, or a positive float",
         "value_schema": {
           "val_type": "string",
@@ -262,61 +130,11 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
-        "name": "due",
-        "tool_parameter_name": "checkitem_due_date",
-        "description": "A due date for the checkitem",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "A due date for the checkitem"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "dueReminder",
-        "tool_parameter_name": "due_reminder_minutes",
-        "description": "A dueReminder for the due date on the checkitem",
-        "value_schema": {
-          "val_type": "number",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "A dueReminder for the due date on the checkitem"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "idMember",
-        "tool_parameter_name": "member_id_to_remove",
-        "description": "The ID of the member to remove from the card",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": null,
-          "properties": null,
-          "inner_properties": null,
-          "description": "The ID of the member to remove from the card"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "id",
+        "name": "idCard",
         "tool_parameter_name": "card_id",
         "description": "The ID of the Card",
         "value_schema": {
@@ -330,23 +148,43 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "idCheckItem",
-        "tool_parameter_name": "checkitem_id",
-        "description": "The ID of the checkitem",
+        "tool_parameter_name": "checklist_item_id",
+        "description": "The ID of the checklist item to update",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of the checkitem"
+          "description": "The ID of the checklist item to update"
         },
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idChecklist",
+        "tool_parameter_name": "checklist_id",
+        "description": "The ID of the item to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the item to update."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -368,6 +206,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

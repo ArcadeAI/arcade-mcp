@@ -1,18 +1,18 @@
 {
   "name": "GetTeamDetails",
-  "fully_qualified_name": "PagerdutyApi.GetTeamDetails@0.1.0",
-  "description": "Retrieve details about a specific team.\n\nThis tool retrieves details about an existing team in Pagerduty. Teams are collections of users and escalation policies representing groups within an organization. Use this tool to obtain information about a specific team by providing the team ID.",
+  "fully_qualified_name": "PagerdutyApi.GetTeamDetails@2.0.0",
+  "description": "Retrieve details about a specified team.\n\nFetches information about an existing team, which includes users and escalation policies. Useful for understanding team composition and responsibilities within an organization.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "team_id",
         "required": true,
-        "description": "The ID of the team resource to retrieve details for.",
+        "description": "The unique ID of the team to retrieve information for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "api_version_header",
+        "name": "accept_header_version",
         "required": true,
-        "description": "Specifies the API version for response format. Use the `Accept` header for versioning.",
+        "description": "Specifies the API version through the 'Accept' header. Use this to ensure compatibility with different API versions.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "The 'Content-Type' header value for the request; must be 'application/json'.",
+        "description": "The media type of the resource being sent. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "include_additional_models",
         "required": false,
-        "description": "Specifies additional models to include in the response, such as 'privileges'.",
+        "description": "Specify additional models like 'privileges' to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/teams/{id}",
@@ -157,7 +157,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_header",
+        "tool_parameter_name": "accept_header_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -175,7 +175,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -204,6 +204,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

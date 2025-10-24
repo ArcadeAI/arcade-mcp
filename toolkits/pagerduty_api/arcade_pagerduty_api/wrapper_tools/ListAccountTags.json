@@ -1,18 +1,18 @@
 {
   "name": "ListAccountTags",
-  "fully_qualified_name": "PagerdutyApi.ListAccountTags@0.1.0",
-  "description": "Retrieve all tags for your Pagerduty account.\n\nThis tool fetches all tags from your Pagerduty account, which can be used to filter escalation policies, teams, or users. Use this tool when you need a complete list of tags associated with your account.",
+  "fully_qualified_name": "PagerdutyApi.ListAccountTags@2.0.0",
+  "description": "Retrieve all tags for your account.\n\nThis tool retrieves a list of all tags associated with your account, which can be applied to Escalation Policies, Teams, or Users. Use this tool to manage or filter these entities based on tags.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "version_accept_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the API version via the `Accept` header to control the format of the response.",
+        "description": "Specify the version of the API using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "response_content_type",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the response format. Use 'application/json' to receive JSON responses.",
+        "description": "Specifies the media type for the request, default is application/json.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of tag results to return per page.",
+        "description": "The number of results to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset index from where to start returning paginated search results.",
+        "description": "Offset to start pagination search results. Use this to specify the starting point for retrieval when paginating through results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "label_filter",
+        "name": "tag_filter_query",
         "required": false,
-        "description": "Filter results to show only tags with labels matching the specified query.",
+        "description": "Filters the results to show only tags whose labels match this query string.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "query"
       },
       {
-        "name": "include_total_in_response",
+        "name": "include_total_in_pagination",
         "required": false,
-        "description": "Set to true to include the total count in the pagination response, otherwise it will remain null for faster responses.",
+        "description": "Set to true to include the total number of results in the pagination response. Defaults to false for faster response without total.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/tags",
@@ -183,7 +183,7 @@
       },
       {
         "name": "total",
-        "tool_parameter_name": "include_total_in_response",
+        "tool_parameter_name": "include_total_in_pagination",
         "description": "By default the `total` field in pagination responses is set to `null` to provide the fastest possible response times. Set `total` to `true` for this field to be populated.\n\nSee our [Pagination Docs](https://developer.pagerduty.com/docs/rest-api-v2/pagination/) for more information.\n",
         "value_schema": {
           "val_type": "boolean",
@@ -196,12 +196,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "query",
-        "tool_parameter_name": "label_filter",
+        "tool_parameter_name": "tag_filter_query",
         "description": "Filters the result, showing only the tags whose label matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -219,7 +219,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "version_accept_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,7 +237,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "response_content_type",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -266,6 +266,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

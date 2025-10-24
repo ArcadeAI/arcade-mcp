@@ -1,0 +1,177 @@
+{
+  "name": "UpdateBoardWebhookSubscription",
+  "fully_qualified_name": "MiroApi.UpdateBoardWebhookSubscription@2.0.0",
+  "description": "Update the status or URL of a board's webhook subscription.\n\nUse this tool to modify the status or the callback URL of an existing webhook subscription for a Miro board. This is useful for maintaining webhook integrations with updated configurations.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "required": true,
+        "description": "The unique identifier of the webhook subscription to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "subscription_id"
+      },
+      {
+        "name": "webhook_callback_url",
+        "required": false,
+        "description": "The HTTPS URL where Miro sends webhooks when events occur. Must be a valid URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the HTTPS URL to which Miro sends a webhook when an event occurs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "callbackUrl"
+      },
+      {
+        "name": "webhook_status",
+        "required": false,
+        "description": "Set the webhook subscription status: `enabled`, `disabled`, or handle `lost_access`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the status of the webhook subscription. `enabled`: Miro sends a webhook when an event occurs in the associated board.\n`disabled`: Miro does not send a webhook even when an event occurs in the associated board.\n`lost_access`: The user with which the webhook subscription is associated has lost access to the board.\nThe user needs to regain access to the board, and then reenable the webhook subscription by updating the webhook subscription status to `enabled` by using the update webhook endpoint."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-board-subscription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2-experimental/webhooks/board_subscriptions/{subscription_id}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "subscription_id",
+        "tool_parameter_name": "subscription_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "callbackUrl",
+        "tool_parameter_name": "webhook_callback_url",
+        "description": "Indicates the HTTPS URL to which Miro sends a webhook when an event occurs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates the HTTPS URL to which Miro sends a webhook when an event occurs."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "webhook_status",
+        "description": "Indicates whether the status of the webhook subscription. `enabled`: Miro sends a webhook when an event occurs in the associated board.\n`disabled`: Miro does not send a webhook even when an event occurs in the associated board.\n`lost_access`: The user with which the webhook subscription is associated has lost access to the board.\nThe user needs to regain access to the board, and then reenable the webhook subscription by updating the webhook subscription status to `enabled` by using the update webhook endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates whether the status of the webhook subscription. `enabled`: Miro sends a webhook when an event occurs in the associated board.\n`disabled`: Miro does not send a webhook even when an event occurs in the associated board.\n`lost_access`: The user with which the webhook subscription is associated has lost access to the board.\nThe user needs to regain access to the board, and then reenable the webhook subscription by updating the webhook subscription status to `enabled` by using the update webhook endpoint."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "enabled",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Contains updated information about a subscription.\",\n        \"properties\": {\n          \"callbackUrl\": {\n            \"type\": \"string\",\n            \"description\": \"Indicates the HTTPS URL to which Miro sends a webhook when an event occurs.\",\n            \"example\": \"https://yourwebhooklistener.com/v2/webhooks_endpoint\",\n            \"maxLength\": 256,\n            \"minLength\": 8,\n            \"pattern\": \"^https:\\\\/\\\\/(.*)\"\n          },\n          \"status\": {\n            \"type\": \"string\",\n            \"default\": \"enabled\",\n            \"description\": \"Indicates whether the status of the webhook subscription. `enabled`: Miro sends a webhook when an event occurs in the associated board.\\n`disabled`: Miro does not send a webhook even when an event occurs in the associated board.\\n`lost_access`: The user with which the webhook subscription is associated has lost access to the board.\\nThe user needs to regain access to the board, and then reenable the webhook subscription by updating the webhook subscription status to `enabled` by using the update webhook endpoint.\",\n            \"enum\": [\n              \"enabled\",\n              \"disabled\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

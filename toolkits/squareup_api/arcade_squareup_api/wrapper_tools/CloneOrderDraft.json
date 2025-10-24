@@ -1,0 +1,175 @@
+{
+  "name": "CloneOrderDraft",
+  "fully_qualified_name": "SquareupApi.CloneOrderDraft@2.0.0",
+  "description": "Clone an existing order as a draft.\n\nThis tool creates a new order in the DRAFT state by duplicating an existing order. It copies core fields such as line items, taxes, and discounts from the original order.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "order_id_to_clone",
+        "required": true,
+        "description": "The ID of the order you want to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the order to clone."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_id"
+      },
+      {
+        "name": "order_version",
+        "required": false,
+        "description": "An optional integer specifying the order version for concurrency protection. If omitted, the latest version is used.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional order version for concurrency protection.\n\nIf a version is provided, it must match the latest stored version of the order to clone.\nIf a version is not provided, the API clones the latest version."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      },
+      {
+        "name": "clone_request_idempotency_key",
+        "required": false,
+        "description": "A unique string to identify the clone request. Allows safe retries without duplicating cloned orders.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A value you specify that uniquely identifies this clone request.\n\nIf you are unsure whether a particular order was cloned successfully,\nyou can reattempt the call with the same idempotency key without\nworrying about creating duplicate cloned orders.\nThe originally cloned order is returned.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CloneOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ORDERS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/orders/clone",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "order_id",
+        "tool_parameter_name": "order_id_to_clone",
+        "description": "The ID of the order to clone.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the order to clone."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "order_version",
+        "description": "An optional order version for concurrency protection.\n\nIf a version is provided, it must match the latest stored version of the order to clone.\nIf a version is not provided, the API clones the latest version.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional order version for concurrency protection.\n\nIf a version is provided, it must match the latest stored version of the order to clone.\nIf a version is not provided, the API clones the latest version."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "clone_request_idempotency_key",
+        "description": "A value you specify that uniquely identifies this clone request.\n\nIf you are unsure whether a particular order was cloned successfully,\nyou can reattempt the call with the same idempotency key without\nworrying about creating duplicate cloned orders.\nThe originally cloned order is returned.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A value you specify that uniquely identifies this clone request.\n\nIf you are unsure whether a particular order was cloned successfully,\nyou can reattempt the call with the same idempotency key without\nworrying about creating duplicate cloned orders.\nThe originally cloned order is returned.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the fields that are included in requests to the\\n[CloneOrder](api-endpoint:Orders-CloneOrder) endpoint.\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"order_id\"\n        ],\n        \"properties\": {\n          \"order_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the order to clone.\"\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"An optional order version for concurrency protection.\\n\\nIf a version is provided, it must match the latest stored version of the order to clone.\\nIf a version is not provided, the API clones the latest version.\"\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A value you specify that uniquely identifies this clone request.\\n\\nIf you are unsure whether a particular order was cloned successfully,\\nyou can reattempt the call with the same idempotency key without\\nworrying about creating duplicate cloned orders.\\nThe originally cloned order is returned.\\n\\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).\",\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"UNIQUE_STRING\",\n          \"order_id\": \"ZAISEM52YcpmcWAzERDOyiWS123\",\n          \"version\": 3\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "name": "GetStatusDashboardBySlug",
+  "fully_qualified_name": "PagerdutyApi.GetStatusDashboardBySlug@2.0.0",
+  "description": "Retrieve a PagerDuty Status Dashboard by its URL slug.\n\nUse this tool to get details of a custom Status Dashboard in PagerDuty using the URL slug. Ideal for accessing human-readable dashboard references.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "status_dashboard_url_slug",
+        "required": true,
+        "description": "The URL slug for a status dashboard, typically a dash-separated string like 'dash-separated-string'. Used to identify a specific dashboard in PagerDuty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `url_slug` for a status dashboard"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "url_slug"
+      },
+      {
+        "name": "version_header",
+        "required": true,
+        "description": "Specify the version of the API to use via the 'Accept' header. This is used for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getStatusDashboardByUrlSlug'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/status_dashboards/url_slugs/{url_slug}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "url_slug",
+        "tool_parameter_name": "status_dashboard_url_slug",
+        "description": "The `url_slug` for a status dashboard",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `url_slug` for a status dashboard"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

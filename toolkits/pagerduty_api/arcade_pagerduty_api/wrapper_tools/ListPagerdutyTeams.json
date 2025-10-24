@@ -1,18 +1,18 @@
 {
   "name": "ListPagerdutyTeams",
-  "fully_qualified_name": "PagerdutyApi.ListPagerdutyTeams@0.1.0",
-  "description": "Retrieve teams from your PagerDuty account.\n\nUse this tool to list all teams within your PagerDuty account. Teams consist of users and escalation policies representing groups within an organization. You can also apply a search filter. Requires 'teams.read' OAuth scope.",
+  "fully_qualified_name": "PagerdutyApi.ListPagerdutyTeams@2.0.0",
+  "description": "Retrieve a list of teams from your PagerDuty account.\n\nThis tool retrieves a list of teams from your PagerDuty account, possibly filtered by a search query. Teams comprise users and escalation policies representing organizational groups. Use this tool to get insights into team structures and members.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specify the version of the API to use via the Accept header.",
+        "description": "String used as a versioning header to specify the API response format. This helps in ensuring the correct version of data is returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specifies the media type of the resource. Must be 'application/json'.",
+        "description": "The content type for the request header, typically set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,7 +44,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Specify the number of results to be displayed per page.",
+        "description": "Specify the number of teams to return per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset to start pagination of search results. Specify an integer value to skip a number of results.",
+        "description": "Offset to start returning team results from in pagination.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "search_query",
+        "name": "filter_by_name_query",
         "required": false,
-        "description": "Filter the teams to list only those whose names match the search query.",
+        "description": "Specify a query to filter teams by name. Only teams with names matching this query will be returned.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to populate the total field in pagination responses. This toggles total count retrieval for results.",
+        "description": "Set to true to include the total count of results in the response for pagination. This may impact response time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/teams",
@@ -196,12 +196,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "query",
-        "tool_parameter_name": "search_query",
+        "tool_parameter_name": "filter_by_name_query",
         "description": "Filters the result, showing only the records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -219,7 +219,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -266,6 +266,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

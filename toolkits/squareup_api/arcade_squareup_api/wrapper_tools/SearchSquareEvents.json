@@ -1,0 +1,379 @@
+{
+  "name": "SearchSquareEvents",
+  "fully_qualified_name": "SquareupApi.SearchSquareEvents@2.0.0",
+  "description": "Search for Square API events within a specified timeframe.\n\nUse this tool to find events from the Square API that have occurred within a 28-day period. Ideal for tracking event history and obtaining specific event details.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A pagination cursor for retrieving the next set of events from a previous search query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint. Provide this cursor to retrieve the next set of events for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "maximum_events_per_page",
+        "required": false,
+        "description": "Specify the maximum number of events to return per page, up to 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of events to return in a single page. The response might contain fewer events. The default value is 100, which is also the maximum allowed value.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\n\nDefault: 100"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "filter_event_types",
+        "required": false,
+        "description": "A list of event types to filter the search results by. Each event type should be a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by event types."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.event_types"
+      },
+      {
+        "name": "merchant_ids_filter",
+        "required": false,
+        "description": "An array of merchant IDs used to filter events by merchant.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by merchant."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.merchant_ids"
+      },
+      {
+        "name": "filter_by_location_ids",
+        "required": false,
+        "description": "An array of location IDs to filter events by specific locations.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by location."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.location_ids"
+      },
+      {
+        "name": "time_range_start",
+        "required": false,
+        "description": "Datetime value in RFC 3339 format indicating the start of the event timeframe.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.start_at"
+      },
+      {
+        "name": "end_time_range",
+        "required": false,
+        "description": "A datetime in RFC 3339 format marking the end of the time range for the event search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.created_at.end_at"
+      },
+      {
+        "name": "sort_key_for_event_search",
+        "required": false,
+        "description": "Set the key by which to sort the returned events. Options include 'DEFAULT'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DEFAULT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort key for events returned from a search."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.field"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the order (chronological or alphabetical) for sorting results. Choose 'ASC' for ascending or 'DESC' for descending order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.sort.order"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/events",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint. Provide this cursor to retrieve the next set of events for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint. Provide this cursor to retrieve the next set of events for your original query.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_events_per_page",
+        "description": "The maximum number of events to return in a single page. The response might contain fewer events. The default value is 100, which is also the maximum allowed value.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\n\nDefault: 100",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of events to return in a single page. The response might contain fewer events. The default value is 100, which is also the maximum allowed value.\n\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\n\nDefault: 100"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.event_types",
+        "tool_parameter_name": "filter_event_types",
+        "description": "Filter events by event types.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by event types."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.merchant_ids",
+        "tool_parameter_name": "merchant_ids_filter",
+        "description": "Filter events by merchant.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by merchant."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.location_ids",
+        "tool_parameter_name": "filter_by_location_ids",
+        "description": "Filter events by location.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter events by location."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.start_at",
+        "tool_parameter_name": "time_range_start",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.created_at.end_at",
+        "tool_parameter_name": "end_time_range",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nends.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.field",
+        "tool_parameter_name": "sort_key_for_event_search",
+        "description": "Specifies the sort key for events returned from a search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DEFAULT"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the sort key for events returned from a search."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.sort.order",
+        "tool_parameter_name": "sort_order",
+        "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "DESC",
+            "ASC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Searches [Event](entity:Event)s for your application.\",\n        \"x-release-status\": \"BETA\",\n        \"properties\": {\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint. Provide this cursor to retrieve the next set of events for your original query.\\n\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\",\n            \"maxLength\": 256\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of events to return in a single page. The response might contain fewer events. The default value is 100, which is also the maximum allowed value.\\n\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\\n\\nDefault: 100\",\n            \"minimum\": 1,\n            \"maximum\": 100\n          },\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Contains query criteria for the search.\",\n            \"x-release-status\": \"BETA\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Criteria to filter events by.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"event_types\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Filter events by event types.\",\n                    \"nullable\": true\n                  },\n                  \"merchant_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Filter events by merchant.\",\n                    \"nullable\": true\n                  },\n                  \"location_ids\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"description\": \"Filter events by location.\",\n                    \"nullable\": true\n                  },\n                  \"created_at\": {\n                    \"type\": \"object\",\n                    \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"start_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                        \"nullable\": true\n                      },\n                      \"end_at\": {\n                        \"type\": \"string\",\n                        \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                        \"nullable\": true\n                      }\n                    }\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Criteria to sort events by.\",\n                \"x-release-status\": \"BETA\",\n                \"properties\": {\n                  \"field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DEFAULT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DEFAULT\",\n                        \"description\": \"Use the default sort key. The default behavior is to sort events by when they were created (`created_at`).\"\n                      }\n                    ],\n                    \"description\": \"Specifies the sort key for events returned from a search.\",\n                    \"x-release-status\": \"BETA\"\n                  },\n                  \"order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "name": "CreateAuditLogRequest",
+  "fully_qualified_name": "AirtableApi.CreateAuditLogRequest@2.0.0",
+  "description": "Initiate the creation of an audit log request.\n\nStarts the processing necessary to retrieve audit logs and returns an ID to track and download the logs later. For new cases, prefer using the audit log events API.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The ID of the enterprise account for which the audit log is being requested. Necessary to initiate the log request process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "audit_log_request_body",
+        "required": false,
+        "description": "JSON object containing optional filters ('filter' and 'timePeriod') for the audit log request. 'filter' can be a User ID, Workspace ID, Base ID, Table ID, or IPv4 address. 'timePeriod' must be in 'YYYY-MM' or 'YYYY-MM-DD' format and within the last 180 days.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An optional filter may be supplied. The filter value may be any of:\n\n- User ID\n- Workspace ID\n- Base ID\n- Table ID\n- IPv4 address (**1.2.3.4**)"
+            },
+            "timePeriod": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time period (specific month or day) for which you want to retrieve audit logs for.\nMust be in either **YYYY-MM** or **YYYY-MM-DD** format and within the last 180 days."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'create-audit-log-request'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "enterprise.auditLogs:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/auditLogs",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "audit_log_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "filter": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "An optional filter may be supplied. The filter value may be any of:\n\n- User ID\n- Workspace ID\n- Base ID\n- Table ID\n- IPv4 address (**1.2.3.4**)"
+            },
+            "timePeriod": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The time period (specific month or day) for which you want to retrieve audit logs for.\nMust be in either **YYYY-MM** or **YYYY-MM-DD** format and within the last 180 days."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success Response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success Response\",\n          \"value\": {\n            \"filter\": \"appLkNDICXNqxSDhG\",\n            \"timePeriod\": \"2021-01\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"filter\": {\n            \"description\": \"An optional filter may be supplied. The filter value may be any of:\\n\\n- User ID\\n- Workspace ID\\n- Base ID\\n- Table ID\\n- IPv4 address (**1.2.3.4**)\",\n            \"type\": \"string\"\n          },\n          \"timePeriod\": {\n            \"description\": \"The time period (specific month or day) for which you want to retrieve audit logs for.\\nMust be in either **YYYY-MM** or **YYYY-MM-DD** format and within the last 180 days.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"timePeriod\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

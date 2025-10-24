@@ -1,18 +1,18 @@
 {
   "name": "GetBoardMemberInfo",
-  "fully_qualified_name": "MiroApi.GetBoardMemberInfo@0.1.0",
-  "description": "Retrieve information about a specific Miro board member.\n\nUse this tool to obtain details about a particular member of a Miro board. It requires board and member identifiers. Ensure you have the required 'boards:read' scope to access this information.",
+  "fully_qualified_name": "MiroApi.GetBoardMemberInfo@2.0.0",
+  "description": "Retrieve details about a specific board member.\n\nUse this tool to get information about a specific member of a Miro board, including details necessary for collaboration and management. This should be called when you need to access a board member's data for a given board on Miro.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "board_identifier",
+        "name": "board_id",
         "required": true,
-        "description": "Unique identifier of the board to which the board member belongs.",
+        "description": "Unique identifier (ID) of the board to which the board member belongs.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "board_id"
       },
       {
-        "name": "board_member_identifier",
+        "name": "board_member_id",
         "required": true,
-        "description": "The unique ID of the board member whose information you want to retrieve.",
+        "description": "Unique identifier (ID) of the board member whose role you want to retrieve on a specific board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id}/members/{board_member_id}",
@@ -85,7 +85,7 @@
     "parameters": [
       {
         "name": "board_id",
-        "tool_parameter_name": "board_identifier",
+        "tool_parameter_name": "board_id",
         "description": "Unique identifier (ID) of the board to which the board member belongs.",
         "value_schema": {
           "val_type": "string",
@@ -98,11 +98,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "board_member_id",
-        "tool_parameter_name": "board_member_identifier",
+        "tool_parameter_name": "board_member_id",
         "description": "Unique identifier (ID) of the board member whose role you want to retrieve.",
         "value_schema": {
           "val_type": "string",
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

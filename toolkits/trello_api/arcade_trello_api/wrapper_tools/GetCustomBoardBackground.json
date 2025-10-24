@@ -1,18 +1,18 @@
 {
   "name": "GetCustomBoardBackground",
-  "fully_qualified_name": "TrelloApi.GetCustomBoardBackground@0.1.0",
-  "description": "Get a specific custom board background by ID.\n\nRetrieve details of a particular custom board background using the member and background ID.",
+  "fully_qualified_name": "TrelloApi.GetCustomBoardBackground@2.0.0",
+  "description": "Get a specific custom board background from Trello.\n\nThis tool retrieves details of a specific custom board background for a given member on Trello. It is useful for obtaining properties and settings associated with a custom board background.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the member to identify whose custom board background to retrieve.",
+        "description": "The ID or username of the Trello member to retrieve the custom board background for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_background_id",
         "required": true,
-        "description": "The ID of the custom board background to retrieve.",
+        "description": "The unique identifier for the custom board background to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

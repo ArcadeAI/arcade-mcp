@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentWorkflowActions",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflowActions@0.1.0",
-  "description": "Retrieve a list of incident workflow actions.\n\nThis tool is used to fetch a list of actions available in incident workflows via Pagerduty. It requires OAuth permission `incident_workflows.read` and is useful for understanding available actions within incident workflows.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentWorkflowActions@2.0.0",
+  "description": "Retrieve a list of incident workflow actions.\n\nUse this tool to get a list of available incident workflow actions from PagerDuty. This is useful for managing and understanding workflows associated with incidents. Requires `incident_workflows.read` scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "api_version_accept_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the API version to accept using the 'Accept' header for versioning.",
+        "description": "Specifies the API version to use via the `Accept` header. Used for versioning requests.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Sets the Content-Type header for the request. Use 'application/json' to specify JSON response format.",
+        "description": "Specifies the format of the response. Must be set to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "limit_results",
+        "name": "max_results_limit",
         "required": false,
-        "description": "Specifies the maximum number of workflow actions to return in the response.",
+        "description": "The maximum number of incident workflow actions to return in a single request. This value is the lesser of the specified limit or the API's maximum request size.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "Optional. Use to request the next set of results from the API. Obtained from the `next_cursor` field of the previous request.",
+        "description": "Optional parameter to fetch the next set of results. Use 'next_cursor' from the previous response. Starts at the beginning if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "filter_by_keyword",
         "required": false,
-        "description": "Specify a keyword to filter actions, showing only those tagged with this keyword.",
+        "description": "Show actions tagged with the specified keyword. Provide a specific keyword to filter results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,13 +117,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incident_workflows/actions",
@@ -132,7 +132,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "limit_results",
+        "tool_parameter_name": "max_results_limit",
         "description": "The minimum of the `limit` parameter used in the request or the maximum request size of the API.",
         "value_schema": {
           "val_type": "integer",
@@ -186,7 +186,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_accept_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -204,7 +204,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -233,6 +233,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

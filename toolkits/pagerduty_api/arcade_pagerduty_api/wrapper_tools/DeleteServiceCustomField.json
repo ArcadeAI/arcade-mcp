@@ -1,18 +1,18 @@
 {
   "name": "DeleteServiceCustomField",
-  "fully_qualified_name": "PagerdutyApi.DeleteServiceCustomField@0.1.0",
-  "description": "Delete a custom field from a service in PagerDuty.\n\nUse this tool to delete a custom field from services in PagerDuty. Requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.DeleteServiceCustomField@2.0.0",
+  "description": "Deletes a custom field from a service.\n\nUse this tool to delete a custom field from a service in PagerDuty. This action requires 'custom_fields.write' permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "field_id",
         "required": true,
-        "description": "The unique identifier of the custom field to be deleted.",
+        "description": "The ID of the custom field you want to delete from the service.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "field_id"
       },
       {
-        "name": "api_version_header",
+        "name": "versioning_accept_header",
         "required": true,
-        "description": "The versioning header for the request, specifying the API version to use.",
+        "description": "The versioning header for the API. Specify the desired API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Specify the content type as 'application/json'.",
+        "description": "Specifies the media type of the request body, default is `application/json`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/custom_fields/{field_id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_header",
+        "tool_parameter_name": "versioning_accept_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "AddMemberToTrelloCard",
-  "fully_qualified_name": "TrelloApi.AddMemberToTrelloCard@0.1.0",
-  "description": "Add a member to a Trello card.\n\nUse this tool to assign a member to a specific Trello card by providing the card ID.",
+  "fully_qualified_name": "TrelloApi.AddMemberToTrelloCard@2.0.0",
+  "description": "Add a member to a specified Trello card.\n\nUse this tool to assign a specific member to a Trello card by providing the card ID and member information.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card to which a member will be added.",
+        "description": "The unique identifier for the Trello card to which a member will be added. It is required to specify which card the member should be added to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_to_add",
         "required": false,
-        "description": "The ID of the member to be added to the specified Trello card.",
+        "description": "The ID of the member to add to the specified Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/cards/{id}/idMembers",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

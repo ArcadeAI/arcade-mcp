@@ -1,18 +1,18 @@
 {
   "name": "GetOutlierIncidentInfo",
-  "fully_qualified_name": "PagerdutyApi.GetOutlierIncidentInfo@0.1.0",
-  "description": "Retrieve outlier incident details for a specific incident.\n\nUse this tool to obtain detailed information about an outlier incident associated with a specific service incident in Pagerduty. Requires scoped OAuth with `incidents.read` permission.",
+  "fully_qualified_name": "PagerdutyApi.GetOutlierIncidentInfo@2.0.0",
+  "description": "Retrieve information about an outlier incident for a service.\n\nUse this tool to get detailed information about an outlier incident associated with a specified incident on its service. Requires appropriate OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "incident_id",
+        "name": "incident_resource_id",
         "required": true,
-        "description": "The unique ID of the incident to retrieve outlier details for.",
+        "description": "The unique identifier for the incident resource you want details about.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the API version as a string using the `Accept` header for versioning.",
+        "description": "Specifies the API version via the 'Accept' header to ensure correct response format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type_header",
         "required": true,
-        "description": "Specifies the media type of the request body. Must be 'application/json'.",
+        "description": "Specifies the data format for the request. Use 'application/json' only.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "start_date_for_search",
+        "name": "start_date_range",
         "required": false,
-        "description": "The start date of the range for searching outlier incidents.",
+        "description": "The start date for the search range in YYYY-MM-DD format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "since"
       },
       {
-        "name": "additional_attributes_for_related_incidents",
+        "name": "include_additional_incident_details",
         "required": false,
-        "description": "List of additional attributes for the returned related incidents. Options include 'incident'.",
+        "description": "Include additional attributes for related incidents, specified as strings.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,13 +119,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/{id}/outlier_incident",
@@ -134,7 +134,7 @@
     "parameters": [
       {
         "name": "since",
-        "tool_parameter_name": "start_date_for_search",
+        "tool_parameter_name": "start_date_range",
         "description": "The start of the date range over which you want to search.",
         "value_schema": {
           "val_type": "string",
@@ -152,7 +152,7 @@
       },
       {
         "name": "additional_details[]",
-        "tool_parameter_name": "additional_attributes_for_related_incidents",
+        "tool_parameter_name": "include_additional_incident_details",
         "description": "Array of additional attributes to any of the returned incidents for related incidents.",
         "value_schema": {
           "val_type": "string",
@@ -172,7 +172,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "incident_id",
+        "tool_parameter_name": "incident_resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -190,7 +190,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,6 +237,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

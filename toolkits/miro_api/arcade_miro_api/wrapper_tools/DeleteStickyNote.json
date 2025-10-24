@@ -1,18 +1,18 @@
 {
   "name": "DeleteStickyNote",
-  "fully_qualified_name": "MiroApi.DeleteStickyNote@0.1.0",
-  "description": "Removes a sticky note item from a Miro board.\n\nUse this tool to delete a specific sticky note from a board in Miro. Requires appropriate board permissions.",
+  "fully_qualified_name": "MiroApi.DeleteStickyNote@2.0.0",
+  "description": "Deletes a sticky note from a Miro board.\n\nCall this tool to remove a specific sticky note from a given Miro board by specifying the board and item IDs. Ensure you have the necessary 'boards:write' scope.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "Unique identifier of the board from which the sticky note will be deleted.",
+        "description": "Unique identifier (ID) of the board from which you want to delete the sticky note.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "sticky_note_id",
         "required": true,
-        "description": "Unique identifier (ID) of the sticky note to delete from the board.",
+        "description": "Unique identifier (ID) of the sticky note you want to delete from the board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,13 +70,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id}/sticky_notes/{item_id}",
@@ -98,6 +98,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -115,6 +116,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -128,6 +130,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

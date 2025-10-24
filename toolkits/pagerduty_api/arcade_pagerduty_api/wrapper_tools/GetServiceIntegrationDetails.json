@@ -1,18 +1,18 @@
 {
   "name": "GetServiceIntegrationDetails",
-  "fully_qualified_name": "PagerdutyApi.GetServiceIntegrationDetails@0.1.0",
-  "description": "Retrieve integration details for a given service.\n\nUse this tool to obtain information about a specific integration associated with a service on Pagerduty. This is useful for understanding the integrations linked to applications, components, or teams for incident management.",
+  "fully_qualified_name": "PagerdutyApi.GetServiceIntegrationDetails@2.0.0",
+  "description": "Retrieve details about a specific service integration.\n\nThis tool retrieves details about an integration for a specified service in PagerDuty. Use this tool to find information about how an application, component, or team is integrated for incident management. Requires appropriate OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "service_id",
+        "name": "resource_id",
         "required": true,
-        "description": "The ID of the service resource to retrieve integration details.",
+        "description": "The unique identifier for the service resource to retrieve integration details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "integration_id",
         "required": true,
-        "description": "The unique ID of the integration associated with a service. Required to retrieve specific integration details.",
+        "description": "The unique ID of the integration on the specified service in PagerDuty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "integration_id"
       },
       {
-        "name": "version_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "A versioning string for the `Accept` header to specify API version.",
+        "description": "Specify the API version for the request using the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type_json",
         "required": true,
-        "description": "Specifies the format of the request body. Use 'application/json' for JSON formatted requests.",
+        "description": "Specifies the content type for the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "include_additional_details",
         "required": false,
-        "description": "Specify additional details to include, such as 'services' or 'vendors'.",
+        "description": "Specify additional details like 'services' or 'vendors' to include.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -120,13 +120,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services/{id}/integrations/{integration_id}",
@@ -156,7 +156,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "service_id",
+        "tool_parameter_name": "resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -192,7 +192,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "version_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -210,7 +210,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type_json",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -239,6 +239,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

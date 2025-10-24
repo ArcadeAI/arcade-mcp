@@ -1,18 +1,18 @@
 {
   "name": "RemoveTeamMember",
-  "fully_qualified_name": "MiroApi.RemoveTeamMember@0.1.0",
-  "description": "Remove a team member from a Miro Enterprise plan team.\n\nThis tool deletes a specified team member by their ID from a team within the Miro Enterprise plan. It requires the 'organizations:teams:write' scope and is available only for users with the role of Company Admin. Suitable for managing team compositions within organizations.",
+  "fully_qualified_name": "MiroApi.RemoveTeamMember@2.0.0",
+  "description": "Remove a team member from a team by ID within an enterprise.\n\nThis tool deletes a team member from a specified team using their ID within an enterprise, requiring admin permissions and appropriate API access scope.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The ID of the organization from which the team member will be removed.",
+        "description": "The unique identifier of the organization from which a team member will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "team_identifier",
         "required": true,
-        "description": "The unique identifier for the team from which the member will be removed.",
+        "description": "The unique identifier of the team from which the member will be removed. This should be a string representing the Team ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "team_member_id",
         "required": true,
-        "description": "The ID of the team member to be removed from the team.",
+        "description": "The unique identifier of the team member to be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/members/{member_id}",
@@ -113,6 +113,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -130,6 +131,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -147,6 +149,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "ListLocationCustomAttributes",
-  "fully_qualified_name": "SquareupApi.ListLocationCustomAttributes@0.1.0",
-  "description": "Fetch custom attributes for a specific location.\n\nUse this tool to list custom attributes associated with a specific location. It can also retrieve custom attribute definitions if needed. It includes attributes visible to the requesting app, even if owned by others.",
+  "fully_qualified_name": "SquareupApi.ListLocationCustomAttributes@2.0.0",
+  "description": "Retrieve custom attributes for a specific location.\n\nThis tool retrieves custom attributes associated with a specific location from Square. Optionally, custom attribute definitions can be included. It returns attributes visible to the requester, including those with varying visibility settings.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "location_id",
         "required": true,
-        "description": "The ID of the target location for which to fetch custom attributes.",
+        "description": "The ID of the target location to retrieve custom attributes for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "location_id"
       },
       {
-        "name": "visibility_filter",
+        "name": "filter_by_visibility",
         "required": false,
-        "description": "Filters custom attribute results based on their visibility values (ALL, READ, READ_WRITE).",
+        "description": "Filters custom attribute definitions by visibility values. Options include 'ALL', 'READ', or 'READ_WRITE'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,9 +44,9 @@
         "http_endpoint_parameter_name": "visibility_filter"
       },
       {
-        "name": "max_results_per_page",
+        "name": "maximum_results_limit",
         "required": false,
-        "description": "The maximum number of results to fetch per page. Minimum is 1, maximum is 100, default is 20.",
+        "description": "The maximum number of results to return in a single response. Valid range: 1 to 100. Default is 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -61,7 +61,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "String value of the cursor from previous response, used for paginating results.",
+        "description": "The cursor for fetching the next page of results in a paginated response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -76,7 +76,7 @@
       {
         "name": "include_custom_attribute_definitions",
         "required": false,
-        "description": "Set to true to include custom attribute definitions with each custom attribute. Default is false.",
+        "description": "Set to true to include custom attribute definitions, providing name, description, and data type details. Defaults to false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -123,13 +123,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/locations/{location_id}/custom-attributes",
@@ -138,7 +138,7 @@
     "parameters": [
       {
         "name": "visibility_filter",
-        "tool_parameter_name": "visibility_filter",
+        "tool_parameter_name": "filter_by_visibility",
         "description": "Filters the `CustomAttributeDefinition` results by their `visibility` values.",
         "value_schema": {
           "val_type": "string",
@@ -155,11 +155,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_results_per_page",
+        "tool_parameter_name": "maximum_results_limit",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -172,6 +173,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -189,6 +191,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -206,6 +209,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -223,6 +227,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -236,6 +241,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "CreateTrelloChecklist",
-  "fully_qualified_name": "TrelloApi.CreateTrelloChecklist@0.1.0",
-  "description": "Create a checklist on a Trello card.\n\nUse this tool to create a new checklist on a specified Trello card. This can be useful for organizing tasks and ensuring all steps are accounted for within a card.",
+  "fully_qualified_name": "TrelloApi.CreateTrelloChecklist@2.0.0",
+  "description": "Create a new checklist in Trello.\n\nThis tool creates a checklist in Trello. It should be called when a user wants to add a checklist to a Trello board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "card_id",
         "required": true,
-        "description": "The ID of the Trello card where the checklist will be added.",
+        "description": "The unique ID of the Trello card where the checklist will be added.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_name",
         "required": false,
-        "description": "The name of the checklist. Must be between 1 and 16384 characters.",
+        "description": "The name of the checklist to be created. It should be a string with 1 to 16384 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "checklist_position",
         "required": false,
-        "description": "Specify the position of the checklist on the card: 'top', 'bottom', or a positive number for a specific placement.",
+        "description": "The position of the checklist on the card. Accepts 'top', 'bottom', or a positive number indicating specific placement.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "source_checklist_id",
         "required": false,
-        "description": "The ID of an existing checklist to copy into the new checklist. Use this to duplicate a checklist template or predefined checklist items.",
+        "description": "The ID of the checklist to be copied into the new checklist.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists",
@@ -130,6 +130,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -147,6 +148,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -164,6 +166,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -181,6 +184,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -202,6 +206,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

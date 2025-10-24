@@ -1,18 +1,18 @@
 {
   "name": "ListMerchantCustomAttributes",
-  "fully_qualified_name": "SquareupApi.ListMerchantCustomAttributes@0.1.0",
-  "description": "Retrieve custom attributes for a specified merchant.\n\nUse this tool to get custom attributes associated with a merchant. You can optionally include definitions of these attributes. The tool returns all attributes visible to the requesting application, including those with read-only or read-write visibility.",
+  "fully_qualified_name": "SquareupApi.ListMerchantCustomAttributes@2.0.0",
+  "description": "Retrieve custom attributes for a specified merchant.\n\nThis tool retrieves the custom attributes associated with a specific merchant, including those visible to the requesting application and owned by other applications. Useful for managing and analyzing merchant-specific data.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "merchant_id",
+        "name": "merchant_identifier",
         "required": true,
-        "description": "The ID of the target merchant. Use this to specify which merchant's custom attributes you want to retrieve.",
+        "description": "The unique identifier for the target merchant whose custom attributes are to be listed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "merchant_id"
       },
       {
-        "name": "filter_by_visibility",
+        "name": "filter_custom_attribute_visibility",
         "required": false,
-        "description": "Specify how to filter custom attribute definitions by visibility. Options: 'ALL', 'READ', 'READ_WRITE'.",
+        "description": "Filters custom attribute definition results by visibility values. Valid options are 'ALL', 'READ', or 'READ_WRITE'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -44,9 +44,9 @@
         "http_endpoint_parameter_name": "visibility_filter"
       },
       {
-        "name": "max_results_per_page",
+        "name": "maximum_results_limit",
         "required": false,
-        "description": "Maximum number of results per single paged response. Value must be between 1 and 100, with a default of 20.",
+        "description": "The maximum number of results to return in a single response. Minimum is 1, maximum is 100, defaults to 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -59,9 +59,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_cursor",
+        "name": "paging_cursor",
         "required": false,
-        "description": "The cursor from the previous response to retrieve the next page of results.",
+        "description": "The cursor from the previous paged response to retrieve the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -76,7 +76,7 @@
       {
         "name": "include_custom_attribute_definitions",
         "required": false,
-        "description": "Set to `true` to include custom attribute definitions, including their name, description, and data type. Default is `false`.",
+        "description": "Set to true to include custom attribute definitions, providing details like name, description, and data type.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -123,13 +123,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes",
@@ -138,7 +138,7 @@
     "parameters": [
       {
         "name": "visibility_filter",
-        "tool_parameter_name": "filter_by_visibility",
+        "tool_parameter_name": "filter_custom_attribute_visibility",
         "description": "Filters the `CustomAttributeDefinition` results by their `visibility` values.",
         "value_schema": {
           "val_type": "string",
@@ -155,11 +155,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "limit",
-        "tool_parameter_name": "max_results_per_page",
+        "tool_parameter_name": "maximum_results_limit",
         "description": "The maximum number of results to return in a single paged response. This limit is advisory.\nThe response might contain more or fewer results. The minimum value is 1 and the maximum value is 100.\nThe default value is 20. For more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "integer",
@@ -172,11 +173,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "pagination_cursor",
+        "tool_parameter_name": "paging_cursor",
         "description": "The cursor returned in the paged response from the previous call to this endpoint.\nProvide this cursor to retrieve the next page of results for your original request. For more\ninformation, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
         "value_schema": {
           "val_type": "string",
@@ -189,6 +191,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -206,11 +209,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "merchant_id",
-        "tool_parameter_name": "merchant_id",
+        "tool_parameter_name": "merchant_identifier",
         "description": "The ID of the target [merchant](entity:Merchant).",
         "value_schema": {
           "val_type": "string",
@@ -223,6 +227,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -236,6 +241,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

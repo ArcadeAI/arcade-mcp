@@ -1,18 +1,18 @@
 {
   "name": "UpdateSidebarActivityPreference",
-  "fully_qualified_name": "TrelloApi.UpdateSidebarActivityPreference@0.1.0",
-  "description": "Update sidebar activity display preference for a Trello board.\n\nUse this tool to update the preference for displaying the sidebar activity on a specific Trello board. Useful when adjusting board settings to improve user interaction.",
+  "fully_qualified_name": "TrelloApi.UpdateSidebarActivityPreference@2.0.0",
+  "description": "Toggle the sidebar activity visibility for a Trello board.\n\nUse this tool to update the visibility of the sidebar activity on a specific Trello board. It's useful when you want to either display or hide the activity stream in the sidebar for better board management.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier for the Trello board to update the sidebar activity preference.",
+        "description": "The unique identifier of the Trello board to update the sidebar activity preference.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "show_sidebar_activity",
         "required": true,
-        "description": "Set to true to display the sidebar activity; false to hide it.",
+        "description": "Boolean to determine if sidebar activity should be shown. True to show, False to hide.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/myPrefs/showSidebarActivity",
@@ -100,6 +100,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

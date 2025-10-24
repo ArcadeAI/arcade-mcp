@@ -1,18 +1,18 @@
 {
   "name": "ListCatalogItems",
-  "fully_qualified_name": "SquareupApi.ListCatalogItems@0.1.0",
-  "description": "Retrieve a list of catalog objects by type.\n\nThis tool retrieves a list of all catalog objects of specified types, such as ITEM, ITEM_VARIATION, MODIFIER, etc., excluding deleted items. It's useful for accessing and managing various components of a catalog in the Square ecosystem.",
+  "fully_qualified_name": "SquareupApi.ListCatalogItems@2.0.0",
+  "description": "Retrieve a list of catalog objects by type from Square catalog.\n\nUse this tool to get a list of catalog objects from Square, specifying desired types such as ITEM, ITEM_VARIATION, MODIFIER, etc. Note: It does not include deleted items.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The pagination cursor from the previous response. Leave empty for the initial request. Defaults to a page size of 100 results.",
+        "description": "The cursor for pagination from a previous response. Leave unset for the initial request. Page size is 100.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "catalog_object_types",
         "required": false,
-        "description": "A comma-separated list of catalog object types to retrieve. Defaults to returning top-level types if unspecified.",
+        "description": "A case-insensitive, comma-separated list of object types to retrieve. Valid types include ITEM, ITEM_VARIATION, CATEGORY, DISCOUNT, TAX, MODIFIER, MODIFIER_LIST, IMAGE, etc. Defaults to top-level types if unspecified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "types"
       },
       {
-        "name": "catalog_version",
+        "name": "catalog_version_number",
         "required": false,
-        "description": "Specify the version of the catalog objects to retrieve. Use to access historical versions. Default retrieves the current version.",
+        "description": "Specify the catalog version number to retrieve historical objects. If omitted, retrieves current version.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/catalog/list",
@@ -117,6 +117,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -134,11 +135,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "catalog_version",
-        "tool_parameter_name": "catalog_version",
+        "tool_parameter_name": "catalog_version_number",
         "description": "The specific version of the catalog objects to be included in the response.\nThis allows you to retrieve historical versions of objects. The specified version value is matched against\nthe [CatalogObject](entity:CatalogObject)s' `version` attribute.  If not included, results will be from the\ncurrent version of the catalog.",
         "value_schema": {
           "val_type": "integer",
@@ -151,6 +153,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -164,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

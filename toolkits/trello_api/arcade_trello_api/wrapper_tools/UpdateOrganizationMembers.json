@@ -1,18 +1,18 @@
 {
   "name": "UpdateOrganizationMembers",
-  "fully_qualified_name": "TrelloApi.UpdateOrganizationMembers@0.1.0",
-  "description": "Update the members of a Trello organization.\n\nUse this tool to modify the membership of a specified Trello organization. It updates the organization members based on provided details.",
+  "fully_qualified_name": "TrelloApi.UpdateOrganizationMembers@2.0.0",
+  "description": "Update members of a Trello organization.\n\nUse this tool to update the members associated with a specific Trello organization. It is useful for managing team membership changes within an organization.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_email",
         "required": true,
-        "description": "The email address of the member to update in the organization.",
+        "description": "The email address of the member to be updated in the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_full_name",
         "required": true,
-        "description": "Name for the member, must be at least 1 character and not begin or end with a space.",
+        "description": "The full name of the member, at least 1 character not beginning or ending with a space.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello organization to update.",
+        "description": "The ID or name of the Trello organization to update members for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_role_type",
+        "name": "member_role",
         "required": false,
-        "description": "Specify the member's role: `admin` or `normal`.",
+        "description": "Specify the role of the member, either `admin` or `normal`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -105,13 +105,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/members",
@@ -133,6 +133,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -150,11 +151,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "type",
-        "tool_parameter_name": "member_role_type",
+        "tool_parameter_name": "member_role",
         "description": "One of: `admin`, `normal`",
         "value_schema": {
           "val_type": "string",
@@ -170,6 +172,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "normal",
         "documentation_urls": []
       },
       {
@@ -187,6 +190,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -208,6 +212,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

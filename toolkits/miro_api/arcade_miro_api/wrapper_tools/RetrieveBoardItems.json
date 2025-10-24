@@ -1,18 +1,18 @@
 {
   "name": "RetrieveBoardItems",
-  "fully_qualified_name": "MiroApi.RetrieveBoardItems@0.1.0",
-  "description": "Retrieve a list of items from a specific Miro board.\n\nThis tool retrieves a list of items for a specific board in Miro. It supports filtering to get all items, child items within a parent, or specific item types. Results are paginated using a cursor-based approach. Suitable for tasks requiring retrieval of board contents.",
+  "fully_qualified_name": "MiroApi.RetrieveBoardItems@2.0.0",
+  "description": "Retrieve items from a specific Miro board.\n\nUse this tool to get a list of items from a Miro board. You can retrieve all items, child items, or specific types of items. Results are retrieved using a cursor-based pagination system.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_identifier",
         "required": true,
-        "description": "Unique identifier for the Miro board to retrieve items from.",
+        "description": "Unique identifier (ID) of the Miro board to retrieve items from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "board_id"
       },
       {
-        "name": "limit_number_of_items",
+        "name": "items_limit",
         "required": false,
-        "description": "Sets the maximum number of items to retrieve per API call. Useful for pagination and managing large datasets.",
+        "description": "The maximum number of items to retrieve from the board at once, using pagination.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "item_type_filter",
         "required": false,
-        "description": "Specify the type of items to retrieve from the board, such as text, shape, or image.",
+        "description": "Specify the type of items to retrieve from the board (e.g., 'text', 'shape', 'sticky_note').",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -68,7 +68,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "The cursor value from a previous response to retrieve the next set of items.",
+        "description": "A string token used for cursor-based pagination to fetch the next set of results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -111,13 +111,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/boards/{board_id}/items",
@@ -126,7 +126,7 @@
     "parameters": [
       {
         "name": "limit",
-        "tool_parameter_name": "limit_number_of_items",
+        "tool_parameter_name": "items_limit",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -139,6 +139,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "10",
         "documentation_urls": []
       },
       {
@@ -167,6 +168,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -184,6 +186,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -201,6 +204,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -214,6 +218,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "GetOpenCardsOnBoard",
-  "fully_qualified_name": "TrelloApi.GetOpenCardsOnBoard@0.1.0",
-  "description": "Retrieve all open cards from a Trello board.\n\nUse this tool to get all open cards on a specific Trello board by providing the board ID. It is useful for managing and viewing tasks or items in an active state on a Trello board.",
+  "fully_qualified_name": "TrelloApi.GetOpenCardsOnBoard@2.0.0",
+  "description": "Retrieve all open cards on a Trello board.\n\nUse this tool to get information about all open cards on a specified Trello board. This is useful for tracking tasks or items on a board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The ID of the Trello board from which to retrieve all open cards. This must be a valid board ID.",
+        "description": "The unique identifier of the Trello board to retrieve open cards from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/cards",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,0 +1,259 @@
+{
+  "name": "UpdateUserNotificationRule",
+  "fully_qualified_name": "PagerdutyApi.UpdateUserNotificationRule@2.0.0",
+  "description": "Update a user's notification rule in PagerDuty.\n\nUse this tool to modify an existing notification rule for a user on a PagerDuty account, allowing them to manage how they receive incident notifications.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique ID of the user's notification resource to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "notification_rule_id",
+        "required": true,
+        "description": "The ID of the user's notification rule to update in PagerDuty.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The notification rule ID on the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notification_rule_id"
+      },
+      {
+        "name": "accept_header",
+        "required": true,
+        "description": "Specify the API version using the `Accept` header for versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specify the content type for the request. Typically set to 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_notification_rule_data",
+        "required": false,
+        "description": "The notification rule details to update for the user, provided in JSON format.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The user's notification rule to be updated."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateUserNotificationRule'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/users/{id}/notification_rules/{notification_rule_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "notification_rule_id",
+        "tool_parameter_name": "notification_rule_id",
+        "description": "The notification rule ID on the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The notification rule ID on the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "user_notification_rule_data",
+        "description": "The user's notification rule to be updated.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "notification_rule": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The user's notification rule to be updated."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"notification_rule\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"description\": \"A rule for contacting the user.\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"assignment_notification_rule\",\n                    \"enum\": [\n                      \"assignment_notification_rule\"\n                    ]\n                  },\n                  \"start_delay_in_minutes\": {\n                    \"type\": \"integer\",\n                    \"description\": \"The delay before firing the rule, in minutes.\",\n                    \"minimum\": 0\n                  },\n                  \"contact_method\": {\n                    \"allOf\": [\n                      {\n                        \"allOf\": [\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"id\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true\n                              },\n                              \"summary\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                              },\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"readOnly\": true,\n                                \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                              },\n                              \"self\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"the API show URL at which the object is accessible\"\n                              },\n                              \"html_url\": {\n                                \"type\": \"string\",\n                                \"nullable\": true,\n                                \"readOnly\": true,\n                                \"format\": \"url\",\n                                \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                              }\n                            }\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"required\": [\n                              \"type\",\n                              \"id\"\n                            ]\n                          }\n                        ]\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"type\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                              \"email_contact_method_reference\",\n                              \"phone_contact_method_reference\",\n                              \"push_notification_contact_method_reference\",\n                              \"sms_contact_method_reference\"\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  },\n                  \"urgency\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"high\",\n                      \"low\"\n                    ],\n                    \"description\": \"Which incident urgency this rule is used for. Account must have the `urgencies` ability to have a low urgency notification rule.\"\n                  }\n                },\n                \"required\": [\n                  \"start_delay_in_minutes\",\n                  \"urgency\",\n                  \"contact_method\",\n                  \"type\"\n                ],\n                \"example\": {\n                  \"type\": \"assignment_notification_rule\",\n                  \"start_delay_in_minutes\": 0,\n                  \"contact_method\": {\n                    \"id\": \"PXPGF42\",\n                    \"type\": \"email_contact_method_reference\"\n                  },\n                  \"urgency\": \"high\"\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"notification_rule\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"notification_rule\": {\n              \"type\": \"assignment_notification_rule\",\n              \"start_delay_in_minutes\": 0,\n              \"contact_method\": {\n                \"id\": \"PXPGF42\",\n                \"type\": \"email_contact_method_reference\"\n              },\n              \"urgency\": \"high\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The user's notification rule to be updated.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

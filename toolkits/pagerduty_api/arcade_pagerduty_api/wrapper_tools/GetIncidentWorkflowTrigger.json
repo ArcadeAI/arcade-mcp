@@ -1,18 +1,18 @@
 {
   "name": "GetIncidentWorkflowTrigger",
-  "fully_qualified_name": "PagerdutyApi.GetIncidentWorkflowTrigger@0.1.0",
-  "description": "Retrieve details of an existing Incident Workflows Trigger.\n\nCall this tool to get information about a specific Incident Workflows Trigger using its ID. Useful for accessing detailed trigger configurations or statuses in Pagerduty.",
+  "fully_qualified_name": "PagerdutyApi.GetIncidentWorkflowTrigger@2.0.0",
+  "description": "Retrieve an existing Incident Workflows Trigger.\n\nCall this tool to get details about a specific Incident Workflows Trigger using its ID. Useful for obtaining information on workflow triggers in incident management systems.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "incident_workflow_trigger_id",
         "required": true,
-        "description": "The unique identifier for the resource to retrieve the Incident Workflows Trigger.",
+        "description": "The unique ID of the Incident Workflow Trigger to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "versioning_header",
         "required": true,
-        "description": "Specifies the version of the API to use. This is set via the 'Accept' header.",
+        "description": "The `Accept` header to specify the API version. Ensure it matches the required version format, e.g., 'application/vnd.pagerduty+json;version=2'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the returned data. Use 'application/json'.",
+        "description": "Specifies the format of the response. Use `application/json` for JSON format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incident_workflows/triggers/{id}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "incident_workflow_trigger_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

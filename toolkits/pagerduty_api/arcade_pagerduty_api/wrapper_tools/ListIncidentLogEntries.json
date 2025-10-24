@@ -1,18 +1,18 @@
 {
   "name": "ListIncidentLogEntries",
-  "fully_qualified_name": "PagerdutyApi.ListIncidentLogEntries@0.1.0",
-  "description": "Retrieve log entries for a specific incident.\n\nThis tool fetches and lists log entries associated with a specific incident. Use it when you need detailed records of all events related to an incident on Pagerduty.",
+  "fully_qualified_name": "PagerdutyApi.ListIncidentLogEntries@2.0.0",
+  "description": "Retrieve log entries for a specific incident.\n\nUse this tool to obtain a list of log entries related to a specific incident, which represents a problem that needs resolution. This tool should be called when you need detailed records of events concerning an incident.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "incident_id",
         "required": true,
-        "description": "The unique ID of the incident to retrieve log entries for.",
+        "description": "The unique identifier for the incident to retrieve log entries for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "versioning_header",
         "required": true,
-        "description": "Specify the API version using the `Accept` header for versioning.",
+        "description": "The versioning header for the API request, specified using the `Accept` header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "response_content_type",
         "required": true,
-        "description": "Specify the format of the response data. Typically, use 'application/json'.",
+        "description": "Set the response content type. Use 'application/json' for JSON format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Specifies the number of log entries returned per page.",
+        "description": "Specify the number of results to display per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_offset",
+        "name": "pagination_start_offset",
         "required": false,
-        "description": "Offset to start pagination for search results. Use to specify the starting point for the result set.",
+        "description": "Specifies the starting point for pagination to search results. Use an integer value.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "result_time_zone",
+        "name": "results_time_zone",
         "required": false,
-        "description": "Specify the time zone for the results. Defaults to the account time zone if not specified.",
+        "description": "Time zone for rendering the results, defaults to the account time zone.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "time_zone"
       },
       {
-        "name": "start_date_for_search",
+        "name": "start_date",
         "required": false,
-        "description": "Start date for the search range. Specify the beginning of the date range over which you want to search.",
+        "description": "The start date for the range to search log entries. Expected format: YYYY-MM-DDTHH:MM:SSZ.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,9 +117,9 @@
         "http_endpoint_parameter_name": "since"
       },
       {
-        "name": "date_range_end",
+        "name": "end_date",
         "required": false,
-        "description": "The end date for the range to search log entries. Format: YYYY-MM-DDTHH:MM:SSZ",
+        "description": "Specify the end date for the log entry search range. Format as 'YYYY-MM-DD'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -134,7 +134,7 @@
       {
         "name": "additional_models_to_include",
         "required": false,
-        "description": "Array of additional models to include in the response, such as incidents, services, channels, or teams.",
+        "description": "Array of additional models to include in the response, such as 'incidents', 'services', 'channels', or 'teams'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -154,7 +154,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to populate the `total` field in pagination responses for log entries.",
+        "description": "Set to true to populate the total field in pagination responses for more detailed information. Defaults to null for faster responses.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -167,9 +167,9 @@
         "http_endpoint_parameter_name": "total"
       },
       {
-        "name": "return_overview_logs_only",
+        "name": "return_important_changes_only",
         "required": false,
-        "description": "Return a subset of log entries showing only the most important changes to the incident when true.",
+        "description": "If `true`, returns a subset of log entries showing only the most important changes to the incident.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -212,13 +212,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/incidents/{id}/log_entries",
@@ -245,7 +245,7 @@
       },
       {
         "name": "offset",
-        "tool_parameter_name": "pagination_offset",
+        "tool_parameter_name": "pagination_start_offset",
         "description": "Offset to start pagination search results.",
         "value_schema": {
           "val_type": "integer",
@@ -276,12 +276,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "time_zone",
-        "tool_parameter_name": "result_time_zone",
+        "tool_parameter_name": "results_time_zone",
         "description": "Time zone in which results will be rendered. This will default to the account time zone.",
         "value_schema": {
           "val_type": "string",
@@ -299,7 +299,7 @@
       },
       {
         "name": "since",
-        "tool_parameter_name": "start_date_for_search",
+        "tool_parameter_name": "start_date",
         "description": "The start of the date range over which you want to search.",
         "value_schema": {
           "val_type": "string",
@@ -317,7 +317,7 @@
       },
       {
         "name": "until",
-        "tool_parameter_name": "date_range_end",
+        "tool_parameter_name": "end_date",
         "description": "The end of the date range over which you want to search.",
         "value_schema": {
           "val_type": "string",
@@ -335,7 +335,7 @@
       },
       {
         "name": "is_overview",
-        "tool_parameter_name": "return_overview_logs_only",
+        "tool_parameter_name": "return_important_changes_only",
         "description": "If `true`, will return a subset of log entries that show only the most important changes to the incident.",
         "value_schema": {
           "val_type": "boolean",
@@ -348,7 +348,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -412,7 +412,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "response_content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -441,6 +441,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

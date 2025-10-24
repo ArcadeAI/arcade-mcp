@@ -1,18 +1,18 @@
 {
   "name": "GetLocationCustomAttribute",
-  "fully_qualified_name": "SquareupApi.GetLocationCustomAttribute@0.1.0",
-  "description": "Retrieve a custom attribute for a specified location.\n\nThis tool fetches a custom attribute associated with a specific location. Optional retrieval of the custom attribute's definition is available. Visibility settings must permit access if owned by another application.",
+  "fully_qualified_name": "SquareupApi.GetLocationCustomAttribute@2.0.0",
+  "description": "Retrieve a custom attribute for a specific location.\n\nThis tool fetches a custom attribute linked with a specific location. It can also include the attribute definition if specified. Use this when you need details about a location's custom attributes.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "location_id",
+        "name": "target_location_id",
         "required": true,
-        "description": "The ID of the location for which the custom attribute is being retrieved. This is required to identify the specific location in the Square account.",
+        "description": "The ID of the target location to retrieve its custom attribute.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute to retrieve. Must match a custom attribute definition key in the Square seller account. Use the qualified key if not the definition owner.",
+        "description": "The key for the custom attribute to retrieve. Must match the key in Square's custom attribute definition. Use qualified key if needed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "custom_attribute_version",
         "required": false,
-        "description": "Specify the version of the custom attribute for consistent reads. If a higher version exists, it is returned. If higher than the current version, an error occurs.",
+        "description": "Specify the current version of the custom attribute for consistent data retrieval. A BAD_REQUEST error is returned if this version exceeds the current version.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "version"
       },
       {
-        "name": "include_definition",
+        "name": "include_custom_attribute_definition",
         "required": false,
-        "description": "Set to true to include the custom attribute's definition, providing name, description, and data type.",
+        "description": "Set to true to include details like name, description, and data type of the custom attribute definition. Default is false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}",
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "with_definition",
-        "tool_parameter_name": "include_definition",
+        "tool_parameter_name": "include_custom_attribute_definition",
         "description": "Indicates whether to return the [custom attribute definition](entity:CustomAttributeDefinition) in the `definition` field of\nthe custom attribute. Set this parameter to `true` to get the name and description of the custom\nattribute, information about the data type, or other definition details. The default value is `false`.",
         "value_schema": {
           "val_type": "boolean",
@@ -132,6 +132,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -149,11 +150,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "location_id",
-        "tool_parameter_name": "location_id",
+        "tool_parameter_name": "target_location_id",
         "description": "The ID of the target [location](entity:Location).",
         "value_schema": {
           "val_type": "string",
@@ -166,6 +168,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -183,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -196,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

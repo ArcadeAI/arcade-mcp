@@ -1,18 +1,18 @@
 {
   "name": "GetUserStatusUpdateNotificationRule",
-  "fully_qualified_name": "PagerdutyApi.GetUserStatusUpdateNotificationRule@0.1.0",
-  "description": "Retrieve a user's status update notification rule details.\n\nThis tool retrieves specific details about a user's status update notification rule in PagerDuty. It is useful for understanding how a user is notified about status updates. OAuth permission 'users.read' is required.",
+  "fully_qualified_name": "PagerdutyApi.GetUserStatusUpdateNotificationRule@2.0.0",
+  "description": "Get details about a user's status update notification rule.\n\nCall this tool to retrieve information regarding a specific user's notification settings for status updates within a PagerDuty account. Useful for managing or reviewing user-specific notification rules. Requires user's ID and the rule ID.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "user_id",
         "required": true,
-        "description": "The unique identifier of the user resource in PagerDuty.",
+        "description": "The unique identifier of the user whose notification rule details are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "The versioning header used for accepting responses in a specific API version.",
+        "description": "The version header for API requests. Specifies the format or version of the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the request. Currently, only 'application/json' is supported.",
+        "description": "Specifies the format of the response. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "include_additional_details",
+        "name": "include_contact_methods",
         "required": false,
-        "description": "Specify details to include, such as contact methods. Use values like 'contact_methods'.",
+        "description": "Specify 'contact_methods' to include additional contact method details in the response. Leave empty if no additional details are needed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -119,13 +119,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/{id}/status_update_notification_rules/{status_update_notification_rule_id}",
@@ -134,7 +134,7 @@
     "parameters": [
       {
         "name": "include[]",
-        "tool_parameter_name": "include_additional_details",
+        "tool_parameter_name": "include_contact_methods",
         "description": "Array of additional details to include.",
         "value_schema": {
           "val_type": "string",
@@ -154,7 +154,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "user_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -237,6 +237,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

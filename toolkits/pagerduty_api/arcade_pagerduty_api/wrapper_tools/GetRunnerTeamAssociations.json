@@ -1,18 +1,18 @@
 {
   "name": "GetRunnerTeamAssociations",
-  "fully_qualified_name": "PagerdutyApi.GetRunnerTeamAssociations@0.1.0",
-  "description": "Retrieve team associations for a specific runner.\n\nThis tool retrieves all team references associated with a specific automation actions runner in Pagerduty. It should be called when you need to find out which teams are linked to a particular runner.",
+  "fully_qualified_name": "PagerdutyApi.GetRunnerTeamAssociations@2.0.0",
+  "description": "Retrieve team references linked to a specific runner.\n\nFetches all team references linked to a specified automation actions runner in PagerDuty, helpful for understanding team associations for automation management.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "resource_id",
+        "name": "runner_resource_id",
         "required": true,
-        "description": "The unique identifier of the runner resource to retrieve associated team references.",
+        "description": "The ID of the automation actions runner to retrieve associated team references for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "versioning_header",
         "required": true,
-        "description": "The `Accept` header for API versioning, typically in format `application/vnd.pagerduty+json;version=2`.",
+        "description": "The versioning header for the API. Specifies the API version to use.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "content_type",
         "required": true,
-        "description": "Specify the format of content, typically 'application/json'.",
+        "description": "Specifies the format of the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/runners/{id}/teams",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "resource_id",
+        "tool_parameter_name": "runner_resource_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

@@ -1,18 +1,18 @@
 {
   "name": "GetBoardClassificationSettings",
-  "fully_qualified_name": "MiroApi.GetBoardClassificationSettings@0.1.0",
-  "description": "Retrieve board classification settings for an organization.\n\nUse this tool to get the board classification settings for an existing organization in Miro. This is applicable only for organizations under the Enterprise plan and requires Company Admin role and the 'organizations:read' scope.",
+  "fully_qualified_name": "MiroApi.GetBoardClassificationSettings@2.0.0",
+  "description": "Retrieve board classification settings for an organization.\n\nUse this tool to get the board classification settings of an existing organization within the Miro Enterprise plan. This is applicable only for Company Admins. Ensure you have the required 'organizations:read' scope and be aware of rate limits.",
   "toolkit": {
     "name": "ArcadeMiroApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "organization_id",
         "required": true,
-        "description": "The unique identifier of the organization whose board classification settings you want to retrieve.",
+        "description": "The unique string ID of the organization for which to retrieve board classification settings.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the miro API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.miro.com/v2/orgs/{org_id}/data-classification-settings",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

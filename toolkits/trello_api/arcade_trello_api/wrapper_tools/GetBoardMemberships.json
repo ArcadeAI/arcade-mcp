@@ -1,18 +1,18 @@
 {
   "name": "GetBoardMemberships",
-  "fully_qualified_name": "TrelloApi.GetBoardMemberships@0.1.0",
-  "description": "Get details on user memberships for a Trello board.\n\nUse this tool to retrieve information about the memberships users have on a specific Trello board. It should be called when you need to know details about user affiliations or roles within a board.",
+  "fully_qualified_name": "TrelloApi.GetBoardMemberships@2.0.0",
+  "description": "Retrieve user membership details for a Trello board.\n\nUse this tool to get detailed information about the memberships users have on a specific Trello board. This is helpful for understanding who has access and what roles they have on the board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board to get membership information for.",
+        "description": "The unique identifier for the Trello board to retrieve membership details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "membership_filter",
         "required": false,
-        "description": "Specify which group of members to retrieve: `admins`, `all`, `none`, `normal`.",
+        "description": "Specifies the type of memberships to retrieve: `admins`, `all`, `none`, or `normal`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -45,9 +45,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "member_fields_to_display",
+        "name": "member_fields_to_show",
         "required": false,
-        "description": "Specify fields to display for the member if `member=true`. Valid values include 'id'.",
+        "description": "Specify which fields to display if 'member' is set to true. Valid values are fields from the nested member resource.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -64,7 +64,7 @@
       {
         "name": "include_activity",
         "required": false,
-        "description": "Set to true to include activity details for premium organizations only.",
+        "description": "Set to true to include activity data for premium organizations only.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -77,9 +77,9 @@
         "http_endpoint_parameter_name": "activity"
       },
       {
-        "name": "display_organization_member_type",
+        "name": "show_org_member_type",
         "required": false,
-        "description": "Set to true to show the user's organization membership type, such as 'admin'.",
+        "description": "Set to true to show the type of member (e.g., 'admin') a user is to the organization.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -92,9 +92,9 @@
         "http_endpoint_parameter_name": "orgMemberType"
       },
       {
-        "name": "include_nested_member_object",
+        "name": "include_member_object",
         "required": false,
-        "description": "Specify whether to include a nested member object in the response. True includes the object.",
+        "description": "Set to true to include a nested member object in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -139,13 +139,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/memberships",
@@ -172,6 +172,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
@@ -189,11 +190,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "orgMemberType",
-        "tool_parameter_name": "display_organization_member_type",
+        "tool_parameter_name": "show_org_member_type",
         "description": "Shows the type of member to the org the user is. For instance, an org admin will have a `orgMemberType` of `admin`.",
         "value_schema": {
           "val_type": "boolean",
@@ -206,11 +208,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "member",
-        "tool_parameter_name": "include_nested_member_object",
+        "tool_parameter_name": "include_member_object",
         "description": "Determines whether to include a [nested member object](/cloud/trello/guides/rest-api/nested-resources/).",
         "value_schema": {
           "val_type": "boolean",
@@ -223,11 +226,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "member_fields",
-        "tool_parameter_name": "member_fields_to_display",
+        "tool_parameter_name": "member_fields_to_show",
         "description": "Fields to show if `member=true`. Valid values: [nested member resource fields](/cloud/trello/guides/rest-api/nested-resources/).",
         "value_schema": {
           "val_type": "string",
@@ -242,6 +246,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -259,6 +264,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -280,6 +286,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

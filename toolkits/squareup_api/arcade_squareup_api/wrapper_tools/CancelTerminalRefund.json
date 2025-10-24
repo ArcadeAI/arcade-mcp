@@ -1,18 +1,18 @@
 {
   "name": "CancelTerminalRefund",
-  "fully_qualified_name": "SquareupApi.CancelTerminalRefund@0.1.0",
-  "description": "Cancel a terminal refund request if allowed.\n\nThis tool cancels a terminal refund request using the refund request ID, if the current status permits cancellation.",
+  "fully_qualified_name": "SquareupApi.CancelTerminalRefund@2.0.0",
+  "description": "Cancel a terminal refund request by its ID.\n\nUse this tool to cancel a terminal refund request when the status allows for cancellation. Provide the refund request ID to execute the cancellation.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "terminal_refund_id",
+        "name": "refund_request_id",
         "required": true,
-        "description": "The unique ID for the desired TerminalRefund to cancel.",
+        "description": "The unique ID of the terminal refund request to cancel.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/cancel",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "terminal_refund_id",
-        "tool_parameter_name": "terminal_refund_id",
+        "tool_parameter_name": "refund_request_id",
         "description": "The unique ID for the desired `TerminalRefund`.",
         "value_schema": {
           "val_type": "string",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

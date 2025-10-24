@@ -1,0 +1,247 @@
+{
+  "name": "CreateTrelloPluginListing",
+  "fully_qualified_name": "TrelloApi.CreateTrelloPluginListing@2.0.0",
+  "description": "Create a new listing for a Trello Power-Up.\n\nThis tool creates a new listing for a Trello Power-Up in a specified locale. Use this tool when you need to add a new entry for a Power-Up on Trello's platform.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "power_up_id",
+        "required": true,
+        "description": "The ID of the Power-Up for which you are creating a new listing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Power-Up for which you are creating a new listing."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idPlugin"
+      },
+      {
+        "name": "locale_description",
+        "required": false,
+        "description": "The description for the Power-Up listing in the specified locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description to show for the given locale"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "listing_locale",
+        "required": false,
+        "description": "The specific locale code (e.g., 'en-US') for which the listing should be displayed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The locale that this listing should be displayed for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "locale"
+      },
+      {
+        "name": "overview_for_locale",
+        "required": false,
+        "description": "The overview text to display for the specified locale. Provide a concise summary relevant to the plugin.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The overview to show for the given locale."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "overview"
+      },
+      {
+        "name": "plugin_locale_name",
+        "required": false,
+        "description": "The name for the Power-Up listing in the specified locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name to use for the given locale."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-plugins-idplugin-listing'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/plugins/{idPlugin}/listing",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "idPlugin",
+        "tool_parameter_name": "power_up_id",
+        "description": "The ID of the Power-Up for which you are creating a new listing.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Power-Up for which you are creating a new listing."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "locale_description",
+        "description": "The description to show for the given locale",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The description to show for the given locale"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "locale",
+        "tool_parameter_name": "listing_locale",
+        "description": "The locale that this listing should be displayed for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The locale that this listing should be displayed for."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "overview",
+        "tool_parameter_name": "overview_for_locale",
+        "description": "The overview to show for the given locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The overview to show for the given locale."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "plugin_locale_name",
+        "description": "The name to use for the given locale.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name to use for the given locale."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"description\": {\n            \"type\": \"string\",\n            \"description\": \"The description to show for the given locale\"\n          },\n          \"locale\": {\n            \"type\": \"string\",\n            \"description\": \"The locale that this listing should be displayed for.\"\n          },\n          \"overview\": {\n            \"type\": \"string\",\n            \"description\": \"The overview to show for the given locale.\"\n          },\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"The name to use for the given locale.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

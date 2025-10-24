@@ -1,11 +1,11 @@
 {
   "name": "GenerateBoardEmailKey",
-  "fully_qualified_name": "TrelloApi.GenerateBoardEmailKey@0.1.0",
-  "description": "Generate an email key for a Trello board.\n\nThis tool generates an email key for a specified Trello board, allowing emails to be sent directly to the board. It should be called when you need to enable email integration for a board.",
+  "fully_qualified_name": "TrelloApi.GenerateBoardEmailKey@2.0.0",
+  "description": "Generate a unique email key for a Trello board.\n\nThis tool generates a unique email key for a specified Trello board. Use it when you need to associate an email with your board for integration purposes.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/emailKey/generate",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

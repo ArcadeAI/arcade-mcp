@@ -1,18 +1,18 @@
 {
   "name": "GetNotificationCreator",
-  "fully_qualified_name": "TrelloApi.GetNotificationCreator@0.1.0",
-  "description": "Get the member who created the notification.\n\nUse this tool to fetch information about the member who created a specific notification in Trello. Ideal for understanding the origin of notifications.",
+  "fully_qualified_name": "TrelloApi.GetNotificationCreator@2.0.0",
+  "description": "Retrieve the creator of a Trello notification.\n\nCall this tool to get details about the Trello member who created a specific notification using its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier for the notification whose creator details are to be retrieved.",
+        "description": "The ID of the Trello notification to retrieve the creator's details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to retrieve information about the notification creator.",
+        "description": "Specify `all` or a comma-separated list of member fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/notifications/{id}/memberCreator",
@@ -104,6 +104,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -121,6 +122,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -142,6 +144,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

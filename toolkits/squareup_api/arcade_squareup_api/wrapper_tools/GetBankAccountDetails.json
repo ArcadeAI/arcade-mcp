@@ -1,18 +1,18 @@
 {
   "name": "GetBankAccountDetails",
-  "fully_qualified_name": "SquareupApi.GetBankAccountDetails@0.1.0",
-  "description": "Retrieve details of a Square account's bank account.\n\nFetches detailed information about a specific bank account linked to a Square account using the bank account ID.",
+  "fully_qualified_name": "SquareupApi.GetBankAccountDetails@2.0.0",
+  "description": "Retrieve details of a bank account linked to a Square account.\n\nUse this tool to obtain detailed information about a specific bank account associated with a Square account by providing the bank account ID.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "bank_account_identifier",
+        "name": "bank_account_id",
         "required": true,
-        "description": "Square-issued ID of the specific bank account to retrieve details for.",
+        "description": "Square-issued ID of the desired bank account to retrieve its details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,13 +59,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/bank-accounts/{bank_account_id}",
@@ -74,7 +74,7 @@
     "parameters": [
       {
         "name": "bank_account_id",
-        "tool_parameter_name": "bank_account_identifier",
+        "tool_parameter_name": "bank_account_id",
         "description": "Square-issued ID of the desired `BankAccount`.",
         "value_schema": {
           "val_type": "string",
@@ -87,6 +87,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -100,6 +101,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

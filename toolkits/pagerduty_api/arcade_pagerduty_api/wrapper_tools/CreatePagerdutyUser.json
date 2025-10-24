@@ -1,0 +1,226 @@
+{
+  "name": "CreatePagerdutyUser",
+  "fully_qualified_name": "PagerdutyApi.CreatePagerdutyUser@2.0.0",
+  "description": "Create a new user in PagerDuty for account interaction.\n\nUse this tool to create a new user in a PagerDuty account. Users can interact with incidents and other data. Requires appropriate OAuth permissions.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "The versioning header for the API request. Use to specify the API version.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Set the 'Content-Type' header to specify the media type of the request body. Use 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "requester_email",
+        "required": true,
+        "description": "The email of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "new_user_details",
+        "required": false,
+        "description": "JSON object containing details of the user to be created, including fields such as name, email, and role.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "user": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The user to be created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createUser'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/users",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "requester_email",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "new_user_details",
+        "description": "The user to be created.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "user": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The user to be created."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"user\": {\n            \"allOf\": [\n              {\n                \"allOf\": [\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"id\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true\n                      },\n                      \"summary\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"readOnly\": true,\n                        \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"readOnly\": true,\n                        \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                      },\n                      \"self\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"readOnly\": true,\n                        \"format\": \"url\",\n                        \"description\": \"the API show URL at which the object is accessible\"\n                      },\n                      \"html_url\": {\n                        \"type\": \"string\",\n                        \"nullable\": true,\n                        \"readOnly\": true,\n                        \"format\": \"url\",\n                        \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                      }\n                    }\n                  },\n                  {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"type\": \"string\",\n                        \"description\": \"The name of the user.\",\n                        \"maxLength\": 100\n                      },\n                      \"type\": {\n                        \"type\": \"string\",\n                        \"description\": \"The type of object being created.\",\n                        \"default\": \"user\",\n                        \"enum\": [\n                          \"user\"\n                        ]\n                      },\n                      \"email\": {\n                        \"type\": \"string\",\n                        \"format\": \"email\",\n                        \"description\": \"The user's email address.\",\n                        \"minLength\": 6,\n                        \"maxLength\": 100\n                      },\n                      \"time_zone\": {\n                        \"type\": \"string\",\n                        \"format\": \"tzinfo\",\n                        \"description\": \"The preferred time zone name. If null, the account's time zone will be used.\"\n                      },\n                      \"color\": {\n                        \"type\": \"string\",\n                        \"description\": \"The schedule color.\"\n                      },\n                      \"role\": {\n                        \"description\": \"The user role. Account must have the `read_only_users` ability to set a user as a `read_only_user` or a `read_only_limited_user`, and must have advanced permissions abilities to set a user as `observer` or `restricted_access`.\",\n                        \"type\": \"string\",\n                        \"enum\": [\n                          \"admin\",\n                          \"limited_user\",\n                          \"observer\",\n                          \"owner\",\n                          \"read_only_user\",\n                          \"restricted_access\",\n                          \"read_only_limited_user\",\n                          \"user\"\n                        ]\n                      },\n                      \"avatar_url\": {\n                        \"type\": \"string\",\n                        \"format\": \"url\",\n                        \"description\": \"The URL of the user's avatar.\",\n                        \"readOnly\": true\n                      },\n                      \"description\": {\n                        \"type\": \"string\",\n                        \"description\": \"The user's bio.\",\n                        \"nullable\": true\n                      },\n                      \"invitation_sent\": {\n                        \"type\": \"boolean\",\n                        \"readOnly\": true,\n                        \"description\": \"If true, the user has an outstanding invitation.\"\n                      },\n                      \"job_title\": {\n                        \"type\": \"string\",\n                        \"description\": \"The user's title.\",\n                        \"maxLength\": 100\n                      },\n                      \"created_via_sso\": {\n                        \"type\": \"boolean\",\n                        \"readOnly\": true,\n                        \"description\": \"If true, the user was created via Single Sign-On (SSO).\"\n                      },\n                      \"teams\": {\n                        \"type\": \"array\",\n                        \"readOnly\": true,\n                        \"description\": \"The list of teams to which the user belongs. Account must have the `teams` ability to set this.\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"team_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"contact_methods\": {\n                        \"type\": \"array\",\n                        \"readOnly\": true,\n                        \"description\": \"The list of contact methods for the user.\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"email_contact_method_reference\",\n                                    \"phone_contact_method_reference\",\n                                    \"push_notification_contact_method_reference\",\n                                    \"sms_contact_method_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      },\n                      \"notification_rules\": {\n                        \"readOnly\": true,\n                        \"type\": \"array\",\n                        \"description\": \"The list of notification rules for the user.\",\n                        \"items\": {\n                          \"allOf\": [\n                            {\n                              \"allOf\": [\n                                {\n                                  \"type\": \"object\",\n                                  \"properties\": {\n                                    \"id\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true\n                                    },\n                                    \"summary\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                    },\n                                    \"type\": {\n                                      \"type\": \"string\",\n                                      \"readOnly\": true,\n                                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                    },\n                                    \"self\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"the API show URL at which the object is accessible\"\n                                    },\n                                    \"html_url\": {\n                                      \"type\": \"string\",\n                                      \"nullable\": true,\n                                      \"readOnly\": true,\n                                      \"format\": \"url\",\n                                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                    }\n                                  }\n                                },\n                                {\n                                  \"type\": \"object\",\n                                  \"required\": [\n                                    \"type\",\n                                    \"id\"\n                                  ]\n                                }\n                              ]\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"enum\": [\n                                    \"assignment_notification_rule_reference\"\n                                  ]\n                                }\n                              }\n                            }\n                          ]\n                        }\n                      }\n                    },\n                    \"required\": [\n                      \"name\",\n                      \"email\",\n                      \"type\"\n                    ],\n                    \"example\": {\n                      \"type\": \"user\",\n                      \"name\": \"Earline Greenholt\",\n                      \"email\": \"125.greenholt.earline@graham.name\",\n                      \"time_zone\": \"America/Lima\",\n                      \"color\": \"green\",\n                      \"role\": \"admin\",\n                      \"job_title\": \"Director of Engineering\",\n                      \"created_via_sso\": false,\n                      \"avatar_url\": \"https://secure.gravatar.com/avatar/1d1a39d4635208d5664082a6c654a73f.png?d=mm&r=PG\",\n                      \"description\": \"I'm the boss\"\n                    }\n                  }\n                ]\n              },\n              {\n                \"properties\": {\n                  \"license\": {\n                    \"allOf\": [\n                      {\n                        \"description\": \"The License assigned to the User\"\n                      },\n                      {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"license_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      }\n                    ]\n                  }\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"user\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"user\": {\n              \"type\": \"user\",\n              \"name\": \"Earline Greenholt\",\n              \"email\": \"125.greenholt.earline@graham.name\",\n              \"time_zone\": \"America/Lima\",\n              \"color\": \"green\",\n              \"role\": \"admin\",\n              \"job_title\": \"Director of Engineering\",\n              \"avatar_url\": \"https://secure.gravatar.com/avatar/1d1a39d4635208d5664082a6c654a73f.png?d=mm&r=PG\",\n              \"description\": \"I'm the boss\",\n              \"license\": {\n                \"id\": \"PTDVERC\",\n                \"type\": \"license_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The user to be created.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

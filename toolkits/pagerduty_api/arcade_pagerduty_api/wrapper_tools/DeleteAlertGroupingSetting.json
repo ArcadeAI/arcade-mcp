@@ -1,18 +1,18 @@
 {
   "name": "DeleteAlertGroupingSetting",
-  "fully_qualified_name": "PagerdutyApi.DeleteAlertGroupingSetting@0.1.0",
-  "description": "Delete an existing alert grouping setting.\n\nUse this tool to delete an alert grouping setting in Pagerduty. This is useful when you need to remove specific alert configurations. Requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.DeleteAlertGroupingSetting@2.0.0",
+  "description": "Delete an existing alert grouping setting.\n\nUse this tool to delete a specific alert grouping setting in the PagerDuty service. This action is utilized when you need to remove configurations used during the grouping of alerts. Requires appropriate OAuth scope.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "alert_grouping_setting_id",
         "required": true,
-        "description": "The ID of the alert grouping setting to be deleted.",
+        "description": "The ID of the alert grouping setting to be deleted. This identifies the specific resource in PagerDuty.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specify the version of the API to use by setting the `Accept` header.",
+        "description": "The `Accept` header specifies the version of the API to use for the request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "set_content_type",
         "required": true,
-        "description": "The Content-Type header value, must be 'application/json'.",
+        "description": "Set the Content-Type header to specify media type; use 'application/json' for this endpoint.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/alert_grouping_settings/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "set_content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

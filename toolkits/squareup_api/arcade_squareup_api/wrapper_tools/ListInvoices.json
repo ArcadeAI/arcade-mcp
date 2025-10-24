@@ -1,18 +1,18 @@
 {
   "name": "ListInvoices",
-  "fully_qualified_name": "SquareupApi.ListInvoices@0.1.0",
-  "description": "Retrieve a list of invoices for a specified location.\n\nUse this tool to get a list of invoices from a specific location. The response is paginated, and if the list is truncated, a cursor is provided to fetch the next set of invoices.",
+  "fully_qualified_name": "SquareupApi.ListInvoices@2.0.0",
+  "description": "Retrieve a list of invoices for a specified location.\n\nThis tool retrieves a list of invoices associated with a particular location. It supports pagination, so if the response is too large, a cursor is provided for subsequent requests to fetch the remaining invoices.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "location_id",
+        "name": "location_identifier",
         "required": true,
-        "description": "The ID of the location for which to list invoices.",
+        "description": "The unique identifier for the location to fetch invoices from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "pagination_cursor",
         "required": false,
-        "description": "A string value used to fetch the next set of paginated results for invoices. This is returned from a previous call to the list invoices endpoint.",
+        "description": "A cursor for pagination to retrieve the next set of invoice results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "maximum_invoices_to_return",
         "required": false,
-        "description": "The maximum number of invoices to return, up to 200. Defaults to 100 if not specified.",
+        "description": "Specify the maximum number of invoices to return. The limit is 200; default is 100 if not set.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -89,13 +89,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/invoices",
@@ -104,7 +104,7 @@
     "parameters": [
       {
         "name": "location_id",
-        "tool_parameter_name": "location_id",
+        "tool_parameter_name": "location_identifier",
         "description": "The ID of the location for which to list invoices.",
         "value_schema": {
           "val_type": "string",
@@ -117,6 +117,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -134,6 +135,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -151,6 +153,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -164,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

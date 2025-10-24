@@ -1,18 +1,18 @@
 {
   "name": "DeleteCommentFromRecord",
-  "fully_qualified_name": "AirtableApi.DeleteCommentFromRecord@0.1.0",
-  "description": "Delete a comment from a record in Airtable.\n\nUse this tool to delete a specific comment from a record in Airtable. Non-admin users can only delete comments they have created, while Enterprise Admins can delete any comment.",
+  "fully_qualified_name": "AirtableApi.DeleteCommentFromRecord@2.0.0",
+  "description": "Delete a comment from a record in Airtable.\n\nUse this tool to delete a specific comment from a record in Airtable. Non-admin users can only delete their own comments, while Enterprise Admins can delete any comment. Call this when you need to manage comments on records.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "base_identifier",
+        "name": "airtable_base_id",
         "required": true,
-        "description": "The unique identifier for the Airtable base from which the comment will be deleted.",
+        "description": "The ID of the Airtable base. This is required to identify which base the comment belongs to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "table_id_or_name",
         "required": true,
-        "description": "The unique ID or name of the table where the record containing the comment exists. Ensure it matches the table's exact name or ID in Airtable.",
+        "description": "The ID or name of the table containing the record from which the comment will be deleted.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "comment_id_to_delete",
         "required": true,
-        "description": "The unique identifier of the comment to be deleted from the record in Airtable.",
+        "description": "The unique identifier of the comment to be deleted. Required for deletion.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -104,13 +104,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/v0/{baseId}/{tableIdOrName}/{recordId}/comments/{rowCommentId}",
@@ -119,7 +119,7 @@
     "parameters": [
       {
         "name": "baseId",
-        "tool_parameter_name": "base_identifier",
+        "tool_parameter_name": "airtable_base_id",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -200,6 +200,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

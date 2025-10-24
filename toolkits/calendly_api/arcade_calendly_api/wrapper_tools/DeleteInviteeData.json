@@ -1,0 +1,105 @@
+{
+  "name": "DeleteInviteeData",
+  "fully_qualified_name": "CalendlyApi.DeleteInviteeData@2.0.0",
+  "description": "Request removal of invitee data from all booked events.\n\nUse this tool to submit a request for deleting an invitee's data from all previously booked events within your organization. It requires an Enterprise subscription and can take up to 7 days to complete.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invitee_email_list",
+        "required": true,
+        "description": "A list of invitee emails to remove data for from all booked events. Each entry should be a valid email address.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "emails"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-invitee-data'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/data_compliance/deletion/invitees",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "emails",
+        "tool_parameter_name": "invitee_email_list",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"emails\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"format\": \"email\",\n              \"example\": \"test@example.com\"\n            }\n          }\n        },\n        \"required\": [\n          \"emails\"\n        ]\n      },\n      \"examples\": {\n        \"Example\": {\n          \"value\": {\n            \"emails\": [\n              \"test@example.com\"\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

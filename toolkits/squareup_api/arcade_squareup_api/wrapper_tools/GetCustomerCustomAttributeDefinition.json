@@ -1,18 +1,18 @@
 {
   "name": "GetCustomerCustomAttributeDefinition",
-  "fully_qualified_name": "SquareupApi.GetCustomerCustomAttributeDefinition@0.1.0",
-  "description": "Retrieve a customer's custom attribute definition from Square.\n\nFetches a customer-related custom attribute definition from a Square seller account. This should be called to get definitions where visibility is either 'READ_ONLY' or 'READ_WRITE_VALUES', including seller-defined custom fields.",
+  "fully_qualified_name": "SquareupApi.GetCustomerCustomAttributeDefinition@2.0.0",
+  "description": "Retrieve a customer's custom attribute definition from Square.\n\nUse this tool to get a specific customer-related custom attribute definition from a Square seller account. It retrieves details about the attribute, provided it has the correct visibility settings.",
   "toolkit": {
     "name": "ArcadeSquareupApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "custom_attribute_key",
         "required": true,
-        "description": "The key of the custom attribute definition to retrieve. Use the qualified key if not the definition owner.",
+        "description": "The key of the custom attribute definition to retrieve. Use the qualified key if not the owner.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_attribute_version",
         "required": false,
-        "description": "Current version of the attribute definition for consistent reads. Returns specified or higher version data. Error if version is too high.",
+        "description": "The current version of the custom attribute definition to ensure consistent reads. Use to check for the most up-to-date data.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the squareup API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}",
@@ -102,6 +102,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -119,6 +120,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -132,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

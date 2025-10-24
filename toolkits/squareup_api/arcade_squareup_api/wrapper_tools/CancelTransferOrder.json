@@ -1,0 +1,176 @@
+{
+  "name": "CancelTransferOrder",
+  "fully_qualified_name": "SquareupApi.CancelTransferOrder@2.0.0",
+  "description": "Cancel a transfer order in progress for inventory locations.\n\nUse this tool to cancel a transfer order that is in either STARTED or PARTIALLY_RECEIVED status. This is useful in situations where items are no longer needed at the destination, the source location requires the inventory, or if the order was created by mistake. Cancelling the order will update inventory levels and trigger a transfer_order.updated webhook event.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "required": true,
+        "description": "The ID of the transfer order to cancel. The order must be in STARTED or PARTIALLY_RECEIVED status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to cancel. Must be in STARTED or PARTIALLY_RECEIVED status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "transfer_order_id"
+      },
+      {
+        "name": "unique_request_key",
+        "required": true,
+        "description": "A unique string to identify this request. Must be unique for each UpdateTransferOrder request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "transfer_order_version",
+        "required": false,
+        "description": "Provide the version number for optimistic concurrency when canceling the transfer order.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'CancelTransferOrder'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVENTORY_READ",
+          "INVENTORY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/transfer-orders/{transfer_order_id}/cancel",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "transfer_order_id",
+        "tool_parameter_name": "transfer_order_id",
+        "description": "The ID of the transfer order to cancel. Must be in STARTED or PARTIALLY_RECEIVED status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the transfer order to cancel. Must be in STARTED or PARTIALLY_RECEIVED status."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_key",
+        "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies this UpdateTransferOrder request. Keys can be\nany valid string but must be unique for every UpdateTransferOrder request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "transfer_order_version",
+        "description": "Version for optimistic concurrency",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Version for optimistic concurrency"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Request to cancel a transfer order, marking any unreceived quantities as canceled\",\n        \"x-release-status\": \"BETA\",\n        \"required\": [\n          \"idempotency_key\"\n        ],\n        \"properties\": {\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies this UpdateTransferOrder request. Keys can be\\nany valid string but must be unique for every UpdateTransferOrder request.\",\n            \"minLength\": 1\n          },\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"Version for optimistic concurrency\",\n            \"format\": \"int64\"\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"65cc0586-3e82-4d08-b524-3885cffd52\",\n          \"transfer_order_id\": \"EXAMPLE_TRANSFER_ORDER_ID_123\",\n          \"version\": 1753117449752\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

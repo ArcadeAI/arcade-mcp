@@ -1,0 +1,138 @@
+{
+  "name": "DeleteScheduledEventsData",
+  "fully_qualified_name": "CalendlyApi.DeleteScheduledEventsData@2.0.0",
+  "description": "Delete scheduled events data within a past time range.\n\nUse this tool to request the deletion of scheduled events data for your organization within a specified past time range, up to 24 months. Completion may take up to 7 days. Requires an Enterprise subscription.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "deletion_start_time_utc",
+        "required": true,
+        "description": "The UTC timestamp to start deleting scheduled events data. Must be in the past and not older than 24 months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scheduled events UTC timestamp at which data deletion should begin."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_time"
+      },
+      {
+        "name": "end_time_utc",
+        "required": true,
+        "description": "The UTC timestamp marking the end of the time range for data deletion, in the past, no greater than 24 months ago.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scheduled events UTC timestamp at which data deletion should end."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "end_time"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete-scheduled-event-data'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/data_compliance/deletion/events",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "start_time",
+        "tool_parameter_name": "deletion_start_time_utc",
+        "description": "The scheduled events UTC timestamp at which data deletion should begin.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scheduled events UTC timestamp at which data deletion should begin."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "end_time",
+        "tool_parameter_name": "end_time_utc",
+        "description": "The scheduled events UTC timestamp at which data deletion should end.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scheduled events UTC timestamp at which data deletion should end."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"start_time\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"example\": \"2019-01-02T03:04:05.678123Z\",\n            \"description\": \"The scheduled events UTC timestamp at which data deletion should begin.\"\n          },\n          \"end_time\": {\n            \"type\": \"string\",\n            \"format\": \"date-time\",\n            \"example\": \"2021-01-01T02:04:05.678123Z\",\n            \"description\": \"The scheduled events UTC timestamp at which data deletion should end.\"\n          }\n        },\n        \"required\": [\n          \"start_time\",\n          \"end_time\"\n        ]\n      },\n      \"examples\": {\n        \"Example\": {\n          \"value\": {\n            \"start_time\": \"2019-01-02T03:04:05.678123Z\",\n            \"end_time\": \"2021-01-01T02:04:05.678123Z\"\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The start and end times that delineate the time range for scheduled events data deletion.\"\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

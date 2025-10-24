@@ -1,18 +1,18 @@
 {
   "name": "GetNotificationCard",
-  "fully_qualified_name": "TrelloApi.GetNotificationCard@0.1.0",
-  "description": "Retrieve the card linked to a specific notification.\n\nThis tool fetches the card details associated with a given notification ID on Trello. It should be used when you need information about the card referenced in a notification.",
+  "fully_qualified_name": "TrelloApi.GetNotificationCard@2.0.0",
+  "description": "Retrieve the card linked to a specific notification.\n\nUse this tool to obtain details about the card associated with a specific Trello notification ID. It helps in understanding the context of the notification.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique ID of the notification to retrieve the associated card.",
+        "description": "The unique ID of the notification for which the associated card details are being fetched.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "card_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of card fields to retrieve. Choose from 'id', 'address', 'badges', etc.",
+        "description": "Specify 'all' or a comma-separated list of card fields like 'id', 'name', etc., to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/notifications/{id}/card",
@@ -168,6 +168,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -185,6 +186,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -206,6 +208,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

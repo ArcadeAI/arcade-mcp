@@ -1,0 +1,226 @@
+{
+  "name": "CreateScheduleOverride",
+  "fully_qualified_name": "PagerdutyApi.CreateScheduleOverride@2.0.0",
+  "description": "Create schedule overrides for specific users and time ranges.\n\nThis tool creates one or more schedule overrides for specific users covering specified time periods. Overrides are used to manage on-call schedules. It should be called when you need to modify or assign on-call duties temporarily, ensuring the latest override has priority if overlapping occurs.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the schedule resource to which the override will be applied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "api_version_accept_header",
+        "required": true,
+        "description": "Specify the version of the API by using the 'Accept' header format, e.g., 'application/vnd.pagerduty+json;version=2'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the media type of the resource. Use 'application/json' for this endpoint.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "override_details",
+        "required": true,
+        "description": "A JSON object containing an array of overrides to be created. Each override specifies the user and the time range they will cover.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "overrides": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The overrides to be created"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createScheduleOverride'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/schedules/{id}/overrides",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "api_version_accept_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "override_details",
+        "description": "The overrides to be created",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "overrides": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The overrides to be created"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"description\": \"\",\n        \"type\": \"object\",\n        \"properties\": {\n          \"overrides\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"allOf\": [\n                {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"readOnly\": true\n                    },\n                    \"summary\": {\n                      \"type\": \"string\",\n                      \"nullable\": true,\n                      \"readOnly\": true,\n                      \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                    },\n                    \"type\": {\n                      \"type\": \"string\",\n                      \"readOnly\": true,\n                      \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                    },\n                    \"self\": {\n                      \"type\": \"string\",\n                      \"nullable\": true,\n                      \"readOnly\": true,\n                      \"format\": \"url\",\n                      \"description\": \"the API show URL at which the object is accessible\"\n                    },\n                    \"html_url\": {\n                      \"type\": \"string\",\n                      \"nullable\": true,\n                      \"readOnly\": true,\n                      \"format\": \"url\",\n                      \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                    }\n                  }\n                },\n                {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"id\": {\n                      \"type\": \"string\",\n                      \"readOnly\": true\n                    },\n                    \"start\": {\n                      \"description\": \"The start date and time for the override.\",\n                      \"type\": \"string\",\n                      \"format\": \"date-time\"\n                    },\n                    \"end\": {\n                      \"description\": \"The end date and time for the override.\",\n                      \"type\": \"string\",\n                      \"format\": \"date-time\"\n                    },\n                    \"user\": {\n                      \"allOf\": [\n                        {\n                          \"allOf\": [\n                            {\n                              \"type\": \"object\",\n                              \"properties\": {\n                                \"id\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true\n                                },\n                                \"summary\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                },\n                                \"type\": {\n                                  \"type\": \"string\",\n                                  \"readOnly\": true,\n                                  \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                },\n                                \"self\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"the API show URL at which the object is accessible\"\n                                },\n                                \"html_url\": {\n                                  \"type\": \"string\",\n                                  \"nullable\": true,\n                                  \"readOnly\": true,\n                                  \"format\": \"url\",\n                                  \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                }\n                              }\n                            },\n                            {\n                              \"type\": \"object\",\n                              \"required\": [\n                                \"type\",\n                                \"id\"\n                              ]\n                            }\n                          ]\n                        },\n                        {\n                          \"type\": \"object\",\n                          \"properties\": {\n                            \"type\": {\n                              \"type\": \"string\",\n                              \"enum\": [\n                                \"user_reference\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    }\n                  },\n                  \"required\": [\n                    \"start\",\n                    \"end\",\n                    \"user\"\n                  ],\n                  \"example\": {\n                    \"start\": \"2012-07-01T00:00:00-04:00\",\n                    \"end\": \"2012-07-02T00:00:00-04:00\",\n                    \"user\": {\n                      \"id\": \"PEYSGVF\",\n                      \"type\": \"user_reference\"\n                    }\n                  }\n                }\n              ]\n            }\n          }\n        }\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"overrides\": [\n              {\n                \"start\": \"2012-07-01T00:00:00-04:00\",\n                \"end\": \"2012-07-02T00:00:00-04:00\",\n                \"user\": {\n                  \"id\": \"PEYSGVA\",\n                  \"type\": \"user_reference\"\n                },\n                \"time_zone\": \"UTC\"\n              },\n              {\n                \"start\": \"2012-07-03T00:00:00-04:00\",\n                \"end\": \"2012-07-04T00:00:00-04:00\",\n                \"user\": {\n                  \"id\": \"PEYSGVF\",\n                  \"type\": \"user_reference\"\n                },\n                \"time_zone\": \"UTC\"\n              }\n            ]\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The overrides to be created\",\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "ListServices",
-  "fully_qualified_name": "PagerdutyApi.ListServices@0.1.0",
-  "description": "Fetch a list of existing Pagerduty services.\n\nUse this tool to retrieve a list of services, which may represent applications, components, or teams for incident management.",
+  "fully_qualified_name": "PagerdutyApi.ListServices@2.0.0",
+  "description": "Retrieve a list of existing services.\n\nUse this tool to get a list of services, which may include applications, components, or teams for incident management.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the API version using the Accept header for versioning purposes.",
+        "description": "The version of the API to use, specified in the `Accept` header. Used for versioning.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type",
+        "name": "content_type_header",
         "required": true,
-        "description": "Sets the media type of the resource. Accepts only 'application/json'.",
+        "description": "Specify the content type of the request. Must be 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "filter_by_name",
+        "name": "name_query_filter",
         "required": false,
-        "description": "Filters services by specifying a name query to match.",
+        "description": "Filters results to show only services with names matching the query.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "The number of service records to retrieve per page.",
+        "description": "Specify the number of results to be returned per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -74,7 +74,7 @@
       {
         "name": "pagination_offset",
         "required": false,
-        "description": "Offset to start pagination in search results, allowing for navigation through pages.",
+        "description": "Offset to start pagination search results.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -87,9 +87,9 @@
         "http_endpoint_parameter_name": "offset"
       },
       {
-        "name": "team_ids",
+        "name": "filter_by_team_ids",
         "required": false,
-        "description": "An array of team IDs. Only services related to these teams will be returned. Requires the `teams` ability.",
+        "description": "Filter results to only include services related to the specified team IDs. Requires 'teams' ability.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "string",
@@ -102,9 +102,9 @@
         "http_endpoint_parameter_name": "team_ids[]"
       },
       {
-        "name": "time_zone",
+        "name": "results_time_zone",
         "required": false,
-        "description": "Specify the time zone for rendering results. Defaults to the account time zone.",
+        "description": "Time zone for rendering results, defaulting to the account time zone.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,9 +117,9 @@
         "http_endpoint_parameter_name": "time_zone"
       },
       {
-        "name": "sort_services_by",
+        "name": "sort_results_by",
         "required": false,
-        "description": "Specify the field to sort the results by. Options: 'name', 'name:asc', 'name:desc'.",
+        "description": "Specifies the field and order (ascending/descending) to sort the results by. Options include: 'name', 'name:asc', 'name:desc'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -138,7 +138,7 @@
       {
         "name": "include_additional_details",
         "required": false,
-        "description": "Specify additional details to include, such as escalation policies or teams. Options are: escalation_policies, teams, integrations, auto_pause_notifications_parameters.",
+        "description": "Array of additional details to include, such as 'escalation_policies', 'teams', 'integrations', or 'auto_pause_notifications_parameters'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -173,7 +173,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to populate the `total` field in pagination responses, enabling a complete total count.",
+        "description": "Set to true to include the total count of results in the pagination response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -216,13 +216,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/services",
@@ -231,7 +231,7 @@
     "parameters": [
       {
         "name": "query",
-        "tool_parameter_name": "filter_by_name",
+        "tool_parameter_name": "name_query_filter",
         "description": "Filters the result, showing only the records whose name matches the query.",
         "value_schema": {
           "val_type": "string",
@@ -298,12 +298,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "team_ids[]",
-        "tool_parameter_name": "team_ids",
+        "tool_parameter_name": "filter_by_team_ids",
         "description": "An array of team IDs. Only results related to these teams will be returned. Account must have the `teams` ability to use this parameter.",
         "value_schema": {
           "val_type": "array",
@@ -321,7 +321,7 @@
       },
       {
         "name": "time_zone",
-        "tool_parameter_name": "time_zone",
+        "tool_parameter_name": "results_time_zone",
         "description": "Time zone in which results will be rendered. This will default to the account time zone.",
         "value_schema": {
           "val_type": "string",
@@ -339,7 +339,7 @@
       },
       {
         "name": "sort_by",
-        "tool_parameter_name": "sort_services_by",
+        "tool_parameter_name": "sort_results_by",
         "description": "Used to specify the field you wish to sort the results on.",
         "value_schema": {
           "val_type": "string",
@@ -356,7 +356,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": "name",
         "documentation_urls": []
       },
       {
@@ -420,7 +420,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type",
+        "tool_parameter_name": "content_type_header",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -449,6 +449,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

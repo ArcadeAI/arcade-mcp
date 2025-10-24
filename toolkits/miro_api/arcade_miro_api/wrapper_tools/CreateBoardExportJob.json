@@ -1,0 +1,212 @@
+{
+  "name": "CreateBoardExportJob",
+  "fully_qualified_name": "MiroApi.CreateBoardExportJob@2.0.0",
+  "description": "Initiates an export job for specified boards in an organization.\n\nThis tool creates an export job for one or more boards within Miro, available exclusively to Enterprise plan users with Company Admin roles and eDiscovery enabled. It's suitable for managing board exports, optimizing data handling within an organization.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_export_request_id",
+        "required": true,
+        "description": "A unique identifier for the export job, used to track the export process of boards in Miro.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the board export job."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "request_id"
+      },
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "Unique identifier of the organization for exporting boards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "export_board_ids",
+        "required": false,
+        "description": "A list of board IDs to be exported. Provide the IDs as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of board IDs to be exported."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boardIds"
+      },
+      {
+        "name": "export_format",
+        "required": false,
+        "description": "Specifies the format for exporting the board. Options: SVG (default), HTML, or PDF.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "SVG",
+            "HTML",
+            "PDF"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the format of the file to which the board will be exported. Supported formats include SVG (default), HTML, and PDF."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boardFormat"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-create-board-export'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/boards/export/jobs",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "request_id",
+        "tool_parameter_name": "board_export_request_id",
+        "description": "Unique identifier of the board export job.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the board export job."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "Unique identifier of the organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier of the organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "boardIds",
+        "tool_parameter_name": "export_board_ids",
+        "description": "List of board IDs to be exported.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "List of board IDs to be exported."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "boardFormat",
+        "tool_parameter_name": "export_format",
+        "description": "Specifies the format of the file to which the board will be exported. Supported formats include SVG (default), HTML, and PDF.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "SVG",
+            "HTML",
+            "PDF"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies the format of the file to which the board will be exported. Supported formats include SVG (default), HTML, and PDF."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": "SVG",
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"boardIds\": {\n            \"maxItems\": 50,\n            \"minItems\": 1,\n            \"type\": \"array\",\n            \"description\": \"List of board IDs to be exported.\",\n            \"example\": \"o9J_kzlUDmo=\",\n            \"items\": {\n              \"type\": \"string\",\n              \"description\": \"List of board IDs to be exported.\",\n              \"example\": \"o9J_kzlUDmo=\"\n            }\n          },\n          \"boardFormat\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"SVG\",\n              \"HTML\",\n              \"PDF\"\n            ],\n            \"default\": \"SVG\",\n            \"description\": \"Specifies the format of the file to which the board will be exported. Supported formats include SVG (default), HTML, and PDF.\",\n            \"example\": \"SVG\"\n          }\n        },\n        \"description\": \"List of board IDs to be exported.\"\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

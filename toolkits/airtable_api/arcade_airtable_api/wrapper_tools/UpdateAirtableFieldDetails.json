@@ -1,0 +1,241 @@
+{
+  "name": "UpdateAirtableFieldDetails",
+  "fully_qualified_name": "AirtableApi.UpdateAirtableFieldDetails@2.0.0",
+  "description": "Updates the name or description of an Airtable field.\n\nThis tool updates the name and/or description of a specified field in an Airtable base. It requires at least one of the name or description to be provided. Use this when you need to change field metadata in Airtable.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "airtable_base_id",
+        "required": true,
+        "description": "The unique ID of the Airtable base containing the field to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "airtable_table_id",
+        "required": true,
+        "description": "The ID of the table in which the field's metadata is to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tableId"
+      },
+      {
+        "name": "field_column_id",
+        "required": true,
+        "description": "The unique identifier for the field (column) to be updated in the Airtable base.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "columnId"
+      },
+      {
+        "name": "new_field_description",
+        "required": false,
+        "description": "The new description for the field. Optional, max 20,000 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new description for the field (optional). If present, must be a string no longer than 20,000 characters."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "new_field_name",
+        "required": false,
+        "description": "The new name for the field in Airtable. This is optional but must be provided if no new description is given.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the field (optional)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'update-field'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "schema.bases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/bases/{baseId}/tables/{tableId}/fields/{columnId}",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "airtable_base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "tableId",
+        "tool_parameter_name": "airtable_table_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "columnId",
+        "tool_parameter_name": "field_column_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "new_field_description",
+        "description": "The new description for the field (optional). If present, must be a string no longer than 20,000 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new description for the field (optional). If present, must be a string no longer than 20,000 characters."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "new_field_name",
+        "description": "The new name for the field (optional).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The new name for the field (optional)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success Response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success Response\",\n          \"value\": {\n            \"description\": \"I was changed!\",\n            \"name\": \"Apartments (revised)\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"description\": {\n            \"description\": \"The new description for the field (optional). If present, must be a string no longer than 20,000 characters.\",\n            \"type\": \"string\"\n          },\n          \"name\": {\n            \"description\": \"The new name for the field (optional).\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

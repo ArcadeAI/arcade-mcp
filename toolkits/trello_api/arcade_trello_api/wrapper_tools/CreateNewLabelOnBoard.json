@@ -1,0 +1,203 @@
+{
+  "name": "CreateNewLabelOnBoard",
+  "fully_qualified_name": "TrelloApi.CreateNewLabelOnBoard@2.0.0",
+  "description": "Create a new label on a Trello board.\n\nUse this tool to add a new label to a specified Trello board. This is useful for organizing and categorizing tasks within a board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "label_name",
+        "required": true,
+        "description": "The name assigned to the new label being created on the Trello board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the label"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "label_color",
+        "required": true,
+        "description": "Specify the color for the label. Choose from yellow, purple, blue, red, green, orange, black, sky, pink, or lime.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "yellow",
+            "purple",
+            "blue",
+            "red",
+            "green",
+            "orange",
+            "black",
+            "sky",
+            "pink",
+            "lime"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The color for the label."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "color"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The ID of the Trello board on which to create the new label. This is required to specify the target board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Board to create the Label on."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBoard"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-labels'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/labels",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "label_name",
+        "description": "Name for the label",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the label"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "color",
+        "tool_parameter_name": "label_color",
+        "description": "The color for the label.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "yellow",
+            "purple",
+            "blue",
+            "red",
+            "green",
+            "orange",
+            "black",
+            "sky",
+            "pink",
+            "lime"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The color for the label."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBoard",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the Board to create the Label on.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Board to create the Label on."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "RemoveChecklistItem",
-  "fully_qualified_name": "TrelloApi.RemoveChecklistItem@0.1.0",
-  "description": "Removes an item from a Trello checklist.\n\nThis tool removes a specified item from a checklist in Trello. Use it when you need to delete a checklist item.",
+  "fully_qualified_name": "TrelloApi.RemoveChecklistItem@2.0.0",
+  "description": "Remove an item from a Trello checklist.\n\nUse this tool to delete a specific item from a checklist in Trello, identified by its ID and the checklist ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "checklist_id",
         "required": true,
-        "description": "ID of the checklist from which an item will be removed.",
+        "description": "ID of the checklist from which the item will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "check_item_id",
         "required": true,
-        "description": "ID of the checklist item to remove in Trello.",
+        "description": "The ID of the specific checklist item to be removed from Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,13 +72,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
@@ -100,6 +100,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -117,6 +118,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -138,6 +140,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

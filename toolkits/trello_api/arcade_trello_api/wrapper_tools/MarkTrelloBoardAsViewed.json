@@ -1,18 +1,18 @@
 {
   "name": "MarkTrelloBoardAsViewed",
-  "fully_qualified_name": "TrelloApi.MarkTrelloBoardAsViewed@0.1.0",
-  "description": "Marks a Trello board as viewed for a user.\n\nUse this tool when you need to mark a Trello board as viewed. It helps manage board activity tracking by indicating when a user has viewed it.",
+  "fully_qualified_name": "TrelloApi.MarkTrelloBoardAsViewed@2.0.0",
+  "description": "Mark a Trello board as viewed to update status.\n\nUse this tool to mark a specific Trello board as viewed. This can be useful to update the current status of interaction with the board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board to be marked as viewed.",
+        "description": "The unique identifier of the Trello board to mark as viewed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/boards/{id}/markedAsViewed",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

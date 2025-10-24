@@ -1,0 +1,370 @@
+{
+  "name": "ResolveOrUpdateIncidentAlert",
+  "fully_qualified_name": "PagerdutyApi.ResolveOrUpdateIncidentAlert@2.0.0",
+  "description": "Resolve an alert or update its associated incident.\n\nUse this tool to resolve a specific alert or associate it with a different parent incident in PagerDuty. This is useful when managing incidents that require updates or resolution. Ensure you have `incidents.write` OAuth permissions before calling this tool.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "resource_id",
+        "required": true,
+        "description": "The unique identifier for the resource you want to update or resolve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "alert_id",
+        "required": true,
+        "description": "The ID of the alert to resolve or update its parent incident.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the alert to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "alert_id"
+      },
+      {
+        "name": "versioning_header",
+        "required": true,
+        "description": "Specifies the API version via the 'Accept' header to ensure proper versioning.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the request body, must be 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_email_address",
+        "required": true,
+        "description": "The email address of a valid user associated with the account making the request. Ensure it is linked to the account with necessary permissions.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "alert_update_parameters",
+        "required": false,
+        "description": "JSON object specifying the alert update details, such as status ('resolved' or 'triggered') and associated incident ID.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "alert": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "incident": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "incident_reference"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The parameters of the alert to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'updateIncidentAlert'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}/alerts/{alert_id}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "resource_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "alert_id",
+        "tool_parameter_name": "alert_id",
+        "description": "The id of the alert to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the alert to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "versioning_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "user_email_address",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "alert_update_parameters",
+        "description": "The parameters of the alert to update.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "alert": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "status": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "resolved",
+                    "triggered"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": null
+                },
+                "incident": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "id": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    },
+                    "type": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "incident_reference"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": null
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": null
+                }
+              },
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The parameters of the alert to update."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"alert\": {\n            \"type\": \"object\",\n            \"x-examples\": {\n              \"Example 1\": {\n                \"status\": \"resolved\",\n                \"incident\": {\n                  \"id\": \"string\",\n                  \"type\": \"incident_reference\"\n                }\n              }\n            },\n            \"properties\": {\n              \"status\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"resolved\",\n                  \"triggered\"\n                ]\n              },\n              \"incident\": {\n                \"type\": \"object\",\n                \"x-examples\": {\n                  \"Example 1\": {\n                    \"id\": \"string\",\n                    \"type\": \"incident_reference\"\n                  }\n                },\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"incident_reference\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"id\"\n                ]\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"alert\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"alert\": {\n              \"type\": \"alert\",\n              \"status\": \"resolved\",\n              \"incident\": {\n                \"id\": \"PEYSGVF\",\n                \"type\": \"incident_reference\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The parameters of the alert to update.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

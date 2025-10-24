@@ -1,0 +1,142 @@
+{
+  "name": "RetrieveMultipleOrders",
+  "fully_qualified_name": "SquareupApi.RetrieveMultipleOrders@2.0.0",
+  "description": "Retrieve multiple orders using their IDs.\n\nThis tool retrieves details of multiple orders from Square using their IDs. It ignores any non-existent order IDs, ensuring no errors are returned for invalid IDs.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "order_ids_list",
+        "required": true,
+        "description": "An array of order IDs to retrieve, with a maximum of 100 per request.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the orders to retrieve. A maximum of 100 orders can be retrieved per request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "order_ids"
+      },
+      {
+        "name": "location_id",
+        "required": false,
+        "description": "Optional location ID for the orders. Omit to use the current merchant's ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for these orders. This field is optional: omit it to retrieve\norders within the scope of the current authorization's merchant ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'BatchRetrieveOrders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ORDERS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/orders/batch-retrieve",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "location_id",
+        "tool_parameter_name": "location_id",
+        "description": "The ID of the location for these orders. This field is optional: omit it to retrieve\norders within the scope of the current authorization's merchant ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the location for these orders. This field is optional: omit it to retrieve\norders within the scope of the current authorization's merchant ID."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "order_ids",
+        "tool_parameter_name": "order_ids_list",
+        "description": "The IDs of the orders to retrieve. A maximum of 100 orders can be retrieved per request.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The IDs of the orders to retrieve. A maximum of 100 orders can be retrieved per request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Defines the fields that are included in requests to the\\n`BatchRetrieveOrders` endpoint.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"order_ids\"\n        ],\n        \"properties\": {\n          \"location_id\": {\n            \"type\": \"string\",\n            \"description\": \"The ID of the location for these orders. This field is optional: omit it to retrieve\\norders within the scope of the current authorization's merchant ID.\",\n            \"nullable\": true\n          },\n          \"order_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The IDs of the orders to retrieve. A maximum of 100 orders can be retrieved per request.\"\n          }\n        },\n        \"example\": {\n          \"location_id\": \"057P5VYJ4A5X1\",\n          \"order_ids\": [\n            \"CAISEM82RcpmcFBM0TfOyiHV3es\",\n            \"CAISENgvlJ6jLWAzERDzjyHVybY\"\n          ]\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

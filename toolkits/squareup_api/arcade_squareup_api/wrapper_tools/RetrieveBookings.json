@@ -1,0 +1,307 @@
+{
+  "name": "RetrieveBookings",
+  "fully_qualified_name": "SquareupApi.RetrieveBookings@2.0.0",
+  "description": "Retrieve a collection of bookings.\n\nCall this tool to get a list of bookings. Ensure appropriate OAuth scopes are set depending on buyer-level or seller-level permissions.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "max_results_per_page",
+        "required": false,
+        "description": "The maximum number of results per page to return in a paged response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results per page to return in a paged response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The pagination cursor for the next page of results. Leave empty for the first page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The pagination cursor from the preceding response to return the next page of the results. Do not set this when retrieving the first page of the results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "customer_id_for_bookings",
+        "required": false,
+        "description": "The ID of the customer for whom to retrieve bookings. If not provided, retrieves bookings for all customers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [customer](entity:Customer) for whom to retrieve bookings. If this is not set, bookings for all customers are retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer_id"
+      },
+      {
+        "name": "team_member_id",
+        "required": false,
+        "description": "The ID of the team member to retrieve bookings for. Leave unset to retrieve bookings for all members.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The team member for whom to retrieve bookings. If this is not set, bookings of all members are retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_member_id"
+      },
+      {
+        "name": "specific_location_id",
+        "required": false,
+        "description": "Retrieve bookings for a specific location by its ID. If not set, retrieves bookings for all locations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The location for which to retrieve bookings. If this is not set, all locations' bookings are retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "earliest_start_time",
+        "required": false,
+        "description": "The RFC 3339 timestamp specifying the earliest start time for bookings. Defaults to current time if not set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The RFC 3339 timestamp specifying the earliest of the start time. If this is not set, the current time is used."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_at_min"
+      },
+      {
+        "name": "latest_start_time",
+        "required": false,
+        "description": "The latest possible start time of bookings in RFC 3339 format. Defaults to 31 days after `start_at_min` if not set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The RFC 3339 timestamp specifying the latest of the start time. If this is not set, the time of 31 days after `start_at_min` is used."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "start_at_max"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'ListBookings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "APPOINTMENTS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/bookings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_per_page",
+        "description": "The maximum number of results per page to return in a paged response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results per page to return in a paged response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "The pagination cursor from the preceding response to return the next page of the results. Do not set this when retrieving the first page of the results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The pagination cursor from the preceding response to return the next page of the results. Do not set this when retrieving the first page of the results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "customer_id",
+        "tool_parameter_name": "customer_id_for_bookings",
+        "description": "The [customer](entity:Customer) for whom to retrieve bookings. If this is not set, bookings for all customers are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [customer](entity:Customer) for whom to retrieve bookings. If this is not set, bookings for all customers are retrieved."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_member_id",
+        "tool_parameter_name": "team_member_id",
+        "description": "The team member for whom to retrieve bookings. If this is not set, bookings of all members are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The team member for whom to retrieve bookings. If this is not set, bookings of all members are retrieved."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "specific_location_id",
+        "description": "The location for which to retrieve bookings. If this is not set, all locations' bookings are retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The location for which to retrieve bookings. If this is not set, all locations' bookings are retrieved."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_at_min",
+        "tool_parameter_name": "earliest_start_time",
+        "description": "The RFC 3339 timestamp specifying the earliest of the start time. If this is not set, the current time is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The RFC 3339 timestamp specifying the earliest of the start time. If this is not set, the current time is used."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "start_at_max",
+        "tool_parameter_name": "latest_start_time",
+        "description": "The RFC 3339 timestamp specifying the latest of the start time. If this is not set, the time of 31 days after `start_at_min` is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The RFC 3339 timestamp specifying the latest of the start time. If this is not set, the time of 31 days after `start_at_min` is used."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

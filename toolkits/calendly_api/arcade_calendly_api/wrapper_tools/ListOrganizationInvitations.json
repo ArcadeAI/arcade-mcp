@@ -1,0 +1,278 @@
+{
+  "name": "ListOrganizationInvitations",
+  "fully_qualified_name": "CalendlyApi.ListOrganizationInvitations@2.0.0",
+  "description": "Retrieve organization invitations sent to members.\n\nUse this tool to get a list of invitations that have been sent to members of a specific organization. This tool is useful for tracking pending or accepted invitations within the organization.",
+  "toolkit": {
+    "name": "ArcadeCalendlyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_unique_identifier",
+        "required": true,
+        "description": "The unique identifier for the organization to retrieve invitations for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's unique identifier"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "uuid"
+      },
+      {
+        "name": "rows_to_return",
+        "required": false,
+        "description": "Specify the number of organization invitation records to retrieve in the request.",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "count"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token for fetching the next or previous set of organization invitations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_token"
+      },
+      {
+        "name": "sort_order",
+        "required": false,
+        "description": "Specify the field and direction (ascending or descending) for sorting results. Use a comma-separated list for multiple criteria.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the field name and direction specified (ascending or descending). Returns multiple sets of results in a comma-separated list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "filter_by_email",
+        "required": false,
+        "description": "Email address to filter the results of organization invitations.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by email address"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Filter results by invitation status: 'pending', 'accepted', or 'declined'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pending",
+            "accepted",
+            "declined"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by status  (\"pending\", \"accepted\", or \"declined\")"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'list-organization-invitations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-calendly",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the calendly API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.calendly.com/organizations/{uuid}/invitations",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "count",
+        "tool_parameter_name": "rows_to_return",
+        "description": "The number of rows to return",
+        "value_schema": {
+          "val_type": "number",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of rows to return"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": 20,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "The token to pass to get the next or previous portion of the collection",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The token to pass to get the next or previous portion of the collection"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_order",
+        "description": "Order results by the field name and direction specified (ascending or descending). Returns multiple sets of results in a comma-separated list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Order results by the field name and direction specified (ascending or descending). Returns multiple sets of results in a comma-separated list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "created_at:asc",
+        "documentation_urls": []
+      },
+      {
+        "name": "email",
+        "tool_parameter_name": "filter_by_email",
+        "description": "Indicates if the results should be filtered by email address",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by email address"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Indicates if the results should be filtered by status  (\"pending\", \"accepted\", or \"declined\")",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pending",
+            "accepted",
+            "declined"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Indicates if the results should be filtered by status  (\"pending\", \"accepted\", or \"declined\")"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "uuid",
+        "tool_parameter_name": "organization_unique_identifier",
+        "description": "The organization's unique identifier",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The organization's unique identifier"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

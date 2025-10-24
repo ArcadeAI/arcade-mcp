@@ -1,0 +1,595 @@
+{
+  "name": "SearchSquareOrders",
+  "fully_qualified_name": "SquareupApi.SearchSquareOrders@2.0.0",
+  "description": "Search and retrieve orders from Square locations.\n\nUse this tool to search for all orders across specified Square locations, including sales, returns, and exchanges. The search can include filters, sorting, and specify whether to return detailed order information or a summary.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "order_search_criteria",
+        "required": true,
+        "description": "JSON object defining filters, sorting, locations, pagination, and result format for searching Square orders. Includes location IDs, pagination cursor, query criteria, max results limit, and result format controllable. Use to specify order state, fulfillment, source, customer, and sorting. Also controls order entry or complete order return.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "location_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The location IDs for the orders to query. All locations must belong to\nthe same merchant.\n\nMax: 10 location IDs."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for your original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "state_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "states": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "States to filter for.\nSee [OrderState](#type-orderstate) for possible values"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter by the current order `state`."
+                    },
+                    "date_time_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "created_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        },
+                        "updated_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        },
+                        "closed_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter for `Order` objects based on whether their `CREATED_AT`,\n`CLOSED_AT`, or `UPDATED_AT` timestamps fall within a specified time range.\nYou can specify the time range and which timestamp to filter for. You can filter\nfor only one time range at a time.\n\nFor each time range, the start time and end time are inclusive. If the end time\nis absent, it defaults to the time of the first request for the cursor.\n\n__Important:__ If you use the `DateTimeFilter` in a `SearchOrders` query,\nyou must set the `sort_field` in [OrdersSort](entity:SearchOrdersSort)\nto the same field you filter for. For example, if you set the `CLOSED_AT` field\nin `DateTimeFilter`, you must set the `sort_field` in `SearchOrdersSort` to\n`CLOSED_AT`. Otherwise, `SearchOrders` throws an error.\n[Learn more about filtering orders by time range.](https://developer.squareup.com/docs/orders-api/manage-orders/search-orders#important-note-about-filtering-orders-by-time-range)"
+                    },
+                    "fulfillment_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "fulfillment_types": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of [fulfillment types](entity:FulfillmentType) to filter\nfor. The list returns orders if any of its fulfillments match any of the fulfillment types\nlisted in this field.\nSee [FulfillmentType](#type-fulfillmenttype) for possible values"
+                        },
+                        "fulfillment_states": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of [fulfillment states](entity:FulfillmentState) to filter\nfor. The list returns orders if any of its fulfillments match any of the\nfulfillment states listed in this field.\nSee [FulfillmentState](#type-fulfillmentstate) for possible values"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter based on [order fulfillment](entity:Fulfillment) information."
+                    },
+                    "source_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "source_names": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filters by the [Source](entity:OrderSource) `name`. The filter returns any orders\nwith a `source.name` that matches any of the listed source names.\n\nMax: 10 source names."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A filter based on order `source` information."
+                    },
+                    "customer_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "customer_ids": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of customer IDs to filter by.\n\nMax: 10 customer ids."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A filter based on the order `customer_id` and any tender `customer_id`\nassociated with the order. It does not filter based on the\n[FulfillmentRecipient](entity:FulfillmentRecipient) `customer_id`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Filtering criteria to use for a `SearchOrders` request. Multiple filters\nare ANDed together."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "sort_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "CREATED_AT",
+                        "UPDATED_AT",
+                        "CLOSED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies which timestamp to use to sort `SearchOrder` results."
+                    },
+                    "sort_order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Sorting criteria for a `SearchOrders` request. Results can only be sorted\nby a timestamp field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains query criteria for the search."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to be returned in a single page.\n\nDefault: `500`\nMax: `1000`"
+            },
+            "return_entries": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A Boolean that controls the format of the search results. If `true`,\n`SearchOrders` returns [OrderEntry](entity:OrderEntry) objects. If `false`, `SearchOrders`\nreturns complete order objects.\n\nDefault: `false`."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchOrders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "ORDERS_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/orders/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "order_search_criteria",
+        "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "location_ids": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The location IDs for the orders to query. All locations must belong to\nthe same merchant.\n\nMax: 10 location IDs."
+            },
+            "cursor": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this cursor to retrieve the next set of results for your original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+            },
+            "query": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "filter": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "state_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "states": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "States to filter for.\nSee [OrderState](#type-orderstate) for possible values"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter by the current order `state`."
+                    },
+                    "date_time_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "created_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        },
+                        "updated_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        },
+                        "closed_at": {
+                          "val_type": "json",
+                          "inner_val_type": null,
+                          "enum": null,
+                          "properties": {
+                            "start_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+                            },
+                            "end_at": {
+                              "val_type": "string",
+                              "inner_val_type": null,
+                              "enum": null,
+                              "properties": null,
+                              "inner_properties": null,
+                              "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+                            }
+                          },
+                          "inner_properties": null,
+                          "description": "Represents a generic time range. The start and end values are\nrepresented in RFC 3339 format. Time ranges are customized to be\ninclusive or exclusive based on the needs of a particular endpoint.\nRefer to the relevant endpoint-specific documentation to determine\nhow time ranges are handled."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter for `Order` objects based on whether their `CREATED_AT`,\n`CLOSED_AT`, or `UPDATED_AT` timestamps fall within a specified time range.\nYou can specify the time range and which timestamp to filter for. You can filter\nfor only one time range at a time.\n\nFor each time range, the start time and end time are inclusive. If the end time\nis absent, it defaults to the time of the first request for the cursor.\n\n__Important:__ If you use the `DateTimeFilter` in a `SearchOrders` query,\nyou must set the `sort_field` in [OrdersSort](entity:SearchOrdersSort)\nto the same field you filter for. For example, if you set the `CLOSED_AT` field\nin `DateTimeFilter`, you must set the `sort_field` in `SearchOrdersSort` to\n`CLOSED_AT`. Otherwise, `SearchOrders` throws an error.\n[Learn more about filtering orders by time range.](https://developer.squareup.com/docs/orders-api/manage-orders/search-orders#important-note-about-filtering-orders-by-time-range)"
+                    },
+                    "fulfillment_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "fulfillment_types": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of [fulfillment types](entity:FulfillmentType) to filter\nfor. The list returns orders if any of its fulfillments match any of the fulfillment types\nlisted in this field.\nSee [FulfillmentType](#type-fulfillmenttype) for possible values"
+                        },
+                        "fulfillment_states": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of [fulfillment states](entity:FulfillmentState) to filter\nfor. The list returns orders if any of its fulfillments match any of the\nfulfillment states listed in this field.\nSee [FulfillmentState](#type-fulfillmentstate) for possible values"
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "Filter based on [order fulfillment](entity:Fulfillment) information."
+                    },
+                    "source_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "source_names": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "Filters by the [Source](entity:OrderSource) `name`. The filter returns any orders\nwith a `source.name` that matches any of the listed source names.\n\nMax: 10 source names."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A filter based on order `source` information."
+                    },
+                    "customer_filter": {
+                      "val_type": "json",
+                      "inner_val_type": null,
+                      "enum": null,
+                      "properties": {
+                        "customer_ids": {
+                          "val_type": "array",
+                          "inner_val_type": "string",
+                          "enum": null,
+                          "properties": null,
+                          "inner_properties": null,
+                          "description": "A list of customer IDs to filter by.\n\nMax: 10 customer ids."
+                        }
+                      },
+                      "inner_properties": null,
+                      "description": "A filter based on the order `customer_id` and any tender `customer_id`\nassociated with the order. It does not filter based on the\n[FulfillmentRecipient](entity:FulfillmentRecipient) `customer_id`."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Filtering criteria to use for a `SearchOrders` request. Multiple filters\nare ANDed together."
+                },
+                "sort": {
+                  "val_type": "json",
+                  "inner_val_type": null,
+                  "enum": null,
+                  "properties": {
+                    "sort_field": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "CREATED_AT",
+                        "UPDATED_AT",
+                        "CLOSED_AT"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "Specifies which timestamp to use to sort `SearchOrder` results."
+                    },
+                    "sort_order": {
+                      "val_type": "string",
+                      "inner_val_type": null,
+                      "enum": [
+                        "DESC",
+                        "ASC"
+                      ],
+                      "properties": null,
+                      "inner_properties": null,
+                      "description": "The order (e.g., chronological or alphabetical) in which results from a request are returned."
+                    }
+                  },
+                  "inner_properties": null,
+                  "description": "Sorting criteria for a `SearchOrders` request. Results can only be sorted\nby a timestamp field."
+                }
+              },
+              "inner_properties": null,
+              "description": "Contains query criteria for the search."
+            },
+            "limit": {
+              "val_type": "integer",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The maximum number of results to be returned in a single page.\n\nDefault: `500`\nMax: `1000`"
+            },
+            "return_entries": {
+              "val_type": "boolean",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "A Boolean that controls the format of the search results. If `true`,\n`SearchOrders` returns [OrderEntry](entity:OrderEntry) objects. If `false`, `SearchOrders`\nreturns complete order objects.\n\nDefault: `false`."
+            }
+          },
+          "inner_properties": null,
+          "description": "An object containing the fields to POST for the request.\n\nSee the corresponding object definition for field details."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"location_ids\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"description\": \"The location IDs for the orders to query. All locations must belong to\\nthe same merchant.\\n\\nMax: 10 location IDs.\"\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint.\\nProvide this cursor to retrieve the next set of results for your original query.\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          },\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Contains query criteria for the search.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"Filtering criteria to use for a `SearchOrders` request. Multiple filters\\nare ANDed together.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"state_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter by the current order `state`.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"states\"\n                    ],\n                    \"properties\": {\n                      \"states\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"OPEN\",\n                            \"COMPLETED\",\n                            \"CANCELED\",\n                            \"DRAFT\"\n                          ],\n                          \"x-enum-elements\": [\n                            {\n                              \"name\": \"OPEN\",\n                              \"description\": \"Indicates that the order is open. Open orders can be updated.\"\n                            },\n                            {\n                              \"name\": \"COMPLETED\",\n                              \"description\": \"Indicates that the order is completed. Completed orders are fully paid. This is a terminal state.\"\n                            },\n                            {\n                              \"name\": \"CANCELED\",\n                              \"description\": \"Indicates that the order is canceled. Canceled orders are not paid. This is a terminal state.\"\n                            },\n                            {\n                              \"name\": \"DRAFT\",\n                              \"description\": \"Indicates that the order is in a draft state. Draft orders can be updated,\\nbut cannot be paid or fulfilled.\\nFor more information, see [Create Orders](https://developer.squareup.com/docs/orders-api/create-orders).\"\n                            }\n                          ],\n                          \"description\": \"The state of the order.\",\n                          \"x-release-status\": \"PUBLIC\"\n                        },\n                        \"description\": \"States to filter for.\\nSee [OrderState](#type-orderstate) for possible values\"\n                      }\n                    }\n                  },\n                  \"date_time_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter for `Order` objects based on whether their `CREATED_AT`,\\n`CLOSED_AT`, or `UPDATED_AT` timestamps fall within a specified time range.\\nYou can specify the time range and which timestamp to filter for. You can filter\\nfor only one time range at a time.\\n\\nFor each time range, the start time and end time are inclusive. If the end time\\nis absent, it defaults to the time of the first request for the cursor.\\n\\n__Important:__ If you use the `DateTimeFilter` in a `SearchOrders` query,\\nyou must set the `sort_field` in [OrdersSort](entity:SearchOrdersSort)\\nto the same field you filter for. For example, if you set the `CLOSED_AT` field\\nin `DateTimeFilter`, you must set the `sort_field` in `SearchOrdersSort` to\\n`CLOSED_AT`. Otherwise, `SearchOrders` throws an error.\\n[Learn more about filtering orders by time range.](https://developer.squareup.com/docs/orders-api/manage-orders/search-orders#important-note-about-filtering-orders-by-time-range)\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"created_at\": {\n                        \"type\": \"object\",\n                        \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                            \"nullable\": true\n                          },\n                          \"end_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"updated_at\": {\n                        \"type\": \"object\",\n                        \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                            \"nullable\": true\n                          },\n                          \"end_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                            \"nullable\": true\n                          }\n                        }\n                      },\n                      \"closed_at\": {\n                        \"type\": \"object\",\n                        \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                            \"nullable\": true\n                          },\n                          \"end_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                            \"nullable\": true\n                          }\n                        }\n                      }\n                    }\n                  },\n                  \"fulfillment_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter based on [order fulfillment](entity:Fulfillment) information.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"fulfillment_types\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"PICKUP\",\n                            \"SHIPMENT\",\n                            \"DELIVERY\"\n                          ],\n                          \"x-enum-elements\": [\n                            {\n                              \"name\": \"PICKUP\",\n                              \"description\": \"A recipient to pick up the fulfillment from a physical [location](entity:Location).\"\n                            },\n                            {\n                              \"name\": \"SHIPMENT\",\n                              \"description\": \"A shipping carrier to ship the fulfillment.\"\n                            },\n                            {\n                              \"name\": \"DELIVERY\",\n                              \"description\": \"A courier to deliver the fulfillment.\"\n                            }\n                          ],\n                          \"description\": \"The type of fulfillment.\",\n                          \"x-release-status\": \"PUBLIC\"\n                        },\n                        \"description\": \"A list of [fulfillment types](entity:FulfillmentType) to filter\\nfor. The list returns orders if any of its fulfillments match any of the fulfillment types\\nlisted in this field.\\nSee [FulfillmentType](#type-fulfillmenttype) for possible values\",\n                        \"nullable\": true\n                      },\n                      \"fulfillment_states\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"PROPOSED\",\n                            \"RESERVED\",\n                            \"PREPARED\",\n                            \"COMPLETED\",\n                            \"CANCELED\",\n                            \"FAILED\"\n                          ],\n                          \"x-enum-elements\": [\n                            {\n                              \"name\": \"PROPOSED\",\n                              \"description\": \"Indicates that the fulfillment has been proposed.\"\n                            },\n                            {\n                              \"name\": \"RESERVED\",\n                              \"description\": \"Indicates that the fulfillment has been reserved.\"\n                            },\n                            {\n                              \"name\": \"PREPARED\",\n                              \"description\": \"Indicates that the fulfillment has been prepared.\"\n                            },\n                            {\n                              \"name\": \"COMPLETED\",\n                              \"description\": \"Indicates that the fulfillment was successfully completed.\"\n                            },\n                            {\n                              \"name\": \"CANCELED\",\n                              \"description\": \"Indicates that the fulfillment was canceled.\"\n                            },\n                            {\n                              \"name\": \"FAILED\",\n                              \"description\": \"Indicates that the fulfillment failed to be completed, but was not explicitly\\ncanceled.\"\n                            }\n                          ],\n                          \"description\": \"The current state of this fulfillment.\",\n                          \"x-release-status\": \"PUBLIC\"\n                        },\n                        \"description\": \"A list of [fulfillment states](entity:FulfillmentState) to filter\\nfor. The list returns orders if any of its fulfillments match any of the\\nfulfillment states listed in this field.\\nSee [FulfillmentState](#type-fulfillmentstate) for possible values\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"source_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"A filter based on order `source` information.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"properties\": {\n                      \"source_names\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"description\": \"Filters by the [Source](entity:OrderSource) `name`. The filter returns any orders\\nwith a `source.name` that matches any of the listed source names.\\n\\nMax: 10 source names.\",\n                        \"nullable\": true\n                      }\n                    }\n                  },\n                  \"customer_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"A filter based on the order `customer_id` and any tender `customer_id`\\nassociated with the order. It does not filter based on the\\n[FulfillmentRecipient](entity:FulfillmentRecipient) `customer_id`.\",\n                    \"x-release-status\": \"BETA\",\n                    \"properties\": {\n                      \"customer_ids\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"description\": \"A list of customer IDs to filter by.\\n\\nMax: 10 customer ids.\",\n                        \"nullable\": true\n                      }\n                    }\n                  }\n                }\n              },\n              \"sort\": {\n                \"type\": \"object\",\n                \"description\": \"Sorting criteria for a `SearchOrders` request. Results can only be sorted\\nby a timestamp field.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"required\": [\n                  \"sort_field\"\n                ],\n                \"properties\": {\n                  \"sort_field\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"CREATED_AT\",\n                      \"UPDATED_AT\",\n                      \"CLOSED_AT\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"CREATED_AT\",\n                        \"description\": \"The time when the order was created, in RFC-3339 format. If you are also\\nfiltering for a time range in this query, you must set the `CREATED_AT`\\nfield in your `DateTimeFilter`.\"\n                      },\n                      {\n                        \"name\": \"UPDATED_AT\",\n                        \"description\": \"The time when the order last updated, in RFC-3339 format. If you are also\\nfiltering for a time range in this query, you must set the `UPDATED_AT`\\nfield in your `DateTimeFilter`.\"\n                      },\n                      {\n                        \"name\": \"CLOSED_AT\",\n                        \"description\": \"The time when the order was closed, in RFC-3339 format. If you use this\\nvalue, you must also set a `StateFilter` with closed states. If you are also\\nfiltering for a time range in this query, you must set the `CLOSED_AT`\\nfield in your `DateTimeFilter`.\"\n                      }\n                    ],\n                    \"description\": \"Specifies which timestamp to use to sort `SearchOrder` results.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  },\n                  \"sort_order\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"DESC\",\n                      \"ASC\"\n                    ],\n                    \"x-enum-elements\": [\n                      {\n                        \"name\": \"DESC\",\n                        \"description\": \"The results are returned in descending (e.g., newest-first or Z-A) order.\"\n                      },\n                      {\n                        \"name\": \"ASC\",\n                        \"description\": \"The results are returned in ascending (e.g., oldest-first or A-Z) order.\"\n                      }\n                    ],\n                    \"description\": \"The order (e.g., chronological or alphabetical) in which results from a request are returned.\",\n                    \"x-release-status\": \"PUBLIC\"\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to be returned in a single page.\\n\\nDefault: `500`\\nMax: `1000`\"\n          },\n          \"return_entries\": {\n            \"type\": \"boolean\",\n            \"description\": \"A Boolean that controls the format of the search results. If `true`,\\n`SearchOrders` returns [OrderEntry](entity:OrderEntry) objects. If `false`, `SearchOrders`\\nreturns complete order objects.\\n\\nDefault: `false`.\"\n          }\n        },\n        \"example\": {\n          \"limit\": 3,\n          \"location_ids\": [\n            \"057P5VYJ4A5X1\",\n            \"18YC4JDH91E1H\"\n          ],\n          \"query\": {\n            \"filter\": {\n              \"date_time_filter\": {\n                \"closed_at\": {\n                  \"end_at\": \"2019-03-04T21:54:45+00:00\",\n                  \"start_at\": \"2018-03-03T20:00:00+00:00\"\n                }\n              },\n              \"state_filter\": {\n                \"states\": [\n                  \"COMPLETED\"\n                ]\n              }\n            },\n            \"sort\": {\n              \"sort_field\": \"CLOSED_AT\",\n              \"sort_order\": \"DESC\"\n            }\n          },\n          \"return_entries\": true\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

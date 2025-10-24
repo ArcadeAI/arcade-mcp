@@ -1,18 +1,18 @@
 {
   "name": "GetCustomBoardBackgrounds",
-  "fully_qualified_name": "TrelloApi.GetCustomBoardBackgrounds@0.1.0",
-  "description": "Retrieve a member's custom board backgrounds on Trello.\n\nThis tool fetches a member's custom board backgrounds from Trello. It should be called when you need to access the personalized board backgrounds created or used by a specific member.",
+  "fully_qualified_name": "TrelloApi.GetCustomBoardBackgrounds@2.0.0",
+  "description": "Retrieve a member's custom board backgrounds on Trello.\n\nUse this tool to get a specific member\u2019s custom board backgrounds from Trello. Ideal for when you need to display or manage a user's personalized board aesthetics.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
-        "description": "The ID or username of the Trello member whose custom board backgrounds you want to retrieve.",
+        "description": "The ID or username of the member to retrieve custom board backgrounds for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -23,32 +23,11 @@
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "id"
-      },
-      {
-        "name": "background_filter",
-        "required": false,
-        "description": "Filter results to include specific types of board backgrounds: `all`, `custom`, `default`, `none`, or `premium`.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "all",
-            "custom",
-            "default",
-            "none",
-            "premium"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "One of: `all`, `custom`, `default`, `none`, `premium`"
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "filter"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'get-members-id-boardbackgrounds'.",
+    "description": "Response from the API endpoint 'get-members-id-customboardbackgrounds'.",
     "available_modes": [
       "value",
       "error",
@@ -78,45 +57,22 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/members/{id}/boardBackgrounds",
+    "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds",
     "http_method": "GET",
     "headers": {},
     "parameters": [
       {
-        "name": "filter",
-        "tool_parameter_name": "background_filter",
-        "description": "One of: `all`, `custom`, `default`, `none`, `premium`",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "all",
-            "custom",
-            "default",
-            "none",
-            "premium"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "One of: `all`, `custom`, `default`, `none`, `premium`"
-        },
-        "accepted_as": "query",
-        "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",
@@ -129,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -150,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

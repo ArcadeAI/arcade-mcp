@@ -1,0 +1,274 @@
+{
+  "name": "AccumulateLoyaltyPoints",
+  "fully_qualified_name": "SquareupApi.AccumulateLoyaltyPoints@2.0.0",
+  "description": "Add points to a loyalty account for a purchase.\n\nThis tool adds loyalty points to a customer's account following a purchase. It can be used with or without the Orders API. If using the Orders API, provide the `order_id` for automatic point calculation based on the program and promotions. If not, manually compute and provide the `points` to add.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_id",
+        "required": true,
+        "description": "The unique identifier for the target loyalty account to which points will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [loyalty account](entity:LoyaltyAccount)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "account_id"
+      },
+      {
+        "name": "unique_request_id",
+        "required": true,
+        "description": "A unique string identifier for the `AccumulateLoyaltyPoints` request. Must be unique for each request to ensure idempotency.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the `AccumulateLoyaltyPoints` request. \nKeys can be any valid string but must be unique for every request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      },
+      {
+        "name": "purchase_location_id",
+        "required": true,
+        "description": "The ID of the location where the purchase was made, necessary for loyalty point accumulation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [location](entity:Location) where the purchase was made."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location_id"
+      },
+      {
+        "name": "loyalty_program_id",
+        "required": false,
+        "description": "The ID of the loyalty program to add points to. Required to identify the correct program.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty program](entity:LoyaltyProgram)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accumulate_points.loyalty_program_id"
+      },
+      {
+        "name": "points_to_accumulate",
+        "required": false,
+        "description": "Specify the number of points to add to the loyalty account from the purchase event if not using the Orders API.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of points accumulated by the event."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accumulate_points.points"
+      },
+      {
+        "name": "order_id_for_accumulation",
+        "required": false,
+        "description": "The ID of the order for which points are accumulated. Required if using the Orders API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [order](entity:Order) for which the buyer accumulated the points.\nThis field is returned only if the Orders API is used to process orders."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "accumulate_points.order_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'AccumulateLoyaltyPoints'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/accounts/{account_id}/accumulate",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "account_id",
+        "tool_parameter_name": "loyalty_account_id",
+        "description": "The ID of the target [loyalty account](entity:LoyaltyAccount).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the target [loyalty account](entity:LoyaltyAccount)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accumulate_points.loyalty_program_id",
+        "tool_parameter_name": "loyalty_program_id",
+        "description": "The ID of the [loyalty program](entity:LoyaltyProgram).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty program](entity:LoyaltyProgram)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accumulate_points.points",
+        "tool_parameter_name": "points_to_accumulate",
+        "description": "The number of points accumulated by the event.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of points accumulated by the event."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "accumulate_points.order_id",
+        "tool_parameter_name": "order_id_for_accumulation",
+        "description": "The ID of the [order](entity:Order) for which the buyer accumulated the points.\nThis field is returned only if the Orders API is used to process orders.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [order](entity:Order) for which the buyer accumulated the points.\nThis field is returned only if the Orders API is used to process orders."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_id",
+        "description": "A unique string that identifies the `AccumulateLoyaltyPoints` request. \nKeys can be any valid string but must be unique for every request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the `AccumulateLoyaltyPoints` request. \nKeys can be any valid string but must be unique for every request."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "location_id",
+        "tool_parameter_name": "purchase_location_id",
+        "description": "The [location](entity:Location) where the purchase was made.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [location](entity:Location) where the purchase was made."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Represents an [AccumulateLoyaltyPoints](api-endpoint:Loyalty-AccumulateLoyaltyPoints) request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"x-params-example\": \"?account_id=5adcb100-07f1-4ee7-b8c6-6bb9ebc474bd\",\n        \"required\": [\n          \"accumulate_points\",\n          \"idempotency_key\",\n          \"location_id\"\n        ],\n        \"properties\": {\n          \"accumulate_points\": {\n            \"type\": \"object\",\n            \"description\": \"Provides metadata when the event `type` is `ACCUMULATE_POINTS`.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"loyalty_program_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the [loyalty program](entity:LoyaltyProgram).\",\n                \"maxLength\": 36,\n                \"readOnly\": true\n              },\n              \"points\": {\n                \"type\": \"integer\",\n                \"description\": \"The number of points accumulated by the event.\",\n                \"minimum\": 1,\n                \"nullable\": true\n              },\n              \"order_id\": {\n                \"type\": \"string\",\n                \"description\": \"The ID of the [order](entity:Order) for which the buyer accumulated the points.\\nThis field is returned only if the Orders API is used to process orders.\",\n                \"nullable\": true\n              }\n            }\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies the `AccumulateLoyaltyPoints` request. \\nKeys can be any valid string but must be unique for every request.\",\n            \"minLength\": 1,\n            \"maxLength\": 128\n          },\n          \"location_id\": {\n            \"type\": \"string\",\n            \"description\": \"The [location](entity:Location) where the purchase was made.\"\n          }\n        },\n        \"example\": {\n          \"accumulate_points\": {\n            \"order_id\": \"RFZfrdtm3mhO1oGzf5Cx7fEMsmGZY\"\n          },\n          \"idempotency_key\": \"58b90739-c3e8-4b11-85f7-e636d48d72cb\",\n          \"location_id\": \"P034NEENMD09F\"\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

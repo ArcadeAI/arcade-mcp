@@ -1,18 +1,18 @@
 {
   "name": "FetchEventTypeHosts",
-  "fully_qualified_name": "CalendlyApi.FetchEventTypeHosts@0.1.0",
-  "description": "Fetch a list of event type hosts from Calendly.\n\nUse this tool to retrieve a list of hosts for event types from Calendly's API. This is helpful for understanding which hosts are associated with specific event types.",
+  "fully_qualified_name": "CalendlyApi.FetchEventTypeHosts@2.0.0",
+  "description": "Fetches a list of event type hosts from Calendly.\n\nUse this tool to retrieve a list of hosts for event types on Calendly. This can be useful to determine availability or to manage event type assignments.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "event_type_uri",
         "required": true,
-        "description": "The URI associated with the event type to identify and fetch associated hosts.",
+        "description": "The URI associated with the event type to identify the hosts.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "number_of_rows_to_return",
         "required": false,
-        "description": "Specify the number of event type hosts to return.",
+        "description": "Specify the number of rows to fetch from the list of event type hosts. This determines the size of the dataset returned.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "pagination_token",
         "required": false,
-        "description": "Token to retrieve the next or previous portion of event type hosts.",
+        "description": "Token for fetching the next or previous portion of the event type host list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/event_type_memberships",
@@ -113,6 +113,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -130,6 +131,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": 20,
         "documentation_urls": []
       },
       {
@@ -147,6 +149,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -160,6 +163,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

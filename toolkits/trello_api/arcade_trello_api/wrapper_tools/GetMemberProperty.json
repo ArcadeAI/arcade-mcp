@@ -1,18 +1,18 @@
 {
   "name": "GetMemberProperty",
-  "fully_qualified_name": "TrelloApi.GetMemberProperty@0.1.0",
-  "description": "Fetch a specific property of a Trello member.\n\nUse this tool to retrieve a particular property of a member in Trello by specifying the member's ID and the desired field.",
+  "fully_qualified_name": "TrelloApi.GetMemberProperty@2.0.0",
+  "description": "Retrieve a specific property of a Trello member.\n\nUse this tool to get a particular property of a Trello member by specifying the member ID and the desired field. This is useful for retrieving specific member information such as username, email, or other available fields.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose property is to be fetched.",
+        "description": "The ID or username of the Trello member whose property is to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_property_field",
+        "name": "member_field_name",
         "required": true,
-        "description": "Specify which field (e.g., id, username) of the Trello member to retrieve.",
+        "description": "Specify the name of the member field to retrieve, such as 'username', 'email', etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/{field}",
@@ -102,11 +102,12 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "field",
-        "tool_parameter_name": "member_property_field",
+        "tool_parameter_name": "member_field_name",
         "description": "One of the member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -121,6 +122,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -142,6 +144,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

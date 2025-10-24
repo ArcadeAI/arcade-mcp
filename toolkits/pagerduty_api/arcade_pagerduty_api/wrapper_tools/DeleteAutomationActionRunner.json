@@ -1,18 +1,18 @@
 {
   "name": "DeleteAutomationActionRunner",
-  "fully_qualified_name": "PagerdutyApi.DeleteAutomationActionRunner@0.1.0",
-  "description": "Delete an Automation Action runner by ID.\n\nUse this tool to delete an Automation Action runner in Pagerduty. It should be called when you need to remove an existing runner by specifying its ID.",
+  "fully_qualified_name": "PagerdutyApi.DeleteAutomationActionRunner@2.0.0",
+  "description": "Delete an Automation Action runner by ID.\n\nUse this tool to delete an existing Automation Action runner in PagerDuty by providing its ID. It should be called when you need to remove a runner and no longer require it for automation tasks.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "automation_action_runner_id",
+        "name": "runner_id",
         "required": true,
-        "description": "The unique identifier for the Automation Action runner to be deleted.",
+        "description": "The unique ID of the Automation Action runner to delete.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "versioning_header",
+        "name": "accept_version",
         "required": true,
-        "description": "Specify the version of the API to use for the request by setting the `Accept` header.",
+        "description": "Specify the versioning in the `Accept` header for the API request.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specify the content type as 'application/json'. Default is 'application/json'.",
+        "description": "Specifies the media type of the request. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/automation_actions/runners/{id}",
@@ -102,7 +102,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "automation_action_runner_id",
+        "tool_parameter_name": "runner_id",
         "description": "The ID of the resource.",
         "value_schema": {
           "val_type": "string",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

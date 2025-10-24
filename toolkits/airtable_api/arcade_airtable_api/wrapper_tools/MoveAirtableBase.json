@@ -1,0 +1,192 @@
+{
+  "name": "MoveAirtableBase",
+  "fully_qualified_name": "AirtableApi.MoveAirtableBase@2.0.0",
+  "description": "Move a base between Airtable workspaces.\n\nUse this tool to move a base from one workspace to another within the same Airtable enterprise account.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_workspace_id",
+        "required": true,
+        "description": "The ID of the target workspace where the base will be moved. It should be a valid string ID of an existing workspace within the same Airtable enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workspaceId"
+      },
+      {
+        "name": "move_base_request_body",
+        "required": false,
+        "description": "A JSON object containing the base ID, target workspace ID, and optional target index for moving a base.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "baseId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the base to be moved"
+            },
+            "targetIndex": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired index for the base in the target workspace's base order (optional).\nIf provided, targetIndex must be a number between 0 (beginning of the list) and the number of bases\nin the target workspace (end of the list). If targetIndex is not provided,\nthe base will be moved to the end of the list of bases in the target workspace."
+            },
+            "targetWorkspaceId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target workspace of the move. I.e. the workspace that the base will\nbelong to once the move is complete. The target workspace must be in the same enterprise account as the source workspace."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'move-base'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/workspaces/{workspaceId}/moveBase",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workspaceId",
+        "tool_parameter_name": "target_workspace_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "move_base_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "baseId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the base to be moved"
+            },
+            "targetIndex": {
+              "val_type": "number",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The desired index for the base in the target workspace's base order (optional).\nIf provided, targetIndex must be a number between 0 (beginning of the list) and the number of bases\nin the target workspace (end of the list). If targetIndex is not provided,\nthe base will be moved to the end of the list of bases in the target workspace."
+            },
+            "targetWorkspaceId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target workspace of the move. I.e. the workspace that the base will\nbelong to once the move is complete. The target workspace must be in the same enterprise account as the source workspace."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Example request\": {\n          \"description\": \"Example Request\",\n          \"summary\": \"Example request\",\n          \"value\": {\n            \"baseId\": \"appLkNDICXNqxSDhG\",\n            \"targetIndex\": 0,\n            \"targetWorkspaceId\": \"wspmhESAta6clCCwF\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"baseId\": {\n            \"description\": \"ID of the base to be moved\",\n            \"type\": \"string\"\n          },\n          \"targetIndex\": {\n            \"description\": \"The desired index for the base in the target workspace's base order (optional).\\nIf provided, targetIndex must be a number between 0 (beginning of the list) and the number of bases\\nin the target workspace (end of the list). If targetIndex is not provided,\\nthe base will be moved to the end of the list of bases in the target workspace.\",\n            \"type\": \"number\"\n          },\n          \"targetWorkspaceId\": {\n            \"description\": \"ID of the target workspace of the move. I.e. the workspace that the base will\\nbelong to once the move is complete. The target workspace must be in the same enterprise account as the source workspace.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"baseId\",\n          \"targetWorkspaceId\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

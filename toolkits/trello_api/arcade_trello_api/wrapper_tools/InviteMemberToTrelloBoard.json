@@ -1,0 +1,222 @@
+{
+  "name": "InviteMemberToTrelloBoard",
+  "fully_qualified_name": "TrelloApi.InviteMemberToTrelloBoard@2.0.0",
+  "description": "Invite a member to a Trello board via email.\n\nUse this tool to invite a new member to a Trello board using their email address. It is useful for adding collaborators to a project board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_email_address",
+        "required": true,
+        "description": "The email address of the user to be added as a member to the Trello board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a user to add as a member of the board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "email"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier for the Trello board to which the member will be invited.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "member_access_type",
+        "required": false,
+        "description": "Specifies the role of the new board member. Valid values are: admin, normal, or observer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal",
+            "observer"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: admin, normal, observer. Determines what type of member the user being added should be of the board."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "user_full_name",
+        "required": false,
+        "description": "The full name of the user being invited. Must be at least 1 character and not begin or end with a space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The full name of the user to as a member of the board. Must have a length of at least 1 and cannot begin nor end with a space."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fullName"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-boards-id-members'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/members",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "email",
+        "tool_parameter_name": "member_email_address",
+        "description": "The email address of a user to add as a member of the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a user to add as a member of the board."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "member_access_type",
+        "description": "Valid values: admin, normal, observer. Determines what type of member the user being added should be of the board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal",
+            "observer"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: admin, normal, observer. Determines what type of member the user being added should be of the board."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "default": "normal",
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the board",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "fullName",
+        "tool_parameter_name": "user_full_name",
+        "description": "The full name of the user to as a member of the board. Must have a length of at least 1 and cannot begin nor end with a space.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The full name of the user to as a member of the board. Must have a length of at least 1 and cannot begin nor end with a space."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"fullName\": {\n            \"type\": \"string\",\n            \"description\": \"The full name of the user to as a member of the board. Must have a length of at least 1 and cannot begin nor end with a space.\"\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

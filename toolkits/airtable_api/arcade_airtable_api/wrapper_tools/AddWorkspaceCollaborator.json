@@ -1,0 +1,160 @@
+{
+  "name": "AddWorkspaceCollaborator",
+  "fully_qualified_name": "AirtableApi.AddWorkspaceCollaborator@2.0.0",
+  "description": "Add a collaborator to an Airtable workspace.\n\nUse this tool to add a single collaborator to a specified Airtable workspace. This function is called when you need to invite someone to join your workspace as a collaborator.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The unique identifier of the Airtable workspace where the collaborator will be added.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "workspaceId"
+      },
+      {
+        "name": "collaborator_details",
+        "required": false,
+        "description": "JSON object containing details of the collaborator to add (either an individual user or a group).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "collaborators": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "This endpoint accepts two types of collaborators: **individual user** and **group**."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'add-workspace-collaborator'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/workspaces/{workspaceId}/collaborators",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "workspaceId",
+        "tool_parameter_name": "workspace_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "collaborator_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "collaborators": {
+              "val_type": "array",
+              "inner_val_type": "json",
+              "enum": null,
+              "properties": null,
+              "inner_properties": {},
+              "description": "This endpoint accepts two types of collaborators: **individual user** and **group**."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success request\": {\n          \"description\": \"Example Request\",\n          \"summary\": \"Success request\",\n          \"value\": {\n            \"collaborators\": [\n              {\n                \"permissionLevel\": \"edit\",\n                \"user\": {\n                  \"id\": \"usr00000000000000\"\n                }\n              }\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"collaborators\": {\n            \"description\": \"This endpoint accepts two types of collaborators: **individual user** and **group**.\",\n            \"items\": {\n              \"anyOf\": [\n                {\n                  \"properties\": {\n                    \"permissionLevel\": {\n                      \"anyOf\": [\n                        {\n                          \"const\": \"owner\",\n                          \"type\": \"string\"\n                        },\n                        {\n                          \"enum\": [\n                            \"read\",\n                            \"comment\",\n                            \"edit\",\n                            \"create\"\n                          ],\n                          \"type\": \"string\",\n                          \"x-airtable-name\": \"Application Permission Levels\",\n                          \"x-airtable-tag\": \"collaborators\"\n                        }\n                      ],\n                      \"x-airtable-name\": \"Workspace Permission Levels\",\n                      \"x-airtable-tag\": \"collaborators\"\n                    },\n                    \"user\": {\n                      \"properties\": {\n                        \"id\": {\n                          \"description\": \"A user ID\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"id\"\n                      ],\n                      \"type\": \"object\"\n                    }\n                  },\n                  \"required\": [\n                    \"permissionLevel\",\n                    \"user\"\n                  ],\n                  \"type\": \"object\"\n                },\n                {\n                  \"properties\": {\n                    \"group\": {\n                      \"properties\": {\n                        \"id\": {\n                          \"description\": \"A user group ID\",\n                          \"type\": \"string\"\n                        }\n                      },\n                      \"required\": [\n                        \"id\"\n                      ],\n                      \"type\": \"object\"\n                    },\n                    \"permissionLevel\": {\n                      \"anyOf\": [\n                        {\n                          \"const\": \"owner\",\n                          \"type\": \"string\"\n                        },\n                        {\n                          \"enum\": [\n                            \"read\",\n                            \"comment\",\n                            \"edit\",\n                            \"create\"\n                          ],\n                          \"type\": \"string\",\n                          \"x-airtable-name\": \"Application Permission Levels\",\n                          \"x-airtable-tag\": \"collaborators\"\n                        }\n                      ],\n                      \"x-airtable-name\": \"Workspace Permission Levels\",\n                      \"x-airtable-tag\": \"collaborators\"\n                    }\n                  },\n                  \"required\": [\n                    \"group\",\n                    \"permissionLevel\"\n                  ],\n                  \"type\": \"object\"\n                }\n              ]\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"collaborators\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

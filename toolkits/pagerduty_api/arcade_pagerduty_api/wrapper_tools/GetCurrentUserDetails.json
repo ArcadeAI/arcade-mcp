@@ -1,18 +1,18 @@
 {
   "name": "GetCurrentUserDetails",
-  "fully_qualified_name": "PagerdutyApi.GetCurrentUserDetails@0.1.0",
-  "description": "Retrieve details of the current Pagerduty user.\n\nThis tool fetches detailed information about the currently authenticated user in Pagerduty. It should be called when user-specific information is needed, such as user profile details and interactions within the Pagerduty system.",
+  "fully_qualified_name": "PagerdutyApi.GetCurrentUserDetails@2.0.0",
+  "description": "Retrieves details about the current PagerDuty user.\n\nThis tool fetches information about the current user logged into PagerDuty. It requires a user-level API key or an OAuth-generated key. Utilize this tool to obtain user details such as permissions and membership within the PagerDuty account.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "versioning_header",
+        "name": "accept_version_header",
         "required": true,
-        "description": "The `Accept` header for specifying the API version in the request.",
+        "description": "Specifies the `Accept` header for versioning the API response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the data being sent. Use 'application/json'.",
+        "description": "Specifies the media type of the request body. Use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,9 +42,9 @@
         "http_endpoint_parameter_name": "Content-Type"
       },
       {
-        "name": "include_additional_models",
+        "name": "additional_models_to_include",
         "required": false,
-        "description": "Specify additional models to include in the response, such as contact methods, notification rules, teams, or subdomains.",
+        "description": "Specifies additional models, such as contact methods or teams, to include in the response. Options: contact_methods, notification_rules, teams, subdomains.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -92,13 +92,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/users/me",
@@ -107,7 +107,7 @@
     "parameters": [
       {
         "name": "include[]",
-        "tool_parameter_name": "include_additional_models",
+        "tool_parameter_name": "additional_models_to_include",
         "description": "Array of additional Models to include in response.",
         "value_schema": {
           "val_type": "string",
@@ -130,7 +130,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "versioning_header",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -148,7 +148,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -177,6 +177,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

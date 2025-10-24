@@ -1,0 +1,176 @@
+{
+  "name": "PublishInvoice",
+  "fully_qualified_name": "SquareupApi.PublishInvoice@2.0.0",
+  "description": "Publish a draft invoice with Square, updating its status.\n\nThis tool publishes a specified draft invoice using Square's service, updating its status and triggering configured actions such as sending emails or charging stored cards. The tool should be called when an invoice needs to be finalized and sent or processed according to its settings.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "required": true,
+        "description": "The ID of the draft invoice that you wish to publish. This ID uniquely identifies the invoice within the system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the invoice to publish."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invoice_id"
+      },
+      {
+        "name": "invoice_version",
+        "required": true,
+        "description": "Specify the current version number of the invoice to publish. This must match the existing invoice version to avoid rejection.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the [invoice](entity:Invoice) to publish.\nThis must match the current version of the invoice; otherwise, the request is rejected."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "version"
+      },
+      {
+        "name": "unique_request_identifier",
+        "required": false,
+        "description": "A unique string to identify the `PublishInvoice` request. If omitted or empty, each request is treated as independent. Refer to the Square documentation on idempotency for more information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the `PublishInvoice` request. If you do not \nprovide `idempotency_key` (or provide an empty string as the value), the endpoint \ntreats each request as independent.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idempotency_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'PublishInvoice'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "INVOICES_WRITE",
+          "ORDERS_WRITE"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/invoices/{invoice_id}/publish",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "invoice_id",
+        "tool_parameter_name": "invoice_id",
+        "description": "The ID of the invoice to publish.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the invoice to publish."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "version",
+        "tool_parameter_name": "invoice_version",
+        "description": "The version of the [invoice](entity:Invoice) to publish.\nThis must match the current version of the invoice; otherwise, the request is rejected.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The version of the [invoice](entity:Invoice) to publish.\nThis must match the current version of the invoice; otherwise, the request is rejected."
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "idempotency_key",
+        "tool_parameter_name": "unique_request_identifier",
+        "description": "A unique string that identifies the `PublishInvoice` request. If you do not \nprovide `idempotency_key` (or provide an empty string as the value), the endpoint \ntreats each request as independent.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A unique string that identifies the `PublishInvoice` request. If you do not \nprovide `idempotency_key` (or provide an empty string as the value), the endpoint \ntreats each request as independent.\n\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Describes a `PublishInvoice` request.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"required\": [\n          \"version\"\n        ],\n        \"properties\": {\n          \"version\": {\n            \"type\": \"integer\",\n            \"description\": \"The version of the [invoice](entity:Invoice) to publish.\\nThis must match the current version of the invoice; otherwise, the request is rejected.\"\n          },\n          \"idempotency_key\": {\n            \"type\": \"string\",\n            \"description\": \"A unique string that identifies the `PublishInvoice` request. If you do not \\nprovide `idempotency_key` (or provide an empty string as the value), the endpoint \\ntreats each request as independent.\\n\\nFor more information, see [Idempotency](https://developer.squareup.com/docs/build-basics/common-api-patterns/idempotency).\",\n            \"maxLength\": 128,\n            \"nullable\": true\n          }\n        },\n        \"example\": {\n          \"idempotency_key\": \"32da42d0-1997-41b0-826b-f09464fc2c2e\",\n          \"version\": 1\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -1,18 +1,18 @@
 {
   "name": "GetRoutingFormSubmission",
-  "fully_qualified_name": "CalendlyApi.GetRoutingFormSubmission@0.1.0",
-  "description": "Retrieve details of a specified routing form submission.\n\nUse this tool to get detailed information about a specific routing form submission by providing its unique identifier (UUID).",
+  "fully_qualified_name": "CalendlyApi.GetRoutingFormSubmission@2.0.0",
+  "description": "Retrieve a specified Routing Form Submission by UUID.\n\nThis tool retrieves information about a specific routing form submission identified by its unique UUID. Use it to access details of a specific form submission in Calendly.",
   "toolkit": {
     "name": "ArcadeCalendlyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "submission_uuid",
         "required": true,
-        "description": "The unique identifier for the routing form submission to retrieve.",
+        "description": "Unique identifier for the routing form submission to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,13 +55,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the calendly API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.calendly.com/routing_form_submissions/{uuid}",
@@ -83,6 +83,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -96,6 +97,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

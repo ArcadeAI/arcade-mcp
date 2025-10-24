@@ -1,18 +1,18 @@
 {
   "name": "ListWorkflowIntegrations",
-  "fully_qualified_name": "PagerdutyApi.ListWorkflowIntegrations@0.1.0",
-  "description": "Retrieve available Workflow Integrations from Pagerduty.\n\nUse this tool to access a list of available Workflow Integrations via Pagerduty's API. Requires appropriate OAuth permissions.",
+  "fully_qualified_name": "PagerdutyApi.ListWorkflowIntegrations@2.0.0",
+  "description": "Retrieve a list of available workflow integrations.\n\nUse this tool to obtain a list of available workflow integrations from PagerDuty. Requires specific OAuth permissions.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "accept_header_version",
+        "name": "accept_version_header",
         "required": true,
-        "description": "Specifies the API version for the response using the `Accept` header.",
+        "description": "Specify the API version using the `Accept` header. Required for version control.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "result_limit",
         "required": false,
-        "description": "Specifies the maximum number of workflow integrations to retrieve in one call.",
+        "description": "The limit on the number of workflow integrations to return in the response.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_cursor",
+        "name": "next_results_cursor",
         "required": false,
-        "description": "A token to retrieve the next set of results. Obtain from `next_cursor` of the previous response. Defaults to the start if empty.",
+        "description": "A string to request the next set of results, usually from the `next_cursor` field of the previous response. Defaults to starting at the beginning if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "include_deprecated_integrations",
         "required": false,
-        "description": "Include deprecated integrations in the response if true.",
+        "description": "Set to true to include deprecated integrations in the response; false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -100,13 +100,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/workflows/integrations",
@@ -133,7 +133,7 @@
       },
       {
         "name": "cursor",
-        "tool_parameter_name": "pagination_cursor",
+        "tool_parameter_name": "next_results_cursor",
         "description": "Optional parameter used to request the \"next\" set of results from an API.  The value provided here is most commonly obtained from the `next_cursor` field of the previous request.  When no value is provided, the request starts at the beginning of the result set.\n",
         "value_schema": {
           "val_type": "string",
@@ -164,12 +164,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_header_version",
+        "tool_parameter_name": "accept_version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -196,6 +196,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

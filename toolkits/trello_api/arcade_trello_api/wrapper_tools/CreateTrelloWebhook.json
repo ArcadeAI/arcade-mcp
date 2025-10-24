@@ -1,18 +1,18 @@
 {
   "name": "CreateTrelloWebhook",
-  "fully_qualified_name": "TrelloApi.CreateTrelloWebhook@0.1.0",
-  "description": "Create a new webhook for a Trello token.\n\nUse this tool to create a new webhook associated with a specific Trello token. This is useful for setting up event notifications or integrations with Trello boards or cards.",
+  "fully_qualified_name": "TrelloApi.CreateTrelloWebhook@2.0.0",
+  "description": "Create a new webhook for a Trello token.\n\nThis tool allows you to create a new webhook for a specific Trello token. Use it to set up webhooks for tracking changes or events related to Trello boards or cards.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "webhook_post_url",
+        "name": "webhook_callback_url",
         "required": true,
-        "description": "The URL where the webhook will send POST requests when triggered.",
+        "description": "The URL where the webhook will POST updates. Ensure it's a valid and accessible URL.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "object_id_for_webhook",
         "required": true,
-        "description": "The ID of the Trello object (board or card) to create a webhook on.",
+        "description": "ID of the Trello object (board or card) to create a webhook on.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "idModel"
       },
       {
-        "name": "webhook_token",
+        "name": "trello_token",
         "required": true,
-        "description": "The Trello authorization token needed for creating the webhook. This grants access to the Trello account where the webhook will be set up.",
+        "description": "The authentication token for Trello. It allows access to create the webhook. Required for authorization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "webhook_description",
         "required": false,
-        "description": "A description displayed when retrieving webhook information. This should provide meaningful context for the Trello webhook.",
+        "description": "A string description displayed when retrieving information about the webhook. It helps identify the purpose or function of the webhook.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,13 +102,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/tokens/{token}/webhooks",
@@ -130,11 +130,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "callbackURL",
-        "tool_parameter_name": "webhook_post_url",
+        "tool_parameter_name": "webhook_callback_url",
         "description": "The URL that the webhook should POST information to.",
         "value_schema": {
           "val_type": "string",
@@ -147,6 +148,7 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -164,11 +166,12 @@
         "accepted_as": "query",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "token",
-        "tool_parameter_name": "webhook_token",
+        "tool_parameter_name": "trello_token",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -181,6 +184,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -202,6 +206,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

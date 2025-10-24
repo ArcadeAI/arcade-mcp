@@ -1,18 +1,18 @@
 {
   "name": "GetEnrichedIncidentData",
-  "fully_qualified_name": "PagerdutyApi.GetEnrichedIncidentData@0.1.0",
-  "description": "Retrieve enriched data and metrics for a specific incident.\n\nUse this tool to get detailed analytics and metrics for a single incident, including resolution time, engagement time, and other key metrics. Ideal for analyzing incident performance and response.",
+  "fully_qualified_name": "PagerdutyApi.GetEnrichedIncidentData@2.0.0",
+  "description": "Retrieve enriched incident metrics for a specific incident.\n\nThis tool provides enriched incident data including metrics like Seconds to Resolve, Seconds to Engage, and Snoozed Seconds. Suitable for analyzing incident performance and response times. Data is updated periodically and may take up to 24 hours to reflect new incidents.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "incident_id",
         "required": true,
-        "description": "The unique ID of the incident for which to retrieve enriched analytics and metrics.",
+        "description": "The unique identifier for the incident to retrieve analytics for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "api_version_header",
+        "name": "version_header",
         "required": true,
-        "description": "Specify the version of the API to request. This uses the `Accept` header for versioning.",
+        "description": "Specifies the version of the API to use by setting the 'Accept' header.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "response_content_type",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the returned data. Use 'application/json' for JSON responses.",
+        "description": "The format of the content being requested. For this endpoint, use 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,13 +87,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/analytics/raw/incidents/{id}",
@@ -120,7 +120,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "api_version_header",
+        "tool_parameter_name": "version_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -138,7 +138,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "response_content_type",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -167,6 +167,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

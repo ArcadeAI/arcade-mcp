@@ -1,0 +1,193 @@
+{
+  "name": "CreateNewTeam",
+  "fully_qualified_name": "PagerdutyApi.CreateNewTeam@2.0.0",
+  "description": "Create a new team with users and escalation policies.\n\nThis tool should be called to create a new team within an organization in PagerDuty. A team includes a collection of users and escalation policies. Requires proper OAuth scope for execution.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "accept_header_version",
+        "required": true,
+        "description": "The versioning information for the API passed in the 'Accept' header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type_header",
+        "required": true,
+        "description": "Specify the content type as 'application/json' for the request header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "team_details_json",
+        "required": false,
+        "description": "JSON object detailing the team to be created, including users and escalation policies.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "team": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The team to be created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createTeam'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/teams",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_header_version",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type_header",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_details_json",
+        "description": "The team to be created.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "team": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": null
+            }
+          },
+          "inner_properties": null,
+          "description": "The team to be created."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"team\": {\n            \"allOf\": [\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"id\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"readOnly\": true,\n                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                  },\n                  \"self\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"the API show URL at which the object is accessible\"\n                  },\n                  \"html_url\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"readOnly\": true,\n                    \"format\": \"url\",\n                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                  }\n                }\n              },\n              {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"description\": \"The type of object being created.\",\n                    \"default\": \"team\",\n                    \"enum\": [\n                      \"team\"\n                    ]\n                  },\n                  \"name\": {\n                    \"type\": \"string\",\n                    \"description\": \"The name of the team.\",\n                    \"maxLength\": 100\n                  },\n                  \"description\": {\n                    \"type\": \"string\",\n                    \"description\": \"The description of the team.\",\n                    \"maxLength\": 1024\n                  },\n                  \"default_role\": {\n                    \"type\": \"string\",\n                    \"description\": \"The team is private if the value is \\\"none\\\", or public if it is \\\"manager\\\" (the default permissions for a non-member of the team are either \\\"none\\\", or their base role up until \\\"manager\\\").\",\n                    \"default\": \"manager\",\n                    \"enum\": [\n                      \"manager\",\n                      \"none\"\n                    ]\n                  }\n                },\n                \"required\": [\n                  \"name\",\n                  \"type\"\n                ],\n                \"example\": {\n                  \"type\": \"team\",\n                  \"name\": \"Engineering\",\n                  \"description\": \"The engineering team\"\n                }\n              }\n            ]\n          }\n        },\n        \"required\": [\n          \"team\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"team\": {\n              \"type\": \"team\",\n              \"name\": \"Engineering\",\n              \"description\": \"The engineering team\"\n            }\n          }\n        }\n      }\n    }\n  },\n  \"description\": \"The team to be created.\"\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

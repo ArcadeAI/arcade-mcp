@@ -1,0 +1,340 @@
+{
+  "name": "SearchLoyaltyEvents",
+  "fully_qualified_name": "SquareupApi.SearchLoyaltyEvents@2.0.0",
+  "description": "Retrieve and search for Square loyalty events.\n\nThis tool allows you to search for loyalty events within a Square loyalty program, which logs events such as points earned, redeemed, or expired. Use this tool to get details of these events sorted by creation date.",
+  "toolkit": {
+    "name": "ArcadeSquareupApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "loyalty_account_id",
+        "required": false,
+        "description": "The ID of the loyalty account associated with the events to filter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty account](entity:LoyaltyAccount) associated with loyalty events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.loyalty_account_filter.loyalty_account_id"
+      },
+      {
+        "name": "loyalty_event_types",
+        "required": false,
+        "description": "Array of loyalty event types to filter results. Multiple values are combined using OR logic. Refer to LoyaltyEventType for options.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The loyalty event types used to filter the result.\nIf multiple values are specified, the endpoint uses a \nlogical OR to combine them.\nSee [LoyaltyEventType](#type-loyaltyeventtype) for possible values"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.type_filter.types"
+      },
+      {
+        "name": "start_datetime",
+        "required": false,
+        "description": "A datetime value in RFC 3339 format indicating when the time range starts for the search query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.date_time_filter.created_at.start_at"
+      },
+      {
+        "name": "end_time",
+        "required": false,
+        "description": "Datetime in RFC 3339 format indicating when the time range ends for the search.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.date_time_filter.created_at.end_at"
+      },
+      {
+        "name": "location_ids_for_events_query",
+        "required": false,
+        "description": "List of Location IDs for querying loyalty events. Multiple IDs use OR logic.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [location](entity:Location) IDs for loyalty events to query.\nIf multiple values are specified, the endpoint uses \na logical OR to combine them."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.location_filter.location_ids"
+      },
+      {
+        "name": "order_id_filter",
+        "required": false,
+        "description": "The ID of the order associated with the event to filter results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [order](entity:Order) associated with the event."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query.filter.order_filter.order_id"
+      },
+      {
+        "name": "max_results_count",
+        "required": false,
+        "description": "The maximum number of loyalty events to include in the response. Defaults to 30.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to include in the response. \nThe last page might contain fewer events. \nThe default is 30 events."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Provide a pagination cursor to retrieve the next set of results from a previous query.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for your original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'SearchLoyaltyEvents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-squareup",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "LOYALTY_READ"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the squareup API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://connect.squareup.com/v2/loyalty/events/search",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "query.filter.loyalty_account_filter.loyalty_account_id",
+        "tool_parameter_name": "loyalty_account_id",
+        "description": "The ID of the [loyalty account](entity:LoyaltyAccount) associated with loyalty events.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [loyalty account](entity:LoyaltyAccount) associated with loyalty events."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.type_filter.types",
+        "tool_parameter_name": "loyalty_event_types",
+        "description": "The loyalty event types used to filter the result.\nIf multiple values are specified, the endpoint uses a \nlogical OR to combine them.\nSee [LoyaltyEventType](#type-loyaltyeventtype) for possible values",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The loyalty event types used to filter the result.\nIf multiple values are specified, the endpoint uses a \nlogical OR to combine them.\nSee [LoyaltyEventType](#type-loyaltyeventtype) for possible values"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.date_time_filter.created_at.start_at",
+        "tool_parameter_name": "start_datetime",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nstarts."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.date_time_filter.created_at.end_at",
+        "tool_parameter_name": "end_time",
+        "description": "A datetime value in RFC 3339 format indicating when the time range\nends.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A datetime value in RFC 3339 format indicating when the time range\nends."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.location_filter.location_ids",
+        "tool_parameter_name": "location_ids_for_events_query",
+        "description": "The [location](entity:Location) IDs for loyalty events to query.\nIf multiple values are specified, the endpoint uses \na logical OR to combine them.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The [location](entity:Location) IDs for loyalty events to query.\nIf multiple values are specified, the endpoint uses \na logical OR to combine them."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "query.filter.order_filter.order_id",
+        "tool_parameter_name": "order_id_filter",
+        "description": "The ID of the [order](entity:Order) associated with the event.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the [order](entity:Order) associated with the event."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_results_count",
+        "description": "The maximum number of results to include in the response. \nThe last page might contain fewer events. \nThe default is 30 events.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of results to include in the response. \nThe last page might contain fewer events. \nThe default is 30 events."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for your original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A pagination cursor returned by a previous call to this endpoint.\nProvide this to retrieve the next set of results for your original query.\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination)."
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"description\": \"An object containing the fields to POST for the request.\\n\\nSee the corresponding object definition for field details.\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"A request to search for loyalty events.\",\n        \"x-release-status\": \"PUBLIC\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"object\",\n            \"description\": \"Represents a query used to search for loyalty events.\",\n            \"x-release-status\": \"PUBLIC\",\n            \"properties\": {\n              \"filter\": {\n                \"type\": \"object\",\n                \"description\": \"The filtering criteria. If the request specifies multiple filters, \\nthe endpoint uses a logical AND to evaluate them.\",\n                \"x-release-status\": \"PUBLIC\",\n                \"properties\": {\n                  \"loyalty_account_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter events by loyalty account.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"loyalty_account_id\"\n                    ],\n                    \"properties\": {\n                      \"loyalty_account_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The ID of the [loyalty account](entity:LoyaltyAccount) associated with loyalty events.\",\n                        \"minLength\": 1\n                      }\n                    }\n                  },\n                  \"type_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter events by event type.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"types\"\n                    ],\n                    \"properties\": {\n                      \"types\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\",\n                          \"enum\": [\n                            \"ACCUMULATE_POINTS\",\n                            \"CREATE_REWARD\",\n                            \"REDEEM_REWARD\",\n                            \"DELETE_REWARD\",\n                            \"ADJUST_POINTS\",\n                            \"EXPIRE_POINTS\",\n                            \"OTHER\",\n                            \"ACCUMULATE_PROMOTION_POINTS\"\n                          ],\n                          \"x-enum-elements\": [\n                            {\n                              \"name\": \"ACCUMULATE_POINTS\",\n                              \"description\": \"Points are added to a loyalty account for a purchase that\\nqualified for points based on an [accrual rule](entity:LoyaltyProgramAccrualRule).\"\n                            },\n                            {\n                              \"name\": \"CREATE_REWARD\",\n                              \"description\": \"A [loyalty reward](entity:LoyaltyReward) is created.\"\n                            },\n                            {\n                              \"name\": \"REDEEM_REWARD\",\n                              \"description\": \"A loyalty reward is redeemed.\"\n                            },\n                            {\n                              \"name\": \"DELETE_REWARD\",\n                              \"description\": \"A loyalty reward is deleted.\"\n                            },\n                            {\n                              \"name\": \"ADJUST_POINTS\",\n                              \"description\": \"Loyalty points are manually adjusted.\"\n                            },\n                            {\n                              \"name\": \"EXPIRE_POINTS\",\n                              \"description\": \"Loyalty points are expired according to the \\nexpiration policy of the loyalty program.\"\n                            },\n                            {\n                              \"name\": \"OTHER\",\n                              \"description\": \"Some other loyalty event occurred.\"\n                            },\n                            {\n                              \"name\": \"ACCUMULATE_PROMOTION_POINTS\",\n                              \"description\": \" Points are added to a loyalty account for a purchase that\\nqualified for a [loyalty promotion](entity:LoyaltyPromotion).\"\n                            }\n                          ],\n                          \"description\": \"The type of the loyalty event.\",\n                          \"x-release-status\": \"PUBLIC\"\n                        },\n                        \"description\": \"The loyalty event types used to filter the result.\\nIf multiple values are specified, the endpoint uses a \\nlogical OR to combine them.\\nSee [LoyaltyEventType](#type-loyaltyeventtype) for possible values\"\n                      }\n                    }\n                  },\n                  \"date_time_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter events by date time range.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"created_at\"\n                    ],\n                    \"properties\": {\n                      \"created_at\": {\n                        \"type\": \"object\",\n                        \"description\": \"Represents a generic time range. The start and end values are\\nrepresented in RFC 3339 format. Time ranges are customized to be\\ninclusive or exclusive based on the needs of a particular endpoint.\\nRefer to the relevant endpoint-specific documentation to determine\\nhow time ranges are handled.\",\n                        \"x-release-status\": \"PUBLIC\",\n                        \"properties\": {\n                          \"start_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nstarts.\",\n                            \"nullable\": true\n                          },\n                          \"end_at\": {\n                            \"type\": \"string\",\n                            \"description\": \"A datetime value in RFC 3339 format indicating when the time range\\nends.\",\n                            \"nullable\": true\n                          }\n                        }\n                      }\n                    }\n                  },\n                  \"location_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter events by location.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"location_ids\"\n                    ],\n                    \"properties\": {\n                      \"location_ids\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                          \"type\": \"string\"\n                        },\n                        \"description\": \"The [location](entity:Location) IDs for loyalty events to query.\\nIf multiple values are specified, the endpoint uses \\na logical OR to combine them.\"\n                      }\n                    }\n                  },\n                  \"order_filter\": {\n                    \"type\": \"object\",\n                    \"description\": \"Filter events by the order associated with the event.\",\n                    \"x-release-status\": \"PUBLIC\",\n                    \"required\": [\n                      \"order_id\"\n                    ],\n                    \"properties\": {\n                      \"order_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"The ID of the [order](entity:Order) associated with the event.\",\n                        \"minLength\": 1\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"limit\": {\n            \"type\": \"integer\",\n            \"description\": \"The maximum number of results to include in the response. \\nThe last page might contain fewer events. \\nThe default is 30 events.\",\n            \"minimum\": 1,\n            \"maximum\": 30\n          },\n          \"cursor\": {\n            \"type\": \"string\",\n            \"description\": \"A pagination cursor returned by a previous call to this endpoint.\\nProvide this to retrieve the next set of results for your original query.\\nFor more information, see [Pagination](https://developer.squareup.com/docs/build-basics/common-api-patterns/pagination).\"\n          }\n        },\n        \"example\": {\n          \"limit\": 30,\n          \"query\": {\n            \"filter\": {\n              \"order_filter\": {\n                \"order_id\": \"PyATxhYLfsMqpVkcKJITPydgEYfZY\"\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

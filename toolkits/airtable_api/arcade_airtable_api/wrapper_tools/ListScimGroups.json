@@ -1,18 +1,18 @@
 {
   "name": "ListScimGroups",
-  "fully_qualified_name": "AirtableApi.ListScimGroups@0.1.0",
-  "description": "Retrieve a list of SCIM groups from Airtable.\n\nThis tool calls the Airtable API to list groups in the form of SCIM Group objects, following the SCIM specification for list responses. Use it when you need to access or manage groups in the SCIM format.",
+  "fully_qualified_name": "AirtableApi.ListScimGroups@2.0.0",
+  "description": "Retrieve a list of SCIM groups from Airtable.\n\nThis tool calls Airtable's API to retrieve a list of groups formatted as SCIM Group objects. It should be used when you need to obtain detailed group information in compliance with the SCIM specification.",
   "toolkit": {
     "name": "ArcadeAirtableApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "maximum_results",
+        "name": "group_count",
         "required": false,
-        "description": "Specifies the maximum number of SCIM group objects to return. Must be a positive integer.",
+        "description": "Specify the maximum number of SCIM groups to list. It is an integer that determines how many groups the API should return.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "count"
       },
       {
-        "name": "group_filter",
+        "name": "filter_criteria",
         "required": false,
-        "description": "A SCIM filter expression to narrow down group results based on attributes.",
+        "description": "Defines a string-based filter to query specific SCIM groups in Airtable. Use SCIM filtering syntax to specify criteria.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -74,13 +74,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the airtable API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.airtable.com/scim/v2/Groups",
@@ -89,7 +89,7 @@
     "parameters": [
       {
         "name": "count",
-        "tool_parameter_name": "maximum_results",
+        "tool_parameter_name": "group_count",
         "description": "",
         "value_schema": {
           "val_type": "number",
@@ -107,7 +107,7 @@
       },
       {
         "name": "filter",
-        "tool_parameter_name": "group_filter",
+        "tool_parameter_name": "filter_criteria",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -134,6 +134,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

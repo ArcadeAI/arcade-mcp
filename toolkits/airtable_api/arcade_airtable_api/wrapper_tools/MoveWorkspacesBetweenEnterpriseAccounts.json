@@ -1,0 +1,192 @@
+{
+  "name": "MoveWorkspacesBetweenEnterpriseAccounts",
+  "fully_qualified_name": "AirtableApi.MoveWorkspacesBetweenEnterpriseAccounts@2.0.0",
+  "description": "Move workspaces between enterprise accounts within the same organization.\n\nUse this tool to batch move workspaces from one enterprise account to another within the same organization, provided the Enterprise Hub feature is enabled. Note that non-org unit collaborators might be removed if the target account's invite settings are restricted.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_account_id",
+        "required": true,
+        "description": "The unique identifier of the enterprise account to which workspaces are being moved. Ensure it belongs to the same organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enterpriseAccountId"
+      },
+      {
+        "name": "workspace_move_request_body",
+        "required": false,
+        "description": "JSON object containing 'replacementOwnerId' (optional, if necessary for ownership), 'targetEnterpriseAccountId' (ID of the target enterprise account), and 'workspaceIds' (list of workspace IDs to move, up to 100).",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "replacementOwnerId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If the target enterprise account has the invites settings restricted to org unit members, all non-member\ncollaborators will be removed when the workspace are moved. If any workspace only has non-member owners, you must specify\na replacementOwnerId to be added as the new owner of such workspaces. If no workspace has only non-member owners, replaceOwnerId\nis optional and will be ignored if provided."
+            },
+            "targetEnterpriseAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\norganization as the source enterprise account, and you must have admin rights over the target enterprise account."
+            },
+            "workspaceIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the workspaces to be moved. Up to 100 workspaceIds can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'move-workspaces'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "workspacesAndBases:manage"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveWorkspaces",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "enterpriseAccountId",
+        "tool_parameter_name": "enterprise_account_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "workspace_move_request_body",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "replacementOwnerId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "If the target enterprise account has the invites settings restricted to org unit members, all non-member\ncollaborators will be removed when the workspace are moved. If any workspace only has non-member owners, you must specify\na replacementOwnerId to be added as the new owner of such workspaces. If no workspace has only non-member owners, replaceOwnerId\nis optional and will be ignored if provided."
+            },
+            "targetEnterpriseAccountId": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\norganization as the source enterprise account, and you must have admin rights over the target enterprise account."
+            },
+            "workspaceIds": {
+              "val_type": "array",
+              "inner_val_type": "string",
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "ID of the workspaces to be moved. Up to 100 workspaceIds can be provided."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Success response\": {\n          \"description\": \"Success Response\",\n          \"summary\": \"Success response\",\n          \"value\": {\n            \"targetEnterpriseAccountId\": \"entUBq2RGdihxl3vU\",\n            \"workspaceIds\": [\n              \"wspmhESAta6clCCwF\",\n              \"wspHvvm4dAktsStZH\",\n              \"wspHvvm4dAktsStZH\",\n              \"wspgAeR3b03M3tSSy\",\n              \"wsp4mAKZgXB0vBqU2\"\n            ]\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"replacementOwnerId\": {\n            \"description\": \"If the target enterprise account has the invites settings restricted to org unit members, all non-member\\ncollaborators will be removed when the workspace are moved. If any workspace only has non-member owners, you must specify\\na replacementOwnerId to be added as the new owner of such workspaces. If no workspace has only non-member owners, replaceOwnerId\\nis optional and will be ignored if provided.\",\n            \"type\": \"string\"\n          },\n          \"targetEnterpriseAccountId\": {\n            \"description\": \"ID of the target enterprise account of the move. The target enterprise account must be in the same Hub-enabled\\norganization as the source enterprise account, and you must have admin rights over the target enterprise account.\",\n            \"type\": \"string\"\n          },\n          \"workspaceIds\": {\n            \"description\": \"ID of the workspaces to be moved. Up to 100 workspaceIds can be provided.\",\n            \"items\": {\n              \"type\": \"string\"\n            },\n            \"type\": \"array\"\n          }\n        },\n        \"required\": [\n          \"workspaceIds\",\n          \"targetEnterpriseAccountId\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

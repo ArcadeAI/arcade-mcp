@@ -1,18 +1,18 @@
 {
   "name": "ListWorkspaceBoards",
-  "fully_qualified_name": "TrelloApi.ListWorkspaceBoards@0.1.0",
-  "description": "Retrieve boards in a specified Trello workspace.\n\nUse this tool to obtain a list of all boards within a specific Trello workspace, identified by its ID.",
+  "fully_qualified_name": "TrelloApi.ListWorkspaceBoards@2.0.0",
+  "description": "Retrieve boards in a specified Trello Workspace.\n\nUse this tool to get a list of all boards within a specific Trello Workspace by providing the workspace ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
-        "name": "organization_identifier",
+        "name": "workspace_identifier",
         "required": true,
-        "description": "The ID or name of the Trello organization (workspace) to list boards for.",
+        "description": "The ID or name of the Trello Workspace to retrieve boards from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "board_status_filter",
+        "name": "board_filter",
         "required": false,
-        "description": "Define which boards to list using `all` or a combination of `open`, `closed`, `members`, `organization`, `public`.",
+        "description": "Specify `all` or a comma-separated list of `open`, `closed`, `members`, `organization`, `public` to filter board types.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -47,9 +47,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "board_fields_to_retrieve",
+        "name": "board_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of board fields to retrieve (e.g., 'id,name,url').",
+        "description": "Specify 'all' or a comma-separated list of board fields such as 'id', 'name', 'desc', etc. This determines which fields to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -111,13 +111,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/organizations/{id}/boards",
@@ -126,7 +126,7 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "board_status_filter",
+        "tool_parameter_name": "board_filter",
         "description": "`all` or a comma-separated list of: `open`, `closed`, `members`, `organization`, `public`",
         "value_schema": {
           "val_type": "string",
@@ -146,11 +146,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": "all",
         "documentation_urls": []
       },
       {
         "name": "fields",
-        "tool_parameter_name": "board_fields_to_retrieve",
+        "tool_parameter_name": "board_fields",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -180,11 +181,12 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
         "name": "id",
-        "tool_parameter_name": "organization_identifier",
+        "tool_parameter_name": "workspace_identifier",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",
@@ -197,6 +199,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -218,6 +221,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

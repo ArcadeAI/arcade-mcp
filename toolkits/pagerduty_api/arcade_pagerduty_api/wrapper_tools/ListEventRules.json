@@ -1,18 +1,18 @@
 {
   "name": "ListEventRules",
-  "fully_qualified_name": "PagerdutyApi.ListEventRules@0.1.0",
-  "description": "Fetches all event rules under a specified ruleset.\n\nThis tool retrieves all the event rules associated with a given ruleset in Pagerduty. Use it to view the actions defined for handling events. Note that rulesets and event rules will be phased out, so migrating to Event Orchestration is recommended.",
+  "fully_qualified_name": "PagerdutyApi.ListEventRules@2.0.0",
+  "description": "Retrieve all event rules within a specified ruleset.\n\nThis tool lists all event rules associated with a specified ruleset on PagerDuty. It should be called to view actions based on event content within a ruleset. Note that rulesets and event rules will soon be deprecated, and migrating to Event Orchestration is recommended.",
   "toolkit": {
     "name": "ArcadePagerdutyApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "ruleset_id",
         "required": true,
-        "description": "The unique ID of the ruleset to retrieve event rules for.",
+        "description": "The unique identifier for the ruleset to list event rules from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "accept_version_header",
+        "name": "versioning_header",
         "required": true,
-        "description": "Specifies the version of the API to use by setting the 'Accept' header.",
+        "description": "The `Accept` header used for API versioning. Specify the desired API version.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "Accept"
       },
       {
-        "name": "content_type_header",
+        "name": "content_type",
         "required": true,
-        "description": "Specifies the format of the data being sent. For this endpoint, use 'application/json'.",
+        "description": "Specify the content type of the request, defaulting to 'application/json'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -59,7 +59,7 @@
       {
         "name": "results_per_page",
         "required": false,
-        "description": "Defines the number of event rules returned per page. Use this to control the volume of data in each response.",
+        "description": "Specify the number of results to return per page.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -72,9 +72,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "pagination_offset",
+        "name": "pagination_start_offset",
         "required": false,
-        "description": "Offset for starting pagination of search results.",
+        "description": "The starting point for pagination to begin returning results from a specific offset.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -89,7 +89,7 @@
       {
         "name": "include_total_in_response",
         "required": false,
-        "description": "Set to true to populate the `total` field in pagination responses, providing the total number of results.",
+        "description": "Set to true to include the total number of results in the pagination response. This may impact response time.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -132,13 +132,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.pagerduty.com/rulesets/{id}/rules",
@@ -165,7 +165,7 @@
       },
       {
         "name": "offset",
-        "tool_parameter_name": "pagination_offset",
+        "tool_parameter_name": "pagination_start_offset",
         "description": "Offset to start pagination search results.",
         "value_schema": {
           "val_type": "integer",
@@ -196,7 +196,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
-        "default": null,
+        "default": false,
         "documentation_urls": []
       },
       {
@@ -219,7 +219,7 @@
       },
       {
         "name": "Accept",
-        "tool_parameter_name": "accept_version_header",
+        "tool_parameter_name": "versioning_header",
         "description": "The `Accept` header is used as a versioning header.",
         "value_schema": {
           "val_type": "string",
@@ -237,7 +237,7 @@
       },
       {
         "name": "Content-Type",
-        "tool_parameter_name": "content_type_header",
+        "tool_parameter_name": "content_type",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -266,6 +266,9 @@
         "description": "The OAuth token to use for authentication.",
         "is_auth_token": true
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

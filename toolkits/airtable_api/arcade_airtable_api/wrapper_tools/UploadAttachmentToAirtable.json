@@ -1,0 +1,254 @@
+{
+  "name": "UploadAttachmentToAirtable",
+  "fully_qualified_name": "AirtableApi.UploadAttachmentToAirtable@2.0.0",
+  "description": "Upload attachments to an Airtable record's cell.\n\nUse this tool to upload an attachment directly into a specified record and cell in Airtable, with a file size limit of 5 MB. For larger files, consider using a public URL method.",
+  "toolkit": {
+    "name": "ArcadeAirtableApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "airtable_base_id",
+        "required": true,
+        "description": "The unique identifier of the Airtable base where the attachment will be uploaded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "baseId"
+      },
+      {
+        "name": "airtable_record_id",
+        "required": true,
+        "description": "The unique string identifier for the Airtable record to which the attachment will be uploaded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "recordId"
+      },
+      {
+        "name": "attachment_field_id_or_name",
+        "required": true,
+        "description": "The ID or name of the field where the attachment will be uploaded. This specifies the target field in the Airtable record.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachmentFieldIdOrName"
+      },
+      {
+        "name": "file_attachment_details",
+        "required": false,
+        "description": "A JSON object containing 'contentType' (e.g. 'image/jpeg'), 'file' (base64 encoded string of the file), and 'filename' (e.g. 'foo.jpg').",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contentType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content type, e.g. \"image/jpeg\""
+            },
+            "file": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The base64 encoded string of the file to be uploaded."
+            },
+            "filename": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Filename, e.g. \"foo.jpg\""
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'upload-attachment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-airtable",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the airtable API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.airtable.com/v0/{baseId}/{recordId}/{attachmentFieldIdOrName}/uploadAttachment",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "baseId",
+        "tool_parameter_name": "airtable_base_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "recordId",
+        "tool_parameter_name": "airtable_record_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachmentFieldIdOrName",
+        "tool_parameter_name": "attachment_field_id_or_name",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "file_attachment_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "contentType": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Content type, e.g. \"image/jpeg\""
+            },
+            "file": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The base64 encoded string of the file to be uploaded."
+            },
+            "filename": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "Filename, e.g. \"foo.jpg\""
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"examples\": {\n        \"Upload a text file\": {\n          \"description\": \"Upload a text file to an attachment field\",\n          \"summary\": \"Upload a text file\",\n          \"value\": {\n            \"contentType\": \"text/plain\",\n            \"file\": \"SGVsbG8gd29ybGQ=\",\n            \"filename\": \"sample.txt\"\n          }\n        }\n      },\n      \"schema\": {\n        \"properties\": {\n          \"contentType\": {\n            \"description\": \"Content type, e.g. \\\"image/jpeg\\\"\",\n            \"type\": \"string\"\n          },\n          \"file\": {\n            \"description\": \"The base64 encoded string of the file to be uploaded.\",\n            \"type\": \"string\"\n          },\n          \"filename\": {\n            \"description\": \"Filename, e.g. \\\"foo.jpg\\\"\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"file\",\n          \"filename\",\n          \"contentType\"\n        ],\n        \"type\": \"object\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

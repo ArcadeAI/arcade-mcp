@@ -1,18 +1,18 @@
 {
   "name": "GetCustomFieldOptions",
-  "fully_qualified_name": "TrelloApi.GetCustomFieldOptions@0.1.0",
-  "description": "Retrieve options for a Trello dropdown custom field.\n\nCall this tool to get the available options for a specific dropdown custom field in Trello. Useful when you need to display or process the possible selections for a field by its ID.",
+  "fully_qualified_name": "TrelloApi.GetCustomFieldOptions@2.0.0",
+  "description": "Retrieve options of a Trello drop-down custom field.\n\nUse this tool to get the list of available options for a drop-down custom field in Trello by specifying the field ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "custom_field_id",
         "required": true,
-        "description": "ID of the custom field to retrieve dropdown options.",
+        "description": "The ID of the Trello custom field to retrieve options for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,13 +57,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/customFields/{id}/options",
@@ -85,6 +85,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -106,6 +107,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

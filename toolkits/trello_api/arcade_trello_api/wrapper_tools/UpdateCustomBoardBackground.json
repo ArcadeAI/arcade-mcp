@@ -1,18 +1,18 @@
 {
   "name": "UpdateCustomBoardBackground",
-  "fully_qualified_name": "TrelloApi.UpdateCustomBoardBackground@0.1.0",
-  "description": "Update a specific custom board background for a member.\n\nThis tool updates the custom background of a board for a specified member. Use it when you need to modify or change the background image or style of a board on Trello.",
+  "fully_qualified_name": "TrelloApi.UpdateCustomBoardBackground@2.0.0",
+  "description": "Update a specific custom board background in Trello.\n\nThis tool is used to update a custom board background for a Trello member. It should be called when a user wants to change the background of a board to a new custom image.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "input": {
     "parameters": [
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the member whose board background will be updated.",
+        "description": "The Trello ID or username of the member whose board background will be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_background_id",
         "required": true,
-        "description": "The ID of the custom background to update.",
+        "description": "The ID of the custom board background to be updated in Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -61,7 +61,7 @@
       {
         "name": "tile_background",
         "required": false,
-        "description": "Set to true to tile the board background, false for no tiling.",
+        "description": "Indicates whether to tile the board background. Accepts a boolean value.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -106,13 +106,13 @@
   "deprecation_message": null,
   "metadata": {
     "object_type": "api_wrapper_tool",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Tools that enable LLMs to interact directly with the trello API."
   },
   "http_endpoint": {
     "metadata": {
       "object_type": "http_endpoint",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "description": ""
     },
     "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
@@ -138,6 +138,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -155,6 +156,7 @@
         "accepted_as": "query",
         "required": false,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -172,6 +174,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       },
       {
@@ -189,6 +192,7 @@
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
+        "default": null,
         "documentation_urls": []
       }
     ],
@@ -210,6 +214,9 @@
         "description": "",
         "is_auth_token": false
       }
-    ]
+    ],
+    "request_body_spec": null,
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
   }
 }

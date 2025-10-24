@@ -1,0 +1,291 @@
+{
+  "name": "CreateIncidentResponderRequest",
+  "fully_qualified_name": "PagerdutyApi.CreateIncidentResponderRequest@2.0.0",
+  "description": "Send a responder request for a specified incident.\n\nThis tool allows you to send a new responder request for a specific incident that needs attention and resolution. It should be called whenever additional assistance is required to address an ongoing issue. Proper OAuth scope is required.",
+  "toolkit": {
+    "name": "ArcadePagerdutyApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "incident_id",
+        "required": true,
+        "description": "The unique identifier for the incident requiring a responder request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "accept_version_header",
+        "required": true,
+        "description": "The versioning header used for specifying the API version to accept. It controls the format of the response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Accept"
+      },
+      {
+        "name": "content_type",
+        "required": true,
+        "description": "Specifies the format of the request body. Must be set to 'application/json'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "Content-Type"
+      },
+      {
+        "name": "user_email",
+        "required": true,
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "From"
+      },
+      {
+        "name": "responder_request_details",
+        "required": false,
+        "description": "A JSON object containing details for the responder request, including the requester ID, message, and target responders.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The user id of the requester."
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The message sent with the responder request."
+            },
+            "responder_request_targets": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The array of targets the responder request is sent to."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createIncidentResponderRequest'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-pagerduty",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the Pagerduty API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.pagerduty.com/incidents/{id}/responder_requests",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "incident_id",
+        "description": "The ID of the resource.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the resource."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "Accept",
+        "tool_parameter_name": "accept_version_header",
+        "description": "The `Accept` header is used as a versioning header.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The `Accept` header is used as a versioning header."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/vnd.pagerduty+json;version=2",
+        "documentation_urls": []
+      },
+      {
+        "name": "Content-Type",
+        "tool_parameter_name": "content_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "application/json"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": "application/json",
+        "documentation_urls": []
+      },
+      {
+        "name": "From",
+        "tool_parameter_name": "user_email",
+        "description": "The email address of a valid user associated with the account making the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The email address of a valid user associated with the account making the request."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "responder_request_details",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "requester_id": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The user id of the requester."
+            },
+            "message": {
+              "val_type": "string",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The message sent with the responder request."
+            },
+            "responder_request_targets": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": null,
+              "inner_properties": null,
+              "description": "The array of targets the responder request is sent to."
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"requester_id\": {\n            \"type\": \"string\",\n            \"description\": \"The user id of the requester.\"\n          },\n          \"message\": {\n            \"type\": \"string\",\n            \"description\": \"The message sent with the responder request.\"\n          },\n          \"responder_request_targets\": {\n            \"description\": \"The array of targets the responder request is sent to.\",\n            \"items\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"type\": {\n                  \"type\": \"string\",\n                  \"description\": \"The type of target (either a user or an escalation policy)\"\n                },\n                \"id\": {\n                  \"type\": \"string\",\n                  \"description\": \"The id of the user or escalation policy\"\n                },\n                \"summary\": {\n                  \"type\": \"string\"\n                },\n                \"incident_responders\": {\n                  \"type\": \"array\",\n                  \"description\": \"An array of responders associated with the specified incident\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"state\": {\n                        \"type\": \"string\",\n                        \"description\": \"The status of the responder being added to the incident\",\n                        \"example\": \"pending\"\n                      },\n                      \"user\": {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"user_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      },\n                      \"incident\": {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"incident_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      },\n                      \"updated_at\": {\n                        \"type\": \"string\"\n                      },\n                      \"message\": {\n                        \"type\": \"string\",\n                        \"description\": \"The message sent with the responder request\"\n                      },\n                      \"requester\": {\n                        \"allOf\": [\n                          {\n                            \"allOf\": [\n                              {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                  \"id\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true\n                                  },\n                                  \"summary\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"description\": \"A short-form, server-generated string that provides succinct, important information about an object suitable for primary labeling of an entity in a client. In many cases, this will be identical to `name`, though it is not intended to be an identifier.\"\n                                  },\n                                  \"type\": {\n                                    \"type\": \"string\",\n                                    \"readOnly\": true,\n                                    \"description\": \"A string that determines the schema of the object. This must be the standard name for the entity, suffixed by `_reference` if the object is a reference.\"\n                                  },\n                                  \"self\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"the API show URL at which the object is accessible\"\n                                  },\n                                  \"html_url\": {\n                                    \"type\": \"string\",\n                                    \"nullable\": true,\n                                    \"readOnly\": true,\n                                    \"format\": \"url\",\n                                    \"description\": \"a URL at which the entity is uniquely displayed in the Web app\"\n                                  }\n                                }\n                              },\n                              {\n                                \"type\": \"object\",\n                                \"required\": [\n                                  \"type\",\n                                  \"id\"\n                                ]\n                              }\n                            ]\n                          },\n                          {\n                            \"type\": \"object\",\n                            \"properties\": {\n                              \"type\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                  \"user_reference\"\n                                ]\n                              }\n                            }\n                          }\n                        ]\n                      },\n                      \"requested_at\": {\n                        \"type\": \"string\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        },\n        \"required\": [\n          \"requester_id\",\n          \"message\",\n          \"responder_request_targets\"\n        ]\n      },\n      \"examples\": {\n        \"request\": {\n          \"summary\": \"Request Example\",\n          \"value\": {\n            \"requester_id\": \"PL1JMK5\",\n            \"message\": \"Please help with issue - join bridge at +1(234)-567-8910\",\n            \"responder_request_targets\": [\n              {\n                \"responder_request_target\": {\n                  \"id\": \"PJ25ZYX\",\n                  \"type\": \"user_reference\"\n                }\n              }\n            ]\n          }\n        }\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}

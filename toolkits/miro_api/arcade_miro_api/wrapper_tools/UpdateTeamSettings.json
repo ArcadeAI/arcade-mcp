@@ -1,0 +1,655 @@
+{
+  "name": "UpdateTeamSettings",
+  "fully_qualified_name": "MiroApi.UpdateTeamSettings@2.0.0",
+  "description": "Update settings for an existing team in Miro Enterprise.\n\nThis tool updates the settings of a specified team within an organization using Miro's Enterprise API. It is intended for users with the role of Company Admin under the Enterprise plan. Ensure the required scopes are available for successful operation.",
+  "toolkit": {
+    "name": "ArcadeMiroApi",
+    "description": null,
+    "version": "2.0.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "organization_id",
+        "required": true,
+        "description": "The unique identifier for the organization to which the team belongs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "org_id"
+      },
+      {
+        "name": "team_identifier",
+        "required": true,
+        "description": "The unique identifier of the team to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "team_settings",
+        "required": true,
+        "description": "A JSON object specifying various team settings including account discovery, collaboration, copy access, invitation, and sharing policies.",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "teamAccountDiscoverySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "accountDiscovery": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "hidden",
+                    "request",
+                    "join"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"hidden\":  Only invited users can see and access the team.\n* \"request\": Members of organization can find and request to join with admin approval.\n* \"join\":    Members of organization can find and join.\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team account discovery settings"
+            },
+            "teamCollaborationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "coOwnerRole": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "enabled",
+                    "disabled"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"enabled\": Enable Co-owner role on boards and projects\n* \"disabled\": Disabled Co-owner role on boards and projects\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team collaboration settings"
+            },
+            "teamCopyAccessLevelSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "copyAccessLevel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "anyone",
+                    "team_members",
+                    "team_editors",
+                    "board_owner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"anyone\":       Anyone with the board access can copy board content on newly created boards.\n* \"team_members\": Team members can copy board content on newly created boards.\n* \"team_editors\": Team members with editing rights can copy board content on newly created boards.\n* \"board_owner\":  Board owners only can copy board content on newly created boards.\n"
+                },
+                "copyAccessLevelLimitation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "anyone",
+                    "team_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"anyone\":       Team members and users outside team can be given permission to copy board content.\n* \"team_members\": Only team members can be given permission to copy board content.\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team copy access settings"
+            },
+            "teamInvitationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "inviteExternalUsers": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow non-team collaborators for team\n* \"not_allowed\": Not Allow non-team collaborators for team\n"
+                },
+                "whoCanInvite": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "only_org_admins",
+                    "admins",
+                    "all_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"only_org_admins\": Company admins only can invite\n* \"admins\":          Company admins and team admins can invite\n* \"all_members\":     All team members can invite\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team invitation settings"
+            },
+            "teamSharingPolicySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "allowListedDomains": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Allow listed domains"
+                },
+                "createAssetAccessLevel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "company_admins",
+                    "admins",
+                    "all_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"company_admins\": Only company admins can create assets in a team\n* \"admins\": Both team and company admins can create assets in a team.\n* \"all_members\": all_members\n"
+                },
+                "defaultBoardAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view",
+                    "comment",
+                    "edit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault board access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n* \"comment\": Anyone in the team can comment\n* \"edit\":    Anyone in the team can edit\n"
+                },
+                "defaultBoardSharingAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team_members_with_editing_rights",
+                    "owner_and_coowners"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nIndicates who can change board access and invite users to boards in this team, by default.\n* \"team_members_with_editing_rights\": Any team member with editing rights on the board.\n* \"owner_and_coowners\":               Only the owner and co-owners of the board.\n"
+                },
+                "defaultOrganizationAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view",
+                    "comment",
+                    "edit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault organization access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n* \"comment\": Anyone in the team can comment\n* \"edit\":    Anyone in the team can edit\n"
+                },
+                "defaultProjectAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault project access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n"
+                },
+                "moveBoardToAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow move board to team\n* \"not_allowed\": Not allow move board to team\n"
+                },
+                "restrictAllowedDomains": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "enabled",
+                    "enabled_with_external_user_access",
+                    "disabled"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"enabled\": Enabled. Restrict to listed domain.\n* \"disabled\": Disabled. No domain restriction.\n* \"enabled_with_external_users_access\": Enabled. Restrict to listed domain but allows external users to access.\n"
+                },
+                "sharingOnAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing on team\n* \"not_allowed\": Not allow sharing on team\n"
+                },
+                "sharingOnOrganization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "allowed_with_editing",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing on organization\n* \"allowed_with_editing\": Allow sharing with editing on organization\n* \"not_allowed\": Not allow sharing on organization\n"
+                },
+                "sharingViaPublicLink": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "allowed_with_editing",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing via public link\n* \"allowed_with_editing\": Allow sharing with editing via public link\n* \"not_allowed\": Not allow sharing via public link\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team sharing policy settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "requestBody"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprise-update-team-settings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-miro",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the miro API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.miro.com/v2/orgs/{org_id}/teams/{team_id}/settings",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "org_id",
+        "tool_parameter_name": "organization_id",
+        "description": "The id of the Organization.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Organization."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_identifier",
+        "description": "The id of the Team.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The id of the Team."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "requestBody",
+        "tool_parameter_name": "team_settings",
+        "description": "",
+        "value_schema": {
+          "val_type": "json",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": {
+            "teamAccountDiscoverySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "accountDiscovery": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "hidden",
+                    "request",
+                    "join"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"hidden\":  Only invited users can see and access the team.\n* \"request\": Members of organization can find and request to join with admin approval.\n* \"join\":    Members of organization can find and join.\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team account discovery settings"
+            },
+            "teamCollaborationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "coOwnerRole": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "enabled",
+                    "disabled"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"enabled\": Enable Co-owner role on boards and projects\n* \"disabled\": Disabled Co-owner role on boards and projects\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team collaboration settings"
+            },
+            "teamCopyAccessLevelSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "copyAccessLevel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "anyone",
+                    "team_members",
+                    "team_editors",
+                    "board_owner"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"anyone\":       Anyone with the board access can copy board content on newly created boards.\n* \"team_members\": Team members can copy board content on newly created boards.\n* \"team_editors\": Team members with editing rights can copy board content on newly created boards.\n* \"board_owner\":  Board owners only can copy board content on newly created boards.\n"
+                },
+                "copyAccessLevelLimitation": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "anyone",
+                    "team_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"anyone\":       Team members and users outside team can be given permission to copy board content.\n* \"team_members\": Only team members can be given permission to copy board content.\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team copy access settings"
+            },
+            "teamInvitationSettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "inviteExternalUsers": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow non-team collaborators for team\n* \"not_allowed\": Not Allow non-team collaborators for team\n"
+                },
+                "whoCanInvite": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "only_org_admins",
+                    "admins",
+                    "all_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"only_org_admins\": Company admins only can invite\n* \"admins\":          Company admins and team admins can invite\n* \"all_members\":     All team members can invite\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team invitation settings"
+            },
+            "teamSharingPolicySettings": {
+              "val_type": "json",
+              "inner_val_type": null,
+              "enum": null,
+              "properties": {
+                "allowListedDomains": {
+                  "val_type": "array",
+                  "inner_val_type": "string",
+                  "enum": null,
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "Allow listed domains"
+                },
+                "createAssetAccessLevel": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "company_admins",
+                    "admins",
+                    "all_members"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"company_admins\": Only company admins can create assets in a team\n* \"admins\": Both team and company admins can create assets in a team.\n* \"all_members\": all_members\n"
+                },
+                "defaultBoardAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view",
+                    "comment",
+                    "edit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault board access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n* \"comment\": Anyone in the team can comment\n* \"edit\":    Anyone in the team can edit\n"
+                },
+                "defaultBoardSharingAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "team_members_with_editing_rights",
+                    "owner_and_coowners"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nIndicates who can change board access and invite users to boards in this team, by default.\n* \"team_members_with_editing_rights\": Any team member with editing rights on the board.\n* \"owner_and_coowners\":               Only the owner and co-owners of the board.\n"
+                },
+                "defaultOrganizationAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view",
+                    "comment",
+                    "edit"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault organization access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n* \"comment\": Anyone in the team can comment\n* \"edit\":    Anyone in the team can edit\n"
+                },
+                "defaultProjectAccess": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "private",
+                    "view"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\nDefault project access\n* \"private\": Only board owners can access\n* \"view\":    Anyone in the team can view\n"
+                },
+                "moveBoardToAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow move board to team\n* \"not_allowed\": Not allow move board to team\n"
+                },
+                "restrictAllowedDomains": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "enabled",
+                    "enabled_with_external_user_access",
+                    "disabled"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"enabled\": Enabled. Restrict to listed domain.\n* \"disabled\": Disabled. No domain restriction.\n* \"enabled_with_external_users_access\": Enabled. Restrict to listed domain but allows external users to access.\n"
+                },
+                "sharingOnAccount": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing on team\n* \"not_allowed\": Not allow sharing on team\n"
+                },
+                "sharingOnOrganization": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "allowed_with_editing",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing on organization\n* \"allowed_with_editing\": Allow sharing with editing on organization\n* \"not_allowed\": Not allow sharing on organization\n"
+                },
+                "sharingViaPublicLink": {
+                  "val_type": "string",
+                  "inner_val_type": null,
+                  "enum": [
+                    "allowed",
+                    "allowed_with_editing",
+                    "not_allowed"
+                  ],
+                  "properties": null,
+                  "inner_properties": null,
+                  "description": "\n* \"allowed\": Allow sharing via public link\n* \"allowed_with_editing\": Allow sharing with editing via public link\n* \"not_allowed\": Not allow sharing via public link\n"
+                }
+              },
+              "inner_properties": null,
+              "description": "Team sharing policy settings"
+            }
+          },
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"teamAccountDiscoverySettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"accountDiscovery\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"hidden\\\":  Only invited users can see and access the team.\\n* \\\"request\\\": Members of organization can find and request to join with admin approval.\\n* \\\"join\\\":    Members of organization can find and join.\\n\",\n                \"enum\": [\n                  \"hidden\",\n                  \"request\",\n                  \"join\"\n                ]\n              }\n            },\n            \"description\": \"Team account discovery settings\"\n          },\n          \"teamCollaborationSettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"coOwnerRole\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"enabled\\\": Enable Co-owner role on boards and projects\\n* \\\"disabled\\\": Disabled Co-owner role on boards and projects\\n\",\n                \"enum\": [\n                  \"enabled\",\n                  \"disabled\"\n                ]\n              }\n            },\n            \"description\": \"Team collaboration settings\"\n          },\n          \"teamCopyAccessLevelSettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"copyAccessLevel\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"anyone\\\":       Anyone with the board access can copy board content on newly created boards.\\n* \\\"team_members\\\": Team members can copy board content on newly created boards.\\n* \\\"team_editors\\\": Team members with editing rights can copy board content on newly created boards.\\n* \\\"board_owner\\\":  Board owners only can copy board content on newly created boards.\\n\",\n                \"enum\": [\n                  \"anyone\",\n                  \"team_members\",\n                  \"team_editors\",\n                  \"board_owner\"\n                ]\n              },\n              \"copyAccessLevelLimitation\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"anyone\\\":       Team members and users outside team can be given permission to copy board content.\\n* \\\"team_members\\\": Only team members can be given permission to copy board content.\\n\",\n                \"enum\": [\n                  \"anyone\",\n                  \"team_members\"\n                ]\n              }\n            },\n            \"description\": \"Team copy access settings\"\n          },\n          \"teamInvitationSettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"inviteExternalUsers\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"allowed\\\": Allow non-team collaborators for team\\n* \\\"not_allowed\\\": Not Allow non-team collaborators for team\\n\",\n                \"enum\": [\n                  \"allowed\",\n                  \"not_allowed\"\n                ]\n              },\n              \"whoCanInvite\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"only_org_admins\\\": Company admins only can invite\\n* \\\"admins\\\":          Company admins and team admins can invite\\n* \\\"all_members\\\":     All team members can invite\\n\",\n                \"enum\": [\n                  \"only_org_admins\",\n                  \"admins\",\n                  \"all_members\"\n                ]\n              }\n            },\n            \"description\": \"Team invitation settings\"\n          },\n          \"teamSharingPolicySettings\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"allowListedDomains\": {\n                \"type\": \"array\",\n                \"description\": \"Allow listed domains\",\n                \"items\": {\n                  \"type\": \"string\",\n                  \"description\": \"Allow listed domains\"\n                }\n              },\n              \"createAssetAccessLevel\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"company_admins\\\": Only company admins can create assets in a team\\n* \\\"admins\\\": Both team and company admins can create assets in a team.\\n* \\\"all_members\\\": all_members\\n\",\n                \"enum\": [\n                  \"company_admins\",\n                  \"admins\",\n                  \"all_members\"\n                ]\n              },\n              \"defaultBoardAccess\": {\n                \"type\": \"string\",\n                \"description\": \"\\nDefault board access\\n* \\\"private\\\": Only board owners can access\\n* \\\"view\\\":    Anyone in the team can view\\n* \\\"comment\\\": Anyone in the team can comment\\n* \\\"edit\\\":    Anyone in the team can edit\\n\",\n                \"enum\": [\n                  \"private\",\n                  \"view\",\n                  \"comment\",\n                  \"edit\"\n                ]\n              },\n              \"defaultBoardSharingAccess\": {\n                \"type\": \"string\",\n                \"default\": \"team_members_with_editing_rights\",\n                \"description\": \"\\nIndicates who can change board access and invite users to boards in this team, by default.\\n* \\\"team_members_with_editing_rights\\\": Any team member with editing rights on the board.\\n* \\\"owner_and_coowners\\\":               Only the owner and co-owners of the board.\\n\",\n                \"enum\": [\n                  \"team_members_with_editing_rights\",\n                  \"owner_and_coowners\"\n                ]\n              },\n              \"defaultOrganizationAccess\": {\n                \"type\": \"string\",\n                \"description\": \"\\nDefault organization access\\n* \\\"private\\\": Only board owners can access\\n* \\\"view\\\":    Anyone in the team can view\\n* \\\"comment\\\": Anyone in the team can comment\\n* \\\"edit\\\":    Anyone in the team can edit\\n\",\n                \"enum\": [\n                  \"private\",\n                  \"view\",\n                  \"comment\",\n                  \"edit\"\n                ]\n              },\n              \"defaultProjectAccess\": {\n                \"type\": \"string\",\n                \"description\": \"\\nDefault project access\\n* \\\"private\\\": Only board owners can access\\n* \\\"view\\\":    Anyone in the team can view\\n\",\n                \"enum\": [\n                  \"private\",\n                  \"view\"\n                ]\n              },\n              \"moveBoardToAccount\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"allowed\\\": Allow move board to team\\n* \\\"not_allowed\\\": Not allow move board to team\\n\",\n                \"enum\": [\n                  \"allowed\",\n                  \"not_allowed\"\n                ]\n              },\n              \"restrictAllowedDomains\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"enabled\\\": Enabled. Restrict to listed domain.\\n* \\\"disabled\\\": Disabled. No domain restriction.\\n* \\\"enabled_with_external_users_access\\\": Enabled. Restrict to listed domain but allows external users to access.\\n\",\n                \"enum\": [\n                  \"enabled\",\n                  \"enabled_with_external_user_access\",\n                  \"disabled\"\n                ]\n              },\n              \"sharingOnAccount\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"allowed\\\": Allow sharing on team\\n* \\\"not_allowed\\\": Not allow sharing on team\\n\",\n                \"enum\": [\n                  \"allowed\",\n                  \"not_allowed\"\n                ]\n              },\n              \"sharingOnOrganization\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"allowed\\\": Allow sharing on organization\\n* \\\"allowed_with_editing\\\": Allow sharing with editing on organization\\n* \\\"not_allowed\\\": Not allow sharing on organization\\n\",\n                \"enum\": [\n                  \"allowed\",\n                  \"allowed_with_editing\",\n                  \"not_allowed\"\n                ]\n              },\n              \"sharingViaPublicLink\": {\n                \"type\": \"string\",\n                \"description\": \"\\n* \\\"allowed\\\": Allow sharing via public link\\n* \\\"allowed_with_editing\\\": Allow sharing with editing via public link\\n* \\\"not_allowed\\\": Not allow sharing via public link\\n\",\n                \"enum\": [\n                  \"allowed\",\n                  \"allowed_with_editing\",\n                  \"not_allowed\"\n                ]\n              }\n            },\n            \"description\": \"Team sharing policy settings\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": true,
+    "validate_request_body_schema": true
+  }
+}
