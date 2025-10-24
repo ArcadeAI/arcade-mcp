@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
 import uvicorn
@@ -189,6 +190,10 @@ class MCPApp:
             raise e.with_context(func.__name__) from e
         logger.debug(f"Added tool: {func.__name__}")
         return func
+
+    def add_tools_from_module(self, module: ModuleType) -> None:
+        """Add all the tools in a module to the catalog."""
+        self._catalog.add_module(module)
 
     def tool(
         self,
