@@ -73,7 +73,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -2326,7 +2326,7 @@ async def update_collaborator_permissions(
     ] = None,
     collaborator_id: Annotated[
         str | None,
-        "The unique ID of the user or group whose permissions are to be updated. This is required for specifying which collaborator’s access level should be modified.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
+        "The unique ID of the user or group whose permissions are to be updated. This is required for specifying which collaborator's access level should be modified.  Required when mode is 'execute', ignored when mode is 'get_request_schema'.",  # noqa: E501
     ] = None,
     request_body: Annotated[
         str | None,

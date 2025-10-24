@@ -9,15 +9,14 @@ BE OVERWRITTEN BY THE TRANSPILER.
 
 import asyncio
 import json
-import jsonschema
 from enum import Enum
 from typing import Annotated, Any
 
 import httpx
-
-from arcade_tdk import tool, ToolContext
-from arcade_tdk.errors import RetryableToolError
+import jsonschema
+from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError
 
 from .request_body_schemas import REQUEST_BODY_SCHEMAS
 
@@ -74,7 +73,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -7284,4 +7283,3 @@ async def update_team_settings(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
-

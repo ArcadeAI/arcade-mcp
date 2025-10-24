@@ -9,15 +9,14 @@ BE OVERWRITTEN BY THE TRANSPILER.
 
 import asyncio
 import json
-import jsonschema
 from enum import Enum
 from typing import Annotated, Any
 
 import httpx
-
-from arcade_tdk import tool, ToolContext
-from arcade_tdk.errors import RetryableToolError
+import jsonschema
+from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError
 
 from .request_body_schemas import REQUEST_BODY_SCHEMAS
 
@@ -74,7 +73,7 @@ async def make_request(
                 continue
             # Re-raise for 4xx errors or if max retries reached
             raise
-        except httpx.RequestError as e:
+        except httpx.RequestError:
             # Don't retry request errors (network issues are handled by transport)
             raise
         else:
@@ -315,7 +314,6 @@ async def assign_tags_to_pagerduty_entity(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -589,7 +587,6 @@ async def install_pagerduty_addon(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -769,7 +766,6 @@ async def update_pagerduty_addon(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -924,7 +920,6 @@ async def create_alert_grouping_setting(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1115,7 +1110,6 @@ async def update_alert_grouping_setting(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1212,7 +1206,6 @@ async def get_incident_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1315,7 +1308,6 @@ async def get_escalation_policy_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1415,7 +1407,6 @@ async def fetch_incident_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1518,7 +1509,6 @@ async def get_incident_analytics_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1621,7 +1611,6 @@ async def get_aggregated_incident_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1720,7 +1709,6 @@ async def get_team_incident_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1823,7 +1811,6 @@ async def get_analytics_metrics_for_all_teams(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -1926,7 +1913,6 @@ async def get_analytics_metrics_pd_advance_usage(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2025,7 +2011,6 @@ async def retrieve_analytics_data(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2124,7 +2109,6 @@ async def fetch_responder_team_metrics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2221,7 +2205,6 @@ async def get_incident_analytics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2308,7 +2291,6 @@ async def get_incident_response_analytics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2433,7 +2415,6 @@ async def get_responder_incident_analytics(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2610,7 +2591,6 @@ async def create_automation_action(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2864,7 +2844,6 @@ async def update_automation_action(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -2909,7 +2888,6 @@ async def invoke_automation_action(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3072,7 +3050,6 @@ async def associate_automation_action_with_service(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3279,7 +3256,6 @@ async def associate_automation_action_with_team(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3574,7 +3550,6 @@ async def create_automation_runner(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3780,7 +3755,6 @@ async def update_automation_action_runner(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -3933,7 +3907,6 @@ async def associate_runner_with_team(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4145,7 +4118,6 @@ async def create_business_service(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -4263,7 +4235,6 @@ async def update_business_service(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5142,7 +5113,6 @@ async def update_change_event(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5310,7 +5280,6 @@ async def create_escalation_policy(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": change_tracking_user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -5498,7 +5467,6 @@ async def update_escalation_policy(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5702,7 +5670,6 @@ async def create_global_event_orchestration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -5853,7 +5820,6 @@ async def update_event_orchestration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6040,7 +6006,6 @@ async def create_event_integration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6205,7 +6170,6 @@ async def update_event_integration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6368,7 +6332,6 @@ async def migrate_integration_to_event_orchestration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6527,7 +6490,6 @@ async def update_event_orchestration_global_rules(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6686,7 +6648,6 @@ async def update_orchestration_routing_rules(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -6841,7 +6802,6 @@ async def update_unrouted_event_rules(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7003,7 +6963,6 @@ async def update_service_orchestration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7162,7 +7121,6 @@ async def update_service_orchestration_status(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -7946,7 +7904,6 @@ async def update_event_orchestration_features(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8182,7 +8139,6 @@ async def create_service_extension(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8368,7 +8324,6 @@ async def update_extension(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8546,7 +8501,6 @@ async def create_incident_workflow(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8726,7 +8680,6 @@ async def update_incident_workflow(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -8844,7 +8797,6 @@ async def start_incident_workflow(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9097,7 +9049,6 @@ async def create_incident_workflow_trigger(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9254,7 +9205,6 @@ async def update_incident_workflow_trigger(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9417,7 +9367,6 @@ async def associate_service_to_incident_workflow_trigger(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -9679,7 +9628,6 @@ async def update_incidents(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -9781,7 +9729,6 @@ async def create_incident(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -9942,7 +9889,6 @@ async def manage_incident_status(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email_for_request,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -10149,7 +10095,6 @@ async def resolve_or_reassociate_incident_alerts(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -10321,7 +10266,6 @@ async def resolve_or_update_incident_alert(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email_address,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -10833,7 +10777,6 @@ async def merge_incidents(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email_address,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -10989,7 +10932,6 @@ async def add_incident_note(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email_address,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -11276,7 +11218,6 @@ async def create_incident_responder_request(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -11399,7 +11340,6 @@ async def snooze_incident(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -11522,7 +11462,6 @@ async def update_incident_status(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": requestor_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -11938,7 +11877,6 @@ async def create_incident_type(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -12093,7 +12031,6 @@ async def update_incident_type(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -12255,7 +12192,6 @@ async def create_incident_type_custom_field(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -12421,7 +12357,6 @@ async def update_incident_custom_field(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -12621,7 +12556,6 @@ async def create_custom_field_option(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -12805,7 +12739,6 @@ async def update_custom_field_option(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -13158,7 +13091,6 @@ async def update_incident_log_entry(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -13328,7 +13260,6 @@ async def create_maintenance_window(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": user_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -13517,7 +13448,6 @@ async def update_maintenance_window(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -13988,7 +13918,6 @@ async def create_ruleset(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -14137,7 +14066,6 @@ async def update_ruleset(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -14332,7 +14260,6 @@ async def create_event_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -14495,7 +14422,6 @@ async def update_event_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -14705,7 +14631,6 @@ async def create_on_call_schedule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -14915,7 +14840,6 @@ async def update_on_call_schedule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15135,7 +15059,6 @@ async def create_schedule_override(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15326,7 +15249,6 @@ async def preview_on_call_schedule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15423,7 +15345,6 @@ async def create_service_dependency(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15555,7 +15476,6 @@ async def remove_service_dependency(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15757,7 +15677,6 @@ async def create_new_service(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -15941,7 +15860,6 @@ async def update_service_details(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -16174,7 +16092,6 @@ async def create_service_integration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -16299,7 +16216,6 @@ async def update_service_integration(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -16511,7 +16427,6 @@ async def create_service_event_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -16711,7 +16626,6 @@ async def update_service_event_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -16846,7 +16760,6 @@ async def create_service_custom_field(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17035,7 +16948,6 @@ async def update_service_custom_field(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17219,7 +17131,6 @@ async def add_service_field_option(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17389,7 +17300,6 @@ async def update_service_custom_field_option(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17581,7 +17491,6 @@ async def set_service_custom_field_values(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17745,7 +17654,6 @@ async def update_service_feature_enablement(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -17825,7 +17733,6 @@ async def update_session_configurations(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -18017,7 +17924,6 @@ async def update_standard(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -20039,7 +19945,6 @@ async def create_tag(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -20251,7 +20156,6 @@ async def create_new_team(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -20487,7 +20391,6 @@ async def update_team(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -21028,7 +20931,6 @@ async def add_user_to_team(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -21579,7 +21481,6 @@ async def create_pagerduty_user(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "From": requester_email,
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
@@ -21767,7 +21668,6 @@ async def update_pagerduty_user(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -21971,7 +21871,6 @@ async def create_user_contact_method(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -22173,7 +22072,6 @@ async def update_user_contact_method(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -22370,7 +22268,6 @@ async def create_user_notification_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -22579,7 +22476,6 @@ async def update_user_notification_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23026,7 +22922,6 @@ async def create_handoff_notification_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23237,7 +23132,6 @@ async def update_user_handoff_notification(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23394,7 +23288,6 @@ async def create_user_status_update_notification_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23612,7 +23505,6 @@ async def update_user_status_notification_rule(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23874,7 +23766,6 @@ async def create_webhook_subscription(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -23966,7 +23857,6 @@ async def update_webhook_subscription(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -24147,7 +24037,6 @@ async def create_oauth_client(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -24243,7 +24132,6 @@ async def update_oauth_client(
         headers=remove_none_values({
             "Content-Type": "application/json",
             "Accept": "application/vnd.pagerduty+json;version=2",
-            "Content-Type": "application/json",
             "Authorization": "Bearer {authorization}".format(  # noqa: UP032
                 authorization=context.get_auth_token_or_empty()
             ),
@@ -24612,4 +24500,3 @@ async def delete_workflow_integration_connection(
         return {"response_json": response.json()}
     except Exception:
         return {"response_text": response.text}
-
