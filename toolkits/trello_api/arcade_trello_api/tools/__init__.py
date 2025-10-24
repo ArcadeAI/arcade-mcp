@@ -5118,7 +5118,7 @@ async def create_enterprise_auth_token(
     token_expiration: Annotated[
         str | None,
         "Specify the token's duration: `1hour`, `1day`, `30days`, or `never`. This determines how long the token will be valid.",  # noqa: E501
-    ] = "none",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-enterprises-id-tokens'."]:
     """Create an auth token for a Trello enterprise.
 
