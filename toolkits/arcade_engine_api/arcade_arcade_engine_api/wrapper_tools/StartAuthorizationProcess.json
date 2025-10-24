@@ -1,0 +1,269 @@
+{
+  "name": "StartAuthorizationProcess",
+  "fully_qualified_name": "EngineApi.StartAuthorizationProcess@0.1.0",
+  "description": "Starts the authorization process for given requirements.\n\nUse this tool to initiate the authorization process based on specified requirements. Ideal for cases where user authentication needs to be initiated or validated.",
+  "toolkit": {
+    "name": "ArcadeEngineApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "Unique identifier for the user. Required to start the authorization process.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "authorization_requirement_id",
+        "required": false,
+        "description": "Set this ID for initiating authorization. Either this ID or the provider ID must be set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "one of ID or ProviderID must be set"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auth_requirement.id"
+      },
+      {
+        "name": "oauth2_scopes",
+        "required": false,
+        "description": "A list of OAuth2 scopes that specify the level of access required for the authorization. Each scope should be provided as a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auth_requirement.oauth2.scopes"
+      },
+      {
+        "name": "authorization_provider_id",
+        "required": false,
+        "description": "The provider ID for authorization. One of ID or ProviderID must be set.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "one of ID or ProviderID must be set"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auth_requirement.provider_id"
+      },
+      {
+        "name": "authorization_provider_type",
+        "required": false,
+        "description": "Specifies the type of authorization provider to be used, such as 'OAuth2', 'SAML', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "auth_requirement.provider_type"
+      },
+      {
+        "name": "redirection_uri_after_authorization",
+        "required": false,
+        "description": "Optional URI to redirect the user after authorization. If provided, the user will be redirected to this specific address once the authorization process is complete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if provided, the user will be redirected to this URI after authorization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_uri"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'initiate-authorization'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "ARCADE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the engine API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.arcade.dev/v1/auth/authorize",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "auth_requirement.id",
+        "tool_parameter_name": "authorization_requirement_id",
+        "description": "one of ID or ProviderID must be set",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "one of ID or ProviderID must be set"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "auth_requirement.oauth2.scopes",
+        "tool_parameter_name": "oauth2_scopes",
+        "description": "",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "auth_requirement.provider_id",
+        "tool_parameter_name": "authorization_provider_id",
+        "description": "one of ID or ProviderID must be set",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "one of ID or ProviderID must be set"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "auth_requirement.provider_type",
+        "tool_parameter_name": "authorization_provider_type",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_uri",
+        "tool_parameter_name": "redirection_uri_after_authorization",
+        "description": "Optional: if provided, the user will be redirected to this URI after authorization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Optional: if provided, the user will be redirected to this URI after authorization"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "ARCADE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ],
+    "request_body_spec": "{\n  \"description\": \"Authorization request\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"required\": [\n          \"auth_requirement\",\n          \"user_id\"\n        ],\n        \"type\": \"object\",\n        \"properties\": {\n          \"auth_requirement\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"id\": {\n                \"type\": \"string\",\n                \"description\": \"one of ID or ProviderID must be set\"\n              },\n              \"oauth2\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"scopes\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    }\n                  }\n                }\n              },\n              \"provider_id\": {\n                \"type\": \"string\",\n                \"description\": \"one of ID or ProviderID must be set\"\n              },\n              \"provider_type\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"next_uri\": {\n            \"type\": \"string\",\n            \"description\": \"Optional: if provided, the user will be redirected to this URI after authorization\"\n          },\n          \"user_id\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  },\n  \"required\": true\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -5,11 +5,13 @@ from typing import Any
 from urllib.parse import parse_qs
 
 import yaml
+from arcade_core.constants import (
+    ARCADE_CONFIG_PATH,
+    CREDENTIALS_FILE_PATH,
+)
 from rich.console import Console
 
 from arcade_cli.constants import (
-    ARCADE_CONFIG_PATH,
-    CREDENTIALS_FILE_PATH,
     LOGIN_FAILED_HTML,
     LOGIN_SUCCESS_HTML,
 )

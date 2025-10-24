@@ -27,6 +27,7 @@ from arcade_mcp_server.exceptions import ServerError
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings, ServerSettings
 from arcade_mcp_server.types import Prompt, PromptMessage, Resource
+from arcade_mcp_server.usage import ServerTracker
 from arcade_mcp_server.worker import create_arcade_mcp
 
 P = ParamSpec("P")
@@ -300,6 +301,13 @@ class MCPApp:
         elif transport == "stdio":
             from arcade_mcp_server.__main__ import run_stdio_server
 
+            tracker = ServerTracker()
+            tracker.track_server_start(
+                transport="stdio",
+                host=None,
+                port=None,
+                tool_count=len(self._catalog),
+            )
             asyncio.run(
                 run_stdio_server(
                     catalog=self._catalog,
@@ -379,6 +387,13 @@ class MCPApp:
             **self.server_kwargs,
         )
 
+        tracker = ServerTracker()
+        tracker.track_server_start(
+            transport="http",
+            host=host,
+            port=port,
+            tool_count=len(self._catalog),
+        )
         uvicorn.run(
             app,
             host=host,

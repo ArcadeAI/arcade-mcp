@@ -1,0 +1,255 @@
+{
+  "name": "CreateProjectInTicktick",
+  "fully_qualified_name": "TicktickApi.CreateProjectInTicktick@0.1.0",
+  "description": "Create a new project in Ticktick with optional properties.\n\nUse this tool to create a new project in Ticktick. You can specify the project's name and other optional properties such as color, sort order, view mode, and kind (TASK or NOTE).",
+  "toolkit": {
+    "name": "ArcadeTicktickApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "project_name",
+        "required": true,
+        "description": "Name of the project to be created. This is a required field.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project (required)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "project_color",
+        "required": false,
+        "description": "Hex color code representing the project's color (e.g., '#F18181').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Color of project - hex color code (e.g., '#F18181')"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "color"
+      },
+      {
+        "name": "project_sort_order",
+        "required": false,
+        "description": "The integer value representing the project's sort order.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort order value of the project"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sortOrder"
+      },
+      {
+        "name": "project_view_mode",
+        "required": false,
+        "description": "The display mode for the project: choose from 'list', 'kanban', or 'timeline'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "list",
+            "kanban",
+            "timeline"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "View mode - how the project should be displayed (list, kanban, or timeline)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "viewMode"
+      },
+      {
+        "name": "project_kind",
+        "required": false,
+        "description": "Specifies the type of items the project will store. Choose 'TASK' for tasks or 'NOTE' for notes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "TASK",
+            "NOTE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project kind - type of items to store (TASK or NOTE)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "kind"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'createProject'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-ticktick",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "tasks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.1.0",
+    "description": "Tools that enable LLMs to interact directly with the ticktick API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.2.0",
+      "description": ""
+    },
+    "url": "https://api.ticktick.com/open/v1/project",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "project_name",
+        "description": "Name of the project (required)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name of the project (required)"
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "color",
+        "tool_parameter_name": "project_color",
+        "description": "Color of project - hex color code (e.g., '#F18181')",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Color of project - hex color code (e.g., '#F18181')"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "sortOrder",
+        "tool_parameter_name": "project_sort_order",
+        "description": "Sort order value of the project",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Sort order value of the project"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "viewMode",
+        "tool_parameter_name": "project_view_mode",
+        "description": "View mode - how the project should be displayed (list, kanban, or timeline)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "list",
+            "kanban",
+            "timeline"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "View mode - how the project should be displayed (list, kanban, or timeline)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      },
+      {
+        "name": "kind",
+        "tool_parameter_name": "project_kind",
+        "description": "Project kind - type of items to store (TASK or NOTE)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "TASK",
+            "NOTE"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Project kind - type of items to store (TASK or NOTE)"
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "default": null,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ],
+    "request_body_spec": "{\n  \"required\": true,\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"description\": \"Input schema for creating a new project\",\n        \"properties\": {\n          \"name\": {\n            \"type\": \"string\",\n            \"description\": \"Name of the project (required)\"\n          },\n          \"color\": {\n            \"type\": \"string\",\n            \"description\": \"Color of project - hex color code (e.g., '#F18181')\",\n            \"example\": \"#F18181\"\n          },\n          \"sortOrder\": {\n            \"type\": \"integer\",\n            \"format\": \"int64\",\n            \"description\": \"Sort order value of the project\"\n          },\n          \"viewMode\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"list\",\n              \"kanban\",\n              \"timeline\"\n            ],\n            \"description\": \"View mode - how the project should be displayed (list, kanban, or timeline)\"\n          },\n          \"kind\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"TASK\",\n              \"NOTE\"\n            ],\n            \"description\": \"Project kind - type of items to store (TASK or NOTE)\"\n          }\n        },\n        \"required\": [\n          \"name\"\n        ]\n      },\n      \"example\": {\n        \"name\": \"project name\",\n        \"color\": \"#F18181\",\n        \"viewMode\": \"list\",\n        \"kind\": \"task\"\n      }\n    }\n  }\n}",
+    "use_request_body_schema_mode": false,
+    "validate_request_body_schema": false
+  }
+}

@@ -7,12 +7,15 @@ from importlib import metadata
 from typing import Any
 
 import typer
-from arcade_cli.constants import ARCADE_CONFIG_PATH
 from arcade_cli.usage.constants import (
     EVENT_CLI_COMMAND_EXECUTED,
     EVENT_CLI_COMMAND_FAILED,
     PROP_CLI_VERSION,
     PROP_COMMAND_NAME,
+)
+from arcade_core.constants import ARCADE_CONFIG_PATH
+from arcade_core.usage import UsageIdentity, UsageService, is_tracking_enabled
+from arcade_core.usage.constants import (
     PROP_DEVICE_MONOTONIC_END,
     PROP_DEVICE_MONOTONIC_START,
     PROP_DURATION_MS,
@@ -22,9 +25,6 @@ from arcade_cli.usage.constants import (
     PROP_RUNTIME_LANGUAGE,
     PROP_RUNTIME_VERSION,
 )
-from arcade_cli.usage.identity import UsageIdentity
-from arcade_cli.usage.usage_service import UsageService
-from arcade_cli.usage.utils import is_tracking_enabled
 from rich.console import Console
 from typer.core import TyperCommand, TyperGroup
 from typer.models import Context

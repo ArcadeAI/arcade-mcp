@@ -10,6 +10,7 @@ from typing import Optional
 
 import click
 import typer
+from arcade_core.constants import CREDENTIALS_FILE_PATH
 from arcadepy import Arcade
 from rich.console import Console
 from rich.text import Text
@@ -17,7 +18,6 @@ from tqdm import tqdm
 
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
-    CREDENTIALS_FILE_PATH,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
@@ -531,7 +531,7 @@ def configure(
     Examples:
         arcade configure claude
         arcade configure cursor --transport http --port 8080
-        arcade configure vscode --host arcade --entrypoint ../../../mcp/server.py --config .vscode/mcp.json
+        arcade configure vscode --host arcade --entrypoint my_server.py --config .vscode/mcp.json
         arcade configure claude --host local --name my_server_name
     """
     from arcade_cli.configure import configure_client
