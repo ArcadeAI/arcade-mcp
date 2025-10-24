@@ -31,7 +31,7 @@ dev = [
 
 # Tell Arcade.dev that this package is a toolkit
 [project.entry-points.arcade_toolkits]
-toolkit_name = "arcade_engine_api"
+toolkit_name = "arcade_arcade_engine_api"
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
@@ -57,4 +57,4 @@ testpaths = [ "tests",]
 skip_empty = true
 
 [tool.hatch.build.targets.wheel]
-packages = [ "arcade_engine_api",]
+packages = [ "arcade_arcade_engine_api",]
